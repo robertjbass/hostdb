@@ -1,0 +1,6 @@
+{
+  "$schema": "./schemas/releases.schema.json",
+  "repository": "robertjbass/hostdb",
+  "lastUpdated": null,
+  "databases": {}
+}

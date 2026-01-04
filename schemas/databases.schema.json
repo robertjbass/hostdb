@@ -1,0 +1,204 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Databases Registry",
+  "description": "Configuration for all supported databases, versions, and platforms",
+  "type": "object",
+  "required": ["databases"],
+  "properties": {
+    "databases": {
+      "type": "object",
+      "description": "Map of database IDs to their configuration",
+      "additionalProperties": {
+        "$ref": "#/definitions/Database"
+      }
+    }
+  },
+  "definitions": {
+    "Database": {
+      "type": "object",
+      "required": [
+        "displayName",
+        "description",
+        "type",
+        "sourceRepo",
+        "license",
+        "status",
+        "commercialUse",
+        "protocol",
+        "note",
+        "latestLts",
+        "versions",
+        "platforms",
+        "cliTools",
+        "connection"
+      ],
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "Human-readable name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief description of the database"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Analytical",
+            "Distributed SQL",
+            "Document",
+            "Embedded KV",
+            "Embedded SQL",
+            "Key-Value",
+            "Multi-model",
+            "Relational",
+            "Search",
+            "Time-series",
+            "Vector"
+          ],
+          "description": "Database type/category"
+        },
+        "sourceRepo": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to source code repository"
+        },
+        "license": {
+          "type": "string",
+          "description": "License identifier (e.g., MIT, Apache-2.0)"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["in-progress", "pending", "unsupported"],
+          "description": "Build status: in-progress (actively building), pending (planned), unsupported (not planned)"
+        },
+        "commercialUse": {
+          "type": "boolean",
+          "description": "Whether the license permits commercial use"
+        },
+        "protocol": {
+          "type": ["string", "null"],
+          "enum": [
+            "elasticsearch",
+            "mongodb",
+            "mysql",
+            "postgresql",
+            "redis",
+            "sqlite",
+            null
+          ],
+          "description": "Wire protocol compatibility (for drop-in replacements)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Additional notes (e.g., why disabled)"
+        },
+        "latestLts": {
+          "type": "string",
+          "description": "Latest LTS version series"
+        },
+        "versions": {
+          "type": "object",
+          "description": "Map of version strings to enabled status",
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        },
+        "platforms": {
+          "type": "object",
+          "description": "Map of platform IDs to supported status",
+          "properties": {
+            "linux-x64": { "type": "boolean" },
+            "linux-arm64": { "type": "boolean" },
+            "darwin-x64": { "type": "boolean" },
+            "darwin-arm64": { "type": "boolean" },
+            "win32-x64": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "cliTools": {
+          "$ref": "#/definitions/CliTools"
+        },
+        "connection": {
+          "$ref": "#/definitions/Connection"
+        }
+      }
+    },
+    "Connection": {
+      "type": "object",
+      "required": [
+        "runtime",
+        "defaultPort",
+        "scheme",
+        "defaultDatabase",
+        "defaultUser",
+        "queryLanguage"
+      ],
+      "properties": {
+        "runtime": {
+          "type": "string",
+          "enum": ["server", "embedded"],
+          "description": "Whether the database runs as a server process or is embedded/file-based"
+        },
+        "defaultPort": {
+          "type": ["integer", "null"],
+          "description": "Default TCP port (null for embedded databases)"
+        },
+        "scheme": {
+          "type": ["string", "null"],
+          "description": "URI scheme for connection strings (e.g., postgresql, mysql, redis); null for embedded libraries"
+        },
+        "defaultDatabase": {
+          "type": ["string", "null"],
+          "description": "Default database name (e.g., 'postgres', '0' for Redis, null for embedded)"
+        },
+        "defaultUser": {
+          "type": ["string", "null"],
+          "description": "Default superuser (e.g., 'postgres', 'root', null for no-auth)"
+        },
+        "queryLanguage": {
+          "type": "string",
+          "enum": [
+            "SQL",
+            "AQL",
+            "MQL",
+            "Redis",
+            "HTTP",
+            "InfluxQL",
+            "PromQL",
+            "API"
+          ],
+          "description": "Primary query language or API (API = native language bindings)"
+        }
+      }
+    },
+    "CliTools": {
+      "type": "object",
+      "required": ["server", "client", "utilities", "enhanced"],
+      "properties": {
+        "server": {
+          "type": ["string", "null"],
+          "description": "Server binary name (null for embedded databases)"
+        },
+        "client": {
+          "type": ["string", "null"],
+          "description": "Client CLI binary name (null for HTTP-only APIs)"
+        },
+        "utilities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Backup, restore, and admin utilities"
+        },
+        "enhanced": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Recommended enhanced CLI tools (e.g., pgcli, mycli)"
+        },
+        "note": {
+          "type": "string",
+          "description": "Additional notes about CLI tools"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1632 @@
+{
+  "$schema": "./schemas/downloads.schema.json",
+  "packageManagers": {
+    "brew": {
+      "name": "Homebrew",
+      "platforms": ["darwin-arm64", "darwin-x64", "linux-x64", "linux-arm64"],
+      "installCmd": "brew install {package}",
+      "tapCmd": "brew tap {tap}",
+      "checkCmd": "brew --version"
+    },
+    "apt": {
+      "name": "APT",
+      "platforms": ["linux-x64", "linux-arm64"],
+      "installCmd": "sudo apt-get install -y {package}",
+      "checkCmd": "apt-get --version"
+    },
+    "yum": {
+      "name": "YUM",
+      "platforms": ["linux-x64", "linux-arm64"],
+      "installCmd": "sudo yum install -y {package}",
+      "checkCmd": "yum --version"
+    },
+    "dnf": {
+      "name": "DNF",
+      "platforms": ["linux-x64", "linux-arm64"],
+      "installCmd": "sudo dnf install -y {package}",
+      "checkCmd": "dnf --version"
+    },
+    "pacman": {
+      "name": "Pacman",
+      "platforms": ["linux-x64", "linux-arm64"],
+      "installCmd": "sudo pacman -S --noconfirm {package}",
+      "checkCmd": "pacman --version"
+    },
+    "apk": {
+      "name": "APK",
+      "platforms": ["linux-x64", "linux-arm64"],
+      "installCmd": "apk add {package}",
+      "checkCmd": "apk --version"
+    },
+    "choco": {
+      "name": "Chocolatey",
+      "platforms": ["win32-x64"],
+      "installCmd": "choco install -y {package}",
+      "checkCmd": "choco --version"
+    },
+    "winget": {
+      "name": "Windows Package Manager",
+      "platforms": ["win32-x64"],
+      "installCmd": "winget install {package}",
+      "checkCmd": "winget --version"
+    },
+    "scoop": {
+      "name": "Scoop",
+      "platforms": ["win32-x64"],
+      "installCmd": "scoop install {package}",
+      "checkCmd": "scoop --version"
+    },
+    "pip": {
+      "name": "pip",
+      "platforms": [
+        "darwin-arm64",
+        "darwin-x64",
+        "linux-x64",
+        "linux-arm64",
+        "win32-x64"
+      ],
+      "installCmd": "pip install {package}",
+      "checkCmd": "pip --version"
+    },
+    "pipx": {
+      "name": "pipx",
+      "platforms": [
+        "darwin-arm64",
+        "darwin-x64",
+        "linux-x64",
+        "linux-arm64",
+        "win32-x64"
+      ],
+      "installCmd": "pipx install {package}",
+      "checkCmd": "pipx --version"
+    },
+    "npm": {
+      "name": "npm",
+      "platforms": [
+        "darwin-arm64",
+        "darwin-x64",
+        "linux-x64",
+        "linux-arm64",
+        "win32-x64"
+      ],
+      "installCmd": "npm install -g {package}",
+      "checkCmd": "npm --version"
+    },
+    "cargo": {
+      "name": "Cargo",
+      "platforms": [
+        "darwin-arm64",
+        "darwin-x64",
+        "linux-x64",
+        "linux-arm64",
+        "win32-x64"
+      ],
+      "installCmd": "cargo install {package}",
+      "checkCmd": "cargo --version"
+    },
+    "go": {
+      "name": "Go",
+      "platforms": [
+        "darwin-arm64",
+        "darwin-x64",
+        "linux-x64",
+        "linux-arm64",
+        "win32-x64"
+      ],
+      "installCmd": "go install {package}",
+      "checkCmd": "go version"
+    }
+  },
+  "items": {
+    "erlang": {
+      "name": "Erlang/OTP",
+      "description": "Programming language for concurrent, fault-tolerant systems",
+      "type": "prerequisite",
+      "packages": {
+        "brew": { "package": "erlang" },
+        "apt": { "package": "erlang" },
+        "yum": { "package": "erlang" },
+        "dnf": { "package": "erlang" },
+        "choco": { "package": "erlang" },
+        "winget": { "package": "Erlang.ErlangOTP" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/erlang/otp/releases/download/OTP-27.2/otp_src_27.2.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/erlang/otp/releases/download/OTP-27.2/otp_src_27.2.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/erlang/otp/releases/download/OTP-27.2/otp_src_27.2.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://github.com/erlang/otp/releases/download/OTP-27.2/otp_win64_27.2.exe",
+          "format": "binary"
+        }
+      },
+      "requires": []
+    },
+    "jre": {
+      "name": "Java Runtime Environment",
+      "description": "Java runtime for running Java applications",
+      "type": "prerequisite",
+      "packages": {
+        "brew": { "package": "openjdk" },
+        "apt": { "package": "default-jre" },
+        "yum": { "package": "java-21-openjdk" },
+        "dnf": { "package": "java-21-openjdk" },
+        "choco": { "package": "openjdk" },
+        "winget": { "package": "Microsoft.OpenJDK.21" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-x64_bin.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-aarch64_bin.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_macos-x64_bin.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_macos-aarch64_bin.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_windows-x64_bin.zip",
+          "format": "zip"
+        }
+      },
+      "requires": []
+    },
+    "python": {
+      "name": "Python",
+      "description": "Python programming language runtime",
+      "type": "prerequisite",
+      "packages": {
+        "brew": { "package": "python@3.12" },
+        "apt": { "package": "python3" },
+        "yum": { "package": "python3" },
+        "dnf": { "package": "python3" },
+        "choco": { "package": "python" },
+        "winget": { "package": "Python.Python.3.12" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://www.python.org/ftp/python/3.12.8/Python-3.12.8.tar.xz",
+          "format": "tar.xz"
+        },
+        "darwin-x64": {
+          "url": "https://www.python.org/ftp/python/3.12.8/python-3.12.8-macos11.pkg",
+          "format": "pkg"
+        },
+        "darwin-arm64": {
+          "url": "https://www.python.org/ftp/python/3.12.8/python-3.12.8-macos11.pkg",
+          "format": "pkg"
+        },
+        "win32-x64": {
+          "url": "https://www.python.org/ftp/python/3.12.8/python-3.12.8-amd64.exe",
+          "format": "binary"
+        }
+      },
+      "requires": []
+    },
+    "rust": {
+      "name": "Rust",
+      "description": "Rust programming language and cargo package manager",
+      "type": "prerequisite",
+      "packages": {
+        "brew": { "package": "rust" },
+        "apt": { "package": "rustc" },
+        "dnf": { "package": "rust" },
+        "choco": { "package": "rust" },
+        "winget": { "package": "Rustlang.Rust.GNU" }
+      },
+      "binaries": {},
+      "requires": [],
+      "notes": "Recommended: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+    },
+    "go": {
+      "name": "Go",
+      "description": "Go programming language runtime",
+      "type": "prerequisite",
+      "packages": {
+        "brew": { "package": "go" },
+        "apt": { "package": "golang" },
+        "yum": { "package": "golang" },
+        "dnf": { "package": "golang" },
+        "choco": { "package": "golang" },
+        "winget": { "package": "GoLang.Go" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://go.dev/dl/go1.23.4.linux-amd64.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://go.dev/dl/go1.23.4.linux-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://go.dev/dl/go1.23.4.darwin-amd64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://go.dev/dl/go1.23.4.darwin-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://go.dev/dl/go1.23.4.windows-amd64.zip",
+          "format": "zip"
+        }
+      },
+      "requires": []
+    },
+    "node": {
+      "name": "Node.js",
+      "description": "JavaScript runtime built on Chrome's V8 engine",
+      "type": "prerequisite",
+      "packages": {
+        "brew": { "package": "node" },
+        "apt": { "package": "nodejs" },
+        "yum": { "package": "nodejs" },
+        "dnf": { "package": "nodejs" },
+        "choco": { "package": "nodejs" },
+        "winget": { "package": "OpenJS.NodeJS" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://nodejs.org/dist/v22.12.0/node-v22.12.0-linux-x64.tar.xz",
+          "format": "tar.xz"
+        },
+        "linux-arm64": {
+          "url": "https://nodejs.org/dist/v22.12.0/node-v22.12.0-linux-arm64.tar.xz",
+          "format": "tar.xz"
+        },
+        "darwin-x64": {
+          "url": "https://nodejs.org/dist/v22.12.0/node-v22.12.0-darwin-x64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://nodejs.org/dist/v22.12.0/node-v22.12.0-darwin-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://nodejs.org/dist/v22.12.0/node-v22.12.0-win-x64.zip",
+          "format": "zip"
+        }
+      },
+      "requires": []
+    },
+    "build-essential": {
+      "name": "Build Tools",
+      "description": "C/C++ compiler and build tools (gcc, make, etc.)",
+      "type": "prerequisite",
+      "packages": {
+        "brew": { "package": "gcc" },
+        "apt": { "package": "build-essential" },
+        "yum": { "package": "gcc" },
+        "dnf": { "package": "gcc" },
+        "apk": { "package": "build-base" }
+      },
+      "binaries": {},
+      "requires": [],
+      "notes": "macOS: Install Xcode Command Line Tools with 'xcode-select --install'. Windows: Install Visual Studio Build Tools."
+    },
+    "arangodb": {
+      "name": "ArangoDB",
+      "description": "Multi-model database for graphs, documents, and key-value",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "arangodb" },
+        "apt": {
+          "package": "arangodb3",
+          "repo": "https://download.arangodb.com/arangodb312/DEBIAN"
+        },
+        "yum": {
+          "package": "arangodb3",
+          "repo": "https://download.arangodb.com/arangodb312/RPM"
+        },
+        "choco": { "package": "arangodb" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://download.arangodb.com/arangodb312/Community/Linux/arangodb3-linux-3.12.4.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://download.arangodb.com/arangodb312/Community/Linux/arangodb3-linux-arm64-3.12.4.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://download.arangodb.com/arangodb312/Community/MacOSX/arangodb3-macos-x86_64-3.12.4.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://download.arangodb.com/arangodb312/Community/MacOSX/arangodb3-macos-arm64-3.12.4.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://download.arangodb.com/arangodb312/Community/Windows/ArangoDB3-3.12.4_win64.zip",
+          "format": "zip"
+        }
+      },
+      "docker": {
+        "image": "arangodb/arangodb",
+        "tag": "3.12.4"
+      },
+      "requires": []
+    },
+    "clickhouse": {
+      "name": "ClickHouse",
+      "description": "Column-oriented OLAP database for real-time analytics",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "clickhouse" },
+        "apt": {
+          "package": "clickhouse-server",
+          "repo": "https://packages.clickhouse.com/deb"
+        },
+        "yum": {
+          "package": "clickhouse-server",
+          "repo": "https://packages.clickhouse.com/rpm/clickhouse.repo"
+        }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/ClickHouse/ClickHouse/releases/download/v24.8.8.17-lts/clickhouse-common-static-24.8.8.17-amd64.tgz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/ClickHouse/ClickHouse/releases/download/v24.8.8.17-lts/clickhouse-common-static-24.8.8.17-arm64.tgz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/ClickHouse/ClickHouse/releases/download/v24.8.8.17-lts/clickhouse-macos-x86_64",
+          "format": "binary"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/ClickHouse/ClickHouse/releases/download/v24.8.8.17-lts/clickhouse-macos-aarch64",
+          "format": "binary"
+        }
+      },
+      "docker": {
+        "image": "clickhouse/clickhouse-server",
+        "tag": "24.8.8.17-lts"
+      },
+      "requires": [],
+      "notes": "No native Windows support"
+    },
+    "couchdb": {
+      "name": "CouchDB",
+      "description": "Document-oriented NoSQL database with HTTP API",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "couchdb" },
+        "apt": {
+          "package": "couchdb",
+          "repo": "https://apache.jfrog.io/artifactory/couchdb-deb"
+        },
+        "yum": {
+          "package": "couchdb",
+          "repo": "https://apache.jfrog.io/artifactory/couchdb-rpm"
+        },
+        "choco": { "package": "couchdb" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://dlcdn.apache.org/couchdb/source/3.4.2/apache-couchdb-3.4.2.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://dlcdn.apache.org/couchdb/source/3.4.2/apache-couchdb-3.4.2.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://dlcdn.apache.org/couchdb/source/3.4.2/apache-couchdb-3.4.2.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://dlcdn.apache.org/couchdb/binary/win/3.4.2/apache-couchdb-3.4.2.msi",
+          "format": "msi"
+        }
+      },
+      "docker": {
+        "image": "couchdb",
+        "tag": "3.4.2"
+      },
+      "requires": ["erlang"],
+      "notes": "Source builds require Erlang; Windows MSI includes bundled Erlang"
+    },
+    "duckdb": {
+      "name": "DuckDB",
+      "description": "In-process analytical database",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "duckdb" },
+        "choco": { "package": "duckdb" },
+        "winget": { "package": "DuckDB.cli" },
+        "pip": { "package": "duckdb" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-linux-amd64.zip",
+          "format": "zip"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-linux-aarch64.zip",
+          "format": "zip"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-osx-universal.zip",
+          "format": "zip"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-osx-universal.zip",
+          "format": "zip"
+        },
+        "win32-x64": {
+          "url": "https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-windows-amd64.zip",
+          "format": "zip"
+        }
+      },
+      "requires": []
+    },
+    "ferretdb": {
+      "name": "FerretDB",
+      "description": "MongoDB-compatible database on PostgreSQL",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "ferretdb/tap/ferretdb" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/FerretDB/FerretDB/releases/download/v1.24.0/ferretdb-linux-amd64",
+          "format": "binary"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/FerretDB/FerretDB/releases/download/v1.24.0/ferretdb-linux-arm64",
+          "format": "binary"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/FerretDB/FerretDB/releases/download/v1.24.0/ferretdb-darwin-amd64",
+          "format": "binary"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/FerretDB/FerretDB/releases/download/v1.24.0/ferretdb-darwin-arm64",
+          "format": "binary"
+        },
+        "win32-x64": {
+          "url": "https://github.com/FerretDB/FerretDB/releases/download/v1.24.0/ferretdb-windows-amd64.exe",
+          "format": "binary"
+        }
+      },
+      "docker": {
+        "image": "ferretdb/ferretdb",
+        "tag": "1.24.0"
+      },
+      "requires": []
+    },
+    "foundationdb": {
+      "name": "FoundationDB",
+      "description": "Distributed key-value store with ACID transactions",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "foundationdb" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/apple/foundationdb/releases/download/7.3.43/foundationdb-clients_7.3.43-1_amd64.deb",
+          "format": "deb"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/apple/foundationdb/releases/download/7.3.43/foundationdb-clients_7.3.43-1_arm64.deb",
+          "format": "deb"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/apple/foundationdb/releases/download/7.3.43/FoundationDB-7.3.43_x86_64.pkg",
+          "format": "pkg"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/apple/foundationdb/releases/download/7.3.43/FoundationDB-7.3.43_arm64.pkg",
+          "format": "pkg"
+        },
+        "win32-x64": {
+          "url": "https://github.com/apple/foundationdb/releases/download/7.3.43/foundationdb-7.3.43-x64.msi",
+          "format": "msi"
+        }
+      },
+      "requires": []
+    },
+    "influxdb": {
+      "name": "InfluxDB",
+      "description": "Time-series database for metrics and events",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "influxdb" },
+        "apt": {
+          "package": "influxdb2",
+          "repo": "https://repos.influxdata.com/debian"
+        },
+        "yum": {
+          "package": "influxdb2",
+          "repo": "https://repos.influxdata.com/rhel"
+        },
+        "choco": { "package": "influxdb" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://download.influxdata.com/influxdb/releases/influxdb2-2.7.10-linux-amd64.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://download.influxdata.com/influxdb/releases/influxdb2-2.7.10-linux-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://download.influxdata.com/influxdb/releases/influxdb2-2.7.10-darwin-amd64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://download.influxdata.com/influxdb/releases/influxdb2-2.7.10-darwin-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://download.influxdata.com/influxdb/releases/influxdb2-2.7.10-windows.zip",
+          "format": "zip"
+        }
+      },
+      "docker": {
+        "image": "influxdb",
+        "tag": "2.7.10"
+      },
+      "requires": []
+    },
+    "keydb": {
+      "name": "KeyDB",
+      "description": "High-performance Redis-compatible key-value store",
+      "type": "database",
+      "packages": {
+        "apt": {
+          "package": "keydb",
+          "repo": "https://download.keydb.dev/open-source-dist"
+        }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/Snapchat/KeyDB/releases/download/v6.3.4/keydb-v6.3.4-x86_64-linux-gnu.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/Snapchat/KeyDB/releases/download/v6.3.4/keydb-v6.3.4-aarch64-linux-gnu.tar.gz",
+          "format": "tar.gz"
+        }
+      },
+      "docker": {
+        "image": "eqalpha/keydb",
+        "tag": "latest"
+      },
+      "requires": ["build-essential"],
+      "notes": "macOS/Windows require building from source"
+    },
+    "libsql": {
+      "name": "libSQL",
+      "description": "SQLite fork with server mode and replication",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "libsql/sqld/sqld" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/tursodatabase/libsql/releases/download/libsql-server-v0.24.27/libsql-server-x86_64-unknown-linux-gnu.tar.xz",
+          "format": "tar.xz"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/tursodatabase/libsql/releases/download/libsql-server-v0.24.27/libsql-server-aarch64-unknown-linux-gnu.tar.xz",
+          "format": "tar.xz"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/tursodatabase/libsql/releases/download/libsql-server-v0.24.27/libsql-server-x86_64-apple-darwin.tar.xz",
+          "format": "tar.xz"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/tursodatabase/libsql/releases/download/libsql-server-v0.24.27/libsql-server-aarch64-apple-darwin.tar.xz",
+          "format": "tar.xz"
+        }
+      },
+      "docker": {
+        "image": "ghcr.io/tursodatabase/libsql-server",
+        "tag": "latest"
+      },
+      "requires": []
+    },
+    "mariadb": {
+      "name": "MariaDB",
+      "description": "Community-developed MySQL fork",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "mariadb" },
+        "apt": { "package": "mariadb-server" },
+        "yum": { "package": "mariadb-server" },
+        "dnf": { "package": "mariadb-server" },
+        "choco": { "package": "mariadb" },
+        "winget": { "package": "MariaDB.Server" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://archive.mariadb.org/mariadb-11.4.4/bintar-linux-systemd-x86_64/mariadb-11.4.4-linux-systemd-x86_64.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://archive.mariadb.org/mariadb-11.4.4/bintar-linux-systemd-aarch64/mariadb-11.4.4-linux-systemd-aarch64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://archive.mariadb.org/mariadb-11.4.4/bintar-darwin-x86_64/mariadb-11.4.4-darwin-x86_64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://archive.mariadb.org/mariadb-11.4.4/bintar-darwin-arm64/mariadb-11.4.4-darwin-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://archive.mariadb.org/mariadb-11.4.4/winx64-packages/mariadb-11.4.4-winx64.zip",
+          "format": "zip"
+        }
+      },
+      "docker": {
+        "image": "mariadb",
+        "tag": "11.4.4"
+      },
+      "requires": []
+    },
+    "meilisearch": {
+      "name": "Meilisearch",
+      "description": "Fast, typo-tolerant search engine",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "meilisearch" },
+        "apt": {
+          "package": "meilisearch",
+          "repo": "https://apt.fury.io/meilisearch"
+        },
+        "choco": { "package": "meilisearch" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.11.3/meilisearch-linux-amd64",
+          "format": "binary"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.11.3/meilisearch-linux-aarch64",
+          "format": "binary"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.11.3/meilisearch-macos-amd64",
+          "format": "binary"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.11.3/meilisearch-macos-apple-silicon",
+          "format": "binary"
+        },
+        "win32-x64": {
+          "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.11.3/meilisearch-windows-amd64.exe",
+          "format": "binary"
+        }
+      },
+      "docker": {
+        "image": "getmeili/meilisearch",
+        "tag": "v1.11.3"
+      },
+      "requires": []
+    },
+    "mongodb": {
+      "name": "MongoDB",
+      "description": "Document-oriented NoSQL database",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "mongodb-community", "tap": "mongodb/brew" },
+        "apt": {
+          "package": "mongodb-org",
+          "repo": "https://repo.mongodb.org/apt/ubuntu"
+        },
+        "yum": {
+          "package": "mongodb-org",
+          "repo": "https://repo.mongodb.org/yum/redhat"
+        },
+        "choco": { "package": "mongodb" },
+        "winget": { "package": "MongoDB.Server" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2204-8.0.4.tgz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2204-8.0.4.tgz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-8.0.4.tgz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://fastdl.mongodb.org/osx/mongodb-macos-arm64-8.0.4.tgz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.4.zip",
+          "format": "zip"
+        }
+      },
+      "docker": {
+        "image": "mongo",
+        "tag": "8.0.4"
+      },
+      "requires": []
+    },
+    "mysql": {
+      "name": "MySQL",
+      "description": "Popular open-source relational database",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "mysql" },
+        "apt": { "package": "mysql-server" },
+        "yum": { "package": "mysql-server" },
+        "dnf": { "package": "mysql-server" },
+        "choco": { "package": "mysql" },
+        "winget": { "package": "Oracle.MySQL" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.3-linux-glibc2.17-x86_64.tar.xz",
+          "format": "tar.xz"
+        },
+        "linux-arm64": {
+          "url": "https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.3-linux-glibc2.17-aarch64.tar.xz",
+          "format": "tar.xz"
+        },
+        "darwin-x64": {
+          "url": "https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.3-macos14-x86_64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.3-macos14-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-8.4.3-winx64.zip",
+          "format": "zip"
+        }
+      },
+      "docker": {
+        "image": "mysql",
+        "tag": "8.4.3"
+      },
+      "requires": []
+    },
+    "opensearch": {
+      "name": "OpenSearch",
+      "description": "Distributed search and analytics engine",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "opensearch" },
+        "apt": {
+          "package": "opensearch",
+          "repo": "https://artifacts.opensearch.org/releases/bundle/opensearch/2.x/apt"
+        },
+        "yum": {
+          "package": "opensearch",
+          "repo": "https://artifacts.opensearch.org/releases/bundle/opensearch/2.x/yum"
+        }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://artifacts.opensearch.org/releases/bundle/opensearch/2.18.0/opensearch-2.18.0-linux-x64.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://artifacts.opensearch.org/releases/bundle/opensearch/2.18.0/opensearch-2.18.0-linux-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://artifacts.opensearch.org/releases/bundle/opensearch/2.18.0/opensearch-2.18.0-darwin-x64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://artifacts.opensearch.org/releases/bundle/opensearch/2.18.0/opensearch-2.18.0-darwin-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://artifacts.opensearch.org/releases/bundle/opensearch/2.18.0/opensearch-2.18.0-windows-x64.zip",
+          "format": "zip"
+        }
+      },
+      "docker": {
+        "image": "opensearchproject/opensearch",
+        "tag": "2.18.0"
+      },
+      "requires": ["jre"]
+    },
+    "postgresql": {
+      "name": "PostgreSQL",
+      "description": "Advanced open-source relational database",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "postgresql@17" },
+        "apt": {
+          "package": "postgresql",
+          "repo": "https://apt.postgresql.org/pub/repos/apt"
+        },
+        "yum": {
+          "package": "postgresql-server",
+          "repo": "https://yum.postgresql.org"
+        },
+        "dnf": { "package": "postgresql-server" },
+        "choco": { "package": "postgresql" },
+        "winget": { "package": "PostgreSQL.PostgreSQL" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://get.enterprisedb.com/postgresql/postgresql-17.2-1-linux-x64-binaries.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1259310",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://get.enterprisedb.com/postgresql/postgresql-17.2-1-osx-binaries.zip",
+          "format": "zip"
+        },
+        "darwin-arm64": {
+          "url": "https://get.enterprisedb.com/postgresql/postgresql-17.2-1-osx-binaries.zip",
+          "format": "zip"
+        },
+        "win32-x64": {
+          "url": "https://get.enterprisedb.com/postgresql/postgresql-17.2-1-windows-x64-binaries.zip",
+          "format": "zip"
+        }
+      },
+      "docker": {
+        "image": "postgres",
+        "tag": "17.2"
+      },
+      "requires": []
+    },
+    "qdrant": {
+      "name": "Qdrant",
+      "description": "Vector similarity search engine",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "qdrant/tap/qdrant" },
+        "cargo": { "package": "qdrant" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/qdrant/qdrant/releases/download/v1.12.5/qdrant-x86_64-unknown-linux-musl.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/qdrant/qdrant/releases/download/v1.12.5/qdrant-x86_64-apple-darwin.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/qdrant/qdrant/releases/download/v1.12.5/qdrant-aarch64-apple-darwin.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://github.com/qdrant/qdrant/releases/download/v1.12.5/qdrant-x86_64-pc-windows-msvc.zip",
+          "format": "zip"
+        }
+      },
+      "docker": {
+        "image": "qdrant/qdrant",
+        "tag": "v1.12.5"
+      },
+      "requires": [],
+      "notes": "No linux-arm64 binary; use Docker or build from source with Rust"
+    },
+    "questdb": {
+      "name": "QuestDB",
+      "description": "Time-series database for fast SQL queries",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "questdb" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/questdb/questdb/releases/download/8.2.1/questdb-8.2.1-rt-linux-x86-64.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/questdb/questdb/releases/download/8.2.1/questdb-8.2.1-rt-linux-aarch64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/questdb/questdb/releases/download/8.2.1/questdb-8.2.1-no-jre-bin.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/questdb/questdb/releases/download/8.2.1/questdb-8.2.1-no-jre-bin.tar.gz",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://github.com/questdb/questdb/releases/download/8.2.1/questdb-8.2.1-rt-windows-x86-64.zip",
+          "format": "zip"
+        }
+      },
+      "docker": {
+        "image": "questdb/questdb",
+        "tag": "8.2.1"
+      },
+      "requires": ["jre"],
+      "notes": "macOS no-jre builds require Java; Linux/Windows bundles include JRE"
+    },
+    "redis": {
+      "name": "Redis",
+      "description": "In-memory data structure store",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "redis" },
+        "apt": { "package": "redis-server" },
+        "yum": { "package": "redis" },
+        "dnf": { "package": "redis" },
+        "choco": { "package": "redis" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/redis/redis/archive/refs/tags/7.4.1.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/redis/redis/archive/refs/tags/7.4.1.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/redis/redis/archive/refs/tags/7.4.1.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/redis/redis/archive/refs/tags/7.4.1.tar.gz",
+          "format": "tar.gz"
+        }
+      },
+      "docker": {
+        "image": "redis",
+        "tag": "7.4.1"
+      },
+      "requires": ["build-essential"],
+      "notes": "No official pre-built binaries; source requires compilation"
+    },
+    "rocksdb": {
+      "name": "RocksDB",
+      "description": "Embeddable persistent key-value store",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "rocksdb" },
+        "apt": { "package": "librocksdb-dev" },
+        "yum": { "package": "rocksdb-devel" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/facebook/rocksdb/archive/refs/tags/v9.7.4.tar.gz",
+          "format": "tar.gz"
+        }
+      },
+      "requires": ["build-essential"],
+      "notes": "Embedded library; typically built as dependency, not standalone"
+    },
+    "sqlite": {
+      "name": "SQLite",
+      "description": "Self-contained SQL database engine",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "sqlite" },
+        "apt": { "package": "sqlite3" },
+        "yum": { "package": "sqlite" },
+        "dnf": { "package": "sqlite" },
+        "choco": { "package": "sqlite" },
+        "winget": { "package": "SQLite.SQLite" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://www.sqlite.org/2024/sqlite-tools-linux-x64-3470200.zip",
+          "format": "zip"
+        },
+        "darwin-x64": {
+          "url": "https://www.sqlite.org/2024/sqlite-tools-osx-x64-3470200.zip",
+          "format": "zip"
+        },
+        "darwin-arm64": {
+          "url": "https://www.sqlite.org/2024/sqlite-tools-osx-x64-3470200.zip",
+          "format": "zip"
+        },
+        "win32-x64": {
+          "url": "https://www.sqlite.org/2024/sqlite-tools-win-x64-3470200.zip",
+          "format": "zip"
+        }
+      },
+      "requires": [],
+      "notes": "darwin-arm64 uses x64 binary via Rosetta"
+    },
+    "tidb": {
+      "name": "TiDB",
+      "description": "Distributed SQL database with MySQL compatibility",
+      "type": "database",
+      "packages": {},
+      "binaries": {
+        "linux-x64": {
+          "url": "https://download.pingcap.org/tidb-community-server-v8.4.0-linux-amd64.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://download.pingcap.org/tidb-community-server-v8.4.0-linux-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://download.pingcap.org/tidb-community-server-v8.4.0-darwin-amd64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://download.pingcap.org/tidb-community-server-v8.4.0-darwin-arm64.tar.gz",
+          "format": "tar.gz"
+        }
+      },
+      "docker": {
+        "image": "pingcap/tidb",
+        "tag": "v8.4.0"
+      },
+      "requires": [],
+      "notes": "TiUP is the recommended installation method"
+    },
+    "timescaledb": {
+      "name": "TimescaleDB",
+      "description": "PostgreSQL extension for time-series data",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "timescaledb" },
+        "apt": {
+          "package": "timescaledb-2-postgresql-17",
+          "repo": "https://packagecloud.io/timescale/timescaledb/debian"
+        },
+        "yum": {
+          "package": "timescaledb-2-postgresql-17",
+          "repo": "https://packagecloud.io/timescale/timescaledb/el/9"
+        }
+      },
+      "binaries": {},
+      "docker": {
+        "image": "timescale/timescaledb",
+        "tag": "latest-pg17"
+      },
+      "requires": ["postgresql"],
+      "notes": "PostgreSQL extension; requires PostgreSQL installation first"
+    },
+    "valkey": {
+      "name": "Valkey",
+      "description": "Redis-compatible in-memory data store (Linux Foundation fork)",
+      "type": "database",
+      "packages": {
+        "brew": { "package": "valkey" },
+        "apt": { "package": "valkey" },
+        "dnf": { "package": "valkey" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/valkey-io/valkey/releases/download/8.0.2/valkey-8.0.2-linux-amd64.tar.gz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/valkey-io/valkey/releases/download/8.0.2/valkey-8.0.2-linux-arm64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/valkey-io/valkey/releases/download/8.0.2/valkey-8.0.2-macos-x86_64.tar.gz",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/valkey-io/valkey/releases/download/8.0.2/valkey-8.0.2-macos-arm64.tar.gz",
+          "format": "tar.gz"
+        }
+      },
+      "docker": {
+        "image": "valkey/valkey",
+        "tag": "8.0.2"
+      },
+      "requires": [],
+      "notes": "No Windows binary; use WSL or Docker"
+    },
+    "psql": {
+      "name": "PostgreSQL Client",
+      "description": "PostgreSQL interactive terminal",
+      "type": "cli-tool",
+      "binary": "psql",
+      "category": "client",
+      "bundledWith": "postgresql",
+      "packages": {
+        "brew": { "package": "postgresql@17" },
+        "apt": { "package": "postgresql-client" },
+        "yum": { "package": "postgresql" },
+        "dnf": { "package": "postgresql" },
+        "pacman": { "package": "postgresql" },
+        "apk": { "package": "postgresql-client" },
+        "choco": { "package": "postgresql" },
+        "winget": { "package": "PostgreSQL.PostgreSQL" },
+        "scoop": { "package": "postgresql" }
+      },
+      "requires": []
+    },
+    "pg_dump": {
+      "name": "pg_dump",
+      "description": "PostgreSQL database backup utility",
+      "type": "cli-tool",
+      "binary": "pg_dump",
+      "category": "utility",
+      "bundledWith": "postgresql",
+      "packages": {
+        "brew": { "package": "postgresql@17" },
+        "apt": { "package": "postgresql-client" },
+        "yum": { "package": "postgresql" },
+        "dnf": { "package": "postgresql" },
+        "pacman": { "package": "postgresql" },
+        "apk": { "package": "postgresql-client" },
+        "choco": { "package": "postgresql" },
+        "winget": { "package": "PostgreSQL.PostgreSQL" },
+        "scoop": { "package": "postgresql" }
+      },
+      "requires": []
+    },
+    "pg_restore": {
+      "name": "pg_restore",
+      "description": "PostgreSQL database restore utility",
+      "type": "cli-tool",
+      "binary": "pg_restore",
+      "category": "utility",
+      "bundledWith": "postgresql",
+      "packages": {
+        "brew": { "package": "postgresql@17" },
+        "apt": { "package": "postgresql-client" },
+        "yum": { "package": "postgresql" },
+        "dnf": { "package": "postgresql" },
+        "pacman": { "package": "postgresql" },
+        "apk": { "package": "postgresql-client" },
+        "choco": { "package": "postgresql" },
+        "winget": { "package": "PostgreSQL.PostgreSQL" },
+        "scoop": { "package": "postgresql" }
+      },
+      "requires": []
+    },
+    "pgcli": {
+      "name": "pgcli",
+      "description": "PostgreSQL CLI with auto-completion and syntax highlighting",
+      "type": "cli-tool",
+      "binary": "pgcli",
+      "category": "enhanced",
+      "bundledWith": null,
+      "packages": {
+        "brew": { "package": "pgcli" },
+        "apt": { "package": "pgcli" },
+        "pip": { "package": "pgcli" },
+        "pipx": { "package": "pgcli" },
+        "choco": { "package": "pgcli" },
+        "scoop": { "package": "pgcli" }
+      },
+      "requires": ["python"]
+    },
+    "mysql-client": {
+      "name": "MySQL Client",
+      "description": "MySQL command-line client",
+      "type": "cli-tool",
+      "binary": "mysql",
+      "category": "client",
+      "bundledWith": "mysql",
+      "packages": {
+        "brew": { "package": "mysql" },
+        "apt": { "package": "mysql-client" },
+        "yum": { "package": "mysql" },
+        "dnf": { "package": "mysql" },
+        "pacman": { "package": "mysql" },
+        "apk": { "package": "mysql-client" },
+        "choco": { "package": "mysql" },
+        "winget": { "package": "Oracle.MySQL" },
+        "scoop": { "package": "mysql" }
+      },
+      "requires": []
+    },
+    "mysqldump": {
+      "name": "mysqldump",
+      "description": "MySQL database backup utility",
+      "type": "cli-tool",
+      "binary": "mysqldump",
+      "category": "utility",
+      "bundledWith": "mysql",
+      "packages": {
+        "brew": { "package": "mysql" },
+        "apt": { "package": "mysql-client" },
+        "yum": { "package": "mysql" },
+        "dnf": { "package": "mysql" },
+        "pacman": { "package": "mysql" },
+        "apk": { "package": "mysql-client" },
+        "choco": { "package": "mysql" },
+        "winget": { "package": "Oracle.MySQL" },
+        "scoop": { "package": "mysql" }
+      },
+      "requires": []
+    },
+    "mycli": {
+      "name": "mycli",
+      "description": "MySQL CLI with auto-completion and syntax highlighting",
+      "type": "cli-tool",
+      "binary": "mycli",
+      "category": "enhanced",
+      "bundledWith": null,
+      "packages": {
+        "brew": { "package": "mycli" },
+        "apt": { "package": "mycli" },
+        "pip": { "package": "mycli" },
+        "pipx": { "package": "mycli" },
+        "choco": { "package": "mycli" }
+      },
+      "requires": ["python"]
+    },
+    "mariadb-client": {
+      "name": "MariaDB Client",
+      "description": "MariaDB command-line client",
+      "type": "cli-tool",
+      "binary": "mariadb",
+      "category": "client",
+      "bundledWith": "mariadb",
+      "packages": {
+        "brew": { "package": "mariadb" },
+        "apt": { "package": "mariadb-client" },
+        "yum": { "package": "mariadb" },
+        "dnf": { "package": "mariadb" },
+        "pacman": { "package": "mariadb" },
+        "apk": { "package": "mariadb-client" },
+        "choco": { "package": "mariadb" },
+        "winget": { "package": "MariaDB.Server" },
+        "scoop": { "package": "mariadb" }
+      },
+      "requires": []
+    },
+    "mariadb-dump": {
+      "name": "mariadb-dump",
+      "description": "MariaDB database backup utility",
+      "type": "cli-tool",
+      "binary": "mariadb-dump",
+      "category": "utility",
+      "bundledWith": "mariadb",
+      "packages": {
+        "brew": { "package": "mariadb" },
+        "apt": { "package": "mariadb-client" },
+        "yum": { "package": "mariadb" },
+        "dnf": { "package": "mariadb" },
+        "pacman": { "package": "mariadb" },
+        "apk": { "package": "mariadb-client" },
+        "choco": { "package": "mariadb" },
+        "winget": { "package": "MariaDB.Server" },
+        "scoop": { "package": "mariadb" }
+      },
+      "requires": []
+    },
+    "sqlite3": {
+      "name": "SQLite CLI",
+      "description": "SQLite command-line interface",
+      "type": "cli-tool",
+      "binary": "sqlite3",
+      "category": "client",
+      "bundledWith": "sqlite",
+      "packages": {
+        "brew": { "package": "sqlite" },
+        "apt": { "package": "sqlite3" },
+        "yum": { "package": "sqlite" },
+        "dnf": { "package": "sqlite" },
+        "pacman": { "package": "sqlite" },
+        "apk": { "package": "sqlite" },
+        "choco": { "package": "sqlite" },
+        "winget": { "package": "SQLite.SQLite" },
+        "scoop": { "package": "sqlite" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://www.sqlite.org/2024/sqlite-tools-linux-x64-3470200.zip",
+          "format": "zip"
+        },
+        "darwin-x64": {
+          "url": "https://www.sqlite.org/2024/sqlite-tools-osx-x64-3470200.zip",
+          "format": "zip"
+        },
+        "darwin-arm64": {
+          "url": "https://www.sqlite.org/2024/sqlite-tools-osx-x64-3470200.zip",
+          "format": "zip"
+        },
+        "win32-x64": {
+          "url": "https://www.sqlite.org/2024/sqlite-tools-win-x64-3470200.zip",
+          "format": "zip"
+        }
+      },
+      "requires": []
+    },
+    "litecli": {
+      "name": "litecli",
+      "description": "SQLite CLI with auto-completion and syntax highlighting",
+      "type": "cli-tool",
+      "binary": "litecli",
+      "category": "enhanced",
+      "bundledWith": null,
+      "packages": {
+        "brew": { "package": "litecli" },
+        "apt": { "package": "litecli" },
+        "pip": { "package": "litecli" },
+        "pipx": { "package": "litecli" }
+      },
+      "requires": ["python"]
+    },
+    "mongosh": {
+      "name": "MongoDB Shell",
+      "description": "MongoDB interactive shell",
+      "type": "cli-tool",
+      "binary": "mongosh",
+      "category": "client",
+      "bundledWith": "mongodb",
+      "packages": {
+        "brew": { "package": "mongosh" },
+        "apt": { "package": "mongodb-mongosh" },
+        "yum": { "package": "mongodb-mongosh" },
+        "choco": { "package": "mongodb-shell" },
+        "winget": { "package": "MongoDB.Shell" },
+        "scoop": { "package": "mongosh", "bucket": "extras" },
+        "npm": { "package": "mongosh" }
+      },
+      "requires": []
+    },
+    "mongodump": {
+      "name": "mongodump",
+      "description": "MongoDB database backup utility",
+      "type": "cli-tool",
+      "binary": "mongodump",
+      "category": "utility",
+      "bundledWith": "mongodb-database-tools",
+      "packages": {
+        "brew": { "package": "mongodb-database-tools", "tap": "mongodb/brew" },
+        "apt": { "package": "mongodb-database-tools" },
+        "yum": { "package": "mongodb-database-tools" },
+        "choco": { "package": "mongodb-database-tools" }
+      },
+      "requires": []
+    },
+    "mongorestore": {
+      "name": "mongorestore",
+      "description": "MongoDB database restore utility",
+      "type": "cli-tool",
+      "binary": "mongorestore",
+      "category": "utility",
+      "bundledWith": "mongodb-database-tools",
+      "packages": {
+        "brew": { "package": "mongodb-database-tools", "tap": "mongodb/brew" },
+        "apt": { "package": "mongodb-database-tools" },
+        "yum": { "package": "mongodb-database-tools" },
+        "choco": { "package": "mongodb-database-tools" }
+      },
+      "requires": []
+    },
+    "redis-cli": {
+      "name": "Redis CLI",
+      "description": "Redis command-line interface",
+      "type": "cli-tool",
+      "binary": "redis-cli",
+      "category": "client",
+      "bundledWith": "redis",
+      "packages": {
+        "brew": { "package": "redis" },
+        "apt": { "package": "redis-tools" },
+        "yum": { "package": "redis" },
+        "dnf": { "package": "redis" },
+        "pacman": { "package": "redis" },
+        "apk": { "package": "redis" },
+        "choco": { "package": "redis" },
+        "scoop": { "package": "redis" }
+      },
+      "requires": []
+    },
+    "iredis": {
+      "name": "iredis",
+      "description": "Redis CLI with auto-completion and syntax highlighting",
+      "type": "cli-tool",
+      "binary": "iredis",
+      "category": "enhanced",
+      "bundledWith": null,
+      "packages": {
+        "brew": { "package": "iredis" },
+        "pip": { "package": "iredis" },
+        "pipx": { "package": "iredis" }
+      },
+      "requires": ["python"]
+    },
+    "valkey-cli": {
+      "name": "Valkey CLI",
+      "description": "Valkey command-line interface",
+      "type": "cli-tool",
+      "binary": "valkey-cli",
+      "category": "client",
+      "bundledWith": "valkey",
+      "packages": {
+        "brew": { "package": "valkey" },
+        "apt": { "package": "valkey" },
+        "dnf": { "package": "valkey" }
+      },
+      "requires": []
+    },
+    "duckdb-cli": {
+      "name": "DuckDB CLI",
+      "description": "DuckDB command-line interface",
+      "type": "cli-tool",
+      "binary": "duckdb",
+      "category": "client",
+      "bundledWith": "duckdb",
+      "packages": {
+        "brew": { "package": "duckdb" },
+        "pip": { "package": "duckdb" },
+        "choco": { "package": "duckdb" },
+        "winget": { "package": "DuckDB.cli" },
+        "scoop": { "package": "duckdb" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-linux-amd64.zip",
+          "format": "zip"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-linux-aarch64.zip",
+          "format": "zip"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-osx-universal.zip",
+          "format": "zip"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-osx-universal.zip",
+          "format": "zip"
+        },
+        "win32-x64": {
+          "url": "https://github.com/duckdb/duckdb/releases/download/v1.1.3/duckdb_cli-windows-amd64.zip",
+          "format": "zip"
+        }
+      },
+      "requires": []
+    },
+    "usql": {
+      "name": "usql",
+      "description": "Universal SQL CLI for PostgreSQL, MySQL, SQLite, and more",
+      "type": "cli-tool",
+      "binary": "usql",
+      "category": "enhanced",
+      "bundledWith": null,
+      "packages": {
+        "brew": { "package": "usql" },
+        "go": { "package": "github.com/xo/usql@latest" },
+        "scoop": { "package": "usql" }
+      },
+      "binaries": {
+        "linux-x64": {
+          "url": "https://github.com/xo/usql/releases/download/v0.19.3/usql-0.19.3-linux-amd64.tar.bz2",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://github.com/xo/usql/releases/download/v0.19.3/usql-0.19.3-linux-arm64.tar.bz2",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://github.com/xo/usql/releases/download/v0.19.3/usql-0.19.3-darwin-amd64.tar.bz2",
+          "format": "tar.gz"
+        },
+        "darwin-arm64": {
+          "url": "https://github.com/xo/usql/releases/download/v0.19.3/usql-0.19.3-darwin-arm64.tar.bz2",
+          "format": "tar.gz"
+        },
+        "win32-x64": {
+          "url": "https://github.com/xo/usql/releases/download/v0.19.3/usql-0.19.3-windows-amd64.zip",
+          "format": "zip"
+        }
+      },
+      "requires": []
+    },
+    "arangosh": {
+      "name": "ArangoDB Shell",
+      "description": "ArangoDB interactive shell",
+      "type": "cli-tool",
+      "binary": "arangosh",
+      "category": "client",
+      "bundledWith": "arangodb",
+      "packages": {
+        "brew": { "package": "arangodb" },
+        "apt": {
+          "package": "arangodb3",
+          "repo": "https://www.arangodb.com/download-major/ubuntu/"
+        },
+        "yum": {
+          "package": "arangodb3",
+          "repo": "https://www.arangodb.com/download-major/redhat/"
+        },
+        "choco": { "package": "arangodb" }
+      },
+      "requires": []
+    },
+    "arangodump": {
+      "name": "arangodump",
+      "description": "ArangoDB database backup utility",
+      "type": "cli-tool",
+      "binary": "arangodump",
+      "category": "utility",
+      "bundledWith": "arangodb",
+      "packages": {
+        "brew": { "package": "arangodb" },
+        "apt": { "package": "arangodb3" },
+        "yum": { "package": "arangodb3" },
+        "choco": { "package": "arangodb" }
+      },
+      "requires": []
+    },
+    "arangorestore": {
+      "name": "arangorestore",
+      "description": "ArangoDB database restore utility",
+      "type": "cli-tool",
+      "binary": "arangorestore",
+      "category": "utility",
+      "bundledWith": "arangodb",
+      "packages": {
+        "brew": { "package": "arangodb" },
+        "apt": { "package": "arangodb3" },
+        "yum": { "package": "arangodb3" },
+        "choco": { "package": "arangodb" }
+      },
+      "requires": []
+    },
+    "influx": {
+      "name": "InfluxDB CLI",
+      "description": "InfluxDB command-line interface",
+      "type": "cli-tool",
+      "binary": "influx",
+      "category": "client",
+      "bundledWith": "influxdb",
+      "packages": {
+        "brew": { "package": "influxdb-cli" },
+        "apt": { "package": "influxdb2-cli" },
+        "yum": { "package": "influxdb2-cli" },
+        "choco": { "package": "influxdb" }
+      },
+      "requires": []
+    },
+    "fdbcli": {
+      "name": "FoundationDB CLI",
+      "description": "FoundationDB command-line interface",
+      "type": "cli-tool",
+      "binary": "fdbcli",
+      "category": "client",
+      "bundledWith": "foundationdb",
+      "packages": {
+        "brew": { "package": "foundationdb" }
+      },
+      "requires": []
+    },
+    "tiup": {
+      "name": "TiUP",
+      "description": "TiDB package manager and cluster manager",
+      "type": "cli-tool",
+      "binary": "tiup",
+      "category": "utility",
+      "bundledWith": null,
+      "packages": {},
+      "requires": [],
+      "notes": "Install via: curl --proto '=https' --tlsv1.2 -sSf https://tiup-mirrors.pingcap.com/install.sh | sh"
+    }
+  }
+}

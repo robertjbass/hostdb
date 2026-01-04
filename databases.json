@@ -1,0 +1,871 @@
+{
+  "$schema": "./schemas/databases.schema.json",
+  "databases": {
+    "arangodb": {
+      "displayName": "ArangoDB",
+      "description": "Multi-model database supporting graphs, documents, and key-value with unified query language",
+      "type": "Multi-model",
+      "sourceRepo": "https://github.com/arangodb/arangodb",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "",
+      "latestLts": "3.12",
+      "versions": {
+        "3.12.6": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "arangod",
+        "client": "arangosh",
+        "utilities": [
+          "arangodump",
+          "arangorestore",
+          "arangoimport",
+          "arangoexport"
+        ],
+        "enhanced": []
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 8529,
+        "scheme": "arangodb",
+        "defaultDatabase": "_system",
+        "defaultUser": "root",
+        "queryLanguage": "AQL"
+      },
+      "status": "pending"
+    },
+    "clickhouse": {
+      "displayName": "ClickHouse",
+      "description": "Column-oriented database for real-time analytics and big data processing",
+      "type": "Analytical",
+      "sourceRepo": "https://github.com/ClickHouse/ClickHouse",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "No native Windows support; requires WSL",
+      "latestLts": "25.8",
+      "versions": {
+        "25.8.13.73-lts": true,
+        "25.3.11.20-lts": false
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": false
+      },
+      "cliTools": {
+        "server": "clickhouse-server",
+        "client": "clickhouse-client",
+        "utilities": ["clickhouse-local", "clickhouse-benchmark"],
+        "enhanced": []
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 9000,
+        "scheme": "clickhouse",
+        "defaultDatabase": "default",
+        "defaultUser": "default",
+        "queryLanguage": "SQL"
+      },
+      "status": "unsupported"
+    },
+    "couchdb": {
+      "displayName": "CouchDB",
+      "description": "Document-oriented NoSQL database with HTTP API, multi-version concurrency, and offline-first sync",
+      "type": "Document",
+      "sourceRepo": "https://github.com/apache/couchdb",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "Less popular document DB; FerretDB provides MongoDB compatibility with permissive license",
+      "latestLts": "3.5",
+      "versions": {
+        "3.5.1": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "couchdb",
+        "client": null,
+        "utilities": [],
+        "enhanced": [],
+        "note": "HTTP API only; use curl or Fauxton web UI"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 5984,
+        "scheme": "http",
+        "defaultDatabase": null,
+        "defaultUser": "admin",
+        "queryLanguage": "HTTP"
+      },
+      "status": "unsupported"
+    },
+    "duckdb": {
+      "displayName": "DuckDB",
+      "description": "Fast in-process analytical database with rich SQL support, optimized for OLAP workloads",
+      "type": "Analytical",
+      "sourceRepo": "https://github.com/duckdb/duckdb",
+      "license": "MIT",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "",
+      "latestLts": "1.4",
+      "versions": {
+        "1.4.3": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": null,
+        "client": "duckdb",
+        "utilities": [],
+        "enhanced": ["usql"]
+      },
+      "connection": {
+        "runtime": "embedded",
+        "defaultPort": null,
+        "scheme": "duckdb",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "SQL"
+      },
+      "status": "pending"
+    },
+    "ferretdb": {
+      "displayName": "FerretDB",
+      "description": "Open-source MongoDB alternative using PostgreSQL as the backend, wire-protocol compatible",
+      "type": "Document",
+      "sourceRepo": "https://github.com/FerretDB/FerretDB",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": "mongodb",
+      "note": "",
+      "latestLts": "2.7",
+      "versions": {
+        "2.7.0": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "ferretdb",
+        "client": "mongosh",
+        "utilities": ["mongodump", "mongorestore"],
+        "enhanced": []
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 27017,
+        "scheme": "mongodb",
+        "defaultDatabase": "test",
+        "defaultUser": null,
+        "queryLanguage": "MQL"
+      },
+      "status": "pending"
+    },
+    "foundationdb": {
+      "displayName": "FoundationDB",
+      "description": "Distributed, transactional key-value store with ACID guarantees, backed by Apple",
+      "type": "Key-Value",
+      "sourceRepo": "https://github.com/apple/foundationdb",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "Niche use case; primarily used within Apple ecosystem",
+      "latestLts": "7.3",
+      "versions": {
+        "7.3.69": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "fdbserver",
+        "client": "fdbcli",
+        "utilities": ["fdbbackup", "fdbrestore", "fdbdr"],
+        "enhanced": []
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 4500,
+        "scheme": "fdb",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "API"
+      },
+      "status": "unsupported"
+    },
+    "influxdb": {
+      "displayName": "InfluxDB",
+      "description": "Purpose-built time-series database for metrics, events, and real-time analytics",
+      "type": "Time-series",
+      "sourceRepo": "https://github.com/influxdata/influxdb",
+      "license": "MIT",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "QuestDB + TimescaleDB cover time-series with better SQL support",
+      "latestLts": "3.4",
+      "versions": {
+        "3.4.0": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "influxd",
+        "client": "influx",
+        "utilities": [],
+        "enhanced": []
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 8086,
+        "scheme": "http",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "InfluxQL"
+      },
+      "status": "unsupported"
+    },
+    "keydb": {
+      "displayName": "KeyDB",
+      "description": "Multithreaded fork of Redis with high performance and BSD license",
+      "type": "Key-Value",
+      "sourceRepo": "https://github.com/Snapchat/KeyDB",
+      "license": "BSD-3-Clause",
+      "commercialUse": true,
+      "protocol": "redis",
+      "note": "Less popular than Valkey (7K vs 20K GitHub stars); Valkey has broader industry support",
+      "latestLts": "6.3",
+      "versions": {
+        "6.3.4": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "keydb-server",
+        "client": "keydb-cli",
+        "utilities": ["keydb-benchmark"],
+        "enhanced": ["iredis"]
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 6379,
+        "scheme": "redis",
+        "defaultDatabase": "0",
+        "defaultUser": null,
+        "queryLanguage": "Redis"
+      },
+      "status": "unsupported"
+    },
+    "libsql": {
+      "displayName": "libSQL",
+      "description": "Fork of SQLite with native replication, async I/O, and enhanced features by Turso",
+      "type": "Embedded SQL",
+      "sourceRepo": "https://github.com/tursodatabase/libsql",
+      "license": "MIT",
+      "commercialUse": true,
+      "protocol": "sqlite",
+      "note": "Development stalled; last release Feb 2025 (10+ months ago)",
+      "latestLts": "0.24",
+      "versions": {
+        "0.24.32": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "sqld",
+        "client": "libsql",
+        "utilities": [],
+        "enhanced": ["litecli", "usql"]
+      },
+      "connection": {
+        "runtime": "embedded",
+        "defaultPort": null,
+        "scheme": "sqlite",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "SQL"
+      },
+      "status": "unsupported"
+    },
+    "mariadb": {
+      "displayName": "MariaDB",
+      "description": "Community-developed fork of MySQL with enhanced performance, storage engines, and features",
+      "type": "Relational",
+      "sourceRepo": "https://github.com/MariaDB/server",
+      "license": "GPL-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "",
+      "latestLts": "11.8",
+      "versions": {
+        "11.8.1": true,
+        "11.4.5": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "mariadbd",
+        "client": "mariadb",
+        "utilities": ["mariadb-dump", "mariadb-import", "mariadb-admin"],
+        "enhanced": ["mycli", "usql"]
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 3306,
+        "scheme": "mysql",
+        "defaultDatabase": "mysql",
+        "defaultUser": "root",
+        "queryLanguage": "SQL"
+      },
+      "status": "in-progress"
+    },
+    "meilisearch": {
+      "displayName": "Meilisearch",
+      "description": "Lightning-fast, typo-tolerant search engine with instant results",
+      "type": "Search",
+      "sourceRepo": "https://github.com/meilisearch/meilisearch",
+      "license": "MIT",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "",
+      "latestLts": "1.31",
+      "versions": {
+        "1.31.0": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "meilisearch",
+        "client": null,
+        "utilities": [],
+        "enhanced": [],
+        "note": "HTTP API only; use curl or official SDKs"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 7700,
+        "scheme": "http",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "HTTP"
+      },
+      "status": "pending"
+    },
+    "mongodb": {
+      "displayName": "MongoDB",
+      "description": "Document-oriented NoSQL database for flexible, JSON-like data storage",
+      "type": "Document",
+      "sourceRepo": "https://github.com/mongodb/mongo",
+      "license": "SSPL-1.0",
+      "commercialUse": false,
+      "protocol": null,
+      "note": "TODO - disable if used commercially; use FerretDB as alternative",
+      "latestLts": "8.2",
+      "versions": {
+        "8.2.3": true,
+        "8.0.17": true,
+        "7.0.28": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "mongod",
+        "client": "mongosh",
+        "utilities": [
+          "mongodump",
+          "mongorestore",
+          "mongoexport",
+          "mongoimport"
+        ],
+        "enhanced": []
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 27017,
+        "scheme": "mongodb",
+        "defaultDatabase": "test",
+        "defaultUser": null,
+        "queryLanguage": "MQL"
+      },
+      "status": "pending"
+    },
+    "mysql": {
+      "displayName": "MySQL",
+      "description": "The world's most popular open-source relational database, owned by Oracle",
+      "type": "Relational",
+      "sourceRepo": "https://github.com/mysql/mysql-server",
+      "license": "GPL-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "",
+      "latestLts": "8.4",
+      "versions": {
+        "8.4.7": true,
+        "8.0.40": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "mysqld",
+        "client": "mysql",
+        "utilities": ["mysqldump", "mysqlpump", "mysqladmin"],
+        "enhanced": ["mycli", "usql"]
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 3306,
+        "scheme": "mysql",
+        "defaultDatabase": "mysql",
+        "defaultUser": "root",
+        "queryLanguage": "SQL"
+      },
+      "status": "in-progress"
+    },
+    "opensearch": {
+      "displayName": "OpenSearch",
+      "description": "Distributed search and analytics engine, AWS fork of Elasticsearch",
+      "type": "Search",
+      "sourceRepo": "https://github.com/opensearch-project/OpenSearch",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": "elasticsearch",
+      "note": "",
+      "latestLts": "3.4",
+      "versions": {
+        "3.4.0": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "opensearch",
+        "client": "opensearch-cli",
+        "utilities": [],
+        "enhanced": [],
+        "note": "REST API; use curl or OpenSearch Dashboards"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 9200,
+        "scheme": "http",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "HTTP"
+      },
+      "status": "pending"
+    },
+    "postgresql": {
+      "displayName": "PostgreSQL",
+      "description": "Advanced open-source relational database with strong standards compliance and extensibility",
+      "type": "Relational",
+      "sourceRepo": "https://github.com/postgres/postgres",
+      "license": "PostgreSQL",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "",
+      "latestLts": "18",
+      "versions": {
+        "18.1": true,
+        "17.7": true,
+        "16.11": true,
+        "15.15": true,
+        "14.20": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "postgres",
+        "client": "psql",
+        "utilities": [
+          "pg_dump",
+          "pg_restore",
+          "pg_basebackup",
+          "createdb",
+          "dropdb"
+        ],
+        "enhanced": ["pgcli", "usql"]
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 5432,
+        "scheme": "postgresql",
+        "defaultDatabase": "postgres",
+        "defaultUser": "postgres",
+        "queryLanguage": "SQL"
+      },
+      "status": "in-progress"
+    },
+    "qdrant": {
+      "displayName": "Qdrant",
+      "description": "High-performance vector database for AI applications, semantic search, and similarity matching",
+      "type": "Vector",
+      "sourceRepo": "https://github.com/qdrant/qdrant",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "",
+      "latestLts": "1.16",
+      "versions": {
+        "1.16.3": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": false,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "qdrant",
+        "client": null,
+        "utilities": [],
+        "enhanced": [],
+        "note": "REST/gRPC API only; use curl or official SDKs"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 6333,
+        "scheme": "http",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "HTTP"
+      },
+      "status": "pending"
+    },
+    "questdb": {
+      "displayName": "QuestDB",
+      "description": "High-performance time-series database with SQL support and fast ingestion",
+      "type": "Time-series",
+      "sourceRepo": "https://github.com/questdb/questdb",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "",
+      "latestLts": "9.2",
+      "versions": {
+        "9.2.3": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "questdb",
+        "client": "psql",
+        "utilities": [],
+        "enhanced": ["pgcli", "usql"],
+        "note": "PostgreSQL wire protocol; use psql or pgcli"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 8812,
+        "scheme": "postgresql",
+        "defaultDatabase": "qdb",
+        "defaultUser": "admin",
+        "queryLanguage": "SQL"
+      },
+      "status": "pending"
+    },
+    "redis": {
+      "displayName": "Redis",
+      "description": "In-memory data store used as database, cache, and message broker",
+      "type": "Key-Value",
+      "sourceRepo": "https://github.com/redis/redis",
+      "license": "RSALv2/SSPLv1 (7.4+), AGPL-3.0 (8.0+)",
+      "commercialUse": false,
+      "protocol": null,
+      "note": "TODO - disable if used commercially; use Valkey as drop-in replacement",
+      "latestLts": "8.4",
+      "versions": {
+        "8.4.0": true,
+        "8.2.3": true,
+        "8.0.5": true,
+        "7.4.7": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "redis-server",
+        "client": "redis-cli",
+        "utilities": ["redis-benchmark", "redis-check-aof", "redis-check-rdb"],
+        "enhanced": ["iredis"]
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 6379,
+        "scheme": "redis",
+        "defaultDatabase": "0",
+        "defaultUser": null,
+        "queryLanguage": "Redis"
+      },
+      "status": "in-progress"
+    },
+    "rocksdb": {
+      "displayName": "RocksDB",
+      "description": "Embeddable persistent key-value store optimized for fast storage, developed by Meta",
+      "type": "Embedded KV",
+      "sourceRepo": "https://github.com/facebook/rocksdb",
+      "license": "Apache-2.0/GPL-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "Embedded library, not a standalone database service; used as storage engine by other DBs",
+      "latestLts": "10.7",
+      "versions": {
+        "10.7.5": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": null,
+        "client": null,
+        "utilities": [],
+        "enhanced": [],
+        "note": "Embedded library; use language bindings"
+      },
+      "connection": {
+        "runtime": "embedded",
+        "defaultPort": null,
+        "scheme": null,
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "API"
+      },
+      "status": "unsupported"
+    },
+    "sqlite": {
+      "displayName": "SQLite",
+      "description": "Self-contained, serverless, zero-configuration SQL database engine",
+      "type": "Embedded SQL",
+      "sourceRepo": "https://github.com/sqlite/sqlite",
+      "license": "Public Domain",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "",
+      "latestLts": "3.51",
+      "versions": {
+        "3.51.1": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": null,
+        "client": "sqlite3",
+        "utilities": [],
+        "enhanced": ["litecli", "usql"]
+      },
+      "connection": {
+        "runtime": "embedded",
+        "defaultPort": null,
+        "scheme": "sqlite",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "SQL"
+      },
+      "status": "in-progress"
+    },
+    "tidb": {
+      "displayName": "TiDB",
+      "description": "Distributed SQL database with MySQL compatibility, horizontal scalability, and HTAP support",
+      "type": "Distributed SQL",
+      "sourceRepo": "https://github.com/pingcap/tidb",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": "mysql",
+      "note": "",
+      "latestLts": "8.5",
+      "versions": {
+        "8.5.4": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "tidb-server",
+        "client": "mysql",
+        "utilities": ["dumpling", "tidb-lightning"],
+        "enhanced": ["mycli", "usql"],
+        "note": "MySQL wire protocol; use mysql client"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 4000,
+        "scheme": "mysql",
+        "defaultDatabase": "test",
+        "defaultUser": "root",
+        "queryLanguage": "SQL"
+      },
+      "status": "pending"
+    },
+    "timescaledb": {
+      "displayName": "TimescaleDB",
+      "description": "Time-series database built on PostgreSQL for fast analytics and scalability",
+      "type": "Time-series",
+      "sourceRepo": "https://github.com/timescale/timescaledb",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": "postgresql",
+      "note": "",
+      "latestLts": "2.24",
+      "versions": {
+        "2.24.0": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "postgres",
+        "client": "psql",
+        "utilities": ["pg_dump", "pg_restore"],
+        "enhanced": ["pgcli", "usql"],
+        "note": "PostgreSQL extension; uses PostgreSQL tools"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 5432,
+        "scheme": "postgresql",
+        "defaultDatabase": "postgres",
+        "defaultUser": "postgres",
+        "queryLanguage": "SQL"
+      },
+      "status": "pending"
+    },
+    "valkey": {
+      "displayName": "Valkey",
+      "description": "Linux Foundation-backed fork of Redis with BSD license, drop-in Redis replacement",
+      "type": "Key-Value",
+      "sourceRepo": "https://github.com/valkey-io/valkey",
+      "license": "BSD-3-Clause",
+      "commercialUse": true,
+      "protocol": "redis",
+      "note": "",
+      "latestLts": "9.0",
+      "versions": {
+        "9.0.1": true,
+        "8.1.5": true,
+        "8.0.6": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "valkey-server",
+        "client": "valkey-cli",
+        "utilities": ["valkey-benchmark"],
+        "enhanced": ["iredis"]
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 6379,
+        "scheme": "redis",
+        "defaultDatabase": "0",
+        "defaultUser": null,
+        "queryLanguage": "Redis"
+      },
+      "status": "pending"
+    }
+  }
+}

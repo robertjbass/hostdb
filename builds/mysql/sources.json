@@ -1,0 +1,67 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "mysql",
+  "baseUrl": "https://cdn.mysql.com/archives",
+  "versions": {
+    "8.4.3": {
+      "linux-x64": {
+        "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-linux-glibc2.28-x86_64.tar.xz",
+        "format": "tar.xz",
+        "sha256": null
+      },
+      "linux-arm64": {
+        "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-linux-glibc2.28-aarch64.tar.xz",
+        "format": "tar.xz",
+        "sha256": null
+      },
+      "darwin-x64": {
+        "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-macos14-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sha256": null
+      },
+      "darwin-arm64": {
+        "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-macos14-arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": null
+      },
+      "win32-x64": {
+        "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-winx64.zip",
+        "format": "zip",
+        "sha256": null
+      }
+    },
+    "8.0.40": {
+      "linux-x64": {
+        "url": "https://cdn.mysql.com/archives/mysql-8.0/mysql-8.0.40-linux-glibc2.28-x86_64.tar.xz",
+        "format": "tar.xz",
+        "sha256": null
+      },
+      "linux-arm64": {
+        "url": "https://cdn.mysql.com/archives/mysql-8.0/mysql-8.0.40-linux-glibc2.28-aarch64.tar.xz",
+        "format": "tar.xz",
+        "sha256": null
+      },
+      "darwin-x64": {
+        "url": "https://cdn.mysql.com/archives/mysql-8.0/mysql-8.0.40-macos14-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sha256": null
+      },
+      "darwin-arm64": {
+        "url": "https://cdn.mysql.com/archives/mysql-8.0/mysql-8.0.40-macos14-arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": null
+      },
+      "win32-x64": {
+        "url": "https://cdn.mysql.com/archives/mysql-8.0/mysql-8.0.40-winx64.zip",
+        "format": "zip",
+        "sha256": null
+      }
+    }
+  },
+  "notes": {
+    "sha256": "Set to null until we verify downloads and capture checksums",
+    "glibc": "Linux binaries require glibc 2.28+ (Ubuntu 20.04+, Debian 10+, RHEL 8+)",
+    "macos": "macOS binaries target macOS 14 (Sonoma) but may work on earlier versions",
+    "cdn": "Use cdn.mysql.com/archives/ for direct downloads (dev.mysql.com redirects require auth)"
+  }
+}

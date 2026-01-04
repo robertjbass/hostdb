@@ -1,0 +1,191 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Downloads Registry",
+  "description": "Unified registry of all downloadable items: databases, CLI tools, and prerequisites",
+  "type": "object",
+  "required": ["packageManagers", "items"],
+  "properties": {
+    "packageManagers": {
+      "type": "object",
+      "description": "Map of package manager IDs to their metadata",
+      "additionalProperties": {
+        "$ref": "#/definitions/PackageManager"
+      }
+    },
+    "items": {
+      "type": "object",
+      "description": "Map of item IDs to their download/install metadata",
+      "additionalProperties": {
+        "$ref": "#/definitions/Item"
+      }
+    }
+  },
+  "definitions": {
+    "Item": {
+      "type": "object",
+      "required": ["name", "description", "type", "packages", "requires"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Human-readable name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief description"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["database", "cli-tool", "prerequisite"],
+          "description": "Item type"
+        },
+        "binary": {
+          "type": "string",
+          "description": "Binary name to check in PATH (cli-tools only)"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["server", "client", "utility", "enhanced"],
+          "description": "Tool category (cli-tools only)"
+        },
+        "bundledWith": {
+          "type": ["string", "null"],
+          "description": "Parent item ID that includes this tool (cli-tools only)"
+        },
+        "packages": {
+          "type": "object",
+          "description": "Package manager installation options",
+          "additionalProperties": {
+            "$ref": "#/definitions/PackageSpec"
+          }
+        },
+        "binaries": {
+          "type": "object",
+          "description": "Direct binary download URLs by platform",
+          "properties": {
+            "linux-x64": { "$ref": "#/definitions/BinarySpec" },
+            "linux-arm64": { "$ref": "#/definitions/BinarySpec" },
+            "darwin-x64": { "$ref": "#/definitions/BinarySpec" },
+            "darwin-arm64": { "$ref": "#/definitions/BinarySpec" },
+            "win32-x64": { "$ref": "#/definitions/BinarySpec" }
+          },
+          "additionalProperties": false
+        },
+        "docker": {
+          "$ref": "#/definitions/DockerSpec",
+          "description": "Docker image (databases only)"
+        },
+        "requires": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array of item IDs that are prerequisites"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes"
+        }
+      }
+    },
+    "PackageSpec": {
+      "type": "object",
+      "required": ["package"],
+      "properties": {
+        "package": {
+          "type": "string",
+          "description": "Package name to install"
+        },
+        "tap": {
+          "type": "string",
+          "description": "Homebrew tap (brew only)"
+        },
+        "cask": {
+          "type": "boolean",
+          "description": "Whether this is a cask (brew only)"
+        },
+        "bucket": {
+          "type": "string",
+          "description": "Scoop bucket (scoop only)"
+        },
+        "repo": {
+          "type": "string",
+          "description": "Repository URL for adding external repos"
+        }
+      }
+    },
+    "BinarySpec": {
+      "type": "object",
+      "required": ["url", "format"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Direct download URL"
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "tar.gz",
+            "tar.xz",
+            "zip",
+            "binary",
+            "deb",
+            "rpm",
+            "pkg",
+            "msi",
+            "dmg"
+          ],
+          "description": "Archive/file format"
+        }
+      }
+    },
+    "DockerSpec": {
+      "type": "object",
+      "required": ["image", "tag"],
+      "properties": {
+        "image": {
+          "type": "string",
+          "description": "Docker image name"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Docker image tag"
+        }
+      }
+    },
+    "PackageManager": {
+      "type": "object",
+      "required": ["name", "platforms", "installCmd", "checkCmd"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Human-readable name"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "darwin-arm64",
+              "darwin-x64",
+              "linux-x64",
+              "linux-arm64",
+              "win32-x64"
+            ]
+          },
+          "description": "Supported platforms"
+        },
+        "installCmd": {
+          "type": "string",
+          "description": "Install command template with {package} placeholder"
+        },
+        "tapCmd": {
+          "type": "string",
+          "description": "Tap/repo add command (if applicable)"
+        },
+        "checkCmd": {
+          "type": "string",
+          "description": "Command to check if package manager is installed"
+        }
+      }
+    }
+  }
+}

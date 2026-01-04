@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hosted Database Releases",
+  "description": "Manifest of all available database binaries hosted on GitHub Releases",
+  "type": "object",
+  "required": ["$schema", "repository", "databases"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON schema reference"
+    },
+    "repository": {
+      "type": "string",
+      "description": "GitHub repository (owner/repo)"
+    },
+    "lastUpdated": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO timestamp of last update (null if no releases yet)"
+    },
+    "databases": {
+      "type": "object",
+      "description": "Map of database names to their releases",
+      "additionalProperties": {
+        "$ref": "#/definitions/DatabaseReleases"
+      }
+    }
+  },
+  "definitions": {
+    "DatabaseReleases": {
+      "type": "object",
+      "description": "All releases for a specific database",
+      "additionalProperties": {
+        "$ref": "#/definitions/VersionRelease"
+      }
+    },
+    "VersionRelease": {
+      "type": "object",
+      "required": ["version", "releaseTag", "platforms"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Semantic version"
+        },
+        "releaseTag": {
+          "type": "string",
+          "description": "GitHub release tag"
+        },
+        "releasedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this version was released"
+        },
+        "platforms": {
+          "type": "object",
+          "description": "Available platforms for this version",
+          "properties": {
+            "linux-x64": { "$ref": "#/definitions/PlatformAsset" },
+            "linux-arm64": { "$ref": "#/definitions/PlatformAsset" },
+            "darwin-x64": { "$ref": "#/definitions/PlatformAsset" },
+            "darwin-arm64": { "$ref": "#/definitions/PlatformAsset" },
+            "win32-x64": { "$ref": "#/definitions/PlatformAsset" }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "PlatformAsset": {
+      "type": "object",
+      "required": ["url", "sha256"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Direct download URL from GitHub Releases"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA256 checksum of the asset"
+        },
+        "size": {
+          "type": "integer",
+          "description": "File size in bytes"
+        }
+      }
+    }
+  }
+}

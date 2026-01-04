@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Database Sources",
+  "description": "Maps database versions and platforms to official download URLs",
+  "type": "object",
+  "required": ["database", "versions"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON schema reference"
+    },
+    "database": {
+      "type": "string",
+      "description": "Database identifier (e.g., mysql, mariadb, postgresql)"
+    },
+    "baseUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Base URL for downloads (informational)"
+    },
+    "versions": {
+      "type": "object",
+      "description": "Map of version strings to platform sources",
+      "additionalProperties": {
+        "$ref": "#/definitions/PlatformSources"
+      }
+    },
+    "notes": {
+      "type": "object",
+      "description": "Additional notes about the sources",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "definitions": {
+    "PlatformSources": {
+      "type": "object",
+      "description": "Map of platform IDs to source entries",
+      "properties": {
+        "linux-x64": { "$ref": "#/definitions/SourceEntry" },
+        "linux-arm64": { "$ref": "#/definitions/SourceEntry" },
+        "darwin-x64": { "$ref": "#/definitions/SourceEntry" },
+        "darwin-arm64": { "$ref": "#/definitions/SourceEntry" },
+        "win32-x64": { "$ref": "#/definitions/SourceEntry" }
+      },
+      "additionalProperties": false
+    },
+    "SourceEntry": {
+      "type": "object",
+      "required": ["url", "format"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Direct download URL for the binary"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["tar.gz", "tar.xz", "zip", "dmg", "msi"],
+          "description": "Archive format"
+        },
+        "sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA256 checksum (null if not yet verified)"
+        }
+      }
+    }
+  }
+}

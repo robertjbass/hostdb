@@ -1,64 +1,121 @@
-# host-db
+# hostdb
 
-NPM packages for embedding database binaries in Node.js projects. Binaries are downloaded on-demand during installation.
+Pre-built database binaries for multiple platforms, distributed via GitHub Releases.
 
-## Supported Databases
+**Primary consumer:** [SpinDB](https://github.com/robertjbass/spindb)
 
-| Database | Versions | Platforms |
-|----------|----------|-----------|
-| MariaDB | 11.4, 10.11 | linux-x64, linux-arm64, darwin-arm64, win32-x64 |
-| MySQL | 8.4, 8.0 | linux-x64, linux-arm64, darwin-arm64, win32-x64 |
-| PostgreSQL | 17, 16 | linux-x64, linux-arm64, darwin-arm64, win32-x64 |
-| Redis | 7.4, 7.2 | linux-x64, linux-arm64, darwin-arm64, win32-x64 |
-
-## Installation
+## Quick Start
 
 ```bash
-# Install latest LTS version
-npm install @host-db/mariadb
+# Download MySQL 8.4.3 for current platform
+pnpm download:mysql
 
-# Or install specific version
-npm install @host-db/mariadb-11.4
+# Download for all platforms
+pnpm download:mysql -- --all-platforms
+
+# List supported databases
+pnpm dbs
 ```
 
-## Usage
+## Querying Available Binaries
 
-```typescript
-import { getBinaryPaths } from '@host-db/mariadb-11.4'
+SpinDB (or any consumer) can fetch `releases.json` for available binaries:
 
-const paths = await getBinaryPaths()
-
-console.log(paths.mariadbd)    // /path/to/mariadbd
-console.log(paths.mariadb)     // /path/to/mariadb (client)
-console.log(paths.mariadbDump) // /path/to/mariadb-dump
+```bash
+curl https://raw.githubusercontent.com/robertjbass/hostdb/main/releases.json
 ```
 
-## How It Works
+Download URL pattern:
+```
+https://github.com/robertjbass/hostdb/releases/download/{tag}/{filename}
+# Example:
+https://github.com/robertjbass/hostdb/releases/download/mysql-8.4.3/mysql-8.4.3-darwin-arm64.tar.gz
+```
 
-1. When you install a package like `@host-db/mariadb-11.4`, npm automatically installs the correct platform-specific package for your OS/architecture
-2. The platform package downloads the official database binaries during `postinstall`
-3. Binaries are cached in `~/.cache/host-db` to avoid re-downloading on reinstall
-4. Use `getBinaryPaths()` to get the paths to all executables
+## What's Been Done
 
-## Environment Variables
+See plan: `~/.claude/plans/mossy-meandering-babbage.md`
 
-| Variable | Description |
+### Phase 1: Cleanup (Complete)
+- [x] Added `status` field to databases.json (`in-progress`, `pending`, `unsupported`)
+- [x] Removed turborepo (turbo.json, tsconfig.base.json, pnpm-workspace.yaml)
+- [x] Removed legacy code (old npm monorepo packages)
+- [x] Updated CLAUDE.md with new project structure
+
+### Phase 2: MySQL Download Infrastructure (Complete)
+- [x] Created `builds/mysql/download.ts` - downloads official binaries
+- [x] Created `builds/mysql/sources.json` - maps versions/platforms to URLs
+- [x] Created `schemas/sources.schema.json` - validates sources.json
+- [x] Tested local download: MySQL 8.4.3 darwin-arm64 works
+- [x] Created `releases.json` manifest for querying available binaries
+- [x] Created `schemas/releases.schema.json` - validates releases.json
+- [x] Created `.github/workflows/release-mysql.yml` - GitHub Actions workflow
+- [x] Created `scripts/update-releases.ts` - updates manifest after release
+
+## To Test
+
+### Local Download (Already Tested)
+```bash
+pnpm download:mysql -- --version 8.4.3
+# Output: dist/mysql-8.4.3-darwin-arm64.tar.gz (165MB)
+```
+
+### GitHub Actions (Not Yet Tested)
+1. Push changes to GitHub
+2. Go to Actions → "Release MySQL" → Run workflow
+3. Enter version `8.4.3` and platforms `all`
+4. Verify release created with all platform binaries
+5. Verify `releases.json` updated automatically
+
+## Next Steps
+
+### Immediate
+- [ ] Push to GitHub and test the release workflow
+- [ ] Verify checksums are captured in `sources.json` after first release
+
+### Phase 3: Additional Databases
+- [ ] MariaDB - copy MySQL pattern
+- [ ] Redis - may need to build from source for Windows
+- [ ] PostgreSQL - for redundancy (Zonky.io already provides)
+- [ ] SQLite - lower priority
+
+### Phase 4: CLI Tool
+- [ ] Create `cli/` package
+- [ ] TUI for browsing/downloading binaries
+- [ ] Publish to npm as `@hostdb/cli` or `hostdb`
+
+## Supported Platforms
+
+| Platform | Description |
 |----------|-------------|
-| `HOST_DB_CACHE_DIR` | Override the default cache directory |
-| `HOST_DB_SKIP_INSTALL` | Set to `1` to skip binary download during install |
+| `linux-x64` | Linux x86_64 (glibc 2.28+) |
+| `linux-arm64` | Linux ARM64 (glibc 2.28+) |
+| `darwin-x64` | macOS Intel |
+| `darwin-arm64` | macOS Apple Silicon |
+| `win32-x64` | Windows x64 |
 
-## TODOs
+## Project Structure
 
-- [ ] Create `@host-db` organization on npmjs.com
-- [ ] Configure OIDC trusted publishing for each package:
-  1. Go to package settings → Publishing access → Add trusted publisher
-  2. Repository owner: `robertjbass`
-  3. Repository name: `host-db`
-  4. Workflow filename: `publish.yml`
-- [ ] Update manifest checksums with actual SHA256 values
-- [ ] Verify download URLs are correct for all database versions
-- [ ] Test binary downloads on all supported platforms
-- [ ] Add MongoDB support (pending SSPL license review)
+```
+hostdb/
+├── databases.json          # Database metadata
+├── downloads.json          # CLI tools, prerequisites
+├── releases.json           # Manifest of GitHub Releases (queryable)
+├── schemas/                # JSON schemas
+├── builds/
+│   └── mysql/
+│       ├── download.ts     # Downloads official binaries
+│       ├── sources.json    # Version → URL mappings
+│       ├── Dockerfile      # Fallback: build from source
+│       └── README.md
+├── scripts/
+│   ├── list-databases.ts   # pnpm dbs
+│   └── update-releases.ts  # Updates releases.json
+├── .github/workflows/
+│   ├── release-mysql.yml   # Creates GitHub Releases
+│   └── version-check.yml   # PR version check (for future CLI package)
+└── cli/                    # TUI tool (Phase 4, not yet created)
+```
 
 ## License
 

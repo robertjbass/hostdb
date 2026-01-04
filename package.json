@@ -1,21 +1,32 @@
 {
-  "name": "host-db-monorepo",
+  "name": "hostdb",
+  "version": "0.1.0",
+  "description": "Pre-built database binaries for multiple platforms, distributed via GitHub Releases",
   "private": true,
   "type": "module",
   "author": "Bob Bass",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/robertjbass/hostdb.git"
+  },
   "scripts": {
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
-    "generate:platform-packages": "tsx scripts/generate-platform-package.ts"
+    "dbs": "tsx scripts/list-databases.ts",
+    "download:mysql": "tsx builds/mysql/download.ts",
+    "update:releases": "tsx scripts/update-releases.ts",
+    "format": "prettier --write .",
+    "lint": "tsc --noEmit && eslint ."
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.0",
+    "chalk": "^5.6.2",
+    "cli-table3": "^0.6.5",
+    "eslint": "^9.17.0",
     "prettier": "^3.4.0",
     "tsx": "^4.19.0",
-    "turbo": "^2.3.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.18.0"
   },
   "packageManager": "pnpm@9.15.0",
   "engines": {
