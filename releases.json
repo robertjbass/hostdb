@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-04T21:25:47.571Z",
+  "lastUpdated": "2026-01-04T21:27:14.677Z",
   "databases": {
     "mysql": {
       "8.4.3": {
@@ -131,6 +131,38 @@
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-win32-x64.zip",
             "sha256": "16869eedef3476a90c29087a9c25d95258c9380ff0f58d27b3ae80ba3a8a5306",
             "size": 40336275
+          }
+        }
+      },
+      "15.15.0": {
+        "version": "15.15.0",
+        "releaseTag": "postgresql-15.15.0",
+        "releasedAt": "2026-01-04T21:27:00Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-darwin-arm64.tar.gz",
+            "sha256": "ae48299acc943639ecd29af39310226ebf389cfd9a34c7e67d310f54db0992ea",
+            "size": 48733156
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-darwin-x64.tar.gz",
+            "sha256": "5b479c7f03c3e280512bd42e140ce35302b984dab398c6da53a023812b14d907",
+            "size": 48733398
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-linux-arm64.tar.gz",
+            "sha256": "f51e29f3a7dbb2094ddceb555dd213d46366f755533746d7167a98f42250f542",
+            "size": 21402602
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-linux-x64.tar.gz",
+            "sha256": "099a650d3274d4e478e10db55344c8305c3a644c99c0e35170276b2612505aee",
+            "size": 22094995
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-win32-x64.zip",
+            "sha256": "6b2ab1b7f15796bbd33e3933acca52af2dd2063460b20ed48b8c30fe350c4220",
+            "size": 35613324
           }
         }
       }
