@@ -3,6 +3,33 @@
   "database": "mysql",
   "baseUrl": "https://cdn.mysql.com/archives",
   "versions": {
+    "9.1.0": {
+      "linux-x64": {
+        "url": "https://cdn.mysql.com/archives/mysql-9.1/mysql-9.1.0-linux-glibc2.28-x86_64.tar.xz",
+        "format": "tar.xz",
+        "sha256": null
+      },
+      "linux-arm64": {
+        "url": "https://cdn.mysql.com/archives/mysql-9.1/mysql-9.1.0-linux-glibc2.28-aarch64.tar.xz",
+        "format": "tar.xz",
+        "sha256": null
+      },
+      "darwin-x64": {
+        "url": "https://cdn.mysql.com/archives/mysql-9.1/mysql-9.1.0-macos14-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sha256": null
+      },
+      "darwin-arm64": {
+        "url": "https://cdn.mysql.com/archives/mysql-9.1/mysql-9.1.0-macos14-arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": null
+      },
+      "win32-x64": {
+        "url": "https://cdn.mysql.com/archives/mysql-9.1/mysql-9.1.0-winx64.zip",
+        "format": "zip",
+        "sha256": null
+      }
+    },
     "8.4.3": {
       "linux-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-linux-glibc2.28-x86_64.tar.xz",

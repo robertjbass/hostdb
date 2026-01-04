@@ -4,13 +4,26 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'MySQL version (e.g., 8.4.3)'
+        description: 'MySQL version'
         required: true
         default: '8.4.3'
+        type: choice
+        options:
+          - '9.1.0'
+          - '8.4.3'
+          - '8.0.40'
       platforms:
-        description: "Platforms (comma-separated, or 'all')"
+        description: 'Platforms'
         required: true
         default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'linux-x64'
+          - 'linux-arm64'
+          - 'darwin-x64'
+          - 'darwin-arm64'
+          - 'win32-x64'
 
 # Prevent concurrent runs that could conflict when updating releases.json
 concurrency:

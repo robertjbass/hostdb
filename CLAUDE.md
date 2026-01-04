@@ -280,10 +280,27 @@ pnpm download:mysql -- --version 8.4.3 --all-platforms
 Releases are triggered manually via `workflow_dispatch`:
 
 1. Go to Actions → "Release MySQL" → Run workflow
-2. Enter version (e.g., `8.4.3`) and platforms (`all` or comma-separated)
+2. Select version and platform from dropdowns
 3. Workflow downloads binaries for all platforms
 4. Creates GitHub Release with artifacts
 5. Updates `releases.json` manifest
+
+### Adding New Database Versions
+
+When adding support for a new version, you must update **two files**:
+
+1. **`builds/<database>/sources.json`** - Add URLs for all platforms
+2. **`.github/workflows/release-<database>.yml`** - Add version to the dropdown options
+
+Example for adding MySQL 9.2.0:
+```yaml
+# In release-mysql.yml, add to the options list:
+options:
+  - '9.2.0'  # ← Add new version here
+  - '9.1.0'
+  - '8.4.3'
+  - '8.0.40'
+```
 
 ## Querying Available Binaries
 
