@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-04T20:50:58.913Z",
+  "lastUpdated": "2026-01-04T21:01:11.627Z",
   "databases": {
     "mysql": {
       "8.4.3": {
@@ -65,6 +65,38 @@
             "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-8.0.40/mysql-8.0.40-win32-x64.zip",
             "sha256": "83096828de495d32f4816f97bf59113ad294c5950fc03594aae9b4adb8ab2100",
             "size": 243702261
+          }
+        }
+      },
+      "9.1.0": {
+        "version": "9.1.0",
+        "releaseTag": "mysql-9.1.0",
+        "releasedAt": "2026-01-04T21:01:00Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-darwin-arm64.tar.gz",
+            "sha256": "155a1864ebb72d187931ec753f038b1bdb538b914b90cdd8b369cb0d408c1bd8",
+            "size": 167944373
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-darwin-x64.tar.gz",
+            "sha256": "e28a25cde95c4ee5aa467e642c59739edde7aaa5665be6d1281f6e788b3d14f6",
+            "size": 172556610
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-linux-arm64.tar.gz",
+            "sha256": "5ed095732fa7a0a71fa792074d16e9afadfcbc0c793d98a75bcbf500d186c828",
+            "size": 1035584752
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-linux-x64.tar.gz",
+            "sha256": "b5bf61ddca25bdafee69e55f8d404a2c95ed821a1a26e8a29cf4dc5c89e3918e",
+            "size": 1044803387
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-win32-x64.zip",
+            "sha256": "4bc4068ae41cdc1b7bc5dfca524d90cb4f625923eab8d29d7a199a4bbbf2498d",
+            "size": 302352713
           }
         }
       }
