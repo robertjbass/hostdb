@@ -67,8 +67,8 @@
         },
         "status": {
           "type": "string",
-          "enum": ["in-progress", "pending", "unsupported"],
-          "description": "Build status: in-progress (actively building), pending (planned), unsupported (not planned)"
+          "enum": ["completed", "in-progress", "pending", "unsupported"],
+          "description": "Build status: completed (released on GitHub), in-progress (actively building), pending (planned), unsupported (not planned)"
         },
         "commercialUse": {
           "type": "boolean",

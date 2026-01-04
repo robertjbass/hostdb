@@ -52,32 +52,24 @@ See plan: `~/.claude/plans/mossy-meandering-babbage.md`
 - [x] Created `.github/workflows/release-mysql.yml` - GitHub Actions workflow
 - [x] Created `scripts/update-releases.ts` - updates manifest after release
 
-## To Test
+## Status
 
-### Local Download (Already Tested)
-```bash
-pnpm download:mysql -- --version 8.4.3
-# Output: dist/mysql-8.4.3-darwin-arm64.tar.gz (165MB)
-```
-
-### GitHub Actions (Not Yet Tested)
-1. Push changes to GitHub
-2. Go to Actions → "Release MySQL" → Run workflow
-3. Enter version `8.4.3` and platforms `all`
-4. Verify release created with all platform binaries
-5. Verify `releases.json` updated automatically
+| Database | Status | Notes |
+|----------|--------|-------|
+| MySQL | ✅ Complete | 8.4.3, 8.0.40, 9.1.0 available |
+| PostgreSQL | 🔄 Next | Official binary downloads |
+| Redis | 🔄 Next | Build from source |
+| SQLite | 🔄 Next | Official amalgamation |
+| MongoDB | 🔄 Next | Official binaries (SSPL license) |
+| MariaDB | ⏳ Pending | Copy MySQL pattern |
 
 ## Next Steps
 
-### Immediate
-- [ ] Push to GitHub and test the release workflow
-- [ ] Verify checksums are captured in `sources.json` after first release
-
 ### Phase 3: Additional Databases
-- [ ] MariaDB - copy MySQL pattern
-- [ ] Redis - may need to build from source for Windows
-- [ ] PostgreSQL - for redundancy (Zonky.io already provides)
-- [ ] SQLite - lower priority
+- [ ] PostgreSQL - official binary downloads available
+- [ ] Redis - builds from source (no official binaries for all platforms)
+- [ ] SQLite - small, official amalgamation downloads
+- [ ] MongoDB - official binaries (note: SSPL license restricts commercial use)
 
 ### Phase 4: CLI Tool
 - [ ] Create `cli/` package
@@ -119,4 +111,4 @@ hostdb/
 
 ## License
 
-MIT
+[PolyForm Noncommercial 1.0.0](./LICENSE)
