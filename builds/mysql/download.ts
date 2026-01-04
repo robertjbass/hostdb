@@ -16,6 +16,7 @@
 
 import {
   createWriteStream,
+  createReadStream,
   mkdirSync,
   existsSync,
   readFileSync,
@@ -35,6 +36,18 @@ type Platform =
   | 'darwin-arm64'
   | 'win32-x64'
 
+const VALID_PLATFORMS: Platform[] = [
+  'linux-x64',
+  'linux-arm64',
+  'darwin-x64',
+  'darwin-arm64',
+  'win32-x64',
+]
+
+function isValidPlatform(value: string): value is Platform {
+  return VALID_PLATFORMS.includes(value as Platform)
+}
+
 type SourceEntry = {
   url: string
   format: 'tar.xz' | 'tar.gz' | 'zip'
@@ -48,7 +61,6 @@ type Sources = {
   notes: Record<string, string>
 }
 
-// Colors
 const colors = {
   reset: '\x1b[0m',
   red: '\x1b[31m',
@@ -75,7 +87,6 @@ function logError(msg: string) {
   log('red', 'ERROR', msg)
 }
 
-// Detect current platform
 function detectPlatform(): Platform {
   const platform = process.platform
   const arch = process.arch
@@ -89,14 +100,12 @@ function detectPlatform(): Platform {
   throw new Error(`Unsupported platform: ${platform}-${arch}`)
 }
 
-// Load sources.json
 function loadSources(): Sources {
   const sourcesPath = resolve(__dirname, 'sources.json')
   const content = readFileSync(sourcesPath, 'utf-8')
   return JSON.parse(content) as Sources
 }
 
-// Download file with progress
 async function downloadFile(url: string, destPath: string): Promise<void> {
   logInfo(`Downloading: ${url}`)
 
@@ -159,13 +168,18 @@ async function downloadFile(url: string, destPath: string): Promise<void> {
   )
 }
 
-// Calculate SHA256 checksum
-function calculateSha256(filePath: string): string {
-  const content = readFileSync(filePath)
-  return createHash('sha256').update(content).digest('hex')
+// Calculate SHA256 checksum using streaming to avoid loading large files into memory
+async function calculateSha256(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = createHash('sha256')
+    const stream = createReadStream(filePath)
+
+    stream.on('data', (chunk) => hash.update(chunk))
+    stream.on('end', () => resolve(hash.digest('hex')))
+    stream.on('error', reject)
+  })
 }
 
-// Extract and repackage
 function repackage(
   sourcePath: string,
   format: string,
@@ -239,7 +253,6 @@ function repackage(
   logSuccess(`Created: ${outputPath}`)
 }
 
-// Parse CLI arguments
 function parseArgs(): {
   version: string
   platforms: Platform[]
@@ -254,12 +267,31 @@ function parseArgs(): {
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
       case '--version':
+        if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
+          logError('--version requires a value')
+          process.exit(1)
+        }
         version = args[++i]
         break
-      case '--platform':
-        platforms.push(args[++i] as Platform)
+      case '--platform': {
+        if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
+          logError('--platform requires a value')
+          process.exit(1)
+        }
+        const platformValue = args[++i]
+        if (!isValidPlatform(platformValue)) {
+          logError(`Invalid platform: ${platformValue}`)
+          logError(`Valid platforms: ${VALID_PLATFORMS.join(', ')}`)
+          process.exit(1)
+        }
+        platforms.push(platformValue)
         break
+      }
       case '--output':
+        if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
+          logError('--output requires a value')
+          process.exit(1)
+        }
         outputDir = args[++i]
         break
       case '--all-platforms':
@@ -289,13 +321,7 @@ Examples:
   }
 
   if (allPlatforms) {
-    platforms = [
-      'linux-x64',
-      'linux-arm64',
-      'darwin-x64',
-      'darwin-arm64',
-      'win32-x64',
-    ]
+    platforms = [...VALID_PLATFORMS]
   } else if (platforms.length === 0) {
     platforms = [detectPlatform()]
   }
@@ -303,7 +329,6 @@ Examples:
   return { version, platforms, outputDir }
 }
 
-// Main
 async function main() {
   const { version, platforms, outputDir } = parseArgs()
   const sources = loadSources()
@@ -348,7 +373,7 @@ async function main() {
     }
 
     // Verify checksum
-    const actualSha256 = calculateSha256(downloadPath)
+    const actualSha256 = await calculateSha256(downloadPath)
     logInfo(`SHA256: ${actualSha256}`)
 
     if (source.sha256) {
@@ -366,7 +391,7 @@ async function main() {
     repackage(downloadPath, source.format, outputPath, version, platform)
 
     // Final checksum
-    const outputSha256 = calculateSha256(outputPath)
+    const outputSha256 = await calculateSha256(outputPath)
     logInfo(`Output SHA256: ${outputSha256}`)
   }
 

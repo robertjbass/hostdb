@@ -125,6 +125,7 @@
           "enum": [
             "tar.gz",
             "tar.xz",
+            "tar.bz2",
             "zip",
             "binary",
             "deb",

@@ -62,7 +62,7 @@
         },
         "sha256": {
           "type": ["string", "null"],
-          "pattern": "^[a-f0-9]{64}$",
+          "pattern": "^[a-fA-F0-9]{64}$",
           "description": "SHA256 checksum (null if not yet verified)"
         }
       }

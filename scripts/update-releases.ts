@@ -49,16 +49,32 @@ function parseArgs(): { database: string; version: string; tag: string } {
   let version = ''
   let tag = ''
 
+  function getArgValue(flag: string, index: number): string {
+    if (index + 1 >= args.length) {
+      console.error(`Error: ${flag} requires a value`)
+      process.exit(1)
+    }
+    const value = args[index + 1]
+    if (value.startsWith('-')) {
+      console.error(`Error: ${flag} requires a value, got "${value}"`)
+      process.exit(1)
+    }
+    return value
+  }
+
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
       case '--database':
-        database = args[++i]
+        database = getArgValue('--database', i)
+        i++
         break
       case '--version':
-        version = args[++i]
+        version = getArgValue('--version', i)
+        i++
         break
       case '--tag':
-        tag = args[++i]
+        tag = getArgValue('--tag', i)
+        i++
         break
       case '--help':
       case '-h':
@@ -164,9 +180,15 @@ async function main() {
 
   // Load current releases.json
   const releasesPath = resolve(ROOT_DIR, 'releases.json')
-  const releases: ReleasesManifest = JSON.parse(
-    readFileSync(releasesPath, 'utf-8'),
-  )
+  let releases: ReleasesManifest
+  try {
+    const content = readFileSync(releasesPath, 'utf-8')
+    releases = JSON.parse(content) as ReleasesManifest
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error(`Error: Failed to parse ${releasesPath}: ${message}`)
+    process.exit(1)
+  }
 
   // Fetch release info from GitHub
   console.log('Fetching release info from GitHub...')

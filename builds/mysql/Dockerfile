@@ -8,7 +8,6 @@
 #     -f builds/mysql/Dockerfile .
 
 ARG VERSION=8.4.3
-ARG BOOST_VERSION=1_77_0
 
 # =============================================================================
 # Stage 1: Builder
@@ -16,7 +15,7 @@ ARG BOOST_VERSION=1_77_0
 FROM ubuntu:22.04 AS builder
 
 ARG VERSION
-ARG BOOST_VERSION
+ARG TARGETARCH
 
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -47,21 +46,10 @@ RUN curl -fsSL "https://dev.mysql.com/get/Downloads/MySQL-8.4/mysql-${VERSION}.t
     && rm mysql.tar.gz \
     && mv mysql-${VERSION} mysql-src
 
-# Download Boost (required for MySQL build)
-# MySQL 8.4 includes boost in the source, but we may need to download separately
-# Check if boost is bundled, otherwise download
-RUN if [ ! -d /build/mysql-src/boost ]; then \
-      curl -fsSL "https://archives.boost.io/release/1.77.0/source/boost_${BOOST_VERSION}.tar.gz" \
-        -o boost.tar.gz \
-      && tar -xzf boost.tar.gz \
-      && rm boost.tar.gz \
-      && mkdir -p /build/boost \
-      && mv boost_${BOOST_VERSION} /build/boost/boost_${BOOST_VERSION}; \
-    fi
-
 WORKDIR /build/mysql-src
 
 # Configure MySQL build
+# - MySQL 8.4+ bundles Boost, no need to download separately
 # - STANDALONE layout for relocatable binaries
 # - Release build for optimized binaries
 # - Disable features not needed for embedded use
@@ -69,8 +57,6 @@ RUN cmake . \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/opt/mysql \
     -DINSTALL_LAYOUT=STANDALONE \
-    -DWITH_BOOST=/build/boost \
-    -DDOWNLOAD_BOOST=1 \
     -DWITH_SSL=system \
     -DWITH_ZLIB=bundled \
     -DWITH_EDITLINE=bundled \
@@ -97,17 +83,21 @@ RUN make install
 FROM ubuntu:22.04 AS packager
 
 ARG VERSION
+ARG TARGETARCH
 
 # Copy built MySQL
 COPY --from=builder /opt/mysql /opt/mysql
 
 WORKDIR /opt/mysql
 
-# Create metadata file
-RUN echo "{\n\
+# Map Docker TARGETARCH to hostdb platform naming
+# TARGETARCH is set by docker buildx: amd64, arm64, etc.
+RUN PLATFORM="linux-x64"; \
+    if [ "$TARGETARCH" = "arm64" ]; then PLATFORM="linux-arm64"; fi; \
+    echo "{\n\
   \"name\": \"mysql\",\n\
   \"version\": \"${VERSION}\",\n\
-  \"platform\": \"linux-x64\",\n\
+  \"platform\": \"${PLATFORM}\",\n\
   \"built_by\": \"hostdb\",\n\
   \"built_at\": \"$(date -Iseconds)\"\n\
 }" > /opt/mysql/.hostdb-metadata.json

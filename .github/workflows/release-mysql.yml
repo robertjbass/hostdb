@@ -12,6 +12,11 @@ on:
         required: true
         default: 'all'
 
+# Prevent concurrent runs that could conflict when updating releases.json
+concurrency:
+  group: release-mysql
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest

@@ -10,12 +10,18 @@
 #   --platform PLATFORM  Target platform: linux-x64, linux-arm64 (default: linux-x64)
 #   --output DIR         Output directory (default: ./dist)
 #   --no-cache           Build without Docker cache
+#   --cleanup            Remove extracted directory after creating tarball
+#   --no-cleanup         Keep extracted directory (default in non-interactive/CI)
 #   --help               Show this help message
+#
+# Environment:
+#   CLEANUP=1            Same as --cleanup
+#   CI=true              Implies --no-cleanup unless --cleanup is specified
 #
 # Examples:
 #   ./builds/mysql/build-local.sh
 #   ./builds/mysql/build-local.sh --version 8.0.40 --platform linux-arm64
-#   ./builds/mysql/build-local.sh --no-cache
+#   ./builds/mysql/build-local.sh --no-cache --cleanup
 
 set -euo pipefail
 
@@ -24,6 +30,7 @@ VERSION="8.4.3"
 PLATFORM="linux-x64"
 OUTPUT_DIR="./dist"
 NO_CACHE=""
+CLEANUP_MODE=""  # "", "yes", or "no"
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -42,7 +49,7 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 show_help() {
-    head -25 "$0" | tail -20 | sed 's/^#//' | sed 's/^ //'
+    head -28 "$0" | tail -23 | sed 's/^#//' | sed 's/^ //'
     exit 0
 }
 
@@ -63,6 +70,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-cache)
             NO_CACHE="--no-cache"
+            shift
+            ;;
+        --cleanup)
+            CLEANUP_MODE="yes"
+            shift
+            ;;
+        --no-cleanup)
+            CLEANUP_MODE="no"
             shift
             ;;
         --help|-h)
@@ -128,14 +143,14 @@ docker buildx build \
     -f "${SCRIPT_DIR}/Dockerfile" \
     "${PROJECT_ROOT}"
 
-# Build end time
+# Build end time (avoid shadowing bash builtin SECONDS)
 END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-MINUTES=$((DURATION / 60))
-SECONDS=$((DURATION % 60))
+ELAPSED_SECS=$((END_TIME - START_TIME))
+ELAPSED_MINS=$((ELAPSED_SECS / 60))
+ELAPSED_REMAINDER=$((ELAPSED_SECS % 60))
 
 echo ""
-log_success "Build completed in ${MINUTES}m ${SECONDS}s"
+log_success "Build completed in ${ELAPSED_MINS}m ${ELAPSED_REMAINDER}s"
 
 # Verify output
 if [[ -f "${OUTPUT_PATH}/mysql/bin/mysqld" ]]; then
@@ -161,10 +176,28 @@ tar -czvf "${TARBALL}" -C "${OUTPUT_PATH}" mysql
 TARBALL_SIZE=$(du -h "${TARBALL}" | cut -f1)
 log_success "Created: ${TARBALL} (${TARBALL_SIZE})"
 
-# Optionally clean up extracted directory
-read -p "Remove extracted directory ${OUTPUT_PATH}? [y/N] " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
+# Determine cleanup behavior
+# Priority: CLI flag > CLEANUP env var > interactive prompt (if tty) > no cleanup
+if [[ -z "$CLEANUP_MODE" ]]; then
+    # Check CLEANUP environment variable
+    if [[ "${CLEANUP:-}" == "1" || "${CLEANUP:-}" == "true" ]]; then
+        CLEANUP_MODE="yes"
+    elif [[ -t 0 ]] && [[ -z "${CI:-}" ]]; then
+        # Interactive terminal and not CI - prompt user
+        read -p "Remove extracted directory ${OUTPUT_PATH}? [y/N] " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            CLEANUP_MODE="yes"
+        else
+            CLEANUP_MODE="no"
+        fi
+    else
+        # Non-interactive or CI - default to no cleanup
+        CLEANUP_MODE="no"
+    fi
+fi
+
+if [[ "$CLEANUP_MODE" == "yes" ]]; then
     rm -rf "${OUTPUT_PATH}"
     log_info "Removed ${OUTPUT_PATH}"
 fi

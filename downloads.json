@@ -1518,19 +1518,19 @@
       "binaries": {
         "linux-x64": {
           "url": "https://github.com/xo/usql/releases/download/v0.19.3/usql-0.19.3-linux-amd64.tar.bz2",
-          "format": "tar.gz"
+          "format": "tar.bz2"
         },
         "linux-arm64": {
           "url": "https://github.com/xo/usql/releases/download/v0.19.3/usql-0.19.3-linux-arm64.tar.bz2",
-          "format": "tar.gz"
+          "format": "tar.bz2"
         },
         "darwin-x64": {
           "url": "https://github.com/xo/usql/releases/download/v0.19.3/usql-0.19.3-darwin-amd64.tar.bz2",
-          "format": "tar.gz"
+          "format": "tar.bz2"
         },
         "darwin-arm64": {
           "url": "https://github.com/xo/usql/releases/download/v0.19.3/usql-0.19.3-darwin-arm64.tar.bz2",
-          "format": "tar.gz"
+          "format": "tar.bz2"
         },
         "win32-x64": {
           "url": "https://github.com/xo/usql/releases/download/v0.19.3/usql-0.19.3-windows-amd64.zip",
