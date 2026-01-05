@@ -199,7 +199,7 @@ jobs:
               git rebase --abort
               exit 1
             fi
-            sleep 2
+            sleep $((2**i))
           done
           echo "ERROR: Push failed after 3 attempts"
           exit 1
