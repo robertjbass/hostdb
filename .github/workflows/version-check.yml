@@ -1,11 +1,17 @@
 name: Version Check
 
+# TODO: Re-enable this workflow once `hostdb` is published to npm.
+# Currently disabled because the package doesn't exist on npm yet,
+# so the version check always falls back to 0.0.0.
+# When enabling, verify the package name in the "Get npm version" step.
+
 on:
   pull_request:
     branches: [main]
 
 jobs:
   check-version:
+    if: false # Disabled until package is published to npm
     runs-on: ubuntu-latest
     permissions:
       contents: read

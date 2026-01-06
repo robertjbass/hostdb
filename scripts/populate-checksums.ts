@@ -68,6 +68,7 @@ const FETCH_TIMEOUT_MS = 10 * 60 * 1000 // 10 minutes for large files
 async function computeSha256(url: string): Promise<string> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
 
   try {
     const response = await fetch(url, {
@@ -79,7 +80,7 @@ async function computeSha256(url: string): Promise<string> {
       throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`)
     }
 
-    const reader = response.body?.getReader()
+    reader = response.body?.getReader()
     if (!reader) {
       throw new Error(`No response body for ${url}`)
     }
@@ -99,6 +100,11 @@ async function computeSha256(url: string): Promise<string> {
     }
     throw error
   } finally {
+    try {
+      await reader?.cancel()
+    } catch {
+      // Ignore cleanup errors
+    }
     clearTimeout(timeoutId)
   }
 }
