@@ -73,7 +73,8 @@
               "enum": ["official", "mariadb4j"],
               "description": "Source type: official vendor CDN or MariaDB4j Maven Central"
             }
-          }
+          },
+          "additionalProperties": false
         },
         {
           "type": "object",

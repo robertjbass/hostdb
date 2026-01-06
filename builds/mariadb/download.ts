@@ -27,11 +27,15 @@ import {
   existsSync,
   readFileSync,
   writeFileSync,
+  renameSync,
+  rmSync,
+  cpSync,
+  readdirSync,
 } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { resolve, dirname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { execSync, spawnSync } from 'node:child_process'
+import { execSync, execFileSync, spawnSync } from 'node:child_process'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -269,21 +273,22 @@ function repackageOfficial(
 
   // Rename directory to just 'mariadb' for consistency
   const finalDir = resolve(tempDir, 'mariadb')
-  execSync(`mv "${extractedPath}" "${finalDir}"`)
+  renameSync(extractedPath, finalDir)
 
   // Create tarball
   if (platform.startsWith('win32')) {
-    execSync(`cd "${tempDir}" && zip -rq "${outputPath}" mariadb`, {
+    execFileSync('zip', ['-rq', outputPath, 'mariadb'], {
+      cwd: tempDir,
       stdio: 'inherit',
     })
   } else {
-    execSync(`tar -czf "${outputPath}" -C "${tempDir}" mariadb`, {
+    execFileSync('tar', ['-czf', outputPath, '-C', tempDir, 'mariadb'], {
       stdio: 'inherit',
     })
   }
 
   // Cleanup temp
-  execSync(`rm -rf "${tempDir}"`)
+  rmSync(tempDir, { recursive: true, force: true })
 
   logSuccess(`Created: ${outputPath}`)
 }
@@ -356,8 +361,12 @@ function repackageMariadb4j(
   const extractDir = resolve(tempDir, 'mariadb')
   mkdirSync(extractDir, { recursive: true })
 
-  // Move the platform-specific contents to mariadb/
-  execSync(`cp -r "${actualSrcDir}"/* "${extractDir}/"`, { stdio: 'inherit' })
+  // Copy the platform-specific contents to mariadb/
+  for (const item of readdirSync(actualSrcDir)) {
+    cpSync(resolve(actualSrcDir, item), resolve(extractDir, item), {
+      recursive: true,
+    })
+  }
 
   // Add metadata file
   const metadata = {
@@ -376,10 +385,8 @@ function repackageMariadb4j(
   )
 
   // Clean up the ch/ directory and META-INF
-  execSync(`rm -rf "${resolve(tempDir, 'ch')}"`)
-  if (existsSync(resolve(tempDir, 'META-INF'))) {
-    execSync(`rm -rf "${resolve(tempDir, 'META-INF')}"`)
-  }
+  rmSync(resolve(tempDir, 'ch'), { recursive: true, force: true })
+  rmSync(resolve(tempDir, 'META-INF'), { recursive: true, force: true })
 
   // Create output tarball
   mkdirSync(dirname(outputPath), { recursive: true })
@@ -388,17 +395,18 @@ function repackageMariadb4j(
 
   // Create tarball or zip based on platform
   if (platform.startsWith('win32')) {
-    execSync(`cd "${tempDir}" && zip -rq "${outputPath}" mariadb`, {
+    execFileSync('zip', ['-rq', outputPath, 'mariadb'], {
+      cwd: tempDir,
       stdio: 'inherit',
     })
   } else {
-    execSync(`tar -czf "${outputPath}" -C "${tempDir}" mariadb`, {
+    execFileSync('tar', ['-czf', outputPath, '-C', tempDir, 'mariadb'], {
       stdio: 'inherit',
     })
   }
 
   // Cleanup temp
-  execSync(`rm -rf "${tempDir}"`)
+  rmSync(tempDir, { recursive: true, force: true })
 
   logSuccess(`Created: ${outputPath}`)
 }

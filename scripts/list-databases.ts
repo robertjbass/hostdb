@@ -6,6 +6,25 @@ import Table from 'cli-table3'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+type ReleasePlatform = {
+  url: string
+  sha256: string
+  size: number
+}
+
+type ReleaseVersion = {
+  version: string
+  releaseTag: string
+  releasedAt: string
+  platforms: Record<string, ReleasePlatform>
+}
+
+type ReleasesJson = {
+  repository: string
+  lastUpdated: string
+  databases: Record<string, Record<string, ReleaseVersion>>
+}
+
 type CliTools = {
   server: string | null
   client: string | null
@@ -20,7 +39,7 @@ type Database = {
   type: string
   sourceRepo: string
   license: string
-  status: 'in-progress' | 'pending' | 'unsupported'
+  status: 'completed' | 'in-progress' | 'pending' | 'unsupported'
   commercialUse: boolean
   protocol: string | null
   note: string
@@ -63,6 +82,12 @@ function loadDownloads(): DownloadsJson {
   return JSON.parse(content) as DownloadsJson
 }
 
+function loadReleases(): ReleasesJson {
+  const filePath = resolve(__dirname, '..', 'releases.json')
+  const content = readFileSync(filePath, 'utf-8')
+  return JSON.parse(content) as ReleasesJson
+}
+
 function getCliTools(downloads: DownloadsJson): Record<string, DownloadItem> {
   const tools: Record<string, DownloadItem> = {}
   for (const [id, item] of Object.entries(downloads.items)) {
@@ -81,6 +106,15 @@ function getEnabledPlatformCount(platforms: Record<string, boolean>): number {
   return Object.values(platforms).filter(Boolean).length
 }
 
+function getReleasedVersionCount(
+  dbKey: string,
+  releases: ReleasesJson,
+): number {
+  const dbReleases = releases.databases[dbKey]
+  if (!dbReleases) return 0
+  return Object.keys(dbReleases).length
+}
+
 function getAllToolsForDatabase(cliTools: CliTools): string[] {
   const tools: string[] = []
   if (cliTools.server) tools.push(cliTools.server)
@@ -94,6 +128,7 @@ function main() {
   const { databases } = loadDatabases()
   const downloadsData = loadDownloads()
   const cliToolsData = getCliTools(downloadsData)
+  const releases = loadReleases()
 
   const showAll = process.argv.includes('--all')
   const showPending = process.argv.includes('--pending')
@@ -114,9 +149,14 @@ ${chalk.bold('Options:')}
   ${chalk.yellow('--help, -h')}     Show this help message
 
 ${chalk.bold('Status:')}
+  ${chalk.blue('completed')}    - Fully built and released
   ${chalk.green('in-progress')}  - Actively being built
   ${chalk.yellow('pending')}      - Planned, not yet started
   ${chalk.gray('unsupported')}  - Not planned for support
+
+${chalk.bold('Released column:')}
+  Shows versions released on GitHub vs versions configured in databases.json
+  ${chalk.green('3/3')} = all versions released, ${chalk.yellow('2/3')} = partial, ${chalk.red('0/3')} = none
 `)
     return
   }
@@ -126,8 +166,8 @@ ${chalk.bold('Status:')}
       if (showAll) return true
       if (showPending) return db.status === 'pending'
       if (showUnsupported) return db.status === 'unsupported'
-      // Default: show in-progress only
-      return db.status === 'in-progress'
+      // Default: show completed and in-progress
+      return db.status === 'completed' || db.status === 'in-progress'
     })
     .map(([key, db]) => ({
       key,
@@ -149,8 +189,7 @@ ${chalk.bold('Status:')}
       chalk.bold('Database'),
       chalk.bold('Status'),
       chalk.bold('Type'),
-      chalk.bold('Protocol'),
-      chalk.bold('Versions'),
+      chalk.bold('Released'),
       chalk.bold('Platforms'),
       chalk.bold('License'),
     ],
@@ -162,22 +201,31 @@ ${chalk.bold('Status:')}
 
   for (const entry of entries) {
     const statusCell =
-      entry.status === 'in-progress'
-        ? chalk.green('in-progress')
-        : entry.status === 'pending'
-          ? chalk.yellow('pending')
-          : chalk.gray('unsupported')
+      entry.status === 'completed'
+        ? chalk.blue('completed')
+        : entry.status === 'in-progress'
+          ? chalk.green('in-progress')
+          : entry.status === 'pending'
+            ? chalk.yellow('pending')
+            : chalk.gray('unsupported')
 
-    const protocolCell = entry.protocol
-      ? chalk.cyan(entry.protocol)
-      : chalk.gray('-')
+    const enabledVersions = getEnabledVersionCount(entry.versions)
+    const releasedVersions = getReleasedVersionCount(entry.key, releases)
+
+    let releasedCell: string
+    if (releasedVersions === 0) {
+      releasedCell = chalk.red(`0/${enabledVersions}`)
+    } else if (releasedVersions < enabledVersions) {
+      releasedCell = chalk.yellow(`${releasedVersions}/${enabledVersions}`)
+    } else {
+      releasedCell = chalk.green(`${releasedVersions}/${enabledVersions}`)
+    }
 
     dbTable.push([
       entry.displayName,
       statusCell,
       entry.type,
-      protocolCell,
-      String(getEnabledVersionCount(entry.versions)),
+      releasedCell,
       String(getEnabledPlatformCount(entry.platforms)),
       entry.license,
     ])
@@ -336,6 +384,10 @@ ${chalk.bold('Status:')}
     (sum, e) => sum + getEnabledVersionCount(e.versions),
     0,
   )
+  const totalReleased = entries.reduce(
+    (sum, e) => sum + getReleasedVersionCount(e.key, releases),
+    0,
+  )
   const totalBuilds = entries.reduce(
     (sum, e) =>
       sum +
@@ -352,9 +404,18 @@ ${chalk.bold('Status:')}
   console.log(
     `  ${chalk.bold('Databases:')}     ${chalk.green(entries.length)}`,
   )
-  console.log(`  ${chalk.bold('Versions:')}      ${chalk.green(totalVersions)}`)
+
+  const releasedColor =
+    totalReleased === totalVersions
+      ? chalk.green
+      : totalReleased > 0
+        ? chalk.yellow
+        : chalk.red
   console.log(
-    `  ${chalk.bold('Builds:')}        ${chalk.green(totalBuilds)} to generate`,
+    `  ${chalk.bold('Released:')}      ${releasedColor(`${totalReleased}/${totalVersions}`)} versions on GitHub`,
+  )
+  console.log(
+    `  ${chalk.bold('Builds:')}        ${chalk.green(totalBuilds)} total (versions × platforms)`,
   )
   console.log(
     `  ${chalk.bold('CLI Tools:')}     ${chalk.green(totalTools)} unique`,
@@ -363,7 +424,8 @@ ${chalk.bold('Status:')}
 
   // Show status counts if not showing all
   if (!showAll) {
-    const statusCounts = {
+    const statusCounts: Record<string, number> = {
+      completed: 0,
       'in-progress': 0,
       pending: 0,
       unsupported: 0,

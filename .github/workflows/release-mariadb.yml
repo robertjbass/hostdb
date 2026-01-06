@@ -10,7 +10,7 @@ on:
         options:
           - 11.8.5
           - 11.4.5
-          - 10.6.24
+          - 10.11.15
         default: 11.8.5
       platforms:
         description: 'Platforms to build'
@@ -190,6 +190,15 @@ jobs:
 
           echo "Building MariaDB $VERSION for $PLATFORM (native macOS build)"
 
+          # Get OpenSSL path (differs between ARM64 and Intel macOS)
+          OPENSSL_PREFIX=$(brew --prefix openssl@3)
+          echo "Using OpenSSL at: $OPENSSL_PREFIX"
+
+          if [ ! -d "$OPENSSL_PREFIX" ]; then
+            echo "::error::OpenSSL not found at $OPENSSL_PREFIX"
+            exit 1
+          fi
+
           # Download source
           curl -fsSL "https://archive.mariadb.org/mariadb-${VERSION}/source/mariadb-${VERSION}.tar.gz" \
             -o mariadb-source.tar.gz
@@ -201,7 +210,7 @@ jobs:
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/mariadb" \
-            -DWITH_SSL=/opt/homebrew/opt/openssl@3 \
+            -DWITH_SSL="$OPENSSL_PREFIX" \
             -DWITH_PCRE=system \
             -DWITH_JEMALLOC=system \
             -DWITH_UNIT_TESTS=OFF \

@@ -45,10 +45,6 @@ function logError(message: string) {
   console.error(`${colors.red}✗${colors.reset} ${message}`)
 }
 
-function _logInfo(message: string) {
-  console.log(`${colors.blue}ℹ${colors.reset} ${message}`)
-}
-
 function logWarning(message: string) {
   console.log(`${colors.yellow}⚠${colors.reset} ${message}`)
 }
@@ -137,6 +133,9 @@ import { existsSync, mkdirSync, writeFileSync, createWriteStream } from 'node:fs
 import { dirname, join, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execSync } from 'node:child_process'
+
+// TODO: createWriteStream, basename, and execSync are scaffolded for download implementation.
+// Remove unused imports once download logic is complete.
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '../..')
@@ -365,13 +364,14 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      VERSION: \${{ github.event.inputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Validate version against databases.json
         run: |
-          VERSION="\${{ github.event.inputs.version }}"
           DB="${dbKey}"
 
           echo "Validating ${db.displayName} version: $VERSION"
@@ -399,7 +399,6 @@ jobs:
 
       - name: Validate version in sources.json
         run: |
-          VERSION="\${{ github.event.inputs.version }}"
           DB="${dbKey}"
 
           HAS_VERSION=$(jq -r ".versions[\\"$VERSION\\"] // empty" "builds/$DB/sources.json")
@@ -416,6 +415,9 @@ jobs:
   build:
     needs: validate
     runs-on: ubuntu-latest
+    env:
+      VERSION: \${{ github.event.inputs.version }}
+      PLATFORMS: \${{ github.event.inputs.platforms }}
     outputs:
       artifact_names: \${{ steps.build.outputs.artifact_names }}
     steps:
@@ -437,9 +439,6 @@ jobs:
       - name: Download and repackage ${db.displayName}
         id: build
         run: |
-          VERSION="\${{ github.event.inputs.version }}"
-          PLATFORMS="\${{ github.event.inputs.platforms }}"
-
           if [ "$PLATFORMS" = "all" ]; then
             pnpm download:${dbKey} -- --version "$VERSION" --all-platforms --output ./dist
           else
@@ -529,6 +528,8 @@ jobs:
   update-manifest:
     needs: release
     runs-on: ubuntu-latest
+    env:
+      VERSION: \${{ github.event.inputs.version }}
     permissions:
       contents: write
     steps:
@@ -553,8 +554,8 @@ jobs:
         run: |
           pnpm tsx scripts/update-releases.ts \\
             --database ${dbKey} \\
-            --version "\${{ github.event.inputs.version }}" \\
-            --tag "${dbKey}-\${{ github.event.inputs.version }}"
+            --version "$VERSION" \\
+            --tag "${dbKey}-$VERSION"
 
       - name: Commit and push
         run: |
@@ -563,7 +564,7 @@ jobs:
           git add releases.json
           git diff --staged --quiet && echo "No changes to commit" && exit 0
 
-          git commit -m "chore: update releases.json for ${dbKey}-\${{ github.event.inputs.version }}"
+          git commit -m "chore: update releases.json for ${dbKey}-$VERSION"
 
           # Retry push with rebase if remote has changed
           for i in 1 2 3; do

@@ -46,7 +46,7 @@ Visual representation of how hostdb works.
 │                          │  ├── linux-x64.tar  │                           │
 │                          │  ├── linux-arm64.tar│                           │
 │                          │  ├── darwin-x64.tar │                           │
-│                          │  ├── darwin-arm64.tar                           │
+│                          │  ├── darwin-arm64.tar│                          │
 │                          │  └── win32-x64.zip  │                           │
 │                          └──────────┬──────────┘                           │
 │                                     │                                       │

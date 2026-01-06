@@ -7,7 +7,7 @@
         "url": "https://archive.mariadb.org/mariadb-11.8.5/bintar-linux-systemd-x86_64/mariadb-11.8.5-linux-systemd-x86_64.tar.gz",
         "format": "tar.gz",
         "sourceType": "official",
-        "sha256": null
+        "sha256": "c3fcbcadca4d75bf67cbf1c5fbe765abd740d47aacab68256c81f73392482284"
       },
       "linux-arm64": {
         "sourceType": "build-required"
@@ -22,7 +22,7 @@
         "url": "https://archive.mariadb.org/mariadb-11.8.5/winx64-packages/mariadb-11.8.5-winx64.zip",
         "format": "zip",
         "sourceType": "official",
-        "sha256": null
+        "sha256": "75332dc1f437d9ecee253c2d751d02a69628b109ddd031006f8a8d9ba59dbe0d"
       }
     },
     "11.4.5": {
@@ -30,7 +30,7 @@
         "url": "https://archive.mariadb.org/mariadb-11.4.5/bintar-linux-systemd-x86_64/mariadb-11.4.5-linux-systemd-x86_64.tar.gz",
         "format": "tar.gz",
         "sourceType": "official",
-        "sha256": null
+        "sha256": "2a44cb70a87dba7eb2cab3b5af2c0416a0204d93a8fda387b4b70c9f1bab7bd6"
       },
       "linux-arm64": {
         "sourceType": "build-required"
@@ -42,21 +42,21 @@
         "url": "https://repo.maven.apache.org/maven2/ch/vorburger/mariaDB4j/mariaDB4j-db-macos-arm64/11.4.5/mariaDB4j-db-macos-arm64-11.4.5.jar",
         "format": "jar",
         "sourceType": "mariadb4j",
-        "sha256": null
+        "sha256": "5628e691585552456ac4b26a2674b78c011a9638fa3e87c4c3a05b6841909b4b"
       },
       "win32-x64": {
         "url": "https://archive.mariadb.org/mariadb-11.4.5/winx64-packages/mariadb-11.4.5-winx64.zip",
         "format": "zip",
         "sourceType": "official",
-        "sha256": null
+        "sha256": "b7c11d38657f16b837e68199d73670510aadb78f42dfa5d5fdea31a7aab342e3"
       }
     },
-    "10.6.24": {
+    "10.11.15": {
       "linux-x64": {
-        "url": "https://archive.mariadb.org/mariadb-10.6.24/bintar-linux-systemd-x86_64/mariadb-10.6.24-linux-systemd-x86_64.tar.gz",
+        "url": "https://archive.mariadb.org/mariadb-10.11.15/bintar-linux-systemd-x86_64/mariadb-10.11.15-linux-systemd-x86_64.tar.gz",
         "format": "tar.gz",
         "sourceType": "official",
-        "sha256": null
+        "sha256": "50024a672742cb5957e98b801b0a6f7a39cec22c76ed1bef3193acbccadeded8"
       },
       "linux-arm64": {
         "sourceType": "build-required"
@@ -68,10 +68,10 @@
         "sourceType": "build-required"
       },
       "win32-x64": {
-        "url": "https://archive.mariadb.org/mariadb-10.6.24/winx64-packages/mariadb-10.6.24-winx64.zip",
+        "url": "https://archive.mariadb.org/mariadb-10.11.15/winx64-packages/mariadb-10.11.15-winx64.zip",
         "format": "zip",
         "sourceType": "official",
-        "sha256": null
+        "sha256": "857224ef39f6c52a14073578b30416784434208e18e26e2a72797acc3d7f3965"
       }
     }
   },
