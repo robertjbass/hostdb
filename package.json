@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pre-built database binaries for multiple platforms, distributed via GitHub Releases",
   "private": true,
   "type": "module",
@@ -11,13 +11,15 @@
     "url": "https://github.com/robertjbass/hostdb.git"
   },
   "scripts": {
+    "add:engine": "tsx scripts/add-engine.ts",
     "dbs": "tsx scripts/list-databases.ts",
     "download:mariadb": "tsx builds/mariadb/download.ts",
     "download:mysql": "tsx builds/mysql/download.ts",
     "download:postgresql": "tsx builds/postgresql/download.ts",
-    "update:releases": "tsx scripts/update-releases.ts",
     "format": "prettier --write .",
-    "lint": "tsc --noEmit && eslint ."
+    "lint": "tsc --noEmit && eslint .",
+    "sync:versions": "tsx scripts/sync-versions.ts",
+    "update:releases": "tsx scripts/update-releases.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
@@ -28,7 +30,8 @@
     "prettier": "^3.4.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
-    "typescript-eslint": "^8.18.0"
+    "typescript-eslint": "^8.18.0",
+    "yaml": "^2.8.2"
   },
   "packageManager": "pnpm@9.15.0",
   "engines": {

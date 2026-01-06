@@ -61,7 +61,9 @@ hostdb/
 │   ├── mariadb/
 │   └── ...
 ├── scripts/
+│   ├── add-engine.ts       # pnpm add:engine - scaffold new database
 │   ├── list-databases.ts   # pnpm dbs
+│   ├── sync-versions.ts    # pnpm sync:versions - sync workflow dropdowns
 │   └── update-releases.ts  # Updates releases.json after GH Release
 └── .github/workflows/
     ├── release-mysql.yml
@@ -75,13 +77,18 @@ hostdb/
 
 | Config File | Schema File | Description |
 |-------------|-------------|-------------|
-| `databases.json` | `schemas/databases.schema.json` | All databases, versions, platforms, status |
+| `databases.json` | `schemas/databases.schema.json` | **Single source of truth** - drives all automation |
 | `builds/*/sources.json` | `schemas/sources.schema.json` | Binary download URLs per version/platform |
 | `releases.json` | `schemas/releases.schema.json` | Manifest of GitHub Releases (queryable) |
 
 ### databases.json
 
-The central source of truth. Each database entry includes:
+The central source of truth that **drives all automation**. GitHub Actions workflows validate against this file before building. The key for each database (e.g., `mysql`, `postgresql`, `mariadb`) is the normalized ID used for:
+- Workflow files: `.github/workflows/release-{id}.yml`
+- Build directories: `builds/{id}/`
+- Release tags: `{id}-{version}`
+
+Each database entry includes:
 
 ```json
 {
@@ -132,13 +139,26 @@ Maps versions and platforms to download URLs:
 
 ## GitHub Actions Workflows
 
-Each database has a release workflow:
+Each database has a release workflow that **validates against databases.json**:
 
 1. Triggered via `workflow_dispatch` (manual)
-2. Matrix builds all platforms in parallel
-3. Downloads official binaries OR builds from source
-4. Creates GitHub Release with artifacts
-5. `update-manifest` job updates `releases.json`
+2. **Dropdown selects version** - options synced from databases.json via `pnpm sync:versions`
+3. **Validate job** checks version is enabled in `databases.json` and exists in `sources.json`
+4. Matrix builds all platforms in parallel
+5. Downloads official binaries OR builds from source
+6. Creates GitHub Release with artifacts
+7. `update-manifest` job updates `releases.json`
+
+**Validation flow:**
+```
+User selects version "8.4.7" from dropdown
+        ↓
+Check databases.json: versions["8.4.7"] == true?
+        ↓
+Check sources.json: versions["8.4.7"] exists?
+        ↓
+Proceed with build (or fail with helpful error)
+```
 
 **Build methods by platform:**
 | Platform | Method |
@@ -151,27 +171,42 @@ Each database has a release workflow:
 
 ## Adding a New Database
 
-See [CHECKLIST.md](./CHECKLIST.md) for the complete checklist.
+Use the scaffolding script to create the basic structure:
 
-**Quick summary:**
-1. Add entry to `databases.json` with `status: "in-progress"`
-2. Create `builds/<database>/` directory with:
-   - `sources.json` - URL mappings
-   - `download.ts` - Download script
-   - `Dockerfile` - Source build (if needed)
-   - `README.md` - Documentation
-3. Create `.github/workflows/release-<database>.yml`
-4. Add `download:<database>` script to `package.json`
-5. Test locally, then run workflow to create releases
-6. Verify `releases.json` is updated
+```bash
+pnpm add:engine redis
+pnpm add:engine sqlite
+```
+
+This creates:
+- `builds/<id>/` directory with template files
+- `.github/workflows/release-<id>.yml` with validation
+- `download:<id>` script in package.json
+
+Then follow the printed instructions to implement the download logic.
+
+See [CHECKLIST.md](./CHECKLIST.md) for the complete checklist.
 
 ## Adding New Versions
 
 When adding a new version to an existing database:
 
-1. Update `builds/<database>/sources.json` with URLs for all platforms
-2. Update `.github/workflows/release-<database>.yml` dropdown options
-3. Update `databases.json` versions object
+1. Update `databases.json` - add version with `true`
+2. Update `builds/<database>/sources.json` - add URLs for all platforms
+3. Run `pnpm sync:versions` - updates workflow dropdown options
+
+**That's it.** The sync script updates workflow dropdowns automatically from databases.json.
+
+```bash
+# Sync all workflows
+pnpm sync:versions
+
+# Sync specific database
+pnpm sync:versions mysql
+
+# Check if sync needed (for CI)
+pnpm sync:versions --check
+```
 
 ## Development Commands
 
@@ -188,6 +223,11 @@ pnpm download:mariadb -- --version 11.8.5 --build-fallback
 
 # Local Docker builds
 ./builds/mariadb/build-local.sh --version 11.8.5 --platform linux-arm64
+
+# Scaffolding and maintenance
+pnpm add:engine redis     # Scaffold new database
+pnpm sync:versions        # Sync workflow dropdowns with databases.json
+pnpm sync:versions --check  # Check if sync needed (for CI)
 ```
 
 ## Querying Available Binaries

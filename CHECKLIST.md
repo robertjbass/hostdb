@@ -207,21 +207,25 @@ For each platform, ensure correct runner and build type:
 | darwin-arm64 | macos-14 | native |
 | win32-x64 | ubuntu-latest | download |
 
-### 5.3 Add version dropdown
+### 5.3 Version input
 
-- [ ] Add all supported versions to workflow options list
-- [ ] Order versions newest first
+The workflow uses a **dropdown** for version selection, synced from `databases.json`:
 
 ```yaml
 inputs:
   version:
     description: 'Database version'
     required: true
-    default: '1.0.0'
     type: choice
     options:
-      - '1.0.0'
+      - 1.0.0
+      - 0.9.0
+    default: 1.0.0
 ```
+
+After adding new versions to databases.json, run `pnpm sync:versions` to update workflow dropdowns.
+
+The validate job still checks the selected version against `databases.json` and `sources.json` before proceeding.
 
 ---
 
@@ -297,6 +301,21 @@ databases.json           # Update required
 package.json             # Add download script
 ```
 
+### Adding a New Version (Existing Database)
+
+For existing databases, adding a new version is a **3-step process**:
+
+1. `databases.json` - Add version with `true`:
+   ```json
+   "versions": { "9.0.0": true, "8.4.7": true, ... }
+   ```
+
+2. `builds/<database>/sources.json` - Add URLs for all platforms
+
+3. Run `pnpm sync:versions` to update workflow dropdown options
+
+The sync script automatically updates the version dropdown in the workflow file.
+
 ### Common Issues
 
 | Issue | Solution |
@@ -306,6 +325,8 @@ package.json             # Add download script
 | macOS build fails | Verify Homebrew dependencies in workflow |
 | Checksum mismatch | Re-download and verify source |
 | releases.json not updated | Check update-manifest job permissions |
+| "Version not enabled" error | Add version to databases.json with `true` |
+| "Version not in sources.json" | Add version URLs to builds/<db>/sources.json |
 
 ### Testing Commands
 
@@ -327,4 +348,13 @@ pnpm download:<database> -- --all-platforms
 
 # Verify binary
 ./dist/<database>/bin/<server> --version
+
+# Sync workflow dropdowns (after adding versions)
+pnpm sync:versions
+
+# Check if sync needed (for CI)
+pnpm sync:versions --check
+
+# Scaffold new database
+pnpm add:engine <database-key>
 ```

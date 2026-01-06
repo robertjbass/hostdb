@@ -69,17 +69,29 @@ https://github.com/robertjbass/hostdb/releases/download/mysql-8.4.3/mysql-8.4.3-
 
 | File | Purpose |
 |------|---------|
-| `databases.json` | Source of truth for all databases, versions, and platforms |
+| `databases.json` | **Single source of truth** for all databases, versions, and platforms |
 | `releases.json` | Queryable manifest of all GitHub Releases (auto-updated) |
 | `builds/*/sources.json` | URL mappings for each database's binaries |
 
 ### databases.json
 
-The central configuration that defines:
-- Which databases are supported (`status: "in-progress"`, `"pending"`, `"unsupported"`)
-- Which versions to build (`versions: { "8.4.3": true, "8.0.40": true }`)
-- Which platforms are supported (`platforms: { "linux-x64": true, ... }`)
-- Licensing information (`commercialUse: true/false`)
+The central configuration that **drives all automation**. GitHub Actions workflows validate against this file before building.
+
+```json
+{
+  "mysql": {
+    "displayName": "MySQL",
+    "status": "in-progress",
+    "versions": { "8.4.7": true, "8.0.40": true },
+    "platforms": { "linux-x64": true, "darwin-arm64": true, ... }
+  }
+}
+```
+
+**To enable a new version:**
+1. Add it to `databases.json` with `true`
+2. Add URLs to `builds/<database>/sources.json`
+3. Run the workflow - it validates against databases.json automatically
 
 **Status values:**
 - `completed` - Fully built and released
@@ -129,10 +141,16 @@ See `pnpm dbs` for the full list.
 Each database has a release workflow triggered via `workflow_dispatch`:
 
 1. Go to Actions → "Release [Database]" → Run workflow
-2. Select version and platforms
-3. Workflow downloads/builds binaries for all platforms in parallel
-4. Creates GitHub Release with artifacts
-5. Updates `releases.json` manifest
+2. **Select the version** from dropdown (synced from `databases.json`)
+3. Select platforms (default: all)
+4. Workflow **validates against databases.json** before building
+5. Downloads/builds binaries for all platforms in parallel
+6. Creates GitHub Release with artifacts
+7. Updates `releases.json` manifest
+
+**Validation:** The workflow validates the selected version exists in `databases.json` and `sources.json` before building.
+
+**Sync dropdowns:** Run `pnpm sync:versions` after adding new versions to databases.json.
 
 ## Project Structure
 
@@ -151,12 +169,23 @@ hostdb/
 │   ├── mariadb/
 │   └── ...
 ├── scripts/
+│   ├── add-engine.ts       # pnpm add:engine - scaffold new database
 │   ├── list-databases.ts   # pnpm dbs
+│   ├── sync-versions.ts    # pnpm sync:versions - sync workflow dropdowns
 │   └── update-releases.ts  # Updates releases.json after release
 └── .github/workflows/
     ├── release-mysql.yml
     ├── release-postgresql.yml
     └── ...
+```
+
+## Adding a New Database
+
+Use the scaffolding script:
+
+```bash
+pnpm add:engine redis    # Creates builds/redis/, workflow, and package.json script
+pnpm add:engine sqlite   # Then follow printed instructions
 ```
 
 ## Documentation

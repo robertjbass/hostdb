@@ -205,9 +205,22 @@ databases.json                    builds/mysql/sources.json
 
 workflow_dispatch (manual trigger)
         │
-        │ inputs: version, platforms
+        │ inputs: version (text), platforms (dropdown)
         │
         ▼
+┌───────────────────┐
+│ validate job      │
+│                   │
+│ ✓ Check version   │
+│   in databases.json│
+│ ✓ Check version   │
+│   in sources.json │
+│ ✓ Fail with error │
+│   if invalid      │
+└─────────┬─────────┘
+          │
+          │ needs: validate
+          ▼
 ┌───────────────────┐
 │ prepare job       │
 │                   │

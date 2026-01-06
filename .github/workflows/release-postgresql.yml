@@ -6,13 +6,13 @@ on:
       version:
         description: 'PostgreSQL version'
         required: true
-        default: '17.7.0'
         type: choice
         options:
-          - '18.1.0'
-          - '17.7.0'
-          - '16.11.0'
-          - '15.15.0'
+          - 18.1.0
+          - 17.7.0
+          - 16.11.0
+          - 15.15.0
+        default: 18.1.0
       platforms:
         description: 'Platforms'
         required: true
@@ -32,7 +32,58 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version against databases.json
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DB="postgresql"
+
+          echo "Validating PostgreSQL version: $VERSION"
+
+          # Check if version exists and is enabled in databases.json
+          ENABLED=$(jq -r ".databases.$DB.versions[\"$VERSION\"] // false" databases.json)
+          if [ "$ENABLED" != "true" ]; then
+            echo "::error::Version '$VERSION' is not enabled in databases.json"
+            echo ""
+            echo "Available versions:"
+            jq -r ".databases.$DB.versions | to_entries | map(select(.value == true)) | .[].key" databases.json
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION is enabled in databases.json"
+
+      - name: Validate sources.json exists
+        run: |
+          DB="postgresql"
+          if [ ! -f "builds/$DB/sources.json" ]; then
+            echo "::error::Missing builds/$DB/sources.json"
+            exit 1
+          fi
+          echo "✓ builds/$DB/sources.json exists"
+
+      - name: Validate version in sources.json
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DB="postgresql"
+
+          HAS_VERSION=$(jq -r ".versions[\"$VERSION\"] // empty" "builds/$DB/sources.json")
+          if [ -z "$HAS_VERSION" ]; then
+            echo "::error::Version '$VERSION' not found in builds/$DB/sources.json"
+            echo ""
+            echo "Available versions in sources.json:"
+            jq -r ".versions | keys[]" "builds/$DB/sources.json"
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION found in sources.json"
+
   build:
+    needs: validate
     runs-on: ubuntu-latest
     outputs:
       artifact_names: ${{ steps.build.outputs.artifact_names }}
