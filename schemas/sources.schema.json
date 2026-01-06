@@ -47,25 +47,48 @@
       "additionalProperties": false
     },
     "SourceEntry": {
-      "type": "object",
-      "required": ["url", "format"],
-      "properties": {
-        "url": {
-          "type": "string",
-          "format": "uri",
-          "description": "Direct download URL for the binary"
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Downloadable binary source",
+          "required": ["url", "format"],
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "Direct download URL for the binary"
+            },
+            "format": {
+              "type": "string",
+              "enum": ["tar.gz", "tar.xz", "zip", "dmg", "msi", "jar"],
+              "description": "Archive format"
+            },
+            "sha256": {
+              "type": ["string", "null"],
+              "pattern": "^[a-fA-F0-9]{64}$",
+              "description": "SHA256 checksum (null if not yet verified)"
+            },
+            "sourceType": {
+              "type": "string",
+              "enum": ["official", "mariadb4j"],
+              "description": "Source type: official vendor CDN or MariaDB4j Maven Central"
+            }
+          }
         },
-        "format": {
-          "type": "string",
-          "enum": ["tar.gz", "tar.xz", "zip", "dmg", "msi", "jar"],
-          "description": "Archive format"
-        },
-        "sha256": {
-          "type": ["string", "null"],
-          "pattern": "^[a-fA-F0-9]{64}$",
-          "description": "SHA256 checksum (null if not yet verified)"
+        {
+          "type": "object",
+          "description": "Platform requires building from source",
+          "required": ["sourceType"],
+          "properties": {
+            "sourceType": {
+              "type": "string",
+              "enum": ["build-required"],
+              "description": "No binary available, must build from source"
+            }
+          },
+          "additionalProperties": false
         }
-      }
+      ]
     }
   }
 }

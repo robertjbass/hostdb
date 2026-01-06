@@ -1,324 +1,208 @@
 # hostdb
 
-Pre-built database binaries for multiple platforms, distributed via GitHub Releases.
+Pre-built database binaries for all major platforms, distributed via GitHub Releases.
 
 **Primary consumer:** [spindb](https://github.com/robertjbass/spindb) - a CLI tool for spinning up local database instances
 
-**Inspiration:**
-- [embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries) - PostgreSQL binaries built from source for multiple platforms (strong influence on build approach)
-- [MariaDB4j](https://github.com/MariaDB4j/MariaDB4j) - Embedded MariaDB for Java (partial influence on packaging patterns)
+## Philosophy
+
+This repository exists to solve one problem: **database binaries should be available for download on every major platform, for every supported version, without relying on third-party sources that may disappear.**
+
+### Binary Sourcing Priority
+
+When adding a database, source binaries in this order:
+
+1. **Official binaries** - Direct from vendor CDNs (Oracle for MySQL, MariaDB Foundation, etc.)
+2. **Third-party repositories** - Trusted sources like [zonky.io](https://github.com/zonkyio/embedded-postgres-binaries) for PostgreSQL or [MariaDB4j](https://github.com/MariaDB4j/MariaDB4j) Maven JARs
+3. **Build from source** - Docker builds for Linux, native GitHub Actions builds for macOS/Windows
+
+### Key Principles
+
+- **Full platform coverage**: Every version must have binaries for all 5 platforms
+- **Build once, host forever**: Binaries are uploaded to GitHub Releases and never rebuilt
+- **Queryable manifest**: `releases.json` lets CLI tools discover available downloads
+- **Single source of truth**: `databases.json` controls which databases/versions/platforms are supported
 
 ## Supported Platforms
 
-- `linux-x64`
-- `linux-arm64`
-- `darwin-x64`
-- `darwin-arm64`
-- `win32-x64`
+- `linux-x64` - Linux x86_64 (glibc 2.28+)
+- `linux-arm64` - Linux ARM64 (glibc 2.28+)
+- `darwin-x64` - macOS Intel
+- `darwin-arm64` - macOS Apple Silicon
+- `win32-x64` - Windows x64
 
 ## How It Works
 
-1. **Build scripts** download official binaries from vendor CDNs
-2. **GitHub Actions** repackage and upload to GitHub Releases
-3. **releases.json** provides a queryable manifest of all available binaries
-4. **SpinDB** (or any consumer) fetches releases.json and downloads binaries
-
-### Future CLI (Phase 4)
-```bash
-# Planned - not yet implemented
-pnpx hostdb list
-pnpx hostdb download mysql@8.4.3
-```
-
+1. **databases.json** defines which databases, versions, and platforms are supported
+2. **Build scripts** download official binaries or build from source
+3. **GitHub Actions** run builds in parallel and upload to GitHub Releases
+4. **releases.json** is auto-updated with download URLs for each release
+5. **SpinDB** (or any consumer) queries releases.json to find and download binaries
 
 ## Project Structure
 
 ```
 hostdb/
 ├── databases.json          # Source of truth for all databases
+├── releases.json           # Queryable manifest of GitHub Releases (auto-updated)
 ├── downloads.json          # CLI tools, prerequisites, fallback downloads
-├── releases.json           # Manifest of all GitHub Releases (queryable)
 ├── schemas/
 │   ├── databases.schema.json
-│   ├── downloads.schema.json
 │   ├── sources.schema.json
 │   └── releases.schema.json
-├── scripts/
-│   ├── list-databases.ts   # Database listing utility (pnpm dbs)
-│   └── update-releases.ts  # Updates releases.json after GH Release
-├── builds/                 # Download/build configurations
+├── builds/                 # Per-database build configurations
 │   ├── mysql/
-│   │   ├── download.ts     # Downloads official binaries
+│   │   ├── download.ts     # Downloads/repackages binaries
 │   │   ├── sources.json    # Version → URL mappings
-│   │   ├── Dockerfile      # Fallback: build from source
-│   │   ├── build-local.sh  # Fallback: local Docker build
+│   │   ├── Dockerfile      # Source build for Linux
+│   │   ├── build-local.sh  # Local Docker build script
 │   │   └── README.md
-│   └── postgresql/
-│       ├── download.ts     # Downloads from zonky.io (Maven Central)
-│       └── sources.json    # Version → URL mappings
-├── cli/                    # TUI tool for downloading (Phase 4 - not yet created)
+│   ├── postgresql/
+│   ├── mariadb/
+│   └── ...
+├── scripts/
+│   ├── list-databases.ts   # pnpm dbs
+│   └── update-releases.ts  # Updates releases.json after GH Release
 └── .github/workflows/
-    ├── release-mysql.yml       # Creates GitHub Releases for MySQL
-    ├── release-postgresql.yml  # Creates GitHub Releases for PostgreSQL
-    └── version-check.yml       # PR version check (for future CLI package)
+    ├── release-mysql.yml
+    ├── release-postgresql.yml
+    └── ...
 ```
-
-## Package Configuration
-
-The root `package.json` has `"private": true` because:
-- The root package is not published to npm (it's just build tooling)
-- Only the future `cli/` package will be published as `@hostdb/cli` or `hostdb`
-- This prevents accidental `npm publish` from the root
 
 ## Configuration Files
 
-All configuration files have JSON schemas for validation and IDE autocomplete. **If you modify the structure of these files (add/remove/rename keys), you must also update the corresponding schema file.**
+**IMPORTANT:** All configuration files have JSON schemas. If you modify the structure of these files (add/remove/rename keys), you must also update the corresponding schema.
 
 | Config File | Schema File | Description |
 |-------------|-------------|-------------|
-| `databases.json` | `schemas/databases.schema.json` | Database metadata, versions, platforms |
-| `downloads.json` | `schemas/downloads.schema.json` | Unified download/install registry |
-| `builds/*/sources.json` | `schemas/sources.schema.json` | Official binary download URLs per version/platform |
-| `releases.json` | `schemas/releases.schema.json` | Manifest of all GitHub Releases (queryable by SpinDB) |
+| `databases.json` | `schemas/databases.schema.json` | All databases, versions, platforms, status |
+| `builds/*/sources.json` | `schemas/sources.schema.json` | Binary download URLs per version/platform |
+| `releases.json` | `schemas/releases.schema.json` | Manifest of GitHub Releases (queryable) |
 
 ### databases.json
 
-Central configuration for all supported databases. Each database entry includes:
+The central source of truth. Each database entry includes:
 
 ```json
 {
-  "displayName": "PostgreSQL",
-  "description": "Advanced open-source relational database...",
+  "displayName": "MySQL",
+  "description": "...",
   "type": "Relational",
-  "sourceRepo": "https://github.com/postgres/postgres",
-  "license": "PostgreSQL",
-  "status": "in-progress",
+  "license": "GPL-2.0",
   "commercialUse": true,
-  "protocol": null,
-  "note": "",
-  "latestLts": "18",
-  "versions": { "18.1": true, "17.7": true },
-  "platforms": { "linux-x64": true, "darwin-arm64": true, ... },
-  "cliTools": {
-    "server": "postgres",
-    "client": "psql",
-    "utilities": ["pg_dump", "pg_restore", "pg_basebackup"],
-    "enhanced": ["pgcli", "usql"]
-  },
-  "connection": {
-    "runtime": "server",
-    "defaultPort": 5432,
-    "scheme": "postgresql",
-    "defaultDatabase": "postgres",
-    "defaultUser": "postgres",
-    "queryLanguage": "SQL"
+  "status": "in-progress",
+  "latestLts": "8.4",
+  "versions": { "8.4.7": true, "8.0.40": true },
+  "platforms": { "linux-x64": true, "darwin-arm64": true, ... }
+}
+```
+
+**Status values:**
+- `completed` - Fully built and released
+- `in-progress` - Currently being implemented
+- `pending` - Planned, not yet started
+- `unsupported` - Not planned (licensing, niche, etc.)
+
+### sources.json (per database)
+
+Maps versions and platforms to download URLs:
+
+```json
+{
+  "database": "mysql",
+  "versions": {
+    "8.4.7": {
+      "linux-x64": {
+        "url": "https://dev.mysql.com/get/Downloads/...",
+        "format": "tar.gz",
+        "sourceType": "official"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      }
+    }
   }
 }
 ```
 
-**Connection fields:**
-- `runtime`: "server" (runs as process) or "embedded" (file-based like SQLite, DuckDB)
-- `defaultPort`: TCP port (null for embedded databases)
-- `scheme`: URI scheme for connection strings (postgresql, mysql, redis, mongodb, sqlite, http, fdb, etc.)
-- `defaultDatabase`: Default database name ("postgres", "0" for Redis, null for embedded)
-- `defaultUser`: Default superuser ("postgres", "root", null for no-auth)
-- `queryLanguage`: SQL, AQL, MQL, Redis, HTTP, InfluxQL, PromQL, or API (native bindings)
+**Source types:**
+- `official` - Direct from vendor CDN
+- `mariadb4j`, `zonky` - Third-party repositories
+- `build-required` - Must build from source
 
-### downloads.json
+## GitHub Actions Workflows
 
-Unified registry for all downloadable items: databases, CLI tools, and prerequisites. Supports recursive dependencies (e.g., CouchDB requires Erlang).
+Each database has a release workflow:
 
-**Item types:**
-- `database` - Database binaries with package manager, direct download, and Docker options
-- `cli-tool` - CLI tools with category (server, client, utility, enhanced) and bundledWith reference
-- `prerequisite` - Build/runtime dependencies (Erlang, JRE, Python, Rust, Go, Node.js, build-essential)
-
-**Database example:**
-```json
-{
-  "name": "PostgreSQL",
-  "description": "Advanced open-source relational database",
-  "type": "database",
-  "packages": {
-    "brew": { "package": "postgresql@17" },
-    "apt": { "package": "postgresql", "repo": "https://apt.postgresql.org/pub/repos/apt" }
-  },
-  "binaries": {
-    "linux-x64": { "url": "https://...", "format": "tar.gz" },
-    "darwin-arm64": { "url": "https://...", "format": "zip" }
-  },
-  "docker": { "image": "postgres", "tag": "17.2" },
-  "requires": []
-}
-```
-
-**CLI tool example:**
-```json
-{
-  "name": "pgcli",
-  "description": "PostgreSQL CLI with auto-completion and syntax highlighting",
-  "type": "cli-tool",
-  "binary": "pgcli",
-  "category": "enhanced",
-  "bundledWith": null,
-  "packages": { "brew": { "package": "pgcli" }, "pip": { "package": "pgcli" } },
-  "requires": ["python"]
-}
-```
-
-**Prerequisite example:**
-```json
-{
-  "name": "Erlang/OTP",
-  "description": "Programming language for concurrent, fault-tolerant systems",
-  "type": "prerequisite",
-  "packages": { "brew": { "package": "erlang" }, "apt": { "package": "erlang" } },
-  "binaries": { "linux-x64": { "url": "https://...", "format": "tar.gz" } },
-  "requires": []
-}
-```
-
-**CLI tool categories:**
-- `server` - Database server binaries (postgres, mysqld, redis-server)
-- `client` - Official CLI clients (psql, mysql, redis-cli)
-- `utility` - Backup/restore/admin tools (pg_dump, mysqldump)
-- `enhanced` - Third-party enhanced CLIs (pgcli, mycli, litecli, iredis, usql)
-
-**Package managers supported:**
-- macOS/Linux: brew, apt, yum, dnf, pacman, apk
-- Windows: choco, winget, scoop
-- Cross-platform: pip, pipx, npm, cargo, go
-
-**Binary formats:** `tar.gz`, `tar.xz`, `zip`, `binary`, `deb`, `rpm`, `pkg`, `msi`, `dmg`
-
-## Listing Databases
-
-```bash
-# Show in-progress databases (default)
-pnpm dbs
-
-# Show all databases
-pnpm dbs --all
-
-# Show only pending databases
-pnpm dbs --pending
-
-# Show only unsupported databases
-pnpm dbs --unsupported
-
-# Show CLI tools summary
-pnpm dbs --tools
-
-# Help
-pnpm dbs --help
-```
-
-**Status values:**
-- `in-progress` - Actively being built (shown by default)
-- `pending` - Planned, not yet started
-- `unsupported` - Not planned for support
-
-## GitHub Constraints (Public Repo)
-
-This project uses GitHub Actions to build databases from source and hosts binaries on GitHub Releases.
-
-### Limits
-
-| Resource | Limit |
-|----------|-------|
-| Actions minutes | Unlimited (public repo) |
-| Job timeout | 6 hours per job |
-| Release file size | 2 GB per file |
-| Total release storage | No limit |
-| Release bandwidth | No limit |
-
-### Build Considerations
-
-- **Build times**: Compiling databases from source takes 1-4+ hours per build
-- **ARM64 Linux**: No native GitHub runners; requires QEMU emulation (slow) or self-hosted runners
-- **macOS/Windows**: Free runners available for public repos
-- **Parallelization**: Builds can run in parallel across matrix jobs
-
-## Build Strategy
-
-### Why Control Our Own Binaries?
-
-SpinDB currently relies on external binary sources:
-- **PostgreSQL**: [embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries) (Zonky.io)
-- **MySQL/MariaDB/Redis/etc**: System package managers (brew, apt, choco)
-
-If these upstream sources disappear or stop working, SpinDB breaks. hostdb ensures we control the binaries.
-
-### Download First, Build as Fallback
-
-**Primary approach:** Download official binaries from vendor CDNs, repackage with metadata, and host on GitHub Releases. This is fast (seconds, not hours).
-
-**Fallback:** Build from source using Docker when:
-- No official binary exists for a platform/version
-- Vendor stops distributing a version we need
-- We need custom patches or configuration
-
-### Build Order
-
-1. **MySQL** (first) - No existing binary source like Zonky.io; SpinDB uses package managers
-2. **MariaDB** - Similar situation to MySQL
-3. **Redis** - Windows relies on unmaintained tporadowski/redis fork
-4. **PostgreSQL** - Already covered by Zonky.io, but want our own for redundancy
-5. **SQLite** - Lower priority, usually available via system
-
-### Development Workflow
-
-```bash
-# MySQL: download official binary, repackage, save to ./dist
-pnpm download:mysql -- --version 8.4.3
-pnpm download:mysql -- --version 8.4.3 --all-platforms
-
-# PostgreSQL: download from zonky.io (Maven Central)
-pnpm download:postgresql -- --version 17.7.0
-pnpm download:postgresql -- --version 17.7.0 --all-platforms
-
-# Fallback: build from source via Docker (if no official binary)
-./builds/mysql/build-local.sh --platform linux-x64 --version 8.4.3
-```
-
-### GitHub Actions Workflow
-
-Releases are triggered manually via `workflow_dispatch`:
-
-1. Go to Actions → "Release MySQL" → Run workflow
-2. Select version and platform from dropdowns
-3. Workflow downloads binaries for all platforms
+1. Triggered via `workflow_dispatch` (manual)
+2. Matrix builds all platforms in parallel
+3. Downloads official binaries OR builds from source
 4. Creates GitHub Release with artifacts
-5. Updates `releases.json` manifest
+5. `update-manifest` job updates `releases.json`
 
-### Adding New Database Versions
+**Build methods by platform:**
+| Platform | Method |
+|----------|--------|
+| linux-x64 | Download or Docker build |
+| linux-arm64 | Docker build (QEMU emulation) |
+| darwin-x64 | Native build on macos-13 runner |
+| darwin-arm64 | Native build on macos-14 runner |
+| win32-x64 | Download official binary |
 
-When adding support for a new version, you must update **two files**:
+## Adding a New Database
 
-1. **`builds/<database>/sources.json`** - Add URLs for all platforms
-2. **`.github/workflows/release-<database>.yml`** - Add version to the dropdown options
+See [CHECKLIST.md](./CHECKLIST.md) for the complete checklist.
 
-Example for adding MySQL 9.2.0:
-```yaml
-# In release-mysql.yml, add to the options list:
-options:
-  - '9.2.0'  # ← Add new version here
-  - '9.1.0'
-  - '8.4.3'
-  - '8.0.40'
+**Quick summary:**
+1. Add entry to `databases.json` with `status: "in-progress"`
+2. Create `builds/<database>/` directory with:
+   - `sources.json` - URL mappings
+   - `download.ts` - Download script
+   - `Dockerfile` - Source build (if needed)
+   - `README.md` - Documentation
+3. Create `.github/workflows/release-<database>.yml`
+4. Add `download:<database>` script to `package.json`
+5. Test locally, then run workflow to create releases
+6. Verify `releases.json` is updated
+
+## Adding New Versions
+
+When adding a new version to an existing database:
+
+1. Update `builds/<database>/sources.json` with URLs for all platforms
+2. Update `.github/workflows/release-<database>.yml` dropdown options
+3. Update `databases.json` versions object
+
+## Development Commands
+
+```bash
+# List databases
+pnpm dbs              # Show in-progress
+pnpm dbs --all        # Show all
+pnpm dbs --pending    # Show pending only
+
+# Download binaries locally
+pnpm download:mysql -- --version 8.4.7
+pnpm download:mysql -- --version 8.4.7 --all-platforms
+pnpm download:mariadb -- --version 11.8.5 --build-fallback
+
+# Local Docker builds
+./builds/mariadb/build-local.sh --version 11.8.5 --platform linux-arm64
 ```
 
 ## Querying Available Binaries
-
-SpinDB (or any consumer) can query available binaries via `releases.json`:
 
 ```bash
 # Raw URL for releases.json
 https://raw.githubusercontent.com/robertjbass/hostdb/main/releases.json
 ```
 
-**releases.json structure:**
+**Download URL pattern:**
+```
+https://github.com/robertjbass/hostdb/releases/download/{tag}/{filename}
+```
 
+**releases.json structure:**
 ```json
 {
   "repository": "robertjbass/hostdb",
@@ -326,11 +210,10 @@ https://raw.githubusercontent.com/robertjbass/hostdb/main/releases.json
   "databases": {
     "mysql": {
       "8.4.3": {
-        "version": "8.4.3",
         "releaseTag": "mysql-8.4.3",
         "platforms": {
           "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-8.4.3/mysql-8.4.3-darwin-arm64.tar.gz",
+            "url": "https://github.com/.../mysql-8.4.3-darwin-arm64.tar.gz",
             "sha256": "abc123...",
             "size": 165000000
           }
@@ -341,12 +224,22 @@ https://raw.githubusercontent.com/robertjbass/hostdb/main/releases.json
 }
 ```
 
-**Download URL pattern:**
-```
-https://github.com/robertjbass/hostdb/releases/download/{tag}/{filename}
-```
+## Package Configuration
 
-### Future Considerations
+The root `package.json` has `"private": true` because:
+- The root package is not published to npm
+- Only the future `cli/` package will be published as `@hostdb/cli` or `hostdb`
 
-- **Raspberry Pi 5**: May integrate a local ARM64 device as a self-hosted runner for native `linux-arm64` builds (avoids slow QEMU emulation). Not guaranteed, under consideration.
+## GitHub Constraints (Public Repo)
 
+| Resource | Limit |
+|----------|-------|
+| Actions minutes | Unlimited (public repo) |
+| Job timeout | 6 hours per job |
+| Release file size | 2 GB per file |
+| Total release storage | No limit |
+
+**Build times vary significantly:**
+- Downloads: 2-5 minutes
+- Docker builds (QEMU): 45-90+ minutes
+- Native macOS builds: 30-60 minutes

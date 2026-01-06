@@ -343,8 +343,9 @@
       "note": "",
       "latestLts": "11.8",
       "versions": {
-        "11.8.1": true,
-        "11.4.5": true
+        "11.8.5": true,
+        "11.4.5": true,
+        "10.6.24": true
       },
       "platforms": {
         "linux-x64": true,

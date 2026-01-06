@@ -12,6 +12,7 @@
   },
   "scripts": {
     "dbs": "tsx scripts/list-databases.ts",
+    "download:mariadb": "tsx builds/mariadb/download.ts",
     "download:mysql": "tsx builds/mysql/download.ts",
     "download:postgresql": "tsx builds/postgresql/download.ts",
     "update:releases": "tsx scripts/update-releases.ts",

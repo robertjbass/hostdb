@@ -1,0 +1,89 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "mariadb",
+  "versions": {
+    "11.8.5": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.8.5/bintar-linux-systemd-x86_64/mariadb-11.8.5-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": null
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.8.5/winx64-packages/mariadb-11.8.5-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": null
+      }
+    },
+    "11.4.5": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.4.5/bintar-linux-systemd-x86_64/mariadb-11.4.5-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": null
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "url": "https://repo.maven.apache.org/maven2/ch/vorburger/mariaDB4j/mariaDB4j-db-macos-arm64/11.4.5/mariaDB4j-db-macos-arm64-11.4.5.jar",
+        "format": "jar",
+        "sourceType": "mariadb4j",
+        "sha256": null
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.4.5/winx64-packages/mariadb-11.4.5-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": null
+      }
+    },
+    "10.6.24": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-10.6.24/bintar-linux-systemd-x86_64/mariadb-10.6.24-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": null
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-10.6.24/winx64-packages/mariadb-10.6.24-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": null
+      }
+    }
+  },
+  "notes": {
+    "official": "Linux x64 and Windows x64 binaries from archive.mariadb.org",
+    "mariadb4j": "darwin-arm64 11.4.5 available from MariaDB4j Maven Central (JAR contains MariaDB binaries)",
+    "build-required": "No official binary available - built from source via GitHub Actions",
+    "linux-arm64": "Built from source via Docker (QEMU emulation on ubuntu-latest)",
+    "darwin-x64": "Built from source natively on macos-13 (Intel) runner",
+    "darwin-arm64": "Built from source natively on macos-14 (Apple Silicon) runner, or downloaded from MariaDB4j for 11.4.5",
+    "win32-x64": "Official binary from archive.mariadb.org",
+    "sha256": "Set to null until we verify downloads and capture checksums",
+    "coverage": "All 5 platforms × 3 versions = 15 binaries available via GitHub Releases"
+  }
+}
