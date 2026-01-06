@@ -213,8 +213,23 @@ jobs:
           echo "Using OpenSSL at: $OPENSSL_PREFIX"
           echo "Using Bison at: $BISON_PATH"
 
+          # Validate bison executable exists
+          if [ ! -x "$BISON_PATH" ]; then
+            echo "::error::Bison not found or not executable at $BISON_PATH"
+            echo "Install with: brew install bison"
+            exit 1
+          fi
+
           # Verify bison version (need 2.4+)
-          "$BISON_PATH" --version | head -1
+          BISON_VERSION=$("$BISON_PATH" --version | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
+          echo "Bison version: $BISON_VERSION (from $BISON_PATH)"
+
+          BISON_MAJOR=$(echo "$BISON_VERSION" | cut -d. -f1)
+          BISON_MINOR=$(echo "$BISON_VERSION" | cut -d. -f2)
+          if [ "$BISON_MAJOR" -lt 2 ] || { [ "$BISON_MAJOR" -eq 2 ] && [ "$BISON_MINOR" -lt 4 ]; }; then
+            echo "::error::Bison version $BISON_VERSION at $BISON_PATH is too old. MariaDB requires Bison >= 2.4"
+            exit 1
+          fi
 
           if [ ! -d "$OPENSSL_PREFIX" ]; then
             echo "::error::OpenSSL not found at $OPENSSL_PREFIX"
