@@ -98,7 +98,7 @@ jobs:
             MATRIX='[
               {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
               {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
-              {"platform": "darwin-x64", "runner": "macos-13", "build_type": "native"},
+              {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
               {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "native"},
               {"platform": "win32-x64", "runner": "ubuntu-latest", "build_type": "download"}
             ]'
@@ -109,7 +109,7 @@ jobs:
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"docker\"}]"
                 ;;
               darwin-x64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-13\", \"build_type\": \"native\"}]"
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\", \"build_type\": \"native\"}]"
                 ;;
               darwin-arm64)
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-14\", \"build_type\": \"native\"}]"
@@ -147,6 +147,15 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      # Set up QEMU for cross-platform Docker builds (required for linux-arm64 on x64 runners)
+      - name: Set up QEMU
+        if: matrix.build_type == 'docker'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: matrix.build_type == 'docker'
+        uses: docker/setup-buildx-action@v3
 
       # For Linux: use Docker-based builds (download or source build)
       - name: Build for Linux/Windows (download or Docker)
@@ -199,15 +208,23 @@ jobs:
             exit 1
           fi
 
+          # Clean up any previous build artifacts
+          rm -rf mariadb-source.tar.gz mariadb-${VERSION} install dist
+
           # Download source
           curl -fsSL "https://archive.mariadb.org/mariadb-${VERSION}/source/mariadb-${VERSION}.tar.gz" \
             -o mariadb-source.tar.gz
           tar -xzf mariadb-source.tar.gz
-          cd mariadb-${VERSION}
+
+          # Build in source directory
+          SOURCE_DIR="$GITHUB_WORKSPACE/mariadb-${VERSION}"
+          BUILD_DIR="$SOURCE_DIR/build"
+
+          mkdir -p "$BUILD_DIR"
+          cd "$BUILD_DIR"
 
           # Configure
-          mkdir build && cd build
-          cmake .. \
+          cmake "$SOURCE_DIR" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/mariadb" \
             -DWITH_SSL="$OPENSSL_PREFIX" \
@@ -255,7 +272,8 @@ jobs:
       - name: Generate checksum
         run: |
           cd dist
-          for f in *.tar.gz *.zip 2>/dev/null; do
+          shopt -s nullglob
+          for f in *.tar.gz *.zip; do
             if [ -f "$f" ]; then
               if command -v sha256sum &> /dev/null; then
                 sha256sum "$f" >> checksums.txt
