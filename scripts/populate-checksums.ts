@@ -63,16 +63,44 @@ type SourcesJson = {
   notes: Record<string, string>
 }
 
-async function computeSha256(url: string): Promise<string> {
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`)
-  }
+const FETCH_TIMEOUT_MS = 10 * 60 * 1000 // 10 minutes for large files
 
-  const buffer = await response.arrayBuffer()
-  const hash = createHash('sha256')
-  hash.update(Buffer.from(buffer))
-  return hash.digest('hex')
+async function computeSha256(url: string): Promise<string> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      redirect: 'follow',
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`)
+    }
+
+    const reader = response.body?.getReader()
+    if (!reader) {
+      throw new Error(`No response body for ${url}`)
+    }
+
+    const hash = createHash('sha256')
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      hash.update(value)
+    }
+
+    return hash.digest('hex')
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Fetch timed out after ${FETCH_TIMEOUT_MS / 1000}s: ${url}`)
+    }
+    throw error
+  } finally {
+    clearTimeout(timeoutId)
+  }
 }
 
 async function main() {
