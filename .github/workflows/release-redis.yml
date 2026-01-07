@@ -245,12 +245,28 @@ jobs:
           cd "redis-${VERSION}"
 
           # Build with TLS support
-          # Pass OpenSSL flags explicitly to ensure hiredis builds with SSL
+          # Step 1: Explicitly build hiredis with SSL support first
+          # This ensures libhiredis_ssl.a is created before Redis tries to link against it
+          # The deps Makefile needs USE_SSL=1 and OPENSSL_PREFIX to build hiredis with SSL
+          echo "Building hiredis with SSL support..."
+          make -C deps hiredis hdr_histogram lua linenoise \
+            USE_SSL=1 \
+            OPENSSL_PREFIX="$OPENSSL_PREFIX"
+
+          # Verify hiredis_ssl was built
+          if [ ! -f deps/hiredis/libhiredis_ssl.a ]; then
+            echo "ERROR: libhiredis_ssl.a was not created!"
+            echo "Contents of deps/hiredis:"
+            ls -la deps/hiredis/
+            exit 1
+          fi
+          echo "libhiredis_ssl.a built successfully"
+
+          # Step 2: Build Redis with TLS enabled
+          echo "Building Redis..."
           make -j$(sysctl -n hw.ncpu) \
             BUILD_TLS=yes \
-            OPENSSL_PREFIX="$OPENSSL_PREFIX" \
-            OPENSSL_CFLAGS="$OPENSSL_CFLAGS" \
-            OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS"
+            OPENSSL_PREFIX="$OPENSSL_PREFIX"
 
           # Install
           make PREFIX="$GITHUB_WORKSPACE/install/redis" install
