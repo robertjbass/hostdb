@@ -251,15 +251,22 @@ jobs:
           mkdir -p "$BUILD_DIR"
           cd "$BUILD_DIR"
 
-          # Fix for Xcode 16+ C++ header search path issues
-          # libc++ headers must be found before C standard library headers
-          SDKROOT=$(xcrun --show-sdk-path)
+          # Fix for Xcode 16+ SDK/toolchain mismatch issues
+          # Force Xcode as the active developer directory and use its SDK
+          sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+          XCODE_SDK=$(xcrun --sdk macosx --show-sdk-path)
+          XCODE_TOOLCHAIN=$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain
+
+          echo "Using Xcode SDK: $XCODE_SDK"
+          echo "Using Xcode Toolchain: $XCODE_TOOLCHAIN"
 
           # Configure (disable Columnstore as it has macOS compatibility issues)
           cmake "$SOURCE_DIR" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/mariadb" \
-            -DCMAKE_CXX_FLAGS="-isystem ${SDKROOT}/usr/include/c++/v1 -stdlib=libc++" \
+            -DCMAKE_OSX_SYSROOT="$XCODE_SDK" \
+            -DCMAKE_C_COMPILER="$XCODE_TOOLCHAIN/usr/bin/clang" \
+            -DCMAKE_CXX_COMPILER="$XCODE_TOOLCHAIN/usr/bin/clang++" \
             -DBISON_EXECUTABLE="$BISON_PATH" \
             -DWITH_SSL="$OPENSSL_PREFIX" \
             -DWITH_PCRE=system \
