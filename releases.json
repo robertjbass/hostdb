@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-04T21:33:53.967Z",
+  "lastUpdated": "2026-01-07T02:31:39.293Z",
   "databases": {
     "mysql": {
       "8.4.3": {
@@ -227,6 +227,20 @@
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-win32-x64.zip",
             "sha256": "0e44452f904295af339381ca43ddc3ced54c5ebe3a729c55ae89977704840ca7",
             "size": 37667182
+          }
+        }
+      }
+    },
+    "mariadb": {
+      "11.8.5": {
+        "version": "11.8.5",
+        "releaseTag": "mariadb-11.8.5",
+        "releasedAt": "2026-01-07T02:31:24Z",
+        "platforms": {
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-darwin-x64.tar.gz",
+            "sha256": "91b623cc7b161e9607c0add8037e73a1204fa77f893520260d519b37792dec24",
+            "size": 79505374
           }
         }
       }
