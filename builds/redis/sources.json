@@ -1,0 +1,97 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "redis",
+  "versions": {
+    "8.4.0": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://github.com/redis-windows/redis-windows/releases/download/8.4.0/Redis-8.4.0-Windows-x64-msys2.zip",
+        "format": "zip",
+        "sourceType": "redis-windows",
+        "sha256": null
+      }
+    },
+    "8.2.3": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://github.com/redis-windows/redis-windows/releases/download/8.2.3/Redis-8.2.3-Windows-x64-msys2.zip",
+        "format": "zip",
+        "sourceType": "redis-windows",
+        "sha256": null
+      }
+    },
+    "8.0.5": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://github.com/redis-windows/redis-windows/releases/download/8.0.5/Redis-8.0.5-Windows-x64-msys2.zip",
+        "format": "zip",
+        "sourceType": "redis-windows",
+        "sha256": null
+      }
+    },
+    "7.4.7": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://github.com/redis-windows/redis-windows/releases/download/7.4.7/Redis-7.4.7-Windows-x64-msys2.zip",
+        "format": "zip",
+        "sourceType": "redis-windows",
+        "sha256": null
+      }
+    }
+  },
+  "notes": {
+    "official-source": "Linux and macOS binaries are built from official Redis source at https://download.redis.io/releases/",
+    "redis-windows": "Windows binaries from https://github.com/redis-windows/redis-windows (unofficial but well-maintained)",
+    "build-required": "No official binary available - built from source via GitHub Actions",
+    "linux-x64": "Built from source via Docker on ubuntu-latest",
+    "linux-arm64": "Built from source via Docker (QEMU emulation on ubuntu-latest)",
+    "darwin-x64": "Built from source natively on macos-15-intel runner",
+    "darwin-arm64": "Built from source natively on macos-14 (Apple Silicon) runner",
+    "win32-x64": "Downloaded from redis-windows GitHub releases",
+    "sha256": "Set to null until we verify downloads and capture checksums"
+  }
+}

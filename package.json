@@ -17,6 +17,7 @@
     "download:mariadb": "tsx builds/mariadb/download.ts",
     "download:mysql": "tsx builds/mysql/download.ts",
     "download:postgresql": "tsx builds/postgresql/download.ts",
+    "download:redis": "tsx builds/redis/download.ts",
     "format": "prettier --write .",
     "lint": "tsc --noEmit && eslint .",
     "sync:versions": "tsx scripts/sync-versions.ts",

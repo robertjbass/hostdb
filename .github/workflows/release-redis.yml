@@ -1,0 +1,441 @@
+name: Release Redis
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Redis version'
+        required: true
+        type: choice
+        options:
+          - 8.4.0
+          - 8.2.3
+          - 8.0.5
+          - 7.4.7
+        default: 8.4.0
+      platforms:
+        description: 'Platforms to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'linux-x64'
+          - 'linux-arm64'
+          - 'darwin-x64'
+          - 'darwin-arm64'
+          - 'win32-x64'
+
+# Prevent concurrent runs that could conflict when updating releases.json
+concurrency:
+  group: release-redis
+  cancel-in-progress: false
+
+jobs:
+  # Validate version against databases.json
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version against databases.json
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DB="redis"
+
+          echo "Validating Redis version: $VERSION"
+
+          # Check if version exists and is enabled in databases.json
+          ENABLED=$(jq -r ".databases.$DB.versions[\"$VERSION\"] // false" databases.json)
+          if [ "$ENABLED" != "true" ]; then
+            echo "::error::Version '$VERSION' is not enabled in databases.json"
+            echo ""
+            echo "Available versions:"
+            jq -r ".databases.$DB.versions | to_entries | map(select(.value == true)) | .[].key" databases.json
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION is enabled in databases.json"
+
+      - name: Validate sources.json exists
+        run: |
+          DB="redis"
+          if [ ! -f "builds/$DB/sources.json" ]; then
+            echo "::error::Missing builds/$DB/sources.json"
+            exit 1
+          fi
+          echo "✓ builds/$DB/sources.json exists"
+
+      - name: Validate version in sources.json
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DB="redis"
+
+          HAS_VERSION=$(jq -r ".versions[\"$VERSION\"] // empty" "builds/$DB/sources.json")
+          if [ -z "$HAS_VERSION" ]; then
+            echo "::error::Version '$VERSION' not found in builds/$DB/sources.json"
+            echo ""
+            echo "Available versions in sources.json:"
+            jq -r ".versions | keys[]" "builds/$DB/sources.json"
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION found in sources.json"
+
+  # Determine which platforms to build based on input
+  prepare:
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set build matrix
+        id: set-matrix
+        run: |
+          PLATFORMS="${{ github.event.inputs.platforms }}"
+          if [ "$PLATFORMS" = "all" ]; then
+            # All 5 platforms with their appropriate runners
+            MATRIX='[
+              {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
+              {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
+              {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
+              {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "native"},
+              {"platform": "win32-x64", "runner": "ubuntu-latest", "build_type": "download"}
+            ]'
+          else
+            # Single platform - determine runner and build type
+            case "$PLATFORMS" in
+              linux-x64|linux-arm64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"docker\"}]"
+                ;;
+              darwin-x64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\", \"build_type\": \"native\"}]"
+                ;;
+              darwin-arm64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-14\", \"build_type\": \"native\"}]"
+                ;;
+              win32-x64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"download\"}]"
+                ;;
+            esac
+          fi
+          # Compact the JSON for output
+          MATRIX=$(echo "$MATRIX" | jq -c .)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "Building platforms: $MATRIX"
+
+  # Build each platform in parallel
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Set up QEMU for cross-platform Docker builds (required for linux-arm64 on x64 runners)
+      - name: Set up QEMU
+        if: matrix.build_type == 'docker'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: matrix.build_type == 'docker'
+        uses: docker/setup-buildx-action@v3
+
+      # For Linux: use Docker-based builds
+      - name: Build for Linux (Docker)
+        if: matrix.build_type == 'docker'
+        id: build-linux
+        timeout-minutes: 60
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          echo "Building Redis $VERSION for $PLATFORM"
+
+          pnpm download:redis -- \
+            --version "$VERSION" \
+            --platform "$PLATFORM" \
+            --build-fallback \
+            --output ./dist
+
+          # Check if artifact was created
+          shopt -s nullglob
+          FILES=(./dist/redis-*.tar.gz ./dist/redis-*.zip)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "::error::No artifact created for $PLATFORM"
+            exit 1
+          fi
+          ls -la ./dist/
+
+      # For Windows: download from redis-windows
+      - name: Download for Windows
+        if: matrix.build_type == 'download'
+        id: build-windows
+        timeout-minutes: 30
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          echo "Downloading Redis $VERSION for $PLATFORM"
+
+          pnpm download:redis -- \
+            --version "$VERSION" \
+            --platform "$PLATFORM" \
+            --output ./dist
+
+          # Check if artifact was created
+          shopt -s nullglob
+          FILES=(./dist/redis-*.tar.gz ./dist/redis-*.zip)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "::error::No artifact created for $PLATFORM"
+            exit 1
+          fi
+          ls -la ./dist/
+
+      # For macOS: native build
+      - name: Build for macOS (native)
+        if: matrix.build_type == 'native'
+        id: build-macos
+        timeout-minutes: 60
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          echo "Building Redis $VERSION for $PLATFORM (native macOS build)"
+
+          # Install build dependencies
+          brew install openssl@3
+
+          # Get Homebrew prefix (differs between ARM64 and Intel macOS)
+          BREW_PREFIX=$(brew --prefix)
+          OPENSSL_PREFIX=$(brew --prefix openssl@3)
+
+          echo "Using OpenSSL at: $OPENSSL_PREFIX"
+
+          # Clean up any previous build artifacts
+          rm -rf redis-source.tar.gz redis-${VERSION} install dist
+
+          # Download source
+          curl -fsSL "https://download.redis.io/releases/redis-${VERSION}.tar.gz" \
+            -o redis-source.tar.gz
+          tar -xzf redis-source.tar.gz
+
+          # Build
+          cd "redis-${VERSION}"
+
+          # Build with TLS support
+          make -j$(sysctl -n hw.ncpu) \
+            BUILD_TLS=yes \
+            OPENSSL_PREFIX="$OPENSSL_PREFIX"
+
+          # Install
+          make PREFIX="$GITHUB_WORKSPACE/install/redis" install
+
+          # Copy config files
+          cp redis.conf "$GITHUB_WORKSPACE/install/redis/"
+          cp sentinel.conf "$GITHUB_WORKSPACE/install/redis/"
+
+          # Add metadata
+          cd "$GITHUB_WORKSPACE/install"
+          cat > redis/.hostdb-metadata.json << EOF
+          {
+            "name": "redis",
+            "version": "${VERSION}",
+            "platform": "${PLATFORM}",
+            "source": "source-build",
+            "sourceUrl": "https://download.redis.io/releases/",
+            "rehosted_by": "hostdb",
+            "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          # Create tarball
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          tar -czvf "$GITHUB_WORKSPACE/dist/redis-${VERSION}-${PLATFORM}.tar.gz" redis
+
+          echo "Build complete:"
+          ls -la "$GITHUB_WORKSPACE/dist/"
+
+      - name: Generate checksum
+        run: |
+          cd dist
+          shopt -s nullglob
+          for f in *.tar.gz *.zip; do
+            if [ -f "$f" ]; then
+              if command -v sha256sum &> /dev/null; then
+                sha256sum "$f" >> checksums.txt
+              else
+                # macOS uses shasum
+                shasum -a 256 "$f" >> checksums.txt
+              fi
+            fi
+          done
+          cat checksums.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: redis-${{ github.event.inputs.version }}-${{ matrix.platform }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
+          retention-days: 1
+
+  # Collect all artifacts and create release
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          pattern: redis-${{ github.event.inputs.version }}-*
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p ./release-assets
+
+          # Move all artifacts to release-assets, flattening the directory structure
+          find ./artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec mv {} ./release-assets/ \;
+
+          # Combine all checksums
+          find ./artifacts -name "checksums.txt" -exec cat {} \; > ./release-assets/checksums.txt
+
+          echo "Release assets:"
+          ls -la ./release-assets/
+
+          # Verify we have at least one artifact
+          shopt -s nullglob
+          FILES=(./release-assets/*.tar.gz ./release-assets/*.zip)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "ERROR: No artifacts were created for any platform"
+            exit 1
+          fi
+
+          echo ""
+          echo "Checksums:"
+          cat ./release-assets/checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: redis-${{ github.event.inputs.version }}
+          name: Redis ${{ github.event.inputs.version }}
+          body: |
+            ## Redis ${{ github.event.inputs.version }}
+
+            Redis binaries for hostdb - all 5 platforms.
+
+            ### Available Platforms
+            | Platform | Source |
+            |----------|--------|
+            | `linux-x64` | Built from source (Docker) |
+            | `linux-arm64` | Built from source (Docker + QEMU) |
+            | `darwin-x64` | Built from source (native macOS) |
+            | `darwin-arm64` | Built from source (native macOS) |
+            | `win32-x64` | [redis-windows](https://github.com/redis-windows/redis-windows) |
+
+            ### Usage
+            ```bash
+            # Download URL pattern
+            https://github.com/${{ github.repository }}/releases/download/redis-${{ github.event.inputs.version }}/redis-${{ github.event.inputs.version }}-<platform>.tar.gz
+            ```
+
+            ### Checksums
+            See `checksums.txt` for SHA256 checksums.
+
+            ### License
+            Redis is licensed under RSALv2/SSPLv1 (7.4+) and AGPL-3.0 (8.0+).
+
+            **Note:** For commercial use, consider [Valkey](https://github.com/valkey-io/valkey) as a BSD-licensed drop-in replacement.
+
+            ### Sources
+            - **Official Source**: [download.redis.io](https://download.redis.io/releases/)
+            - **Windows**: [redis-windows](https://github.com/redis-windows/redis-windows)
+          files: |
+            release-assets/*.tar.gz
+            release-assets/*.zip
+            release-assets/checksums.txt
+          fail_on_unmatched_files: false
+
+  # Update the releases manifest
+  update-manifest:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update releases.json
+        run: |
+          pnpm tsx scripts/update-releases.ts \
+            --database redis \
+            --version "${{ github.event.inputs.version }}" \
+            --tag "redis-${{ github.event.inputs.version }}"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add releases.json
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "chore: update releases.json for redis-${{ github.event.inputs.version }}"
+
+          # Retry push with rebase if remote has changed
+          for i in 1 2 3; do
+            if git push; then
+              echo "Push succeeded"
+              exit 0
+            fi
+            echo "Push failed, attempting rebase (attempt $i/3)..."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "ERROR: Rebase failed due to conflicts. Manual intervention required."
+              git rebase --abort
+              exit 1
+            fi
+            sleep $((2**i))
+          done
+          echo "ERROR: Push failed after 3 attempts"
+          exit 1
