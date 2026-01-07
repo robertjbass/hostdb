@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-07T12:16:09.275Z",
+  "lastUpdated": "2026-01-07T15:39:22.190Z",
   "databases": {
     "mysql": {
       "8.4.3": {
@@ -325,6 +325,40 @@
             "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-win32-x64.zip",
             "sha256": "b9da836893d54d16bbd21f4202b7f964387e3001789bbbce79253cbfd24ced2a",
             "size": 90640728
+          }
+        }
+      }
+    },
+    "redis": {
+      "7.4.7": {
+        "version": "7.4.7",
+        "releaseTag": "redis-7.4.7",
+        "releasedAt": "2026-01-07T15:39:06Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-darwin-arm64.tar.gz",
+            "sha256": "a060ff64be58e1e9ee622222411df028293454ea58f07a6e2adbf1a089413482",
+            "size": 1278481
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-darwin-x64.tar.gz",
+            "sha256": "4cc319cabbf00fbd0d5e662f67abfe060d470776cfa80b8b84c4f67869bcddea",
+            "size": 1360554
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-linux-arm64.tar.gz",
+            "sha256": "921724df4b2a43e2e6d1bf23a6070d9ee0fb4a357280a4d9f7a1d1127b729c1d",
+            "size": 12730660
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-linux-x64.tar.gz",
+            "sha256": "1080b8ede021c529d0b540e93dd64d62ea589b422437e24b6fe794a617dc56a7",
+            "size": 12658739
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-win32-x64.zip",
+            "sha256": "f38b403f7e8c9b022c54bb52ad54b801c32b8270bb55cdbf24e4825952168415",
+            "size": 11481934
           }
         }
       }
