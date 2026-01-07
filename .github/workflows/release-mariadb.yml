@@ -252,8 +252,10 @@ jobs:
           cd "$BUILD_DIR"
 
           # Fix for Xcode 16+ SDK/toolchain mismatch issues
-          # Force Xcode as the active developer directory and use its SDK
-          sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+          # Force latest Xcode as the active developer directory
+          XCODE_PATH=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          echo "Using Xcode: $XCODE_PATH"
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
 
           # Get SDK and toolchain paths
           export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
