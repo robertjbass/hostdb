@@ -254,19 +254,28 @@ jobs:
           # Fix for Xcode 16+ SDK/toolchain mismatch issues
           # Force Xcode as the active developer directory and use its SDK
           sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
-          XCODE_SDK=$(xcrun --sdk macosx --show-sdk-path)
+
+          # Export SDKROOT to force all tools to use the same SDK
+          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
           XCODE_TOOLCHAIN=$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain
 
-          echo "Using Xcode SDK: $XCODE_SDK"
+          echo "Using Xcode SDK (SDKROOT): $SDKROOT"
           echo "Using Xcode Toolchain: $XCODE_TOOLCHAIN"
+
+          # Verify clang uses correct SDK
+          echo "Clang SDK check:"
+          "$XCODE_TOOLCHAIN/usr/bin/clang" --version
+          "$XCODE_TOOLCHAIN/usr/bin/clang" -print-search-dirs | head -3
 
           # Configure (disable Columnstore as it has macOS compatibility issues)
           cmake "$SOURCE_DIR" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/mariadb" \
-            -DCMAKE_OSX_SYSROOT="$XCODE_SDK" \
+            -DCMAKE_OSX_SYSROOT="$SDKROOT" \
             -DCMAKE_C_COMPILER="$XCODE_TOOLCHAIN/usr/bin/clang" \
             -DCMAKE_CXX_COMPILER="$XCODE_TOOLCHAIN/usr/bin/clang++" \
+            -DCMAKE_C_FLAGS="-isysroot $SDKROOT" \
+            -DCMAKE_CXX_FLAGS="-isysroot $SDKROOT -stdlib=libc++" \
             -DBISON_EXECUTABLE="$BISON_PATH" \
             -DWITH_SSL="$OPENSSL_PREFIX" \
             -DWITH_PCRE=system \
