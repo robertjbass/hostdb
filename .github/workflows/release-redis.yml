@@ -9,8 +9,6 @@ on:
         type: choice
         options:
           - 8.4.0
-          - 8.2.3
-          - 8.0.5
           - 7.4.7
         default: 8.4.0
       platforms:

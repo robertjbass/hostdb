@@ -655,8 +655,6 @@
       "latestLts": "8.4",
       "versions": {
         "8.4.0": true,
-        "8.2.3": true,
-        "8.0.5": true,
         "7.4.7": true
       },
       "platforms": {
