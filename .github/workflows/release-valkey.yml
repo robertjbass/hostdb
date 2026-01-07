@@ -200,16 +200,9 @@ jobs:
           brew install openssl@3
 
           # Get Homebrew prefix (differs between ARM64 and Intel macOS)
-          BREW_PREFIX=$(brew --prefix)
           OPENSSL_PREFIX=$(brew --prefix openssl@3)
 
           echo "Using OpenSSL at: $OPENSSL_PREFIX"
-
-          # Set OpenSSL environment variables for hiredis SSL build
-          # These are required for hiredis to find OpenSSL and build libhiredis_ssl.a
-          export PKG_CONFIG_PATH="$OPENSSL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
-          export OPENSSL_CFLAGS="-I$OPENSSL_PREFIX/include"
-          export OPENSSL_LDFLAGS="-L$OPENSSL_PREFIX/lib"
 
           # Clean up any previous build artifacts
           rm -rf valkey-source.tar.gz valkey-${VERSION} install dist
@@ -223,25 +216,9 @@ jobs:
           cd "valkey-${VERSION}"
 
           # Build with TLS support
-          # Step 1: Explicitly build hiredis with SSL support first
-          # This ensures libhiredis_ssl.a is created before Valkey tries to link against it
-          # The deps Makefile needs USE_SSL=1 and OPENSSL_PREFIX to build hiredis with SSL
-          echo "Building hiredis with SSL support..."
-          make -C deps hiredis hdr_histogram lua linenoise \
-            USE_SSL=1 \
-            OPENSSL_PREFIX="$OPENSSL_PREFIX"
-
-          # Verify hiredis_ssl was built
-          if [ ! -f deps/hiredis/libhiredis_ssl.a ]; then
-            echo "ERROR: libhiredis_ssl.a was not created!"
-            echo "Contents of deps/hiredis:"
-            ls -la deps/hiredis/
-            exit 1
-          fi
-          echo "libhiredis_ssl.a built successfully"
-
-          # Step 2: Build Valkey with TLS enabled
-          echo "Building Valkey..."
+          # Let make handle deps automatically - Valkey 8.x uses hiredis, 9.x uses libvalkey
+          # The main Makefile handles building all deps correctly for both versions
+          echo "Building Valkey with TLS..."
           make -j$(sysctl -n hw.ncpu) \
             BUILD_TLS=yes \
             OPENSSL_PREFIX="$OPENSSL_PREFIX"
@@ -319,6 +296,11 @@ jobs:
 
           # Remove module_tests from build targets (not supported on Windows)
           sed -i 's/all: \(.*\) module_tests$/all: \1/' src/Makefile
+
+          # Patch Makefile to handle Cygwin: remove -rdynamic flag
+          # Cygwin's linker doesn't handle -rdynamic well (causes symbol export errors)
+          # Simply remove the -rdynamic flag from FINAL_LDFLAGS
+          sed -i 's/-rdynamic//' src/Makefile
 
           # Build with TLS support and Windows-compatible flags
           # -Wno-char-subscripts suppresses warnings, -O0 helps compatibility
