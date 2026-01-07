@@ -18,6 +18,7 @@ import { execSync, spawnSync } from 'node:child_process'
 import { readdirSync, readFileSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { getEnabledVersions } from './lib/databases.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
@@ -82,30 +83,6 @@ type SourcesJson = {
   versions: Record<string, Record<string, SourceEntry>>
 }
 
-type DatabaseEntry = {
-  versions: Record<string, boolean>
-}
-
-type DatabasesJson = {
-  databases: Record<string, DatabaseEntry>
-}
-
-function getEnabledVersions(database: string): Set<string> {
-  try {
-    const dbPath = join(ROOT, 'databases.json')
-    const data: DatabasesJson = JSON.parse(readFileSync(dbPath, 'utf-8'))
-    const dbEntry = data.databases[database]
-    if (!dbEntry) return new Set()
-
-    return new Set(
-      Object.entries(dbEntry.versions)
-        .filter(([, enabled]) => enabled === true)
-        .map(([version]) => version),
-    )
-  } catch {
-    return new Set()
-  }
-}
 
 function findMissingChecksums(): Array<{ database: string; version: string; platform: string }> {
   const missing: Array<{ database: string; version: string; platform: string }> = []
