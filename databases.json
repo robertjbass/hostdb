@@ -678,7 +678,7 @@
         "defaultUser": null,
         "queryLanguage": "Redis"
       },
-      "status": "in-progress"
+      "status": "completed"
     },
     "rocksdb": {
       "displayName": "RocksDB",
