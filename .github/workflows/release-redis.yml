@@ -227,6 +227,12 @@ jobs:
 
           echo "Using OpenSSL at: $OPENSSL_PREFIX"
 
+          # Set OpenSSL environment variables for hiredis SSL build
+          # These are required for hiredis to find OpenSSL and build libhiredis_ssl.a
+          export PKG_CONFIG_PATH="$OPENSSL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
+          export OPENSSL_CFLAGS="-I$OPENSSL_PREFIX/include"
+          export OPENSSL_LDFLAGS="-L$OPENSSL_PREFIX/lib"
+
           # Clean up any previous build artifacts
           rm -rf redis-source.tar.gz redis-${VERSION} install dist
 
@@ -239,9 +245,12 @@ jobs:
           cd "redis-${VERSION}"
 
           # Build with TLS support
+          # Pass OpenSSL flags explicitly to ensure hiredis builds with SSL
           make -j$(sysctl -n hw.ncpu) \
             BUILD_TLS=yes \
-            OPENSSL_PREFIX="$OPENSSL_PREFIX"
+            OPENSSL_PREFIX="$OPENSSL_PREFIX" \
+            OPENSSL_CFLAGS="$OPENSSL_CFLAGS" \
+            OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS"
 
           # Install
           make PREFIX="$GITHUB_WORKSPACE/install/redis" install
