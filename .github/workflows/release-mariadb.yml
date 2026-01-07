@@ -251,10 +251,15 @@ jobs:
           mkdir -p "$BUILD_DIR"
           cd "$BUILD_DIR"
 
+          # Fix for Xcode 16+ C++ header search path issues
+          # libc++ headers must be found before C standard library headers
+          SDKROOT=$(xcrun --show-sdk-path)
+
           # Configure (disable Columnstore as it has macOS compatibility issues)
           cmake "$SOURCE_DIR" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/mariadb" \
+            -DCMAKE_CXX_FLAGS="-isystem ${SDKROOT}/usr/include/c++/v1 -stdlib=libc++" \
             -DBISON_EXECUTABLE="$BISON_PATH" \
             -DWITH_SSL="$OPENSSL_PREFIX" \
             -DWITH_PCRE=system \
