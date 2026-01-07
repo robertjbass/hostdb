@@ -210,9 +210,9 @@ When adding a new version to an existing database:
 
 1. Update `databases.json` - add version with `true`
 2. Update `builds/<database>/sources.json` - add URLs for all platforms
-3. Run `pnpm sync:versions` - updates workflow dropdown options
+3. Run `pnpm prep` - syncs workflows and populates checksums
 
-**That's it.** The sync script updates workflow dropdowns automatically from databases.json.
+**That's it.** The prep script handles syncing workflow dropdowns and populating SHA256 checksums automatically.
 
 ```bash
 # Sync all workflows
@@ -228,6 +228,11 @@ pnpm sync:versions --check
 ## Development Commands
 
 ```bash
+# Pre-commit preparation (run before committing)
+pnpm prep              # Type-check, lint, sync versions, populate checksums
+pnpm prep --fix        # Same as above + auto-fix lint/format issues
+pnpm prep --check      # Check only, don't modify files (for CI)
+
 # List databases
 pnpm dbs              # Show in-progress
 pnpm dbs --all        # Show all
@@ -242,9 +247,9 @@ pnpm download:mariadb -- --version 11.8.5 --build-fallback
 ./builds/mariadb/build-local.sh --version 11.8.5 --platform linux-arm64
 
 # Scaffolding and maintenance
-pnpm add:engine redis     # Scaffold new database
-pnpm sync:versions        # Sync workflow dropdowns with databases.json
-pnpm sync:versions --check  # Check if sync needed (for CI)
+pnpm add:engine redis              # Scaffold new database
+pnpm sync:versions                 # Sync workflow dropdowns with databases.json
+pnpm checksums:populate <database> # Populate missing SHA256 checksums
 ```
 
 ## Querying Available Binaries
