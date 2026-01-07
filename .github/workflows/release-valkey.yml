@@ -304,6 +304,10 @@ jobs:
 
           echo "Building Valkey $VERSION for $PLATFORM (Cygwin build)"
 
+          # Apply redis-windows patches to enable GNU extensions
+          # This exposes Dl_info and dladdr in dlfcn.h
+          sed -i 's/\_\_GNU\_VISIBLE/1/' /usr/include/dlfcn.h
+
           cd /cygdrive/d/a/hostdb/hostdb
 
           # Download source from GitHub
@@ -313,8 +317,12 @@ jobs:
 
           cd "valkey-${VERSION}"
 
-          # Build with TLS support
-          make -j$(nproc) BUILD_TLS=yes
+          # Remove module_tests from build targets (not supported on Windows)
+          sed -i 's/all: \(.*\) module_tests$/all: \1/' src/Makefile
+
+          # Build with TLS support and Windows-compatible flags
+          # -Wno-char-subscripts suppresses warnings, -O0 helps compatibility
+          make -j$(nproc) BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0"
 
           # Install
           make PREFIX="$(pwd)/../install/valkey" install
