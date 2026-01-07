@@ -40,7 +40,8 @@ WORKDIR /build
 
 # Download Valkey source from GitHub releases
 # GitHub archive extracts to valkey-{version}/
-RUN curl -fsSL "https://github.com/valkey-io/valkey/archive/refs/tags/${VERSION}.tar.gz" \
+RUN curl -fsSL --retry 3 --retry-delay 5 --retry-all-errors \
+    "https://github.com/valkey-io/valkey/archive/refs/tags/${VERSION}.tar.gz" \
     -o valkey.tar.gz \
     && tar -xzf valkey.tar.gz \
     && rm valkey.tar.gz \

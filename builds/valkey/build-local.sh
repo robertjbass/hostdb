@@ -168,7 +168,7 @@ docker buildx build \
     --build-arg VERSION="${VERSION}" \
     --output "type=local,dest=${OUTPUT_PATH}" \
     --progress=plain \
-    "${DOCKER_ARGS[@]}" \
+    ${DOCKER_ARGS[@]+"${DOCKER_ARGS[@]}"} \
     -f "${SCRIPT_DIR}/Dockerfile" \
     "${PROJECT_ROOT}"
 

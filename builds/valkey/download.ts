@@ -166,6 +166,16 @@ function buildFromSource(
     },
   )
 
+  if (result.error) {
+    logError(`Failed to spawn build process: ${result.error.message}`)
+    return false
+  }
+
+  if (result.status === null) {
+    logError(`Build process terminated by signal: ${result.signal}`)
+    return false
+  }
+
   if (result.status !== 0) {
     logError(`Source build failed with exit code: ${result.status}`)
     return false
@@ -258,6 +268,11 @@ Examples:
   ./builds/valkey/download.ts --all-platforms --build-fallback
 `)
         process.exit(0)
+        break
+      default:
+        if (args[i].startsWith('-')) {
+          logWarn(`Unknown option: ${args[i]} (use --help to see available options)`)
+        }
     }
   }
 
@@ -270,7 +285,7 @@ Examples:
   return { version, platforms, outputDir, buildFallback }
 }
 
-async function main() {
+function main() {
   const { version, platforms, outputDir, buildFallback } = parseArgs()
   const sources = loadSources()
 
@@ -359,7 +374,9 @@ async function main() {
   logInfo(`Output files in: ${resolve(outputDir)}`)
 }
 
-main().catch((err) => {
-  logError(err.message)
+try {
+  main()
+} catch (error) {
+  logError(error instanceof Error ? error.message : String(error))
   process.exit(1)
-})
+}
