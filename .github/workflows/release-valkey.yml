@@ -351,7 +351,8 @@ jobs:
           echo "Build complete:"
           ls -la ../dist/
 
-      - name: Generate checksum
+      - name: Generate checksum (Unix)
+        if: matrix.build_type != 'native-windows'
         shell: bash
         run: |
           cd dist
@@ -364,6 +365,18 @@ jobs:
                 # macOS uses shasum
                 shasum -a 256 "$f" >> checksums.txt
               fi
+            fi
+          done
+          cat checksums.txt
+
+      - name: Generate checksum (Windows)
+        if: matrix.build_type == 'native-windows'
+        shell: C:\cygwin\bin\bash.exe --login -eo pipefail -o igncr '{0}'
+        run: |
+          cd /cygdrive/d/a/hostdb/hostdb/dist
+          for f in *.tar.gz *.zip; do
+            if [ -f "$f" ]; then
+              sha256sum "$f" >> checksums.txt
             fi
           done
           cat checksums.txt
