@@ -839,7 +839,6 @@
       "latestLts": "9.0",
       "versions": {
         "9.0.1": true,
-        "8.1.5": true,
         "8.0.6": true
       },
       "platforms": {
@@ -863,7 +862,7 @@
         "defaultUser": null,
         "queryLanguage": "Redis"
       },
-      "status": "pending"
+      "status": "in-progress"
     }
   }
 }

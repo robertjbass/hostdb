@@ -1,0 +1,49 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "valkey",
+  "versions": {
+    "9.0.1": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "sourceType": "build-required"
+      }
+    },
+    "8.0.6": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "sourceType": "build-required"
+      }
+    }
+  },
+  "notes": {
+    "official-source": "All binaries are built from official Valkey source at https://github.com/valkey-io/valkey/releases",
+    "build-required": "No official binary available - built from source via GitHub Actions",
+    "linux-x64": "Built from source via Docker on ubuntu-latest",
+    "linux-arm64": "Built from source via Docker (QEMU emulation on ubuntu-latest)",
+    "darwin-x64": "Built from source natively on macos-15-intel runner",
+    "darwin-arm64": "Built from source natively on macos-14 (Apple Silicon) runner",
+    "win32-x64": "Built from source natively on windows-latest runner"
+  }
+}
