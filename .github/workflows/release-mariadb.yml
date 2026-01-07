@@ -277,17 +277,19 @@ jobs:
 
           # Configure (disable Columnstore as it has macOS compatibility issues)
           # Use xcrun to ensure cmake inherits correct SDK environment
-          # Force CMake to only search within the Xcode SDK (not Command Line Tools)
+          # Include both Xcode SDK and Homebrew in search paths (exclude Command Line Tools)
           xcrun cmake "$SOURCE_DIR" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/mariadb" \
             -DCMAKE_OSX_SYSROOT="$SDKROOT" \
-            -DCMAKE_FIND_ROOT_PATH="$SDKROOT" \
+            -DCMAKE_FIND_ROOT_PATH="$SDKROOT;$BREW_PREFIX" \
             -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
             -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
             -DZLIB_ROOT="$SDKROOT/usr" \
             -DBISON_EXECUTABLE="$BISON_PATH" \
             -DWITH_SSL="$OPENSSL_PREFIX" \
+            -DWITH_GNUTLS=OFF \
             -DWITH_PCRE=system \
             -DWITH_JEMALLOC=system \
             -DWITH_UNIT_TESTS=OFF \
