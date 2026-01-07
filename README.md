@@ -131,7 +131,7 @@ Auto-generated manifest updated after each GitHub Release. Structure:
 | MySQL | Completed | 8.4.7, 8.0.40 | Official binaries for all platforms |
 | PostgreSQL | In Progress | 18.1.0, 17.7.0, 16.11.0, 15.15.0 | Via zonky.io binaries |
 | MariaDB | Completed | 11.8.5, 11.4.5, 10.11.15 | Official + source builds |
-| Redis | In Progress | 8.4.0, 8.2.3, 8.0.5, 7.4.7 | Source builds |
+| Redis | In Progress | 8.4.0, 7.4.7 | Source builds |
 | SQLite | In Progress | 3.51.1 | Official amalgamation |
 
 See `pnpm dbs` for the full list.

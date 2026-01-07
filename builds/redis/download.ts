@@ -527,8 +527,19 @@ async function main() {
       logWarn('No checksum in sources.json - update it with the SHA256 above')
     }
 
-    // Repackage
-    repackageRedisWindows(downloadPath, outputPath, version, platform)
+    // Repackage based on source type
+    if (source.sourceType === undefined) {
+      logError(`Missing sourceType for download entry: ${platform}`)
+      skippedCount++
+      continue
+    } else if (source.sourceType === 'redis-windows') {
+      repackageRedisWindows(downloadPath, outputPath, version, platform)
+    } else {
+      logError(`Unknown source type: ${source.sourceType}`)
+      logError('Only redis-windows downloads are currently supported')
+      skippedCount++
+      continue
+    }
 
     // Final checksum
     const outputSha256 = await calculateSha256(outputPath)

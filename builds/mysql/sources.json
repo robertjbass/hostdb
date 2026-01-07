@@ -7,7 +7,7 @@
       "linux-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-9.1/mysql-9.1.0-linux-glibc2.28-x86_64.tar.xz",
         "format": "tar.xz",
-        "sha256": null
+        "sha256": "6f059725574a60e8d742f22f943b28a05fbbc36e2a3341535e85713f74e2015b"
       },
       "linux-arm64": {
         "url": "https://cdn.mysql.com/archives/mysql-9.1/mysql-9.1.0-linux-glibc2.28-aarch64.tar.xz",
@@ -17,71 +17,71 @@
       "darwin-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-9.1/mysql-9.1.0-macos14-x86_64.tar.gz",
         "format": "tar.gz",
-        "sha256": null
+        "sha256": "5116fd0178ebbd15ae379a803a798820f296b837a33fcf2e3f6c2da9071f6415"
       },
       "darwin-arm64": {
         "url": "https://cdn.mysql.com/archives/mysql-9.1/mysql-9.1.0-macos14-arm64.tar.gz",
         "format": "tar.gz",
-        "sha256": null
+        "sha256": "ecf95d05977dae03626e54d44a9139ac2cd5259e2e7e55c6f1cff002a6de15f2"
       },
       "win32-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-9.1/mysql-9.1.0-winx64.zip",
         "format": "zip",
-        "sha256": null
+        "sha256": "0c00b1b37b8ea8f58a095208bf34b568cba37e72f2ecedaa663d1f34bbcc406b"
       }
     },
     "8.4.3": {
       "linux-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-linux-glibc2.28-x86_64.tar.xz",
         "format": "tar.xz",
-        "sha256": null
+        "sha256": "faf4b9b1a9df82927bdb8879c16102090866e56a8ac74c15dca79b5eefb63536"
       },
       "linux-arm64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-linux-glibc2.28-aarch64.tar.xz",
         "format": "tar.xz",
-        "sha256": null
+        "sha256": "35337d72e230dd350bf66f579cc77804857024f1d6468fb149ad5650546d2167"
       },
       "darwin-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-macos14-x86_64.tar.gz",
         "format": "tar.gz",
-        "sha256": null
+        "sha256": "b690dfaad2108889390d40df388c16453e345f69a77784444687e8e308855af6"
       },
       "darwin-arm64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-macos14-arm64.tar.gz",
         "format": "tar.gz",
-        "sha256": null
+        "sha256": "af1af43030ac66b73dc2d5dcf645a61cdf9e7cf5404cf04bdf8e194447b0f153"
       },
       "win32-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-winx64.zip",
         "format": "zip",
-        "sha256": null
+        "sha256": "e401d0420486d91bd14eda7b6b449498007863ca340991e529adff4787352e7e"
       }
     },
     "8.0.40": {
       "linux-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.0/mysql-8.0.40-linux-glibc2.28-x86_64.tar.xz",
         "format": "tar.xz",
-        "sha256": null
+        "sha256": "abe1cfcf27a48bc17bbff9279346f3e2867d452c10ce6c2cb5ac05dd04389e80"
       },
       "linux-arm64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.0/mysql-8.0.40-linux-glibc2.28-aarch64.tar.xz",
         "format": "tar.xz",
-        "sha256": null
+        "sha256": "b13a3462db3a3557e7e657a1a9d5d4e9ce8468a9c43d1b6df23ec174e1492d24"
       },
       "darwin-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.0/mysql-8.0.40-macos14-x86_64.tar.gz",
         "format": "tar.gz",
-        "sha256": null
+        "sha256": "a416ee86e72f22089c41911bfee08be0d4dab3b816923be7b465f65df555b36d"
       },
       "darwin-arm64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.0/mysql-8.0.40-macos14-arm64.tar.gz",
         "format": "tar.gz",
-        "sha256": null
+        "sha256": "a0b8449c19ef59ca688c93ffd89d42f5d78abe6cc136c0d754c6ccb3b202fb9a"
       },
       "win32-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.0/mysql-8.0.40-winx64.zip",
         "format": "zip",
-        "sha256": null
+        "sha256": "7c3f1c09ba1b4a82df32a8d889533fceaf2692383e386a04ee708a12de66f129"
       }
     }
   },

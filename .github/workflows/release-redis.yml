@@ -9,8 +9,6 @@ on:
         type: choice
         options:
           - 8.4.0
-          - 8.2.3
-          - 8.0.5
           - 7.4.7
         default: 8.4.0
       platforms:
@@ -254,17 +252,16 @@ jobs:
 
           # Add metadata
           cd "$GITHUB_WORKSPACE/install"
-          cat > redis/.hostdb-metadata.json << EOF
-          {
-            "name": "redis",
-            "version": "${VERSION}",
-            "platform": "${PLATFORM}",
-            "source": "source-build",
-            "sourceUrl": "https://download.redis.io/releases/",
-            "rehosted_by": "hostdb",
-            "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          }
-          EOF
+          printf '%s\n' \
+            '{' \
+            '  "name": "redis",' \
+            "  \"version\": \"${VERSION}\"," \
+            "  \"platform\": \"${PLATFORM}\"," \
+            '  "source": "source-build",' \
+            '  "sourceUrl": "https://download.redis.io/releases/",' \
+            '  "rehosted_by": "hostdb",' \
+            "  \"rehosted_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"" \
+            '}' > redis/.hostdb-metadata.json
 
           # Create tarball
           mkdir -p "$GITHUB_WORKSPACE/dist"
@@ -380,7 +377,7 @@ jobs:
             release-assets/*.tar.gz
             release-assets/*.zip
             release-assets/checksums.txt
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
 
   # Update the releases manifest
   update-manifest:

@@ -52,8 +52,7 @@ RUN make PREFIX=/opt/redis install
 
 # Copy additional useful files
 RUN cp redis.conf /opt/redis/ \
-    && cp sentinel.conf /opt/redis/ \
-    && mkdir -p /opt/redis/bin
+    && cp sentinel.conf /opt/redis/
 
 # =============================================================================
 # Stage 2: Package

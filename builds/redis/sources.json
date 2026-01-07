@@ -19,47 +19,7 @@
         "url": "https://github.com/redis-windows/redis-windows/releases/download/8.4.0/Redis-8.4.0-Windows-x64-msys2.zip",
         "format": "zip",
         "sourceType": "redis-windows",
-        "sha256": null
-      }
-    },
-    "8.2.3": {
-      "linux-x64": {
-        "sourceType": "build-required"
-      },
-      "linux-arm64": {
-        "sourceType": "build-required"
-      },
-      "darwin-x64": {
-        "sourceType": "build-required"
-      },
-      "darwin-arm64": {
-        "sourceType": "build-required"
-      },
-      "win32-x64": {
-        "url": "https://github.com/redis-windows/redis-windows/releases/download/8.2.3/Redis-8.2.3-Windows-x64-msys2.zip",
-        "format": "zip",
-        "sourceType": "redis-windows",
-        "sha256": null
-      }
-    },
-    "8.0.5": {
-      "linux-x64": {
-        "sourceType": "build-required"
-      },
-      "linux-arm64": {
-        "sourceType": "build-required"
-      },
-      "darwin-x64": {
-        "sourceType": "build-required"
-      },
-      "darwin-arm64": {
-        "sourceType": "build-required"
-      },
-      "win32-x64": {
-        "url": "https://github.com/redis-windows/redis-windows/releases/download/8.0.5/Redis-8.0.5-Windows-x64-msys2.zip",
-        "format": "zip",
-        "sourceType": "redis-windows",
-        "sha256": null
+        "sha256": "8a751b5cc12deed06457d35f8e7b9e4bbfa00145ee8474a19fcd480a2fd98cd5"
       }
     },
     "7.4.7": {
@@ -79,7 +39,7 @@
         "url": "https://github.com/redis-windows/redis-windows/releases/download/7.4.7/Redis-7.4.7-Windows-x64-msys2.zip",
         "format": "zip",
         "sourceType": "redis-windows",
-        "sha256": null
+        "sha256": "195be9d6de498825373010a321c4aeac4d88437e31964767ac7fc2dc45c50d75"
       }
     }
   },

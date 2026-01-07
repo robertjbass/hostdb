@@ -38,10 +38,8 @@ macOS builds must be done natively on macOS runners. The GitHub Actions workflow
 
 Currently configured versions (from `databases.json`):
 
-- 8.4.0
-- 8.2.3
-- 8.0.5
-- 7.4.7
+- 8.4.0 (latest)
+- 7.4.7 (latest 7.x)
 
 ## Build Notes
 

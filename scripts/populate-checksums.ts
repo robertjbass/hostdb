@@ -5,8 +5,11 @@
  * Downloads each source URL and computes its SHA256, then updates sources.json.
  * This should be run once when adding new versions, then committed.
  *
+ * By default, only processes versions enabled in databases.json.
+ *
  * Usage:
- *   pnpm checksums:populate mariadb           # Populate all null checksums
+ *   pnpm checksums:populate mariadb           # Populate null checksums for enabled versions
+ *   pnpm checksums:populate mariadb --all     # Populate for ALL versions in sources.json
  *   pnpm checksums:populate mariadb --force   # Re-compute all checksums
  *   pnpm checksums:populate mariadb --verify  # Verify existing checksums
  */
@@ -63,6 +66,35 @@ type SourcesJson = {
   notes: Record<string, string>
 }
 
+type DatabaseEntry = {
+  versions: Record<string, boolean>
+}
+
+type DatabasesJson = {
+  databases: Record<string, DatabaseEntry>
+}
+
+function loadDatabasesJson(): DatabasesJson {
+  const filePath = join(ROOT, 'databases.json')
+  return JSON.parse(readFileSync(filePath, 'utf-8')) as DatabasesJson
+}
+
+function getEnabledVersions(database: string): Set<string> {
+  try {
+    const data = loadDatabasesJson()
+    const dbEntry = data.databases[database]
+    if (!dbEntry) return new Set()
+
+    return new Set(
+      Object.entries(dbEntry.versions)
+        .filter(([, enabled]) => enabled === true)
+        .map(([version]) => version)
+    )
+  } catch {
+    return new Set()
+  }
+}
+
 const FETCH_TIMEOUT_MS = 10 * 60 * 1000 // 10 minutes for large files
 
 async function computeSha256(url: string): Promise<string> {
@@ -117,13 +149,14 @@ async function main() {
 ${colors.cyan}populate-checksums${colors.reset} - Compute and store SHA256 checksums in sources.json
 
 ${colors.yellow}Usage:${colors.reset}
-  pnpm checksums:populate <database>           # Populate null checksums
+  pnpm checksums:populate <database>           # Populate null checksums (enabled versions only)
+  pnpm checksums:populate <database> --all     # Populate for ALL versions in sources.json
   pnpm checksums:populate <database> --force   # Re-compute all checksums
   pnpm checksums:populate <database> --verify  # Verify existing checksums
 
 ${colors.yellow}Examples:${colors.reset}
   pnpm checksums:populate mariadb
-  pnpm checksums:populate mysql --force
+  pnpm checksums:populate mysql --all
   pnpm checksums:populate postgresql --verify
 `)
     process.exit(0)
@@ -132,6 +165,10 @@ ${colors.yellow}Examples:${colors.reset}
   const database = args[0]
   const force = args.includes('--force')
   const verify = args.includes('--verify')
+  const processAll = args.includes('--all')
+
+  // Get enabled versions from databases.json
+  const enabledVersions = getEnabledVersions(database)
 
   const sourcesPath = join(ROOT, 'builds', database, 'sources.json')
 
@@ -146,6 +183,11 @@ ${colors.yellow}Examples:${colors.reset}
   log('')
   log(`${colors.cyan}${verify ? 'Verifying' : 'Populating'} checksums for ${database}${colors.reset}`)
   log('='.repeat(50))
+
+  if (!processAll && enabledVersions.size > 0) {
+    log(`${colors.dim}Only processing enabled versions: ${[...enabledVersions].join(', ')}${colors.reset}`)
+    log(`${colors.dim}Use --all to process all versions in sources.json${colors.reset}`)
+  }
   log('')
 
   let updated = 0
@@ -154,6 +196,11 @@ ${colors.yellow}Examples:${colors.reset}
   let skipped = 0
 
   for (const [version, platforms] of Object.entries(sources.versions)) {
+    // Skip versions not enabled in databases.json (unless --all)
+    if (!processAll && enabledVersions.size > 0 && !enabledVersions.has(version)) {
+      continue
+    }
+
     for (const [platform, entry] of Object.entries(platforms)) {
       // Skip entries without URLs (build-required)
       if (!entry.url) {

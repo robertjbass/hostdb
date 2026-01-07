@@ -1,8 +1,11 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import chalk from 'chalk'
 import Table from 'cli-table3'
+
+const RELEASES_URL =
+  'https://raw.githubusercontent.com/robertjbass/hostdb/main/releases.json'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -82,10 +85,32 @@ function loadDownloads(): DownloadsJson {
   return JSON.parse(content) as DownloadsJson
 }
 
-function loadReleases(): ReleasesJson {
+async function loadReleases(): Promise<ReleasesJson> {
+  // Try to fetch from GitHub first (more accurate than local)
+  try {
+    const response = await fetch(RELEASES_URL, {
+      signal: AbortSignal.timeout(5000),
+    })
+    if (response.ok) {
+      return (await response.json()) as ReleasesJson
+    }
+  } catch {
+    // Fetch failed, fall back to local
+  }
+
+  // Fall back to local file
   const filePath = resolve(__dirname, '..', 'releases.json')
-  const content = readFileSync(filePath, 'utf-8')
-  return JSON.parse(content) as ReleasesJson
+  if (existsSync(filePath)) {
+    const content = readFileSync(filePath, 'utf-8')
+    return JSON.parse(content) as ReleasesJson
+  }
+
+  // No releases data available
+  return {
+    repository: 'robertjbass/hostdb',
+    lastUpdated: '',
+    databases: {},
+  }
 }
 
 function getCliTools(downloads: DownloadsJson): Record<string, DownloadItem> {
@@ -124,11 +149,11 @@ function getAllToolsForDatabase(cliTools: CliTools): string[] {
   return tools
 }
 
-function main() {
+async function main() {
   const { databases } = loadDatabases()
   const downloadsData = loadDownloads()
   const cliToolsData = getCliTools(downloadsData)
-  const releases = loadReleases()
+  const releases = await loadReleases()
 
   const showAll = process.argv.includes('--all')
   const showPending = process.argv.includes('--pending')
@@ -456,4 +481,10 @@ ${chalk.bold('Released column:')}
   }
 }
 
-main()
+main().catch((error) => {
+  console.error(
+    chalk.red('Error:'),
+    error instanceof Error ? error.message : String(error),
+  )
+  process.exit(1)
+})

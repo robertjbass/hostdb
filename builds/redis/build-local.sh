@@ -52,7 +52,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 show_help() {
     head -30 "$0" | tail -25 | sed 's/^#//' | sed 's/^ //'
-    exit 0
+    exit "${1:-0}"
 }
 
 # Parse arguments
@@ -87,7 +87,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             log_error "Unknown option: $1"
-            show_help
+            show_help 1
             ;;
     esac
 done
@@ -180,7 +180,12 @@ TARBALL_SIZE=$(du -h "${TARBALL}" | cut -f1)
 log_success "Created: ${TARBALL} (${TARBALL_SIZE})"
 
 # Calculate SHA256
-SHA256=$(sha256sum "${TARBALL}" | cut -d' ' -f1)
+if command -v sha256sum &> /dev/null; then
+    SHA256=$(sha256sum "${TARBALL}" | cut -d' ' -f1)
+else
+    # macOS uses shasum
+    SHA256=$(shasum -a 256 "${TARBALL}" | cut -d' ' -f1)
+fi
 log_info "SHA256: ${SHA256}"
 
 # Determine cleanup behavior
