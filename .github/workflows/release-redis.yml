@@ -268,8 +268,11 @@ jobs:
             BUILD_TLS=yes \
             OPENSSL_PREFIX="$OPENSSL_PREFIX"
 
-          # Install
-          make PREFIX="$GITHUB_WORKSPACE/install/redis" install
+          # Install (must pass same flags to prevent rebuild without TLS)
+          make PREFIX="$GITHUB_WORKSPACE/install/redis" \
+            BUILD_TLS=yes \
+            OPENSSL_PREFIX="$OPENSSL_PREFIX" \
+            install
 
           # Copy config files
           cp redis.conf "$GITHUB_WORKSPACE/install/redis/"
