@@ -66,7 +66,6 @@ type SourceEntry = {
 
 type Sources = {
   database: string
-  baseUrl: string
   versions: Record<string, Record<Platform, SourceEntry>>
   notes: Record<string, string>
 }

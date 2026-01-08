@@ -14,7 +14,7 @@ Valkey is a Linux Foundation-backed fork of Redis with BSD-3-Clause license, mak
 | `darwin-arm64` | Source build | Native on macos-14 |
 | `win32-x64` | Source build | Cygwin on windows-latest |
 
-**Note:** Valkey does not officially support Windows, but we build it using Cygwin for POSIX compatibility. Our Windows builds produce Cygwin-linked executables. For production Windows environments, consider using WSL for better compatibility.
+**Note:** Valkey does not officially support Windows, but we build it using Cygwin for POSIX compatibility. Our Windows builds produce Cygwin-linked executables. These executables require `cygwin1.dll` at runtime (either bundled with the distribution or in the system PATH); users should install Cygwin or use WSL for production environments.
 
 ## Building
 
@@ -34,7 +34,7 @@ macOS builds must be done natively on macOS runners. The GitHub Actions workflow
 
 ### Windows build (Cygwin)
 
-Windows builds use Cygwin on Windows runners to provide POSIX compatibility. The GitHub Actions workflow handles this automatically. Note that Valkey does not officially support Windows as a platform, so WSL is recommended for production use.
+Windows builds use Cygwin on Windows runners to provide POSIX compatibility. The GitHub Actions workflow handles this automatically. The resulting executables require `cygwin1.dll` at runtime. For production use, install Cygwin or use WSL.
 
 ## Versions
 

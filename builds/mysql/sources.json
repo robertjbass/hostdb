@@ -1,7 +1,6 @@
 {
   "$schema": "../../schemas/sources.schema.json",
   "database": "mysql",
-  "baseUrl": "https://cdn.mysql.com/archives",
   "versions": {
     "9.1.0": {
       "linux-x64": {

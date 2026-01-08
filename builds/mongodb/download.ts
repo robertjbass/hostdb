@@ -66,7 +66,6 @@ type SourceEntry = {
 
 type Sources = {
   database: string
-  baseUrl: string
   versions: Record<string, Record<Platform, SourceEntry>>
   notes: Record<string, string>
 }
@@ -241,66 +240,67 @@ function repackage(
   const tempDir = resolve(dirname(sourcePath), 'temp-extract')
   mkdirSync(tempDir, { recursive: true })
 
-  logInfo('Extracting archive...')
+  try {
+    logInfo('Extracting archive...')
 
-  // Extract based on format (using execFileSync with array args for safety)
-  if (format === 'tar.xz') {
-    execFileSync('tar', ['-xJf', sourcePath, '-C', tempDir], { stdio: 'inherit' })
-  } else if (format === 'tar.gz') {
-    execFileSync('tar', ['-xzf', sourcePath, '-C', tempDir], { stdio: 'inherit' })
-  } else if (format === 'zip') {
-    execFileSync('unzip', ['-q', sourcePath, '-d', tempDir], { stdio: 'inherit' })
+    // Extract based on format (using execFileSync with array args for safety)
+    if (format === 'tar.xz') {
+      execFileSync('tar', ['-xJf', sourcePath, '-C', tempDir], { stdio: 'inherit' })
+    } else if (format === 'tar.gz') {
+      execFileSync('tar', ['-xzf', sourcePath, '-C', tempDir], { stdio: 'inherit' })
+    } else if (format === 'zip') {
+      execFileSync('unzip', ['-q', sourcePath, '-d', tempDir], { stdio: 'inherit' })
+    }
+
+    // Find extracted directory (MongoDB extracts to mongodb-PLATFORM-VERSION/)
+    const extractedDirs = readdirSync(tempDir)
+    const mongoDir = extractedDirs.find((d) => d.startsWith('mongodb-'))
+
+    if (!mongoDir) {
+      throw new Error('Could not find extracted MongoDB directory')
+    }
+
+    const extractedPath = resolve(tempDir, mongoDir)
+
+    // Add metadata file
+    const metadata = {
+      name: 'mongodb',
+      version,
+      platform,
+      source: 'official',
+      rehosted_by: 'hostdb',
+      rehosted_at: new Date().toISOString(),
+    }
+    writeFileSync(
+      resolve(extractedPath, '.hostdb-metadata.json'),
+      JSON.stringify(metadata, null, 2),
+    )
+
+    // Create output tarball
+    mkdirSync(dirname(outputPath), { recursive: true })
+
+    logInfo(`Creating: ${basename(outputPath)}`)
+
+    // Rename directory to just 'mongodb' for consistency
+    const finalDir = resolve(tempDir, 'mongodb')
+    renameSync(extractedPath, finalDir)
+
+    // Create tarball (using execFileSync with array args for safety)
+    if (platform.startsWith('win32')) {
+      execFileSync('zip', ['-rq', outputPath, 'mongodb'], {
+        stdio: 'inherit',
+        cwd: tempDir,
+      })
+    } else {
+      execFileSync('tar', ['-czf', outputPath, '-C', tempDir, 'mongodb'], {
+        stdio: 'inherit',
+      })
+    }
+
+    logSuccess(`Created: ${outputPath}`)
+  } finally {
+    rmSync(tempDir, { recursive: true, force: true })
   }
-
-  // Find extracted directory (MongoDB extracts to mongodb-PLATFORM-VERSION/)
-  const extractedDirs = readdirSync(tempDir)
-  const mongoDir = extractedDirs.find((d) => d.startsWith('mongodb-'))
-
-  if (!mongoDir) {
-    throw new Error('Could not find extracted MongoDB directory')
-  }
-
-  const extractedPath = resolve(tempDir, mongoDir)
-
-  // Add metadata file
-  const metadata = {
-    name: 'mongodb',
-    version,
-    platform,
-    source: 'official',
-    rehosted_by: 'hostdb',
-    rehosted_at: new Date().toISOString(),
-  }
-  writeFileSync(
-    resolve(extractedPath, '.hostdb-metadata.json'),
-    JSON.stringify(metadata, null, 2),
-  )
-
-  // Create output tarball
-  mkdirSync(dirname(outputPath), { recursive: true })
-
-  logInfo(`Creating: ${basename(outputPath)}`)
-
-  // Rename directory to just 'mongodb' for consistency
-  const finalDir = resolve(tempDir, 'mongodb')
-  renameSync(extractedPath, finalDir)
-
-  // Create tarball (using execFileSync with array args for safety)
-  if (platform.startsWith('win32')) {
-    execFileSync('zip', ['-rq', outputPath, 'mongodb'], {
-      stdio: 'inherit',
-      cwd: tempDir,
-    })
-  } else {
-    execFileSync('tar', ['-czf', outputPath, '-C', tempDir, 'mongodb'], {
-      stdio: 'inherit',
-    })
-  }
-
-  // Cleanup temp
-  rmSync(tempDir, { recursive: true, force: true })
-
-  logSuccess(`Created: ${outputPath}`)
 }
 
 function parseArgs(): {

@@ -13,11 +13,6 @@
       "type": "string",
       "description": "Database identifier (e.g., mysql, mariadb, postgresql)"
     },
-    "baseUrl": {
-      "type": "string",
-      "format": "uri",
-      "description": "Base URL for downloads (informational)"
-    },
     "versions": {
       "type": "object",
       "description": "Map of version strings to platform sources",
