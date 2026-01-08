@@ -125,7 +125,7 @@
       "commercialUse": true,
       "protocol": "postgresql",
       "note": "CockroachDB Software License restricts competing cloud services; fine for local dev",
-      "latestLts": "25.4",
+      "latestLts": "25.2",
       "versions": {
         "25.4.2": true
       },
@@ -137,11 +137,11 @@
         "win32-x64": true
       },
       "cliTools": {
-        "server": "cockroach start-single-node",
-        "client": "cockroach sql",
-        "utilities": ["cockroach dump", "cockroach import"],
+        "server": "cockroach",
+        "client": "cockroach",
+        "utilities": [],
         "enhanced": ["pgcli", "usql"],
-        "note": "Single 'cockroach' binary for all operations"
+        "note": "Single binary; use 'cockroach start-single-node' for server, 'cockroach sql' for client"
       },
       "connection": {
         "runtime": "server",
