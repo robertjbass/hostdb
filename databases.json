@@ -416,7 +416,7 @@
       "commercialUse": false,
       "protocol": null,
       "note": "TODO - disable if used commercially; use FerretDB as alternative",
-      "latestLts": "8.2",
+      "latestLts": "8.0",
       "versions": {
         "8.2.3": true,
         "8.0.17": true,
@@ -448,7 +448,7 @@
         "defaultUser": null,
         "queryLanguage": "MQL"
       },
-      "status": "pending"
+      "status": "in-progress"
     },
     "mysql": {
       "displayName": "MySQL",

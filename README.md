@@ -133,8 +133,22 @@ Auto-generated manifest updated after each GitHub Release. Structure:
 | MariaDB | Completed | 11.8.5, 11.4.5, 10.11.15 | Official + source builds |
 | Redis | In Progress | 8.4.0, 7.4.7 | Source builds |
 | SQLite | In Progress | 3.51.1 | Official amalgamation |
+| Valkey | In Progress | 8.1.1 | Redis-compatible, permissive license |
 
 See `pnpm dbs` for the full list.
+
+### Licensing Notes
+
+Some databases have restrictive licenses that limit commercial and closed-source use:
+
+| Database | License | Commercial Use | Open-Source Alternative |
+|----------|---------|----------------|------------------------|
+| MongoDB | SSPL | ❌ Restricted | [FerretDB](https://www.ferretdb.com/) (Apache 2.0) |
+| Redis | RSALv2 + SSPLv1 | ❌ Restricted | [Valkey](https://valkey.io/) (BSD-3-Clause) |
+
+**FerretDB** is a MongoDB-compatible database built on PostgreSQL. **Valkey** is a Redis fork maintained by the Linux Foundation after Redis changed to a non-open-source license.
+
+If you need MongoDB or Redis compatibility for commercial/closed-source projects, use FerretDB or Valkey instead.
 
 ## GitHub Actions
 
