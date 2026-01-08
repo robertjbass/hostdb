@@ -448,7 +448,7 @@
         "defaultUser": null,
         "queryLanguage": "MQL"
       },
-      "status": "in-progress"
+      "status": "completed"
     },
     "mysql": {
       "displayName": "MySQL",
