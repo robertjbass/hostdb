@@ -83,7 +83,6 @@
     "darwin-x64": "Built from source natively on macos-13 (Intel) runner",
     "darwin-arm64": "Built from source natively on macos-14 (Apple Silicon) runner, or downloaded from MariaDB4j for 11.4.5",
     "win32-x64": "Official binary from archive.mariadb.org",
-    "sha256": "Set to null until we verify downloads and capture checksums",
     "coverage": "All 5 platforms × 3 versions = 15 binaries available via GitHub Releases"
   }
 }

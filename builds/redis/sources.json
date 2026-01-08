@@ -51,7 +51,6 @@
     "linux-arm64": "Built from source via Docker (QEMU emulation on ubuntu-latest)",
     "darwin-x64": "Built from source natively on macos-15-intel runner",
     "darwin-arm64": "Built from source natively on macos-14 (Apple Silicon) runner",
-    "win32-x64": "Downloaded from redis-windows GitHub releases",
-    "sha256": "Set to null until we verify downloads and capture checksums"
+    "win32-x64": "Downloaded from redis-windows GitHub releases"
   }
 }

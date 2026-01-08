@@ -21,11 +21,14 @@ import {
   existsSync,
   readFileSync,
   writeFileSync,
+  readdirSync,
+  renameSync,
+  rmSync,
 } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { resolve, dirname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -205,19 +208,17 @@ function repackage(
 
   logInfo('Extracting archive...')
 
-  // Extract based on format
+  // Extract based on format (using execFileSync with array args for safety)
   if (format === 'tar.xz') {
-    execSync(`tar -xJf "${sourcePath}" -C "${tempDir}"`, { stdio: 'inherit' })
+    execFileSync('tar', ['-xJf', sourcePath, '-C', tempDir], { stdio: 'inherit' })
   } else if (format === 'tar.gz') {
-    execSync(`tar -xzf "${sourcePath}" -C "${tempDir}"`, { stdio: 'inherit' })
+    execFileSync('tar', ['-xzf', sourcePath, '-C', tempDir], { stdio: 'inherit' })
   } else if (format === 'zip') {
-    execSync(`unzip -q "${sourcePath}" -d "${tempDir}"`, { stdio: 'inherit' })
+    execFileSync('unzip', ['-q', sourcePath, '-d', tempDir], { stdio: 'inherit' })
   }
 
   // Find extracted directory (MySQL extracts to mysql-VERSION-PLATFORM/)
-  const extractedDirs = execSync(`ls "${tempDir}"`, { encoding: 'utf-8' })
-    .trim()
-    .split('\n')
+  const extractedDirs = readdirSync(tempDir)
   const mysqlDir = extractedDirs.find((d) => d.startsWith('mysql-'))
 
   if (!mysqlDir) {
@@ -247,21 +248,22 @@ function repackage(
 
   // Rename directory to just 'mysql' for consistency
   const finalDir = resolve(tempDir, 'mysql')
-  execSync(`mv "${extractedPath}" "${finalDir}"`)
+  renameSync(extractedPath, finalDir)
 
-  // Create tarball
+  // Create tarball (using execFileSync with array args for safety)
   if (platform.startsWith('win32')) {
-    execSync(`cd "${tempDir}" && zip -rq "${outputPath}" mysql`, {
+    execFileSync('zip', ['-rq', outputPath, 'mysql'], {
       stdio: 'inherit',
+      cwd: tempDir,
     })
   } else {
-    execSync(`tar -czf "${outputPath}" -C "${tempDir}" mysql`, {
+    execFileSync('tar', ['-czf', outputPath, '-C', tempDir, 'mysql'], {
       stdio: 'inherit',
     })
   }
 
   // Cleanup temp
-  execSync(`rm -rf "${tempDir}"`)
+  rmSync(tempDir, { recursive: true, force: true })
 
   logSuccess(`Created: ${outputPath}`)
 }

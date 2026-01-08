@@ -11,8 +11,8 @@ MongoDB is licensed under **SSPL-1.0** (Server Side Public License), which **res
 | Version | Type | EOL | Notes |
 |---------|------|-----|-------|
 | 8.2.3 | Rapid Release | March 2026 | Latest features, shorter support |
-| 8.0.17 | LTS | Sept 2029 | **Recommended** - 5-year support |
-| 7.0.28 | LTS | Aug 2026 | Previous LTS |
+| 8.0.17 | LTS | Oct 2029 | **Recommended** - 5-year support |
+| 7.0.28 | LTS | Aug 2027 | Previous LTS |
 
 ## Source
 

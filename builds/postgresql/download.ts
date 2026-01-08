@@ -21,11 +21,13 @@ import {
   existsSync,
   readFileSync,
   writeFileSync,
+  readdirSync,
+  rmSync,
 } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { resolve, dirname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -204,22 +206,17 @@ function repackage(
 
   logInfo('Extracting JAR...')
 
-  // Extract JAR (it's just a ZIP file)
-  execSync(`unzip -q "${jarPath}" -d "${tempDir}"`, { stdio: 'inherit' })
+  // Extract JAR (it's just a ZIP file) - using execFileSync with array args for safety
+  execFileSync('unzip', ['-q', jarPath, '-d', tempDir], { stdio: 'inherit' })
 
   // Find the .txz file inside
-  const txzFiles = execSync(`ls "${tempDir}"/*.txz 2>/dev/null || true`, {
-    encoding: 'utf-8',
-  })
-    .trim()
-    .split('\n')
-    .filter(Boolean)
+  const txzFiles = readdirSync(tempDir).filter((f) => f.endsWith('.txz'))
 
   if (txzFiles.length === 0) {
     throw new Error('No .txz file found in JAR')
   }
 
-  const txzPath = txzFiles[0]
+  const txzPath = resolve(tempDir, txzFiles[0])
   logInfo(`Found: ${basename(txzPath)}`)
 
   // Create a directory for the final extracted content
@@ -228,8 +225,8 @@ function repackage(
 
   logInfo('Extracting PostgreSQL binaries...')
 
-  // Extract the txz
-  execSync(`tar -xJf "${txzPath}" -C "${extractDir}"`, { stdio: 'inherit' })
+  // Extract the txz (using execFileSync with array args for safety)
+  execFileSync('tar', ['-xJf', txzPath, '-C', extractDir], { stdio: 'inherit' })
 
   // Add metadata file
   const metadata = {
@@ -250,19 +247,20 @@ function repackage(
 
   logInfo(`Creating: ${basename(outputPath)}`)
 
-  // Create tarball or zip based on platform
+  // Create tarball or zip based on platform (using execFileSync with array args for safety)
   if (platform.startsWith('win32')) {
-    execSync(`cd "${tempDir}" && zip -rq "${outputPath}" postgresql`, {
+    execFileSync('zip', ['-rq', outputPath, 'postgresql'], {
       stdio: 'inherit',
+      cwd: tempDir,
     })
   } else {
-    execSync(`tar -czf "${outputPath}" -C "${tempDir}" postgresql`, {
+    execFileSync('tar', ['-czf', outputPath, '-C', tempDir, 'postgresql'], {
       stdio: 'inherit',
     })
   }
 
   // Cleanup temp
-  execSync(`rm -rf "${tempDir}"`)
+  rmSync(tempDir, { recursive: true, force: true })
 
   logSuccess(`Created: ${outputPath}`)
 }
