@@ -1,6 +1,43 @@
 {
   "$schema": "./schemas/databases.schema.json",
   "databases": {
+    "apache-cassandra": {
+      "displayName": "Apache Cassandra",
+      "description": "Distributed NoSQL database designed for high availability, linear scalability, and fault tolerance",
+      "type": "Distributed NoSQL",
+      "sourceRepo": "https://github.com/apache/cassandra",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "Java-based; requires JVM bundled or installed",
+      "latestLts": "5.0",
+      "versions": {
+        "5.0.6": true,
+        "4.1.10": false
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "cassandra",
+        "client": "cqlsh",
+        "utilities": ["nodetool", "sstableloader"],
+        "enhanced": []
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 9042,
+        "scheme": "cql",
+        "defaultDatabase": null,
+        "defaultUser": "cassandra",
+        "queryLanguage": "CQL"
+      },
+      "status": "pending"
+    },
     "arangodb": {
       "displayName": "ArangoDB",
       "description": "Multi-model database supporting graphs, documents, and key-value with unified query language",
@@ -78,6 +115,43 @@
         "queryLanguage": "SQL"
       },
       "status": "unsupported"
+    },
+    "cockroachdb": {
+      "displayName": "CockroachDB",
+      "description": "Distributed SQL database with PostgreSQL compatibility, designed for high availability and horizontal scale",
+      "type": "Distributed SQL",
+      "sourceRepo": "https://github.com/cockroachdb/cockroach",
+      "license": "CSL (v24.3+), BSL (older)",
+      "commercialUse": true,
+      "protocol": "postgresql",
+      "note": "CockroachDB Software License restricts competing cloud services; fine for local dev",
+      "latestLts": "25.4",
+      "versions": {
+        "25.4.2": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "cockroach start-single-node",
+        "client": "cockroach sql",
+        "utilities": ["cockroach dump", "cockroach import"],
+        "enhanced": ["pgcli", "usql"],
+        "note": "Single 'cockroach' binary for all operations"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 26257,
+        "scheme": "postgresql",
+        "defaultDatabase": "defaultdb",
+        "defaultUser": "root",
+        "queryLanguage": "SQL"
+      },
+      "status": "pending"
     },
     "couchdb": {
       "displayName": "CouchDB",

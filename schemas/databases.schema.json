@@ -43,6 +43,7 @@
           "type": "string",
           "enum": [
             "Analytical",
+            "Distributed NoSQL",
             "Distributed SQL",
             "Document",
             "Embedded KV",
@@ -162,6 +163,7 @@
           "enum": [
             "SQL",
             "AQL",
+            "CQL",
             "MQL",
             "Redis",
             "HTTP",
