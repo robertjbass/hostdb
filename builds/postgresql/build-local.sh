@@ -54,7 +54,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 show_help() {
     # Extract help text between HELP_START and HELP_END markers
     sed -n '/^# HELP_START$/,/^# HELP_END$/p' "$0" | sed '1d;$d' | sed 's/^# \?//'
-    exit 0
+    exit "${1:-0}"
 }
 
 # Parse arguments
@@ -63,7 +63,7 @@ while [[ $# -gt 0 ]]; do
         --version)
             if [[ -z "${2:-}" || "${2:-}" == -* ]]; then
                 log_error "Missing value for --version"
-                show_help
+                show_help 1
             fi
             VERSION="$2"
             shift 2
@@ -71,7 +71,7 @@ while [[ $# -gt 0 ]]; do
         --platform)
             if [[ -z "${2:-}" || "${2:-}" == -* ]]; then
                 log_error "Missing value for --platform"
-                show_help
+                show_help 1
             fi
             PLATFORM="$2"
             shift 2
@@ -79,7 +79,7 @@ while [[ $# -gt 0 ]]; do
         --output)
             if [[ -z "${2:-}" || "${2:-}" == -* ]]; then
                 log_error "Missing value for --output"
-                show_help
+                show_help 1
             fi
             OUTPUT_DIR="$2"
             shift 2
@@ -101,7 +101,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             log_error "Unknown option: $1"
-            show_help
+            show_help 1
             ;;
     esac
 done

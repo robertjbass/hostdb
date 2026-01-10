@@ -230,22 +230,37 @@ jobs:
           cd dist/temp
           tar -xzf ../downloads/postgresql-original.tar.gz
 
-          # Verify extracted layout - Percona extracts to percona-postgresql-X.X
+          # Verify extracted layout - Percona extracts to multiple dirs including percona-postgresqlXX
           echo "Extracted contents:"
           ls -la
 
-          # Find the extracted directory (handle various naming patterns)
-          EXTRACTED_DIR=$(ls -d percona-postgresql-* 2>/dev/null || ls -d postgresql-* 2>/dev/null || echo "")
+          # Find the PostgreSQL directory (Percona uses percona-postgresql{major_version} naming)
+          # e.g., percona-postgresql18, percona-postgresql17, etc.
+          EXTRACTED_DIR=$(ls -d percona-postgresql[0-9]* 2>/dev/null | head -1)
 
           if [ -z "$EXTRACTED_DIR" ]; then
-            echo "::error::Unexpected tarball layout"
+            # Fallback to other patterns
+            EXTRACTED_DIR=$(ls -d percona-postgresql-* 2>/dev/null | head -1)
+          fi
+
+          if [ -z "$EXTRACTED_DIR" ]; then
+            EXTRACTED_DIR=$(ls -d postgresql-* 2>/dev/null | head -1)
+          fi
+
+          if [ -z "$EXTRACTED_DIR" ]; then
+            echo "::error::Could not find PostgreSQL directory in tarball"
             echo "Contents:"
             find . -maxdepth 2 -type d
             exit 1
           fi
 
-          echo "Found extracted directory: $EXTRACTED_DIR"
+          echo "Found PostgreSQL directory: $EXTRACTED_DIR"
           mv "$EXTRACTED_DIR" postgresql
+
+          # Clean up other Percona components we don't need
+          rm -rf percona-etcd percona-haproxy percona-patroni percona-perl \
+                 percona-pgbackrest percona-pgbadger percona-pgbouncer \
+                 percona-pgpool-II percona-python3 percona-tcl 2>/dev/null || true
 
           # Add metadata
           cat > postgresql/.hostdb-metadata.json << EOF
