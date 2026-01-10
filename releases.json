@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-10T22:57:38.430Z",
+  "lastUpdated": "2026-01-10T23:13:09.329Z",
   "databases": {
     "mysql": {
       "8.4.3": {
@@ -201,32 +201,32 @@
       "17.7.0": {
         "version": "17.7.0",
         "releaseTag": "postgresql-17.7.0",
-        "releasedAt": "2026-01-04T21:33:42Z",
+        "releasedAt": "2026-01-10T23:12:53Z",
         "platforms": {
           "darwin-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-darwin-arm64.tar.gz",
-            "sha256": "d47f19b3599860b30b99054468a5c583493505f01e5bb237067ea73ea08b35ec",
-            "size": 49353142
+            "sha256": "58073b6377e9abdccd1fbddf746de78746216238dd0ca6e002ca4f2a49c6c75c",
+            "size": 11178799
           },
           "darwin-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-darwin-x64.tar.gz",
-            "sha256": "5e7b421a12ca17dc4218a47a7fec81cc51a3009fcd8c188201ec59ec863b930f",
-            "size": 49353081
+            "sha256": "f6f4c16ad23f0e88cf4a70ea8db9f42128732c81718e5a3f960152704f009a48",
+            "size": 10864562
           },
           "linux-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-linux-arm64.tar.gz",
-            "sha256": "2987deddeb7d66a3aa557ba56b90e0e69b2710b7e502565759779e67423a8667",
-            "size": 21836590
+            "sha256": "30c5c889b0f1a7bc73de0e92a5933516217bba65307321b5b5442a8fb1425219",
+            "size": 144446242
           },
           "linux-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-linux-x64.tar.gz",
-            "sha256": "779f9998786ad51b2e37f9df88fbaa6c8962db731480df2561a08542553f0a7b",
-            "size": 22565725
+            "sha256": "b46c9b142c12c6088e6083065f8ece9c74abfc2a2b8c685376d28efefffe3bba",
+            "size": 11794447
           },
           "win32-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-win32-x64.zip",
-            "sha256": "0e44452f904295af339381ca43ddc3ced54c5ebe3a729c55ae89977704840ca7",
-            "size": 37667182
+            "sha256": "649b82d25609d2ed66433c34fdf547a71210b9483452800c85b907a8432f7a61",
+            "size": 334822038
           }
         }
       }
