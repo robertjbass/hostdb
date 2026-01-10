@@ -129,6 +129,11 @@ jobs:
               win32-x64)
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"download\"}]"
                 ;;
+              *)
+                echo "::error::Unsupported platform: $PLATFORMS"
+                echo "Valid platforms: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64, all"
+                exit 1
+                ;;
             esac
           fi
           # Compact the JSON for output
@@ -236,8 +241,23 @@ jobs:
           cd dist/temp
           unzip -q ../downloads/postgresql-${SOURCE_VERSION}-win32-x64-original.zip
 
-          # EDB ZIP extracts to 'pgsql' directory - rename to 'postgresql' for consistency
-          mv pgsql postgresql
+          # Verify extracted layout and rename for consistency
+          echo "Extracted contents:"
+          ls -la
+
+          if [ -d "postgresql" ]; then
+            echo "Directory 'postgresql' already exists, using as-is"
+          elif [ -d "pgsql" ]; then
+            # EDB ZIP extracts to 'pgsql' directory - rename to 'postgresql' for consistency
+            mv pgsql postgresql
+          else
+            echo "::error::Unexpected ZIP layout for PostgreSQL ${SOURCE_VERSION} win32-x64"
+            echo "Expected 'pgsql' or 'postgresql' directory but found:"
+            ls -la
+            echo "Contents of dist/temp:"
+            find . -maxdepth 2 -type d
+            exit 1
+          fi
 
           # Add metadata
           cat > postgresql/.hostdb-metadata.json << EOF

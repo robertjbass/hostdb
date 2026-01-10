@@ -24,7 +24,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install build dependencies
 # PostgreSQL requires fewer dependencies than MariaDB
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     flex \
@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y \
     libxslt1-dev \
     libicu-dev \
     pkg-config \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
