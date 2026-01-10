@@ -23,6 +23,20 @@ When adding a database, source binaries in this order:
 - **Queryable manifest**: `releases.json` lets CLI tools discover available downloads
 - **Single source of truth**: `databases.json` controls which databases/versions/platforms are supported
 
+### Complete, Embeddable Binaries
+
+Every hostdb release should be **self-contained and ready to use** without additional downloads. This means:
+
+1. **Bundle related components**: If a database vendor distributes components separately (like MongoDB's server, shell, and tools), hostdb bundles them into a single package. Users should get everything needed to run the database, connect to it, and manage it.
+
+2. **Include client tools**: Releases should include both server binaries and essential client/management tools (shells, backup utilities, etc.) where available.
+
+3. **No external dependencies**: Downloaded binaries should work immediately without requiring users to install additional packages or tools from other sources.
+
+**Example - MongoDB**: Since MongoDB 4.4, the shell (`mongosh`) and database tools (`mongodump`, `mongorestore`, etc.) are distributed separately. hostdb bundles all three components (server + shell + tools) into a single release, so users get a complete MongoDB installation.
+
+This philosophy ensures SpinDB and other consumers can embed database binaries without managing multiple downloads or worrying about component compatibility.
+
 ## Supported Platforms
 
 - `linux-x64` - Linux x86_64 (glibc 2.28+)

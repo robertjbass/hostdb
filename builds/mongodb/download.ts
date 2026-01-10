@@ -2,6 +2,11 @@
 /**
  * Download official MongoDB binaries for re-hosting
  *
+ * This script bundles three components into a single package:
+ * - MongoDB Server (mongod, mongos)
+ * - MongoDB Shell (mongosh)
+ * - MongoDB Database Tools (mongodump, mongorestore, etc.)
+ *
  * Usage:
  *   ./builds/mongodb/download.ts [options]
  *   pnpm tsx builds/mongodb/download.ts [options]
@@ -24,9 +29,10 @@ import {
   readdirSync,
   renameSync,
   rmSync,
+  cpSync,
 } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { resolve, dirname, basename } from 'node:path'
+import { resolve, dirname, basename, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFileSync } from 'node:child_process'
 
@@ -61,12 +67,20 @@ function isValidVersion(value: string): boolean {
 type SourceEntry = {
   url: string
   format: 'tar.xz' | 'tar.gz' | 'zip'
-  sha256: string | null
+  sha256?: string | null
+}
+
+type ComponentEntry = {
+  version: string
+  description: string
+  binaries: string[]
+  platforms: Record<Platform, SourceEntry>
 }
 
 type Sources = {
   database: string
   versions: Record<string, Record<Platform, SourceEntry>>
+  components: Record<string, ComponentEntry>
   notes: Record<string, string>
 }
 
@@ -220,72 +234,240 @@ function verifyCommand(command: string): void {
   }
 }
 
-function repackage(
+function extractArchive(
   sourcePath: string,
   format: string,
-  outputPath: string,
+  destDir: string,
+): void {
+  mkdirSync(destDir, { recursive: true })
+
+  if (format === 'tar.xz') {
+    execFileSync('tar', ['-xJf', sourcePath, '-C', destDir], {
+      stdio: 'inherit',
+    })
+  } else if (format === 'tar.gz') {
+    execFileSync('tar', ['-xzf', sourcePath, '-C', destDir], {
+      stdio: 'inherit',
+    })
+  } else if (format === 'zip') {
+    execFileSync('unzip', ['-q', sourcePath, '-d', destDir], {
+      stdio: 'inherit',
+    })
+  }
+}
+
+function findExtractedDir(tempDir: string, prefix: string): string | null {
+  const dirs = readdirSync(tempDir)
+  return dirs.find((d) => d.startsWith(prefix)) || null
+}
+
+function copyBinaries(srcBinDir: string, destBinDir: string): void {
+  if (!existsSync(srcBinDir)) {
+    logWarn(`Source bin directory not found: ${srcBinDir}`)
+    return
+  }
+
+  mkdirSync(destBinDir, { recursive: true })
+
+  const files = readdirSync(srcBinDir)
+  for (const file of files) {
+    const srcPath = join(srcBinDir, file)
+    const destPath = join(destBinDir, file)
+    cpSync(srcPath, destPath, { recursive: true })
+  }
+}
+
+async function downloadAndExtractComponent(
+  componentName: string,
+  source: SourceEntry,
+  downloadDir: string,
+  extractDir: string,
+): Promise<string | null> {
+  const downloadPath = join(
+    downloadDir,
+    `${componentName}-original.${source.format}`,
+  )
+
+  // Download if not cached
+  if (existsSync(downloadPath)) {
+    logInfo(`Using cached download: ${basename(downloadPath)}`)
+  } else {
+    await downloadFile(source.url, downloadPath)
+  }
+
+  // Verify checksum if available
+  if (source.sha256) {
+    const actualSha256 = await calculateSha256(downloadPath)
+    if (actualSha256 !== source.sha256) {
+      logError(`Checksum mismatch for ${componentName}!`)
+      logError(`Expected: ${source.sha256}`)
+      logError(`Actual: ${actualSha256}`)
+      throw new Error(`Checksum verification failed for ${componentName}`)
+    }
+    logSuccess(`Checksum verified for ${componentName}`)
+  }
+
+  // Extract
+  const componentExtractDir = join(extractDir, componentName)
+  mkdirSync(componentExtractDir, { recursive: true })
+  extractArchive(downloadPath, source.format, componentExtractDir)
+
+  return componentExtractDir
+}
+
+async function repackage(
+  sources: Sources,
   version: string,
   platform: Platform,
-): void {
+  downloadDir: string,
+  outputPath: string,
+): Promise<void> {
   // Verify required commands exist before starting
-  if (format === 'zip') {
-    verifyCommand('unzip')
-  } else {
-    verifyCommand('tar')
-  }
+  verifyCommand('tar')
   if (platform.startsWith('win32')) {
     verifyCommand('zip')
   }
 
-  const tempDir = resolve(dirname(sourcePath), 'temp-extract')
+  const tempDir = resolve(downloadDir, 'temp-bundle')
+  const extractDir = resolve(downloadDir, 'temp-extract')
+  rmSync(tempDir, { recursive: true, force: true })
+  rmSync(extractDir, { recursive: true, force: true })
   mkdirSync(tempDir, { recursive: true })
+  mkdirSync(extractDir, { recursive: true })
 
   try {
-    logInfo('Extracting archive...')
+    const versionSources = sources.versions[version]
+    const serverSource = versionSources[platform]
 
-    // Extract based on format (using execFileSync with array args for safety)
-    if (format === 'tar.xz') {
-      execFileSync('tar', ['-xJf', sourcePath, '-C', tempDir], { stdio: 'inherit' })
-    } else if (format === 'tar.gz') {
-      execFileSync('tar', ['-xzf', sourcePath, '-C', tempDir], { stdio: 'inherit' })
-    } else if (format === 'zip') {
-      execFileSync('unzip', ['-q', sourcePath, '-d', tempDir], { stdio: 'inherit' })
+    // 1. Download and extract MongoDB Server
+    logInfo('=== Downloading MongoDB Server ===')
+    const serverDownloadPath = join(
+      downloadDir,
+      `mongodb-server-${version}-${platform}-original.${serverSource.format}`,
+    )
+
+    if (existsSync(serverDownloadPath)) {
+      logInfo(`Using cached download: ${basename(serverDownloadPath)}`)
+    } else {
+      await downloadFile(serverSource.url, serverDownloadPath)
     }
 
-    // Find extracted directory (MongoDB extracts to mongodb-PLATFORM-VERSION/)
-    const extractedDirs = readdirSync(tempDir)
-    const mongoDir = extractedDirs.find((d) => d.startsWith('mongodb-'))
+    // Verify server checksum
+    const serverSha256 = await calculateSha256(serverDownloadPath)
+    logInfo(`Server SHA256: ${serverSha256}`)
+    if (serverSource.sha256) {
+      if (serverSha256 === serverSource.sha256) {
+        logSuccess('Server checksum verified')
+      } else {
+        logError(`Checksum mismatch! Expected: ${serverSource.sha256}`)
+        throw new Error('Server checksum verification failed')
+      }
+    }
 
+    // Extract server
+    const serverExtractDir = join(extractDir, 'server')
+    mkdirSync(serverExtractDir, { recursive: true })
+    logInfo('Extracting MongoDB Server...')
+    extractArchive(serverDownloadPath, serverSource.format, serverExtractDir)
+
+    // Find extracted MongoDB directory
+    const mongoDir = findExtractedDir(serverExtractDir, 'mongodb-')
     if (!mongoDir) {
-      throw new Error('Could not find extracted MongoDB directory')
+      throw new Error('Could not find extracted MongoDB server directory')
     }
 
-    const extractedPath = resolve(tempDir, mongoDir)
+    const serverPath = join(serverExtractDir, mongoDir)
 
-    // Add metadata file
+    // Create final bundle directory
+    const bundleDir = join(tempDir, 'mongodb')
+    mkdirSync(bundleDir, { recursive: true })
+
+    // Copy server files to bundle
+    logInfo('Copying server files...')
+    cpSync(serverPath, bundleDir, { recursive: true })
+
+    // 2. Download and extract mongosh
+    const mongoshComponent = sources.components['mongosh']
+    if (mongoshComponent) {
+      const mongoshSource = mongoshComponent.platforms[platform]
+      if (mongoshSource) {
+        logInfo('=== Downloading MongoDB Shell (mongosh) ===')
+        const mongoshExtractDir = await downloadAndExtractComponent(
+          'mongosh',
+          mongoshSource,
+          downloadDir,
+          extractDir,
+        )
+
+        if (mongoshExtractDir) {
+          // Find mongosh directory (extracts to mongosh-VERSION-PLATFORM/)
+          const mongoshDir = findExtractedDir(mongoshExtractDir, 'mongosh-')
+          if (mongoshDir) {
+            const mongoshBinDir = join(mongoshExtractDir, mongoshDir, 'bin')
+            logInfo('Copying mongosh binaries...')
+            copyBinaries(mongoshBinDir, join(bundleDir, 'bin'))
+            logSuccess('mongosh bundled')
+          } else {
+            logWarn('Could not find mongosh directory')
+          }
+        }
+      }
+    }
+
+    // 3. Download and extract database-tools
+    const toolsComponent = sources.components['database-tools']
+    if (toolsComponent) {
+      const toolsSource = toolsComponent.platforms[platform]
+      if (toolsSource) {
+        logInfo('=== Downloading MongoDB Database Tools ===')
+        const toolsExtractDir = await downloadAndExtractComponent(
+          'database-tools',
+          toolsSource,
+          downloadDir,
+          extractDir,
+        )
+
+        if (toolsExtractDir) {
+          // Find database-tools directory
+          const toolsDir = findExtractedDir(
+            toolsExtractDir,
+            'mongodb-database-tools-',
+          )
+          if (toolsDir) {
+            const toolsBinDir = join(toolsExtractDir, toolsDir, 'bin')
+            logInfo('Copying database-tools binaries...')
+            copyBinaries(toolsBinDir, join(bundleDir, 'bin'))
+            logSuccess('database-tools bundled')
+          } else {
+            logWarn('Could not find database-tools directory')
+          }
+        }
+      }
+    }
+
+    // 4. Add metadata file
     const metadata = {
       name: 'mongodb',
       version,
       platform,
       source: 'official',
+      components: {
+        server: version,
+        mongosh: mongoshComponent?.version || 'not-included',
+        'database-tools': toolsComponent?.version || 'not-included',
+      },
       rehosted_by: 'hostdb',
       rehosted_at: new Date().toISOString(),
     }
     writeFileSync(
-      resolve(extractedPath, '.hostdb-metadata.json'),
+      join(bundleDir, '.hostdb-metadata.json'),
       JSON.stringify(metadata, null, 2),
     )
 
-    // Create output tarball
+    // 5. Create output archive
     mkdirSync(dirname(outputPath), { recursive: true })
-
     logInfo(`Creating: ${basename(outputPath)}`)
 
-    // Rename directory to just 'mongodb' for consistency
-    const finalDir = resolve(tempDir, 'mongodb')
-    renameSync(extractedPath, finalDir)
-
-    // Create tarball (using execFileSync with array args for safety)
     if (platform.startsWith('win32')) {
       execFileSync('zip', ['-rq', outputPath, 'mongodb'], {
         stdio: 'inherit',
@@ -300,6 +482,7 @@ function repackage(
     logSuccess(`Created: ${outputPath}`)
   } finally {
     rmSync(tempDir, { recursive: true, force: true })
+    rmSync(extractDir, { recursive: true, force: true })
   }
 }
 
@@ -359,6 +542,11 @@ function parseArgs(): {
         console.log(`
 Usage: ./builds/mongodb/download.ts [options]
 
+Downloads and bundles MongoDB components into a single package:
+  - MongoDB Server (mongod, mongos)
+  - MongoDB Shell (mongosh)
+  - MongoDB Database Tools (mongodump, mongorestore, etc.)
+
 Options:
   --version VERSION    MongoDB version (default: 8.0.17)
   --platform PLATFORM  Target platform (default: current)
@@ -391,8 +579,12 @@ async function main() {
   const sources = loadSources()
 
   console.log()
-  logInfo(`MongoDB Download Script`)
-  logInfo(`Version: ${version}`)
+  logInfo(`MongoDB Download Script (with bundled components)`)
+  logInfo(`Server Version: ${version}`)
+  logInfo(`mongosh Version: ${sources.components['mongosh']?.version || 'N/A'}`)
+  logInfo(
+    `Database Tools Version: ${sources.components['database-tools']?.version || 'N/A'}`,
+  )
   logInfo(`Platforms: ${platforms.join(', ')}`)
   logInfo(`Output: ${outputDir}`)
   console.log()
@@ -406,7 +598,7 @@ async function main() {
 
   for (const platform of platforms) {
     console.log()
-    logInfo(`=== ${platform} ===`)
+    logInfo(`========== ${platform} ==========`)
 
     const source = versionSources[platform]
     if (!source) {
@@ -415,37 +607,13 @@ async function main() {
     }
 
     const ext = platform.startsWith('win32') ? 'zip' : 'tar.gz'
-    const downloadPath = resolve(
-      outputDir,
-      'downloads',
-      `mongodb-${version}-${platform}-original.${source.format}`,
-    )
+    const downloadDir = resolve(outputDir, 'downloads')
     const outputPath = resolve(outputDir, `mongodb-${version}-${platform}.${ext}`)
 
-    // Download
-    if (existsSync(downloadPath)) {
-      logInfo(`Using cached download: ${downloadPath}`)
-    } else {
-      await downloadFile(source.url, downloadPath)
-    }
+    mkdirSync(downloadDir, { recursive: true })
 
-    // Verify checksum
-    const actualSha256 = await calculateSha256(downloadPath)
-    logInfo(`SHA256: ${actualSha256}`)
-
-    if (source.sha256) {
-      if (actualSha256 === source.sha256) {
-        logSuccess('Checksum verified')
-      } else {
-        logError(`Checksum mismatch! Expected: ${source.sha256}`)
-        process.exit(1)
-      }
-    } else {
-      logWarn('No checksum in sources.json - update it with the SHA256 above')
-    }
-
-    // Repackage
-    repackage(downloadPath, source.format, outputPath, version, platform)
+    // Download and bundle all components
+    await repackage(sources, version, platform, downloadDir, outputPath)
 
     // Final checksum
     const outputSha256 = await calculateSha256(outputPath)

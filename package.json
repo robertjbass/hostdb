@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Pre-built database binaries for multiple platforms, distributed via GitHub Releases",
   "private": true,
   "type": "module",

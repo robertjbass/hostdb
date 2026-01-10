@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-01-10
+
+### Added
+
+- **MongoDB complete bundling** - Releases now include server, shell, and database tools
+  - `mongosh` (MongoDB Shell) bundled for interactive database access
+  - Database tools (`mongodump`, `mongorestore`, `mongoexport`, `mongoimport`, `mongostat`, `mongotop`, `bsondump`, `mongofiles`) bundled for backup and data management
+  - Component versions tracked in `sources.json` under new `components` section
+  - Metadata includes component version information
+
+- **"Complete, Embeddable Binaries" philosophy** documented in CLAUDE.md
+  - Releases should be self-contained and ready to use
+  - Bundle related components when vendors distribute separately
+  - Include client tools alongside server binaries
+
+### Changed
+
+- **MongoDB download script** rewritten to download and merge three components
+- **MongoDB sources.json** restructured with `components` section for shell and tools
+
 ## [0.7.0] - 2026-01-08
 
 ### Added

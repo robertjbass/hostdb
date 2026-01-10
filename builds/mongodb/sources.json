@@ -84,9 +84,67 @@
       }
     }
   },
+  "components": {
+    "mongosh": {
+      "version": "2.5.10",
+      "description": "MongoDB Shell - interactive JavaScript interface",
+      "binaries": ["mongosh"],
+      "platforms": {
+        "linux-x64": {
+          "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-linux-x64.tgz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-linux-arm64.tgz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-darwin-x64.zip",
+          "format": "zip"
+        },
+        "darwin-arm64": {
+          "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-darwin-arm64.zip",
+          "format": "zip"
+        },
+        "win32-x64": {
+          "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-win32-x64.zip",
+          "format": "zip"
+        }
+      }
+    },
+    "database-tools": {
+      "version": "100.13.0",
+      "description": "MongoDB Database Tools - mongodump, mongorestore, etc.",
+      "binaries": ["mongodump", "mongorestore", "mongoexport", "mongoimport", "mongostat", "mongotop", "bsondump", "mongofiles"],
+      "platforms": {
+        "linux-x64": {
+          "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.13.0.tgz",
+          "format": "tar.gz"
+        },
+        "linux-arm64": {
+          "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-arm64-100.13.0.tgz",
+          "format": "tar.gz"
+        },
+        "darwin-x64": {
+          "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-macos-x86_64-100.13.0.zip",
+          "format": "zip"
+        },
+        "darwin-arm64": {
+          "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-macos-arm64-100.13.0.zip",
+          "format": "zip"
+        },
+        "win32-x64": {
+          "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-windows-x86_64-100.13.0.zip",
+          "format": "zip"
+        }
+      }
+    }
+  },
   "notes": {
     "license": "SSPL-1.0 - Permits internal/commercial use and redistribution, but requires releasing service source code (or commercial license) when offering MongoDB as a hosted service to third parties.",
     "ubuntu": "Linux binaries target Ubuntu 22.04 but work on glibc 2.35+ distros",
-    "cdn": "Official MongoDB CDN at fastdl.mongodb.org"
+    "cdn": "Official MongoDB CDN at fastdl.mongodb.org",
+    "bundling": "Releases bundle server (mongod/mongos), shell (mongosh), and database tools (mongodump, mongorestore, etc.) into a single package for complete, embeddable installations.",
+    "component-compatibility": "mongosh and database-tools are forward/backward compatible with all supported MongoDB server versions (7.0+)"
   }
 }
