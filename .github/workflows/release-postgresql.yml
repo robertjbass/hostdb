@@ -174,9 +174,120 @@ jobs:
         if: matrix.build_type == 'docker'
         uses: docker/setup-buildx-action@v3
 
-      # For Linux: use Docker-based source builds
-      - name: Build for Linux (Docker)
+      # Check if there's a download URL available in sources.json
+      - name: Check for download URL
         if: matrix.build_type == 'docker'
+        id: check-download
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          URL=$(jq -r ".versions[\"$VERSION\"][\"$PLATFORM\"].url // empty" builds/postgresql/sources.json)
+          SOURCE_TYPE=$(jq -r ".versions[\"$VERSION\"][\"$PLATFORM\"].sourceType // empty" builds/postgresql/sources.json)
+
+          if [ -n "$URL" ] && [ "$SOURCE_TYPE" != "build-required" ]; then
+            echo "Found download URL for $PLATFORM: $URL"
+            echo "has_url=true" >> $GITHUB_OUTPUT
+            echo "url=$URL" >> $GITHUB_OUTPUT
+            echo "source_type=$SOURCE_TYPE" >> $GITHUB_OUTPUT
+          else
+            echo "No download URL found, will build from source"
+            echo "has_url=false" >> $GITHUB_OUTPUT
+          fi
+
+      # For Linux ARM64: download pre-built binary if URL available (Percona)
+      - name: Download for Linux ARM64 (Percona)
+        if: matrix.build_type == 'docker' && steps.check-download.outputs.has_url == 'true'
+        id: download-linux-arm64
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          SOURCE_VERSION="${{ needs.prepare.outputs.source_version }}"
+          PLATFORM="${{ matrix.platform }}"
+          URL="${{ steps.check-download.outputs.url }}"
+          SOURCE_TYPE="${{ steps.check-download.outputs.source_type }}"
+
+          echo "Downloading PostgreSQL $SOURCE_VERSION for $PLATFORM from $SOURCE_TYPE"
+          echo "URL: $URL"
+
+          mkdir -p dist/downloads dist/temp
+
+          # Download with retry
+          for i in 1 2 3; do
+            if curl -fsSL "$URL" -o "dist/downloads/postgresql-original.tar.gz"; then
+              echo "Download succeeded"
+              break
+            fi
+            echo "Download attempt $i failed, retrying..."
+            sleep $((2**i))
+          done
+
+          if [ ! -f "dist/downloads/postgresql-original.tar.gz" ]; then
+            echo "::error::Failed to download binary"
+            exit 1
+          fi
+
+          # Extract and repackage
+          cd dist/temp
+          tar -xzf ../downloads/postgresql-original.tar.gz
+
+          # Verify extracted layout - Percona extracts to percona-postgresql-X.X
+          echo "Extracted contents:"
+          ls -la
+
+          # Find the extracted directory (handle various naming patterns)
+          EXTRACTED_DIR=$(ls -d percona-postgresql-* 2>/dev/null || ls -d postgresql-* 2>/dev/null || echo "")
+
+          if [ -z "$EXTRACTED_DIR" ]; then
+            echo "::error::Unexpected tarball layout"
+            echo "Contents:"
+            find . -maxdepth 2 -type d
+            exit 1
+          fi
+
+          echo "Found extracted directory: $EXTRACTED_DIR"
+          mv "$EXTRACTED_DIR" postgresql
+
+          # Add metadata
+          cat > postgresql/.hostdb-metadata.json << EOF
+          {
+            "name": "postgresql",
+            "version": "${SOURCE_VERSION}",
+            "platform": "${PLATFORM}",
+            "source": "${SOURCE_TYPE}",
+            "sourceUrl": "${URL}",
+            "rehosted_by": "hostdb",
+            "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          # Verify key binaries exist
+          if [ ! -f "postgresql/bin/postgres" ]; then
+            echo "::error::postgres binary not found"
+            find . -name "postgres" -type f 2>/dev/null || echo "No postgres binary found anywhere"
+            exit 1
+          fi
+
+          # Verify architecture
+          ARCH=$(file postgresql/bin/postgres)
+          echo "Binary architecture: $ARCH"
+          if [[ "$ARCH" != *"aarch64"* ]] && [[ "$ARCH" != *"ARM64"* ]] && [[ "$ARCH" != *"arm64"* ]]; then
+            echo "::error::Binary is not ARM64 architecture!"
+            exit 1
+          fi
+          echo "✓ Verified ARM64 architecture"
+
+          # Create tarball
+          tar -czvf "../postgresql-${SOURCE_VERSION}-${PLATFORM}.tar.gz" postgresql
+
+          cd ..
+          rm -rf temp downloads
+
+          echo "Download and repackage complete:"
+          ls -la .
+
+      # For Linux: use Docker-based source builds (when no download URL available)
+      - name: Build for Linux (Docker)
+        if: matrix.build_type == 'docker' && steps.check-download.outputs.has_url != 'true'
         id: build-linux
         timeout-minutes: 120
         run: |

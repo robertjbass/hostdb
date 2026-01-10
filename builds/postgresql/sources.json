@@ -7,7 +7,9 @@
         "sourceType": "build-required"
       },
       "linux-arm64": {
-        "sourceType": "build-required"
+        "url": "https://downloads.percona.com/downloads/postgresql-distribution-18/18.1/binary/tarball/percona-postgresql-18.1-ssl3-linux-aarch64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "percona"
       },
       "darwin-x64": {
         "sourceType": "build-required"
@@ -27,7 +29,9 @@
         "sourceType": "build-required"
       },
       "linux-arm64": {
-        "sourceType": "build-required"
+        "url": "https://downloads.percona.com/downloads/postgresql-distribution-17/17.7/binary/tarball/percona-postgresql-17.7-ssl3-linux-aarch64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "percona"
       },
       "darwin-x64": {
         "sourceType": "build-required"
@@ -47,7 +51,9 @@
         "sourceType": "build-required"
       },
       "linux-arm64": {
-        "sourceType": "build-required"
+        "url": "https://downloads.percona.com/downloads/postgresql-distribution-16/16.11/binary/tarball/percona-postgresql-16.11-ssl3-linux-aarch64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "percona"
       },
       "darwin-x64": {
         "sourceType": "build-required"
@@ -67,7 +73,9 @@
         "sourceType": "build-required"
       },
       "linux-arm64": {
-        "sourceType": "build-required"
+        "url": "https://downloads.percona.com/downloads/postgresql-distribution-15/15.15/binary/tarball/percona-postgresql-15.15-ssl3-linux-aarch64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "percona"
       },
       "darwin-x64": {
         "sourceType": "build-required"
@@ -84,9 +92,9 @@
     }
   },
   "notes": {
-    "source": "Linux and macOS built from official source at ftp.postgresql.org, Windows from EnterpriseDB",
+    "source": "Linux x64 and macOS built from official source at ftp.postgresql.org, Linux ARM64 from Percona, Windows from EnterpriseDB",
     "linux-x64": "Built from source via Docker on ubuntu-latest",
-    "linux-arm64": "Built from source via Docker with QEMU emulation",
+    "linux-arm64": "Pre-built binary from Percona Distribution for PostgreSQL (when URL available in sources.json)",
     "darwin-x64": "Built from source natively on macos-15-intel runner",
     "darwin-arm64": "Built from source natively on macos-14 runner",
     "win32-x64": "Official binary ZIP from EnterpriseDB (EDB)",
