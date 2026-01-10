@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-10T22:40:40.758Z",
+  "lastUpdated": "2026-01-10T22:57:38.430Z",
   "databases": {
     "mysql": {
       "8.4.3": {
@@ -105,32 +105,32 @@
       "18.1.0": {
         "version": "18.1.0",
         "releaseTag": "postgresql-18.1.0",
-        "releasedAt": "2026-01-10T22:40:28Z",
+        "releasedAt": "2026-01-10T22:57:27Z",
         "platforms": {
           "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1-darwin-arm64.tar.gz",
-            "sha256": "93d1a2bbed3bbe55583a52af7068fa03599cbfb61316336072773f4df18a6576",
-            "size": 11573997
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-darwin-arm64.tar.gz",
+            "sha256": "ee5a7ae80456bd6cce19f4ad0574328fd817d67eea5605d4d2bff1b7a378b96a",
+            "size": 11573814
           },
           "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1-darwin-x64.tar.gz",
-            "sha256": "58d4e32265bd643fd1f4a60bdfffb617da28795245cff56c8ae27d2b33854c57",
-            "size": 11236934
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-darwin-x64.tar.gz",
+            "sha256": "97998c8e696cbf003f931a734ccdb7e93da56767a90728e16f306a7c0a3850f9",
+            "size": 11236571
           },
           "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1-linux-arm64.tar.gz",
-            "sha256": "c5a53b3d7c2e2d39a0ef4c79bd9eda85fd08c179ac4100486080ba1cf18e04cf",
-            "size": 143176313
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-linux-arm64.tar.gz",
+            "sha256": "36cb85c658b0ff9a250b3ac6fd9b428e26a75994ca76c30472605d183e5104b5",
+            "size": 143177794
           },
           "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1-linux-x64.tar.gz",
-            "sha256": "4a3ff9c2e4edef51b8edca795985690128d4990c0421881796231e4462408e03",
-            "size": 12190549
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-linux-x64.tar.gz",
+            "sha256": "eb922d8f76f393bfe870272db0f7792124531efcf6efd3d23093c52444cd7d3a",
+            "size": 12190521
           },
           "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1-win32-x64.zip",
-            "sha256": "98823956a84e311c3ed4ff872bfbdff16773d027c710ed0312566c595a9ba489",
-            "size": 338310980
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-win32-x64.zip",
+            "sha256": "bc030245776b82521bbbd58014c917ed8390fba2f993916f41b594a29fe1b142",
+            "size": 338310981
           }
         }
       },
