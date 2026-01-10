@@ -27,7 +27,6 @@ import {
   readFileSync,
   writeFileSync,
   readdirSync,
-  renameSync,
   rmSync,
   cpSync,
 } from 'node:fs'
@@ -225,10 +224,10 @@ async function calculateSha256(filePath: string): Promise<string> {
   })
 }
 
-// TODO: Windows support - use 'where' instead of 'which' when process.platform === 'win32'
 function verifyCommand(command: string): void {
+  const findCmd = process.platform === 'win32' ? 'where' : 'which'
   try {
-    execFileSync('which', [command], { stdio: 'pipe' })
+    execFileSync(findCmd, [command], { stdio: 'pipe' })
   } catch {
     throw new Error(`Required command not found: ${command}`)
   }
@@ -253,6 +252,10 @@ function extractArchive(
     execFileSync('unzip', ['-q', sourcePath, '-d', destDir], {
       stdio: 'inherit',
     })
+  } else {
+    throw new Error(
+      `Unsupported archive format: '${format}' for file: ${sourcePath}. Supported formats: tar.xz, tar.gz, zip`,
+    )
   }
 }
 
@@ -282,7 +285,7 @@ async function downloadAndExtractComponent(
   source: SourceEntry,
   downloadDir: string,
   extractDir: string,
-): Promise<string | null> {
+): Promise<string> {
   const downloadPath = join(
     downloadDir,
     `${componentName}-original.${source.format}`,
