@@ -953,7 +953,7 @@
           "format": "tar.gz"
         },
         "linux-arm64": {
-          "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1259310",
+          "url": "https://downloads.percona.com/downloads/postgresql-distribution-17/17.7/binary/tarball/percona-postgresql-17.7-ssl3-linux-aarch64.tar.gz",
           "format": "tar.gz"
         },
         "darwin-x64": {
