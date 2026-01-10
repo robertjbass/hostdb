@@ -327,6 +327,7 @@ The sync script automatically updates the version dropdown in the workflow file.
 | releases.json not updated | Check update-manifest job permissions |
 | "Version not enabled" error | Add version to databases.json with `true` |
 | "Version not in sources.json" | Add version URLs to builds/<db>/sources.json |
+| PostgreSQL EDB file ID unknown | Run `pnpm edb:fileids -- --update` to fetch latest IDs |
 
 ### Testing Commands
 
@@ -357,4 +358,8 @@ pnpm sync:versions --check
 
 # Scaffold new database
 pnpm add:engine <database-key>
+
+# PostgreSQL: Fetch EDB Windows file IDs
+pnpm edb:fileids                  # Show available file IDs
+pnpm edb:fileids -- --update      # Update sources.json
 ```

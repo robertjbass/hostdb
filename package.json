@@ -20,6 +20,7 @@
     "download:postgresql": "tsx builds/postgresql/download.ts",
     "download:redis": "tsx builds/redis/download.ts",
     "download:valkey": "tsx builds/valkey/download.ts",
+    "edb:fileids": "tsx scripts/fetch-edb-fileids.ts",
     "format": "prettier --write .",
     "lint": "tsc --noEmit && eslint .",
     "prep": "tsx scripts/prep.ts",

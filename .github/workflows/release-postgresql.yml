@@ -14,7 +14,7 @@ on:
           - 15.15.0
         default: 18.1.0
       platforms:
-        description: 'Platforms'
+        description: 'Platforms to build'
         required: true
         default: 'all'
         type: choice
@@ -32,6 +32,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Validate version against databases.json
   validate:
     runs-on: ubuntu-latest
     steps:
@@ -82,11 +83,67 @@ jobs:
 
           echo "✓ Version $VERSION found in sources.json"
 
-  build:
+  # Determine which platforms to build based on input
+  prepare:
     needs: validate
     runs-on: ubuntu-latest
     outputs:
-      artifact_names: ${{ steps.build.outputs.artifact_names }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      source_version: ${{ steps.parse-version.outputs.source_version }}
+    steps:
+      - name: Parse version for source download
+        id: parse-version
+        run: |
+          # databases.json uses 3-part versions (18.1.0) but PostgreSQL source uses 2-part (18.1)
+          VERSION="${{ github.event.inputs.version }}"
+          # Remove trailing .0 if present (18.1.0 -> 18.1)
+          SOURCE_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
+          echo "source_version=$SOURCE_VERSION" >> $GITHUB_OUTPUT
+          echo "Source version: $SOURCE_VERSION (from $VERSION)"
+
+      - name: Set build matrix
+        id: set-matrix
+        run: |
+          PLATFORMS="${{ github.event.inputs.platforms }}"
+          if [ "$PLATFORMS" = "all" ]; then
+            # All 5 platforms with their appropriate runners
+            MATRIX='[
+              {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
+              {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
+              {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
+              {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "native"},
+              {"platform": "win32-x64", "runner": "ubuntu-latest", "build_type": "download"}
+            ]'
+          else
+            # Single platform - determine runner and build type
+            case "$PLATFORMS" in
+              linux-x64|linux-arm64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"docker\"}]"
+                ;;
+              darwin-x64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\", \"build_type\": \"native\"}]"
+                ;;
+              darwin-arm64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-14\", \"build_type\": \"native\"}]"
+                ;;
+              win32-x64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"download\"}]"
+                ;;
+            esac
+          fi
+          # Compact the JSON for output
+          MATRIX=$(echo "$MATRIX" | jq -c .)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "Building platforms: $MATRIX"
+
+  # Build each platform in parallel
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -103,52 +160,241 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Download and repackage PostgreSQL
-        id: build
+      # Set up QEMU for cross-platform Docker builds (required for linux-arm64 on x64 runners)
+      - name: Set up QEMU
+        if: matrix.build_type == 'docker'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: matrix.build_type == 'docker'
+        uses: docker/setup-buildx-action@v3
+
+      # For Linux: use Docker-based source builds
+      - name: Build for Linux (Docker)
+        if: matrix.build_type == 'docker'
+        id: build-linux
+        timeout-minutes: 120
         run: |
-          VERSION="${{ github.event.inputs.version }}"
-          PLATFORMS="${{ github.event.inputs.platforms }}"
+          VERSION="${{ needs.prepare.outputs.source_version }}"
+          PLATFORM="${{ matrix.platform }}"
 
-          if [ "$PLATFORMS" = "all" ]; then
-            pnpm download:postgresql -- --version "$VERSION" --all-platforms --output ./dist
-          else
-            pnpm download:postgresql -- --version "$VERSION" --platform "$PLATFORMS" --output ./dist
-          fi
+          echo "Building PostgreSQL $VERSION for $PLATFORM"
 
-          # List created artifacts
-          ls -la ./dist/
+          ./builds/postgresql/build-local.sh \
+            --version "$VERSION" \
+            --platform "$PLATFORM" \
+            --output ./dist \
+            --cleanup
 
-          # Create artifact names output (handle case where no files exist)
+          # Check if artifact was created
           shopt -s nullglob
-          FILES=(./dist/*.tar.gz ./dist/*.zip)
+          FILES=(./dist/postgresql-*.tar.gz)
           if [ ${#FILES[@]} -eq 0 ]; then
-            echo "ERROR: No artifacts were created"
+            echo "::error::No artifact created for $PLATFORM"
             exit 1
           fi
-          ARTIFACTS=$(printf '%s\n' "${FILES[@]}" | xargs -n1 basename | tr '\n' ',' | sed 's/,$//')
-          echo "artifact_names=$ARTIFACTS" >> $GITHUB_OUTPUT
+          ls -la ./dist/
 
-      - name: Generate checksums
+      # For Windows: download official EDB binary
+      - name: Download for Windows (official EDB binary)
+        if: matrix.build_type == 'download'
+        id: build-windows
         run: |
-          shopt -s nullglob
+          VERSION="${{ github.event.inputs.version }}"
+          SOURCE_VERSION="${{ needs.prepare.outputs.source_version }}"
+
+          echo "Downloading PostgreSQL $SOURCE_VERSION for win32-x64 from EDB"
+
+          # Read download URL from sources.json (EDB uses non-predictable file IDs)
+          URL=$(jq -r ".versions[\"$VERSION\"][\"win32-x64\"].url" builds/postgresql/sources.json)
+
+          if [ -z "$URL" ] || [ "$URL" = "null" ]; then
+            echo "::error::No download URL found in sources.json for version $VERSION win32-x64"
+            exit 1
+          fi
+
+          echo "Download URL: $URL"
+
+          mkdir -p dist/downloads dist/temp
+
+          # Download with retry
+          for i in 1 2 3; do
+            if curl -fsSL "$URL" -o "dist/downloads/postgresql-${SOURCE_VERSION}-win32-x64-original.zip"; then
+              echo "Download succeeded"
+              break
+            fi
+            echo "Download attempt $i failed, retrying..."
+            sleep $((2**i))
+          done
+
+          if [ ! -f "dist/downloads/postgresql-${SOURCE_VERSION}-win32-x64-original.zip" ]; then
+            echo "::error::Failed to download Windows binary from EDB"
+            exit 1
+          fi
+
+          # Extract and repackage
+          cd dist/temp
+          unzip -q ../downloads/postgresql-${SOURCE_VERSION}-win32-x64-original.zip
+
+          # EDB ZIP extracts to 'pgsql' directory - rename to 'postgresql' for consistency
+          mv pgsql postgresql
+
+          # Add metadata
+          cat > postgresql/.hostdb-metadata.json << EOF
+          {
+            "name": "postgresql",
+            "version": "${SOURCE_VERSION}",
+            "platform": "win32-x64",
+            "source": "official",
+            "sourceUrl": "https://www.enterprisedb.com/",
+            "rehosted_by": "hostdb",
+            "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          # Create zip with consistent naming
+          zip -rq "../postgresql-${SOURCE_VERSION}-win32-x64.zip" postgresql
+
+          cd ..
+          rm -rf temp downloads
+
+          ls -la .
+
+      # For macOS: native build with Homebrew dependencies
+      - name: Install macOS build dependencies
+        if: matrix.build_type == 'native'
+        run: |
+          brew install openssl@3 readline libxml2 libxslt icu4c pkg-config
+
+      - name: Build for macOS (native)
+        if: matrix.build_type == 'native'
+        id: build-macos
+        timeout-minutes: 90
+        run: |
+          VERSION="${{ needs.prepare.outputs.source_version }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          echo "Building PostgreSQL $VERSION for $PLATFORM (native macOS build)"
+
+          # Get Homebrew prefix (differs between ARM64 and Intel macOS)
+          BREW_PREFIX=$(brew --prefix)
+          OPENSSL_PREFIX=$(brew --prefix openssl@3)
+          ICU_PREFIX=$(brew --prefix icu4c)
+
+          echo "Using OpenSSL at: $OPENSSL_PREFIX"
+          echo "Using ICU at: $ICU_PREFIX"
+
+          # Clean up any previous build artifacts
+          rm -rf postgresql-source.tar.gz postgresql-${VERSION} install dist
+
+          # Download source
+          curl -fsSL "https://ftp.postgresql.org/pub/source/v${VERSION}/postgresql-${VERSION}.tar.gz" \
+            -o postgresql-source.tar.gz
+          tar -xzf postgresql-source.tar.gz
+
+          cd postgresql-${VERSION}
+
+          # Fix for Xcode 16+ SDK/toolchain mismatch issues
+          # Force latest Xcode as the active developer directory
+          XCODE_PATH=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          echo "Using Xcode: $XCODE_PATH"
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+
+          # Get SDK and toolchain paths
+          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+          XCODE_TOOLCHAIN=$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain
+
+          echo "Using Xcode SDK (SDKROOT): $SDKROOT"
+          echo "Using Xcode Toolchain: $XCODE_TOOLCHAIN"
+
+          # Set compiler environment variables to force correct SDK
+          export CC="$XCODE_TOOLCHAIN/usr/bin/clang"
+          export CXX="$XCODE_TOOLCHAIN/usr/bin/clang++"
+          export CFLAGS="--sysroot=$SDKROOT -I${OPENSSL_PREFIX}/include -I${ICU_PREFIX}/include"
+          export CPPFLAGS="$CFLAGS"
+          export LDFLAGS="--sysroot=$SDKROOT -L${OPENSSL_PREFIX}/lib -L${ICU_PREFIX}/lib"
+          export PKG_CONFIG_PATH="${OPENSSL_PREFIX}/lib/pkgconfig:${ICU_PREFIX}/lib/pkgconfig"
+
+          # Verify clang uses correct SDK
+          echo "Clang SDK check:"
+          $CC --version
+          $CC -v -E -x c /dev/null 2>&1 | grep "selected sysroot" || true
+
+          # Configure PostgreSQL
+          ./configure \
+            --prefix="$GITHUB_WORKSPACE/install/postgresql" \
+            --with-openssl \
+            --with-readline \
+            --with-libxml \
+            --with-libxslt \
+            --with-icu \
+            --without-systemd
+
+          # Build
+          make -j$(sysctl -n hw.ncpu)
+
+          # Install
+          make install
+
+          # Build and install contrib modules
+          cd contrib
+          make -j$(sysctl -n hw.ncpu)
+          make install
+          cd ..
+
+          # Add metadata
+          cd "$GITHUB_WORKSPACE/install"
+          cat > postgresql/.hostdb-metadata.json << EOF
+          {
+            "name": "postgresql",
+            "version": "${VERSION}",
+            "platform": "${PLATFORM}",
+            "source": "source-build",
+            "sourceUrl": "https://ftp.postgresql.org/",
+            "rehosted_by": "hostdb",
+            "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          # Verify key binaries exist
+          test -f postgresql/bin/postgres || { echo "::error::postgres binary not found"; exit 1; }
+          test -f postgresql/bin/psql || { echo "::error::psql binary not found"; exit 1; }
+          test -f postgresql/lib/pg_stat_statements.so || echo "::warning::pg_stat_statements.so not found"
+
+          # Create tarball
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          tar -czvf "$GITHUB_WORKSPACE/dist/postgresql-${VERSION}-${PLATFORM}.tar.gz" postgresql
+
+          echo "Build complete:"
+          ls -la "$GITHUB_WORKSPACE/dist/"
+
+      - name: Generate checksum
+        run: |
           cd dist
+          shopt -s nullglob
           for f in *.tar.gz *.zip; do
             if [ -f "$f" ]; then
-              sha256sum "$f" >> checksums.txt
+              if command -v sha256sum &> /dev/null; then
+                sha256sum "$f" >> checksums.txt
+              else
+                # macOS uses shasum
+                shasum -a 256 "$f" >> checksums.txt
+              fi
             fi
           done
           cat checksums.txt
 
-      - name: Upload artifacts
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: postgresql-${{ github.event.inputs.version }}
+          name: postgresql-${{ github.event.inputs.version }}-${{ matrix.platform }}
           path: |
             dist/*.tar.gz
             dist/*.zip
             dist/checksums.txt
           retention-days: 1
 
+  # Collect all artifacts and create release
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -158,14 +404,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: postgresql-${{ github.event.inputs.version }}
-          path: ./release-assets
+          path: ./artifacts
+          pattern: postgresql-${{ github.event.inputs.version }}-*
 
-      - name: List release assets
-        run: ls -la ./release-assets/
+      - name: Prepare release assets
+        run: |
+          mkdir -p ./release-assets
+
+          # Move all artifacts to release-assets, flattening the directory structure
+          find ./artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec mv {} ./release-assets/ \;
+
+          # Combine all checksums
+          find ./artifacts -name "checksums.txt" -exec cat {} \; > ./release-assets/checksums.txt
+
+          echo "Release assets:"
+          ls -la ./release-assets/
+
+          # Verify we have at least one artifact
+          shopt -s nullglob
+          FILES=(./release-assets/*.tar.gz ./release-assets/*.zip)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "ERROR: No artifacts were created for any platform"
+            exit 1
+          fi
+
+          echo ""
+          echo "Checksums:"
+          cat ./release-assets/checksums.txt
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -175,14 +443,20 @@ jobs:
           body: |
             ## PostgreSQL ${{ github.event.inputs.version }}
 
-            PostgreSQL binaries from [zonky.io embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries), repackaged for hostdb.
+            PostgreSQL binaries built from source for hostdb.
 
-            ### Platforms
-            - `linux-x64` - Linux x86_64
-            - `linux-arm64` - Linux ARM64
-            - `darwin-x64` - macOS x86_64
-            - `darwin-arm64` - macOS Apple Silicon
-            - `win32-x64` - Windows x64
+            ### Available Platforms
+            | Platform | Source |
+            |----------|--------|
+            | `linux-x64` | Built from source (Docker) |
+            | `linux-arm64` | Built from source (Docker/QEMU) |
+            | `darwin-x64` | Built from source (native macOS) |
+            | `darwin-arm64` | Built from source (native macOS) |
+            | `win32-x64` | Official EDB binary |
+
+            ### Features
+            - All contrib modules included (pg_stat_statements, etc.)
+            - Built with SSL, readline, XML, XSLT, and ICU support
 
             ### Usage
             ```bash
@@ -193,14 +467,16 @@ jobs:
             ### Checksums
             See `checksums.txt` for SHA256 checksums.
 
-            ### Source
-            Binaries from [zonky.io embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries) (Maven Central)
+            ### Sources
+            - **Source Builds**: [ftp.postgresql.org](https://ftp.postgresql.org/pub/source/)
+            - **Windows Binary**: [EnterpriseDB](https://www.enterprisedb.com/)
           files: |
             release-assets/*.tar.gz
             release-assets/*.zip
             release-assets/checksums.txt
           fail_on_unmatched_files: false
 
+  # Update the releases manifest
   update-manifest:
     needs: release
     runs-on: ubuntu-latest

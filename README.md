@@ -12,9 +12,9 @@ This repository exists to solve one problem: **database binaries should be avail
 
 When adding a database, we source binaries in this order:
 
-1. **Official binaries** - Direct from vendor CDNs (Oracle for MySQL, MariaDB Foundation, etc.)
-2. **Third-party repositories** - Trusted sources like [zonky.io](https://github.com/zonkyio/embedded-postgres-binaries) for PostgreSQL or [MariaDB4j](https://github.com/MariaDB4j/MariaDB4j) Maven JARs
-3. **Build from source** - Docker builds for Linux, native GitHub Actions builds for macOS/Windows
+1. **Official binaries** - Direct from vendor CDNs (Oracle for MySQL, MariaDB Foundation, EnterpriseDB for PostgreSQL Windows, etc.)
+2. **Third-party repositories** - Trusted sources like [MariaDB4j](https://github.com/MariaDB4j/MariaDB4j) Maven JARs
+3. **Build from source** - Docker builds for Linux, native GitHub Actions builds for macOS
 
 ### What This Means
 
@@ -129,7 +129,7 @@ Auto-generated manifest updated after each GitHub Release. Structure:
 | Database | Status | Versions | Notes |
 |----------|--------|----------|-------|
 | MySQL | Completed | 8.4.7, 8.0.40 | Official binaries for all platforms |
-| PostgreSQL | In Progress | 18.1.0, 17.7.0, 16.11.0, 15.15.0 | Via zonky.io binaries |
+| PostgreSQL | In Progress | 18.1.0, 17.7.0, 16.11.0, 15.15.0 | Source builds + EDB (Windows) |
 | MariaDB | Completed | 11.8.5, 11.4.5, 10.11.15 | Official + source builds |
 | Redis | Completed | 8.4.0, 7.4.7 | Source builds |
 | SQLite | In Progress | 3.51.1 | Official amalgamation |
@@ -184,10 +184,11 @@ hostdb/
 │   ├── mariadb/
 │   └── ...
 ├── scripts/
-│   ├── add-engine.ts       # pnpm add:engine - scaffold new database
-│   ├── list-databases.ts   # pnpm dbs
-│   ├── sync-versions.ts    # pnpm sync:versions - sync workflow dropdowns
-│   └── update-releases.ts  # Updates releases.json after release
+│   ├── add-engine.ts         # pnpm add:engine - scaffold new database
+│   ├── fetch-edb-fileids.ts  # pnpm edb:fileids - fetch PostgreSQL Windows file IDs
+│   ├── list-databases.ts     # pnpm dbs
+│   ├── sync-versions.ts      # pnpm sync:versions - sync workflow dropdowns
+│   └── update-releases.ts    # Updates releases.json after release
 └── .github/workflows/
     ├── release-mysql.yml
     ├── release-postgresql.yml
@@ -219,8 +220,8 @@ pnpm add:engine sqlite   # Then follow printed instructions
 
 ## Inspiration
 
-- [embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries) - PostgreSQL binaries built from source
 - [MariaDB4j](https://github.com/MariaDB4j/MariaDB4j) - Embedded MariaDB for Java
+- [embedded-postgres-binaries](https://github.com/zonkyio/embedded-postgres-binaries) - PostgreSQL binaries (we previously used this, now build from source)
 
 ## License
 

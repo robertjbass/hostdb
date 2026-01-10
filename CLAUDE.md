@@ -12,9 +12,9 @@ This repository exists to solve one problem: **database binaries should be avail
 
 When adding a database, source binaries in this order:
 
-1. **Official binaries** - Direct from vendor CDNs (Oracle for MySQL, MariaDB Foundation, etc.)
-2. **Third-party repositories** - Trusted sources like [zonky.io](https://github.com/zonkyio/embedded-postgres-binaries) for PostgreSQL or [MariaDB4j](https://github.com/MariaDB4j/MariaDB4j) Maven JARs
-3. **Build from source** - Docker builds for Linux, native GitHub Actions builds for macOS/Windows
+1. **Official binaries** - Direct from vendor CDNs (Oracle for MySQL, MariaDB Foundation, EnterpriseDB for PostgreSQL Windows, etc.)
+2. **Third-party repositories** - Trusted sources like [MariaDB4j](https://github.com/MariaDB4j/MariaDB4j) Maven JARs
+3. **Build from source** - Docker builds for Linux, native GitHub Actions builds for macOS
 
 ### Key Principles
 
@@ -61,10 +61,11 @@ hostdb/
 │   ├── mariadb/
 │   └── ...
 ├── scripts/
-│   ├── add-engine.ts       # pnpm add:engine - scaffold new database
-│   ├── list-databases.ts   # pnpm dbs
-│   ├── sync-versions.ts    # pnpm sync:versions - sync workflow dropdowns
-│   └── update-releases.ts  # Updates releases.json after GH Release
+│   ├── add-engine.ts         # pnpm add:engine - scaffold new database
+│   ├── fetch-edb-fileids.ts  # pnpm edb:fileids - fetch PostgreSQL Windows file IDs
+│   ├── list-databases.ts     # pnpm dbs
+│   ├── sync-versions.ts      # pnpm sync:versions - sync workflow dropdowns
+│   └── update-releases.ts    # Updates releases.json after GH Release
 └── .github/workflows/
     ├── release-mysql.yml
     ├── release-postgresql.yml
@@ -134,7 +135,7 @@ Maps versions and platforms to download URLs:
 
 **Source types:**
 - `official` - Direct from vendor CDN
-- `mariadb4j`, `zonky` - Third-party repositories
+- `mariadb4j` - Third-party repository (MariaDB4j Maven JARs)
 - `build-required` - Must build from source
 
 ## GitHub Actions Workflows
@@ -250,6 +251,10 @@ pnpm download:mariadb -- --version 11.8.5 --build-fallback
 pnpm add:engine redis              # Scaffold new database
 pnpm sync:versions                 # Sync workflow dropdowns with databases.json
 pnpm checksums:populate <database> # Populate missing SHA256 checksums
+
+# PostgreSQL: Fetch EDB Windows file IDs
+pnpm edb:fileids                   # Show available file IDs from EDB
+pnpm edb:fileids -- --update       # Update sources.json with latest IDs
 ```
 
 ## Querying Available Binaries
