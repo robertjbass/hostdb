@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#
+# HELP_START
 # Local Docker build script for PostgreSQL
 #
 # Usage:
@@ -24,6 +24,7 @@
 #   ./builds/postgresql/build-local.sh --no-cache --cleanup
 #
 # Build time: ~15-30 minutes depending on platform and resources
+# HELP_END
 
 set -euo pipefail
 
@@ -51,7 +52,8 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 show_help() {
-    head -30 "$0" | tail -25 | sed 's/^#//' | sed 's/^ //'
+    # Extract help text between HELP_START and HELP_END markers
+    sed -n '/^# HELP_START$/,/^# HELP_END$/p' "$0" | sed '1d;$d' | sed 's/^# \?//'
     exit 0
 }
 
@@ -59,14 +61,26 @@ show_help() {
 while [[ $# -gt 0 ]]; do
     case $1 in
         --version)
+            if [[ -z "${2:-}" || "${2:-}" == -* ]]; then
+                log_error "Missing value for --version"
+                show_help
+            fi
             VERSION="$2"
             shift 2
             ;;
         --platform)
+            if [[ -z "${2:-}" || "${2:-}" == -* ]]; then
+                log_error "Missing value for --platform"
+                show_help
+            fi
             PLATFORM="$2"
             shift 2
             ;;
         --output)
+            if [[ -z "${2:-}" || "${2:-}" == -* ]]; then
+                log_error "Missing value for --output"
+                show_help
+            fi
             OUTPUT_DIR="$2"
             shift 2
             ;;
@@ -117,7 +131,7 @@ fi
 # Check Docker buildx is available (needed for multi-platform builds)
 if ! docker buildx version &> /dev/null; then
     log_error "Docker buildx is not available"
-    log_error "Install with: docker buildx install"
+    log_error "Enable via Docker Desktop settings or see: https://docs.docker.com/build/install-buildx/"
     exit 1
 fi
 
@@ -185,8 +199,14 @@ tar -czvf "${TARBALL}" -C "${OUTPUT_PATH}" postgresql
 TARBALL_SIZE=$(du -h "${TARBALL}" | cut -f1)
 log_success "Created: ${TARBALL} (${TARBALL_SIZE})"
 
-# Calculate SHA256
-SHA256=$(sha256sum "${TARBALL}" | cut -d' ' -f1)
+# Calculate SHA256 (cross-platform)
+if command -v shasum &> /dev/null; then
+    SHA256=$(shasum -a 256 "${TARBALL}" | cut -d' ' -f1)
+elif command -v sha256sum &> /dev/null; then
+    SHA256=$(sha256sum "${TARBALL}" | cut -d' ' -f1)
+else
+    SHA256=$(openssl dgst -sha256 "${TARBALL}" | awk '{print $NF}')
+fi
 log_info "SHA256: ${SHA256}"
 
 # Determine cleanup behavior

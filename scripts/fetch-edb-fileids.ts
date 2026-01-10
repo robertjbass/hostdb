@@ -23,6 +23,11 @@ type VersionFileIds = Record<
   }
 >
 
+// Regex patterns for parsing EDB download page
+const LINK_PATTERN =
+  /<a\s+href="https:\/\/sbp\.enterprisedb\.com\/getfile\.jsp\?fileid=(\d+)"[^>]*>.*?<img\s+alt="([^"]+)"/gs
+const VERSION_PATTERN = /Version\s*(?:<!--.*?-->\s*)?(\d+\.\d+(?:\.\d+)?)/
+
 async function fetchEdbPage(): Promise<string> {
   console.log(`Fetching ${EDB_BINARIES_URL}...`)
   const response = await fetch(EDB_BINARIES_URL)
@@ -35,18 +40,12 @@ async function fetchEdbPage(): Promise<string> {
 function parseFileIds(html: string): VersionFileIds {
   const results: VersionFileIds = {}
 
-  // Pattern to find file IDs with their platform
-  // Windows: alt="Windows x86-64" ... href="https://sbp.enterprisedb.com/getfile.jsp?fileid=1259913"
-  // macOS: alt="Mac OS X" ... href="https://sbp.enterprisedb.com/getfile.jsp?fileid=1259821"
-  const linkPattern =
-    /<a\s+href="https:\/\/sbp\.enterprisedb\.com\/getfile\.jsp\?fileid=(\d+)"[^>]*>.*?<img\s+alt="([^"]+)"/gs
-
   // Split by version sections
   const sections = html.split(/Binaries from installer/)
 
   for (const section of sections) {
     // Find version in this section
-    const versionMatch = section.match(/Version\s*(?:<!--.*?-->\s*)?(\d+\.\d+(?:\.\d+)?)/)
+    const versionMatch = section.match(VERSION_PATTERN)
     if (!versionMatch) continue
 
     const version = versionMatch[1]
@@ -55,7 +54,7 @@ function parseFileIds(html: string): VersionFileIds {
     if (section.includes('Not supported')) continue
 
     // Find all links in this section
-    const links = [...section.matchAll(linkPattern)]
+    const links = [...section.matchAll(LINK_PATTERN)]
 
     const fileIds: { windows?: string; macos?: string } = {}
 
@@ -83,9 +82,8 @@ function updateSourcesJson(fileIds: VersionFileIds): boolean {
 
   for (const [version, ids] of Object.entries(fileIds)) {
     // Convert 2-part version to 3-part (18.1 -> 18.1.0)
-    const version3Part = version.includes('.', version.indexOf('.') + 1)
-      ? version
-      : `${version}.0`
+    const parts = version.split('.')
+    const version3Part = parts.length >= 3 ? version : `${version}.0`
 
     if (!sources.versions[version3Part]) {
       console.log(`  Skipping ${version} - not in sources.json`)
