@@ -201,12 +201,11 @@ jobs:
         id: download-linux-arm64
         run: |
           VERSION="${{ github.event.inputs.version }}"
-          SOURCE_VERSION="${{ needs.prepare.outputs.source_version }}"
           PLATFORM="${{ matrix.platform }}"
           URL="${{ steps.check-download.outputs.url }}"
           SOURCE_TYPE="${{ steps.check-download.outputs.source_type }}"
 
-          echo "Downloading PostgreSQL $SOURCE_VERSION for $PLATFORM from $SOURCE_TYPE"
+          echo "Downloading PostgreSQL $VERSION for $PLATFORM from $SOURCE_TYPE"
           echo "URL: $URL"
 
           mkdir -p dist/downloads dist/temp
@@ -266,7 +265,7 @@ jobs:
           cat > postgresql/.hostdb-metadata.json << EOF
           {
             "name": "postgresql",
-            "version": "${SOURCE_VERSION}",
+            "version": "${VERSION}",
             "platform": "${PLATFORM}",
             "source": "${SOURCE_TYPE}",
             "sourceUrl": "${URL}",
@@ -291,8 +290,8 @@ jobs:
           fi
           echo "✓ Verified ARM64 architecture"
 
-          # Create tarball
-          tar -czvf "../postgresql-${SOURCE_VERSION}-${PLATFORM}.tar.gz" postgresql
+          # Create tarball (use full VERSION for artifact naming, e.g., 18.1.0)
+          tar -czvf "../postgresql-${VERSION}-${PLATFORM}.tar.gz" postgresql
 
           cd ..
           rm -rf temp downloads
@@ -306,7 +305,7 @@ jobs:
         id: build-linux
         timeout-minutes: 120
         run: |
-          VERSION="${{ needs.prepare.outputs.source_version }}"
+          VERSION="${{ github.event.inputs.version }}"
           PLATFORM="${{ matrix.platform }}"
 
           echo "Building PostgreSQL $VERSION for $PLATFORM"
@@ -334,7 +333,7 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           SOURCE_VERSION="${{ needs.prepare.outputs.source_version }}"
 
-          echo "Downloading PostgreSQL $SOURCE_VERSION for win32-x64 from EDB"
+          echo "Downloading PostgreSQL $VERSION for win32-x64 from EDB"
 
           # Read download URL from sources.json (EDB uses non-predictable file IDs)
           URL=$(jq -r ".versions[\"$VERSION\"][\"win32-x64\"].url" builds/postgresql/sources.json)
@@ -385,11 +384,11 @@ jobs:
             exit 1
           fi
 
-          # Add metadata
+          # Add metadata (use full VERSION for consistency, e.g., 18.1.0)
           cat > postgresql/.hostdb-metadata.json << EOF
           {
             "name": "postgresql",
-            "version": "${SOURCE_VERSION}",
+            "version": "${VERSION}",
             "platform": "win32-x64",
             "source": "official",
             "sourceUrl": "https://www.enterprisedb.com/",
@@ -398,8 +397,8 @@ jobs:
           }
           EOF
 
-          # Create zip with consistent naming
-          zip -rq "../postgresql-${SOURCE_VERSION}-win32-x64.zip" postgresql
+          # Create zip with consistent naming (use full VERSION, e.g., 18.1.0)
+          zip -rq "../postgresql-${VERSION}-win32-x64.zip" postgresql
 
           cd ..
           rm -rf temp downloads
@@ -417,10 +416,13 @@ jobs:
         id: build-macos
         timeout-minutes: 90
         run: |
-          VERSION="${{ needs.prepare.outputs.source_version }}"
+          # SOURCE_VERSION is 2-part (e.g., 18.1) for downloading PostgreSQL source
+          # FULL_VERSION is 3-part (e.g., 18.1.0) for artifact naming
+          SOURCE_VERSION="${{ needs.prepare.outputs.source_version }}"
+          FULL_VERSION="${{ github.event.inputs.version }}"
           PLATFORM="${{ matrix.platform }}"
 
-          echo "Building PostgreSQL $VERSION for $PLATFORM (native macOS build)"
+          echo "Building PostgreSQL $FULL_VERSION for $PLATFORM (native macOS build)"
 
           # Get Homebrew prefix (differs between ARM64 and Intel macOS)
           BREW_PREFIX=$(brew --prefix)
@@ -431,14 +433,14 @@ jobs:
           echo "Using ICU at: $ICU_PREFIX"
 
           # Clean up any previous build artifacts
-          rm -rf postgresql-source.tar.gz postgresql-${VERSION} install dist
+          rm -rf postgresql-source.tar.gz postgresql-${SOURCE_VERSION} install dist
 
-          # Download source
-          curl -fsSL "https://ftp.postgresql.org/pub/source/v${VERSION}/postgresql-${VERSION}.tar.gz" \
+          # Download source (uses 2-part version, e.g., postgresql-18.1.tar.gz)
+          curl -fsSL "https://ftp.postgresql.org/pub/source/v${SOURCE_VERSION}/postgresql-${SOURCE_VERSION}.tar.gz" \
             -o postgresql-source.tar.gz
           tar -xzf postgresql-source.tar.gz
 
-          cd postgresql-${VERSION}
+          cd postgresql-${SOURCE_VERSION}
 
           # Fix for Xcode 16+ SDK/toolchain mismatch issues
           # Force latest Xcode as the active developer directory
@@ -488,12 +490,12 @@ jobs:
           make install
           cd ..
 
-          # Add metadata
+          # Add metadata (use full 3-part version for consistency)
           cd "$GITHUB_WORKSPACE/install"
           cat > postgresql/.hostdb-metadata.json << EOF
           {
             "name": "postgresql",
-            "version": "${VERSION}",
+            "version": "${FULL_VERSION}",
             "platform": "${PLATFORM}",
             "source": "source-build",
             "sourceUrl": "https://ftp.postgresql.org/",
@@ -507,9 +509,9 @@ jobs:
           test -f postgresql/bin/psql || { echo "::error::psql binary not found"; exit 1; }
           test -f postgresql/lib/pg_stat_statements.so || echo "::warning::pg_stat_statements.so not found"
 
-          # Create tarball
+          # Create tarball (use full 3-part version for artifact naming)
           mkdir -p "$GITHUB_WORKSPACE/dist"
-          tar -czvf "$GITHUB_WORKSPACE/dist/postgresql-${VERSION}-${PLATFORM}.tar.gz" postgresql
+          tar -czvf "$GITHUB_WORKSPACE/dist/postgresql-${FULL_VERSION}-${PLATFORM}.tar.gz" postgresql
 
           echo "Build complete:"
           ls -la "$GITHUB_WORKSPACE/dist/"

@@ -6,7 +6,7 @@
 #   ./builds/postgresql/build-local.sh [options]
 #
 # Options:
-#   --version VERSION    PostgreSQL version to build (default: 17.7)
+#   --version VERSION    PostgreSQL version to build (default: 17.7.0)
 #   --platform PLATFORM  Target platform: linux-x64, linux-arm64 (default: linux-x64)
 #   --output DIR         Output directory (default: ./dist)
 #   --no-cache           Build without Docker cache
@@ -20,7 +20,7 @@
 #
 # Examples:
 #   ./builds/postgresql/build-local.sh
-#   ./builds/postgresql/build-local.sh --version 18.1 --platform linux-arm64
+#   ./builds/postgresql/build-local.sh --version 18.1.0 --platform linux-arm64
 #   ./builds/postgresql/build-local.sh --no-cache --cleanup
 #
 # Build time: ~15-30 minutes depending on platform and resources
@@ -29,7 +29,7 @@
 set -euo pipefail
 
 # Default values
-VERSION="17.7"
+VERSION="17.7.0"
 PLATFORM="linux-x64"
 OUTPUT_DIR="./dist"
 NO_CACHE=""
@@ -135,11 +135,16 @@ if ! docker buildx version &> /dev/null; then
     exit 1
 fi
 
+# Derive source version (PostgreSQL source uses 2-part versions like 18.1, not 18.1.0)
+# Strip trailing .0 if present
+SOURCE_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
+
 # Create output directory
 OUTPUT_PATH="${OUTPUT_DIR}/postgresql-${VERSION}-${PLATFORM}"
 mkdir -p "$OUTPUT_PATH"
 
 log_info "Building PostgreSQL ${VERSION} for ${PLATFORM}"
+log_info "Source version: ${SOURCE_VERSION} (for downloading source tarball)"
 log_info "Docker platform: ${DOCKER_PLATFORM}"
 log_info "Output directory: ${OUTPUT_PATH}"
 echo ""
@@ -153,7 +158,8 @@ echo ""
 
 docker buildx build \
     --platform "${DOCKER_PLATFORM}" \
-    --build-arg VERSION="${VERSION}" \
+    --build-arg SOURCE_VERSION="${SOURCE_VERSION}" \
+    --build-arg FULL_VERSION="${VERSION}" \
     --output "type=local,dest=${OUTPUT_PATH}" \
     --progress=plain \
     ${NO_CACHE} \

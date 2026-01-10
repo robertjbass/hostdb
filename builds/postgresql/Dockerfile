@@ -3,20 +3,25 @@
 #
 # Usage:
 #   docker buildx build --platform linux/amd64 \
-#     --build-arg VERSION=17.7 \
+#     --build-arg SOURCE_VERSION=17.7 \
+#     --build-arg FULL_VERSION=17.7.0 \
 #     --output type=local,dest=./dist \
 #     -f builds/postgresql/Dockerfile .
 #
 # Build time: ~15-30 minutes depending on platform and resources
 
-ARG VERSION=17.7
+# SOURCE_VERSION is 2-part (e.g., 18.1) for downloading PostgreSQL source
+# FULL_VERSION is 3-part (e.g., 18.1.0) for artifact naming and metadata
+ARG SOURCE_VERSION=17.7
+ARG FULL_VERSION=17.7.0
 
 # =============================================================================
 # Stage 1: Builder
 # =============================================================================
 FROM ubuntu:22.04 AS builder
 
-ARG VERSION
+ARG SOURCE_VERSION
+ARG FULL_VERSION
 ARG TARGETARCH
 
 # Avoid interactive prompts during package installation
@@ -42,12 +47,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /build
 
 # Download PostgreSQL source
-# Source tarballs are at ftp.postgresql.org/pub/source/v{VERSION}/
-RUN curl -fsSL "https://ftp.postgresql.org/pub/source/v${VERSION}/postgresql-${VERSION}.tar.gz" \
+# Source tarballs use 2-part versions at ftp.postgresql.org/pub/source/v{SOURCE_VERSION}/
+RUN curl -fsSL "https://ftp.postgresql.org/pub/source/v${SOURCE_VERSION}/postgresql-${SOURCE_VERSION}.tar.gz" \
     -o postgresql.tar.gz \
     && tar -xzf postgresql.tar.gz \
     && rm postgresql.tar.gz \
-    && mv postgresql-${VERSION} postgresql-src
+    && mv postgresql-${SOURCE_VERSION} postgresql-src
 
 WORKDIR /build/postgresql-src
 
@@ -79,7 +84,7 @@ RUN cd contrib && make -j$(nproc) && make install
 # =============================================================================
 FROM ubuntu:22.04 AS packager
 
-ARG VERSION
+ARG FULL_VERSION
 ARG TARGETARCH
 
 # Install minimal runtime dependencies for verification
@@ -98,10 +103,11 @@ COPY --from=builder /opt/postgresql /opt/postgresql
 WORKDIR /opt/postgresql
 
 # Map Docker TARGETARCH to hostdb platform naming
+# Use FULL_VERSION (3-part) for metadata
 RUN PLATFORM="linux-x64"; \
     if [ "$TARGETARCH" = "arm64" ]; then PLATFORM="linux-arm64"; fi; \
     printf '{\n  "name": "postgresql",\n  "version": "%s",\n  "platform": "%s",\n  "source": "source-build",\n  "sourceUrl": "https://ftp.postgresql.org/",\n  "rehosted_by": "hostdb",\n  "rehosted_at": "%s"\n}\n' \
-        "${VERSION}" "${PLATFORM}" "$(date -Iseconds)" \
+        "${FULL_VERSION}" "${PLATFORM}" "$(date -Iseconds)" \
         > /opt/postgresql/.hostdb-metadata.json
 
 # Verify key binaries exist
