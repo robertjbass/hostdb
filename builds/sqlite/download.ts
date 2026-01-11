@@ -398,7 +398,7 @@ Examples:
   ./builds/sqlite/download.ts --all-platforms
 `)
         process.exit(0)
-        break
+        break // unreachable, but required for no-fallthrough rule
       default:
         if (args[i].startsWith('-')) {
           logError(`Unknown option: ${args[i]}`)
