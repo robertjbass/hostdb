@@ -211,7 +211,6 @@ jobs:
         with:
           name: sqlite-linux-x64-${{ github.event.inputs.version }}
           path: ./release-assets
-        continue-on-error: true
 
       - name: Download linux-arm64 artifacts
         if: needs.build-linux.result == 'success' && (github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'linux-arm64')
@@ -219,7 +218,6 @@ jobs:
         with:
           name: sqlite-linux-arm64-${{ github.event.inputs.version }}
           path: ./release-assets
-        continue-on-error: true
 
       - name: Download non-Linux artifacts
         if: needs.build-download.result == 'success'

@@ -63,6 +63,11 @@
               "pattern": "^[a-fA-F0-9]{64}$",
               "description": "SHA256 checksum (null if not yet verified)"
             },
+            "sha3_256": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$",
+              "description": "SHA3-256 checksum (used by SQLite instead of SHA256)"
+            },
             "sourceType": {
               "type": "string",
               "enum": ["official", "mariadb4j"],
@@ -80,6 +85,25 @@
               "type": "string",
               "enum": ["build-required"],
               "description": "No binary available, must build from source"
+            },
+            "sourceUrl": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL to download source code for building"
+            },
+            "sha3_256": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$",
+              "description": "SHA3-256 checksum of source archive (used by SQLite)"
+            },
+            "sha256": {
+              "type": ["string", "null"],
+              "pattern": "^[a-fA-F0-9]{64}$",
+              "description": "SHA256 checksum of source archive"
+            },
+            "note": {
+              "type": "string",
+              "description": "Explanation for why source build is required"
             }
           },
           "additionalProperties": false

@@ -74,8 +74,18 @@ RUN . /tmp/platform_env && \
     mkdir -p sqlite/bin && \
     cp /build/output/bin/sqlite3 sqlite/bin/ && \
     chmod 755 sqlite/bin/sqlite3 && \
-    # Add metadata \
-    echo "{\n  \"name\": \"sqlite\",\n  \"version\": \"${VERSION}\",\n  \"platform\": \"${PLATFORM}\",\n  \"source\": \"source-build\",\n  \"tools\": [\"sqlite3\"],\n  \"rehosted_by\": \"hostdb\",\n  \"rehosted_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"\n}" > sqlite/.hostdb-metadata.json
+    # Add metadata
+    cat <<EOF > sqlite/.hostdb-metadata.json
+{
+  "name": "sqlite",
+  "version": "${VERSION}",
+  "platform": "${PLATFORM}",
+  "source": "source-build",
+  "tools": ["sqlite3"],
+  "rehosted_by": "hostdb",
+  "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
 
 # Create tarball with architecture-specific name
 RUN . /tmp/platform_env && \

@@ -94,7 +94,7 @@ SQLite is in the **public domain**. No restrictions on use, modification, or dis
 
 - SQLite is an embedded database - no server process required
 - The CLI tools are statically linked and self-contained
-- Version numbering in filenames: 3.51.2 → 3510200 (MAJOR×1000000 + MINOR×1000 + PATCH×100)
+- Version numbering in filenames: 3.51.2 → 3510200 (MAJOR×1000000 + MINOR×10000 + PATCH×100)
 
 ## Known Limitations
 

@@ -36,6 +36,6 @@
     "checksums": "SQLite uses SHA3-256 checksums (not SHA-256). The sha3_256 field contains these values.",
     "linux-builds": "Both linux-x64 and linux-arm64 are built from source on Ubuntu 20.04 for GLIBC 2.31 compatibility. Official binaries require GLIBC 2.38+ which breaks Ubuntu 22.04 and older.",
     "tools": "The tools package includes sqlite3 (CLI), sqldiff, sqlite3_analyzer, and sqlite3_rsync",
-    "version-format": "SQLite version 3.51.2 = 3510200 in filenames (MAJOR*1000000 + MINOR*1000 + PATCH*100)"
+    "version-format": "SQLite version 3.51.2 = 3510200 in filenames (MAJOR*1000000 + MINOR*10000 + PATCH*100)"
   }
 }
