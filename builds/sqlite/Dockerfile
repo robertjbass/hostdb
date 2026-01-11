@@ -56,6 +56,7 @@ RUN make install
 # Create the final package structure
 WORKDIR /build/package
 ARG VERSION
+ENV VERSION=${VERSION}
 RUN mkdir -p sqlite/bin && \
     cp /build/output/bin/sqlite3 sqlite/bin/ && \
     chmod 755 sqlite/bin/sqlite3 && \
