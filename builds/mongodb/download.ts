@@ -271,9 +271,22 @@ function extractArchive(
       stdio: 'inherit',
     })
   } else if (format === 'zip') {
-    execFileSync('unzip', ['-q', sourcePath, '-d', destDir], {
-      stdio: 'inherit',
-    })
+    if (process.platform === 'win32') {
+      // Use PowerShell's Expand-Archive on Windows (always available)
+      execFileSync(
+        'powershell',
+        [
+          '-NoProfile',
+          '-Command',
+          `Expand-Archive -Path '${sourcePath}' -DestinationPath '${destDir}' -Force`,
+        ],
+        { stdio: 'inherit' },
+      )
+    } else {
+      execFileSync('unzip', ['-q', sourcePath, '-d', destDir], {
+        stdio: 'inherit',
+      })
+    }
   } else {
     throw new Error(
       `Unsupported archive format: '${format}' for file: ${sourcePath}. Supported formats: tar.xz, tar.gz, zip`,
@@ -308,12 +321,13 @@ function copyBinaries(srcBinDir: string, destBinDir: string): void {
 async function downloadAndExtractComponent(
   componentName: string,
   source: SourceEntry,
+  platform: Platform,
   downloadDir: string,
   extractDir: string,
 ): Promise<string> {
   const downloadPath = join(
     downloadDir,
-    `${componentName}-original.${source.format}`,
+    `${componentName}-${platform}-original.${source.format}`,
   )
 
   // Download if not cached
@@ -353,11 +367,13 @@ async function repackage(
   // Verify required commands exist before starting
   verifyCommand('tar')
   if (platform.startsWith('win32')) {
+    // Windows uses 'zip' for output archive; extraction uses PowerShell (always available)
     verifyCommand('zip')
   } else if (platform.startsWith('darwin')) {
-    // macOS components use .zip format
+    // macOS components (mongosh, database-tools) use .zip format
     verifyCommand('unzip')
   }
+  // Linux components use tar.gz, so no unzip needed
 
   const tempDir = resolve(downloadDir, 'temp-bundle')
   const extractDir = resolve(downloadDir, 'temp-extract')
@@ -426,6 +442,7 @@ async function repackage(
         const mongoshExtractDir = await downloadAndExtractComponent(
           'mongosh',
           mongoshSource,
+          platform,
           downloadDir,
           extractDir,
         )
@@ -452,6 +469,7 @@ async function repackage(
         const toolsExtractDir = await downloadAndExtractComponent(
           'database-tools',
           toolsSource,
+          platform,
           downloadDir,
           extractDir,
         )
