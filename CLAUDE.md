@@ -4,6 +4,16 @@ Pre-built database binaries for all major platforms, distributed via GitHub Rele
 
 **Primary consumer:** [spindb](https://github.com/robertjbass/spindb) - a CLI tool for spinning up local database instances
 
+## Versioning & Changelog
+
+When adding a **new database engine**:
+1. Bump the **minor version** in `package.json` (e.g., 0.8.0 → 0.9.0)
+2. Add a changelog entry in `CHANGELOG.md` with the new version and date
+3. Include what was added, any special notes about the implementation
+
+When adding a **new version of an existing database**:
+- No version bump needed - just update `databases.json` and `sources.json`
+
 ## Philosophy
 
 This repository exists to solve one problem: **database binaries should be available for download on every major platform, for every supported version, without relying on third-party sources that may disappear.**
@@ -218,6 +228,65 @@ This creates:
 Then follow the printed instructions to implement the download logic.
 
 See [CHECKLIST.md](./CHECKLIST.md) for the complete checklist.
+
+### Download Script Requirements
+
+When implementing `builds/<database>/download.ts`:
+
+1. **Handle `--` delimiter**: pnpm passes `--` literally when running `pnpm script -- args`. Add a case to ignore it:
+   ```typescript
+   case '--':
+     // Ignore -- (end of options delimiter from pnpm)
+     break
+   ```
+
+2. **ESLint no-fallthrough**: Even after `process.exit()`, ESLint requires a `break` statement:
+   ```typescript
+   case '--help':
+     console.log('...')
+     process.exit(0)
+     break // unreachable, but required for no-fallthrough rule
+   ```
+
+3. **Vendor URL encoding**: Some vendors use unique version encoding in URLs. Document the formula:
+   - SQLite: `3.51.2` → `3510200` (MAJOR×1000000 + MINOR×10000 + PATCH×100)
+   - Add notes in `sources.json` explaining any encoding schemes
+
+### Dockerfile Requirements
+
+When implementing `builds/<database>/Dockerfile` for source builds:
+
+1. **ARG vs ENV scoping**: Docker `ARG` values are only available during build (RUN), not at runtime (CMD/ENTRYPOINT). To use a build arg in CMD:
+   ```dockerfile
+   ARG VERSION
+   ENV VERSION=${VERSION}  # Persist ARG to runtime
+   CMD cp /build/output-${VERSION}.tar.gz /dist/
+   ```
+
+2. **Version number calculations**: If version needs encoding, do it in a RUN step and save to a file:
+   ```dockerfile
+   RUN VERSION_NUM=$(echo "${VERSION}" | awk -F. '{printf "%d%02d%02d00", $1, $2, $3}') && \
+       echo "VERSION_NUM=${VERSION_NUM}" > /tmp/version_env
+   ```
+
+### Workflow Requirements
+
+When implementing `.github/workflows/release-<database>.yml`:
+
+1. **Release job condition**: If you have multiple build jobs (e.g., one for downloads, one for source builds), use this pattern to prevent partial releases:
+   ```yaml
+   release:
+     needs: [build-download, build-source]
+     if: always() && (needs.build-download.result == 'success' || needs.build-download.result == 'skipped') && (needs.build-source.result == 'success' || needs.build-source.result == 'skipped')
+   ```
+   This ensures the release only happens if all required jobs either succeed or were intentionally skipped.
+
+2. **Conditional artifact downloads**: Only download artifacts from jobs that actually ran:
+   ```yaml
+   - name: Download source build artifacts
+     if: needs.build-source.result == 'success'
+     uses: actions/download-artifact@v4
+   ```
 
 ## Adding New Versions
 
