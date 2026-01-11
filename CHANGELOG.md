@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1] - 2026-01-11
+
+### Added
+
+- **MySQL 9.5.0** (Innovation release) - First MySQL 9.x version
+  - Official binaries from Oracle CDN for all 5 platforms
+  - Uses `macos15` (Sequoia) binaries instead of `macos14` (Sonoma)
+  - Note: MySQL 9.x is an Innovation release with shorter support window (~3-6 months)
+  - LTS users should continue using 8.4.x
+
 ## [0.9.0] - 2026-01-10
 
 ### Added

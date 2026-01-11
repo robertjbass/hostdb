@@ -536,6 +536,7 @@
       "note": "",
       "latestLts": "8.4",
       "versions": {
+        "9.5.0": true,
         "8.4.7": true,
         "8.0.40": true
       },
