@@ -67,6 +67,11 @@ type SourcesJson = {
   notes: Record<string, string>
 }
 
+// Databases that use non-SHA256 checksums (must be populated manually)
+const SKIP_DATABASES = new Set([
+  'sqlite', // Uses SHA3-256, checksums provided by vendor
+])
+
 
 const FETCH_TIMEOUT_MS = 10 * 60 * 1000 // 10 minutes for large files
 
@@ -139,6 +144,14 @@ ${colors.yellow}Examples:${colors.reset}
   const force = args.includes('--force')
   const verify = args.includes('--verify')
   const processAll = args.includes('--all')
+
+  // Check if database uses a different checksum algorithm
+  if (SKIP_DATABASES.has(database)) {
+    logError(`${database} uses a non-SHA256 checksum algorithm.`)
+    logInfo(`Checksums must be copied manually from the vendor's download page.`)
+    logInfo(`See builds/${database}/sources.json for the correct field name (e.g., sha3_256).`)
+    process.exit(1)
+  }
 
   // Get enabled versions from databases.json
   const enabledVersions = getEnabledVersions(database)

@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2026-01-10
+
+### Added
+
+- **SQLite support** with full 5-platform coverage
+  - Version 3.51.2 (latest stable)
+  - Official binaries from `sqlite.org` for linux-x64, darwin-x64, darwin-arm64, win32-x64
+  - Source build from amalgamation for linux-arm64 (no official binary available)
+  - Includes sqlite3 CLI, sqldiff, sqlite3_analyzer, sqlite3_rsync
+  - Public domain license (no restrictions)
+
+- **Checksums documentation** added to CLAUDE.md
+  - Most databases use SHA-256 (auto-populated via `pnpm checksums:populate`)
+  - SQLite uses SHA3-256 (copied manually from vendor)
+  - Guidance for handling different checksum algorithms
+
+### Changed
+
+- **MongoDB database-tools** updated from 100.13.0 to 100.14.0
+
 ## [0.8.0] - 2026-01-10
 
 ### Added

@@ -1,0 +1,40 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "sqlite",
+  "versions": {
+    "3.51.2": {
+      "linux-x64": {
+        "url": "https://sqlite.org/2026/sqlite-tools-linux-x64-3510200.zip",
+        "format": "zip",
+        "sha3_256": "cd04740c391542745fec69f930714471e17d67dd454dc19fbdb6d1be61ec822e"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required",
+        "sourceUrl": "https://sqlite.org/2026/sqlite-amalgamation-3510200.zip",
+        "sha3_256": "9a9dd4eef7a97809bfacd84a7db5080a5c0eff7aaf1fc1aca20a6dc9a0c26f96"
+      },
+      "darwin-x64": {
+        "url": "https://sqlite.org/2026/sqlite-tools-osx-x64-3510200.zip",
+        "format": "zip",
+        "sha3_256": "273a53d3779c5a18a2d20c838ba08bd1e1b93c086a5079424d5d5058a7dda120"
+      },
+      "darwin-arm64": {
+        "url": "https://sqlite.org/2026/sqlite-tools-osx-arm64-3510200.zip",
+        "format": "zip",
+        "sha3_256": "437d2ea93086ceb2c85b30544bb639a601d4f5ef786df50669721707cb423117"
+      },
+      "win32-x64": {
+        "url": "https://sqlite.org/2026/sqlite-tools-win-x64-3510200.zip",
+        "format": "zip",
+        "sha3_256": "376f112fd7534b13cb0aa6a0ac8de6613085d6415015de84fd0dfdfc9e92e5c3"
+      }
+    }
+  },
+  "notes": {
+    "license": "Public Domain - SQLite is released into the public domain with no restrictions on use",
+    "checksums": "SQLite uses SHA3-256 checksums (not SHA-256). The sha3_256 field contains these values.",
+    "linux-arm64": "No official prebuilt binary available; requires source build from amalgamation",
+    "tools": "The tools package includes sqlite3 (CLI), sqldiff, sqlite3_analyzer, and sqlite3_rsync",
+    "version-format": "SQLite version 3.51.2 = 3510200 in filenames (MAJOR*1000000 + MINOR*1000 + PATCH*100)"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Pre-built database binaries for multiple platforms, distributed via GitHub Releases",
   "private": true,
   "type": "module",
@@ -19,6 +19,7 @@
     "download:mysql": "tsx builds/mysql/download.ts",
     "download:postgresql": "tsx builds/postgresql/download.ts",
     "download:redis": "tsx builds/redis/download.ts",
+    "download:sqlite": "tsx builds/sqlite/download.ts",
     "download:valkey": "tsx builds/valkey/download.ts",
     "edb:fileids": "tsx scripts/fetch-edb-fileids.ts",
     "format": "prettier --write .",

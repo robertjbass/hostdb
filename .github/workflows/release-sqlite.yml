@@ -1,0 +1,309 @@
+name: Release SQLite
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'SQLite version'
+        required: true
+        type: choice
+        options:
+          - 3.51.2
+        default: 3.51.2
+      platforms:
+        description: 'Platforms'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'linux-x64'
+          - 'linux-arm64'
+          - 'darwin-x64'
+          - 'darwin-arm64'
+          - 'win32-x64'
+
+# Prevent concurrent runs that could conflict when updating releases.json
+concurrency:
+  group: release-sqlite
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version against databases.json
+        run: |
+          DB="sqlite"
+
+          echo "Validating SQLite version: $VERSION"
+
+          # Check if version exists and is enabled in databases.json
+          ENABLED=$(jq -r ".databases.$DB.versions[\"$VERSION\"] // false" databases.json)
+          if [ "$ENABLED" != "true" ]; then
+            echo "::error::Version '$VERSION' is not enabled in databases.json"
+            echo ""
+            echo "Available versions:"
+            jq -r ".databases.$DB.versions | to_entries | map(select(.value == true)) | .[].key" databases.json
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION is enabled in databases.json"
+
+      - name: Validate sources.json exists
+        run: |
+          DB="sqlite"
+          if [ ! -f "builds/$DB/sources.json" ]; then
+            echo "::error::Missing builds/$DB/sources.json"
+            exit 1
+          fi
+          echo "✓ builds/$DB/sources.json exists"
+
+      - name: Validate version in sources.json
+        run: |
+          DB="sqlite"
+
+          HAS_VERSION=$(jq -r ".versions[\"$VERSION\"] // empty" "builds/$DB/sources.json")
+          if [ -z "$HAS_VERSION" ]; then
+            echo "::error::Version '$VERSION' not found in builds/$DB/sources.json"
+            echo ""
+            echo "Available versions in sources.json:"
+            jq -r ".versions | keys[]" "builds/$DB/sources.json"
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION found in sources.json"
+
+  # Build linux-arm64 from source (no official binary available)
+  build-arm64:
+    needs: validate
+    if: github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'linux-arm64'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build SQLite for linux-arm64
+        run: |
+          mkdir -p dist
+
+          # Build Docker image for ARM64
+          docker buildx build \
+            --platform linux/arm64 \
+            --build-arg VERSION="$VERSION" \
+            --load \
+            -t sqlite-builder:$VERSION \
+            builds/sqlite/
+
+          # Extract artifact
+          docker run --rm \
+            --platform linux/arm64 \
+            -v "$(pwd)/dist:/dist" \
+            sqlite-builder:$VERSION
+
+          ls -la dist/
+
+      - name: Upload arm64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sqlite-arm64-${{ github.event.inputs.version }}
+          path: dist/*.tar.gz
+          retention-days: 1
+
+  # Download official binaries for other platforms
+  build-download:
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+      PLATFORMS: ${{ github.event.inputs.platforms }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download and repackage SQLite
+        run: |
+          # Download for all platforms except linux-arm64 (built separately)
+          if [ "$PLATFORMS" = "all" ]; then
+            for platform in linux-x64 darwin-x64 darwin-arm64 win32-x64; do
+              pnpm download:sqlite -- --version "$VERSION" --platform "$platform" --output ./dist
+            done
+          elif [ "$PLATFORMS" != "linux-arm64" ]; then
+            pnpm download:sqlite -- --version "$VERSION" --platform "$PLATFORMS" --output ./dist
+          fi
+
+          ls -la ./dist/ || echo "No downloads (linux-arm64 only build)"
+
+      - name: Upload download artifacts
+        if: github.event.inputs.platforms != 'linux-arm64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sqlite-downloads-${{ github.event.inputs.version }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+          retention-days: 1
+
+  release:
+    needs: [build-arm64, build-download]
+    if: always() && (needs.build-arm64.result == 'success' || needs.build-arm64.result == 'skipped') && (needs.build-download.result == 'success' || needs.build-download.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download arm64 artifacts
+        if: needs.build-arm64.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: sqlite-arm64-${{ github.event.inputs.version }}
+          path: ./release-assets
+
+      - name: Download other artifacts
+        if: needs.build-download.result == 'success' && github.event.inputs.platforms != 'linux-arm64'
+        uses: actions/download-artifact@v4
+        with:
+          name: sqlite-downloads-${{ github.event.inputs.version }}
+          path: ./release-assets
+
+      - name: Generate checksums
+        run: |
+          cd release-assets
+          sha256sum *.tar.gz *.zip 2>/dev/null > checksums.txt || sha256sum *.tar.gz > checksums.txt || echo "No files to checksum"
+          cat checksums.txt || true
+
+      - name: List release assets
+        run: ls -la ./release-assets/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: sqlite-${{ github.event.inputs.version }}
+          name: SQLite ${{ github.event.inputs.version }}
+          body: |
+            ## SQLite ${{ github.event.inputs.version }}
+
+            SQLite command-line tools repackaged for hostdb.
+
+            SQLite is a self-contained, serverless, zero-configuration SQL database engine.
+
+            ### License
+
+            SQLite is in the **public domain**. No restrictions on use, modification, or distribution.
+
+            ### Included Tools
+
+            - `sqlite3` - Interactive command-line shell
+            - `sqldiff` - Database diff utility
+            - `sqlite3_analyzer` - Storage analyzer
+            - `sqlite3_rsync` - Remote database sync
+
+            ### Platforms
+            - `linux-x64` - Linux x86_64 (official binary)
+            - `linux-arm64` - Linux ARM64 (source build)
+            - `darwin-x64` - macOS Intel (official binary)
+            - `darwin-arm64` - macOS Apple Silicon (official binary)
+            - `win32-x64` - Windows x64 (official binary)
+
+            ### Usage
+            ```bash
+            # Download URL pattern
+            https://github.com/${{ github.repository }}/releases/download/sqlite-${{ github.event.inputs.version }}/sqlite-${{ github.event.inputs.version }}-<platform>.tar.gz
+            ```
+
+            ### Checksums
+            See `checksums.txt` for SHA256 checksums.
+
+            ### Source
+            Official binaries from [sqlite.org](https://sqlite.org/download.html). Linux ARM64 built from source.
+          files: |
+            release-assets/*.tar.gz
+            release-assets/*.zip
+            release-assets/checksums.txt
+          fail_on_unmatched_files: false
+
+  update-manifest:
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update releases.json
+        run: |
+          pnpm tsx scripts/update-releases.ts \
+            --database sqlite \
+            --version "$VERSION" \
+            --tag "sqlite-$VERSION"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add releases.json
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "chore: update releases.json for sqlite-$VERSION"
+
+          # Retry push with rebase if remote has changed
+          for i in 1 2 3; do
+            if git push; then
+              echo "Push succeeded"
+              exit 0
+            fi
+            echo "Push failed, attempting rebase (attempt $i/3)..."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "ERROR: Rebase failed due to conflicts. Manual intervention required."
+              git rebase --abort
+              exit 1
+            fi
+            sleep $((2**i))
+          done
+          echo "ERROR: Push failed after 3 attempts"
+          exit 1

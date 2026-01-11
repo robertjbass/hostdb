@@ -803,7 +803,7 @@
       "note": "",
       "latestLts": "3.51",
       "versions": {
-        "3.51.1": true
+        "3.51.2": true
       },
       "platforms": {
         "linux-x64": true,

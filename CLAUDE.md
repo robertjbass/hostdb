@@ -229,6 +229,17 @@ When adding a new version to an existing database:
 
 **That's it.** The prep script handles syncing workflow dropdowns and populating SHA256 checksums automatically.
 
+## Checksums
+
+Most databases use **SHA-256** checksums. The `pnpm checksums:populate` script downloads files and computes checksums automatically.
+
+**Exception - SQLite**: SQLite uses **SHA3-256** checksums (different algorithm). These are provided directly on [sqlite.org/download.html](https://sqlite.org/download.html) and must be copied manually to `sources.json` using the `sha3_256` field instead of `sha256`.
+
+When adding a new database:
+1. Check the vendor's download page for checksum format (SHA-256, SHA3-256, SHA-512, etc.)
+2. If SHA-256, use `pnpm checksums:populate <database>` to auto-populate
+3. If different algorithm, copy checksums manually and use appropriate field name (e.g., `sha3_256`)
+
 ```bash
 # Sync all workflows
 pnpm sync:versions

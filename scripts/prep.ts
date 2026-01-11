@@ -76,6 +76,7 @@ function runCommand(
 type SourceEntry = {
   url?: string
   sha256?: string | null
+  sha3_256?: string | null // SQLite uses SHA3-256
   sourceType?: string
 }
 
@@ -111,7 +112,9 @@ function findMissingChecksums(): Array<{ database: string; version: string; plat
 
         for (const [platform, entry] of Object.entries(platforms)) {
           // Only check entries with URLs (not build-required)
-          if (entry.url && (entry.sha256 === null || entry.sha256 === undefined)) {
+          // Accept either sha256 or sha3_256 (SQLite uses SHA3-256)
+          const hasChecksum = entry.sha256 || entry.sha3_256
+          if (entry.url && !hasChecksum) {
             missing.push({ database, version, platform })
           }
         }
