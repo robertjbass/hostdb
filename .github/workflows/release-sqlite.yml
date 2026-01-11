@@ -79,53 +79,80 @@ jobs:
 
           echo "✓ Version $VERSION found in sources.json"
 
-  # Build linux-arm64 from source (no official binary available)
-  build-arm64:
+  # Build Linux binaries from source for GLIBC 2.31 compatibility
+  # Official SQLite binaries require GLIBC 2.38+ which breaks Ubuntu 22.04
+  build-linux:
     needs: validate
-    if: github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'linux-arm64'
+    if: github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'linux-x64' || github.event.inputs.platforms == 'linux-arm64'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            docker_platform: linux/amd64
+          - platform: linux-arm64
+            docker_platform: linux/arm64
     env:
       VERSION: ${{ github.event.inputs.version }}
     steps:
+      - name: Check if platform should be built
+        id: check
+        run: |
+          PLATFORMS="${{ github.event.inputs.platforms }}"
+          PLATFORM="${{ matrix.platform }}"
+          if [ "$PLATFORMS" = "all" ] || [ "$PLATFORMS" = "$PLATFORM" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout
+        if: steps.check.outputs.should_build == 'true'
         uses: actions/checkout@v4
 
       - name: Set up QEMU
+        if: steps.check.outputs.should_build == 'true'
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
+        if: steps.check.outputs.should_build == 'true'
         uses: docker/setup-buildx-action@v3
 
-      - name: Build SQLite for linux-arm64
+      - name: Build SQLite for ${{ matrix.platform }}
+        if: steps.check.outputs.should_build == 'true'
         run: |
           mkdir -p dist
 
-          # Build Docker image for ARM64
+          # Build Docker image for target platform
           docker buildx build \
-            --platform linux/arm64 \
+            --platform ${{ matrix.docker_platform }} \
             --build-arg VERSION="$VERSION" \
             --load \
-            -t sqlite-builder:$VERSION \
+            -t sqlite-builder:$VERSION-${{ matrix.platform }} \
             builds/sqlite/
 
           # Extract artifact
           docker run --rm \
-            --platform linux/arm64 \
+            --platform ${{ matrix.docker_platform }} \
             -v "$(pwd)/dist:/dist" \
-            sqlite-builder:$VERSION
+            sqlite-builder:$VERSION-${{ matrix.platform }}
 
           ls -la dist/
 
-      - name: Upload arm64 artifact
+      - name: Upload ${{ matrix.platform }} artifact
+        if: steps.check.outputs.should_build == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: sqlite-arm64-${{ github.event.inputs.version }}
+          name: sqlite-${{ matrix.platform }}-${{ github.event.inputs.version }}
           path: dist/*.tar.gz
           retention-days: 1
 
-  # Download official binaries for other platforms
+  # Download official binaries for non-Linux platforms (macOS, Windows)
+  # Linux binaries are built from source for GLIBC compatibility
   build-download:
     needs: validate
+    if: github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'darwin-x64' || github.event.inputs.platforms == 'darwin-arm64' || github.event.inputs.platforms == 'win32-x64'
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ github.event.inputs.version }}
@@ -148,19 +175,18 @@ jobs:
 
       - name: Download and repackage SQLite
         run: |
-          # Download for all platforms except linux-arm64 (built separately)
+          # Download for non-Linux platforms only (Linux is built from source)
           if [ "$PLATFORMS" = "all" ]; then
-            for platform in linux-x64 darwin-x64 darwin-arm64 win32-x64; do
+            for platform in darwin-x64 darwin-arm64 win32-x64; do
               pnpm download:sqlite -- --version "$VERSION" --platform "$platform" --output ./dist
             done
-          elif [ "$PLATFORMS" != "linux-arm64" ]; then
+          else
             pnpm download:sqlite -- --version "$VERSION" --platform "$PLATFORMS" --output ./dist
           fi
 
-          ls -la ./dist/ || echo "No downloads (linux-arm64 only build)"
+          ls -la ./dist/
 
       - name: Upload download artifacts
-        if: github.event.inputs.platforms != 'linux-arm64'
         uses: actions/upload-artifact@v4
         with:
           name: sqlite-downloads-${{ github.event.inputs.version }}
@@ -170,8 +196,8 @@ jobs:
           retention-days: 1
 
   release:
-    needs: [build-arm64, build-download]
-    if: always() && (needs.build-arm64.result == 'success' || needs.build-arm64.result == 'skipped') && (needs.build-download.result == 'success' || needs.build-download.result == 'skipped')
+    needs: [build-linux, build-download]
+    if: always() && (needs.build-linux.result == 'success' || needs.build-linux.result == 'skipped') && (needs.build-download.result == 'success' || needs.build-download.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -179,15 +205,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download arm64 artifacts
-        if: needs.build-arm64.result == 'success'
+      - name: Download linux-x64 artifacts
+        if: needs.build-linux.result == 'success' && (github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'linux-x64')
         uses: actions/download-artifact@v4
         with:
-          name: sqlite-arm64-${{ github.event.inputs.version }}
+          name: sqlite-linux-x64-${{ github.event.inputs.version }}
           path: ./release-assets
+        continue-on-error: true
 
-      - name: Download other artifacts
-        if: needs.build-download.result == 'success' && github.event.inputs.platforms != 'linux-arm64'
+      - name: Download linux-arm64 artifacts
+        if: needs.build-linux.result == 'success' && (github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'linux-arm64')
+        uses: actions/download-artifact@v4
+        with:
+          name: sqlite-linux-arm64-${{ github.event.inputs.version }}
+          path: ./release-assets
+        continue-on-error: true
+
+      - name: Download non-Linux artifacts
+        if: needs.build-download.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: sqlite-downloads-${{ github.event.inputs.version }}
@@ -233,8 +268,8 @@ jobs:
             - `sqlite3_rsync` - Remote database sync
 
             ### Platforms
-            - `linux-x64` - Linux x86_64 (official binary)
-            - `linux-arm64` - Linux ARM64 (source build)
+            - `linux-x64` - Linux x86_64 (source build, GLIBC 2.31+)
+            - `linux-arm64` - Linux ARM64 (source build, GLIBC 2.31+)
             - `darwin-x64` - macOS Intel (official binary)
             - `darwin-arm64` - macOS Apple Silicon (official binary)
             - `win32-x64` - Windows x64 (official binary)
@@ -249,7 +284,8 @@ jobs:
             See `checksums.txt` for SHA256 checksums.
 
             ### Source
-            Official binaries from [sqlite.org](https://sqlite.org/download.html). Linux ARM64 built from source.
+            Official binaries from [sqlite.org](https://sqlite.org/download.html) for macOS and Windows.
+            Linux binaries built from source on Ubuntu 20.04 for GLIBC 2.31 compatibility (works on Ubuntu 20.04+).
           files: |
             release-assets/*.tar.gz
             release-assets/*.zip

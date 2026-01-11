@@ -7,8 +7,9 @@
 #   ./builds/sqlite/build-local.sh --version 3.51.2
 #   ./builds/sqlite/build-local.sh --version 3.51.2 --platform linux-arm64
 #
-# This script builds SQLite for linux-arm64 (the only platform requiring source build).
-# Other platforms have official binaries available via download.ts.
+# This script builds SQLite for Linux platforms (linux-x64, linux-arm64).
+# Official SQLite binaries require GLIBC 2.38+, so we build from source for compatibility.
+# macOS and Windows have official binaries available via download.ts.
 
 set -e
 
@@ -20,17 +21,18 @@ show_help() {
     cat << EOF
 Usage: $0 [options]
 
-Build SQLite from source using Docker.
+Build SQLite from source using Docker for GLIBC 2.31 compatibility.
 
 Options:
     --version VERSION    SQLite version (default: $VERSION)
-    --platform PLATFORM  Target platform (default: $PLATFORM)
-                         Only linux-arm64 is supported for source builds
+    --platform PLATFORM  Target platform: linux-x64 or linux-arm64 (default: $PLATFORM)
     --help               Show this help message
 
 Examples:
     $0
     $0 --version 3.51.2
+    $0 --version 3.51.2 --platform linux-x64
+    $0 --version 3.51.2 --platform linux-arm64
 EOF
     exit "${1:-0}"
 }
@@ -55,12 +57,21 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Validate platform
-if [[ "$PLATFORM" != "linux-arm64" ]]; then
-    echo "Error: Only linux-arm64 requires source build"
-    echo "Use 'pnpm download:sqlite' for other platforms"
-    exit 1
-fi
+# Validate platform and set Docker platform
+case "$PLATFORM" in
+    linux-x64)
+        DOCKER_PLATFORM="linux/amd64"
+        ;;
+    linux-arm64)
+        DOCKER_PLATFORM="linux/arm64"
+        ;;
+    *)
+        echo "Error: Unsupported platform: $PLATFORM"
+        echo "Supported platforms: linux-x64, linux-arm64"
+        echo "Use 'pnpm download:sqlite' for macOS and Windows"
+        exit 1
+        ;;
+esac
 
 # Validate version format
 if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -87,16 +98,16 @@ mkdir -p "$OUTPUT_DIR"
 echo "Building Docker image..."
 docker build \
     --build-arg VERSION="$VERSION" \
-    --platform linux/arm64 \
-    -t sqlite-builder:$VERSION \
+    --platform "$DOCKER_PLATFORM" \
+    -t "sqlite-builder:$VERSION-$PLATFORM" \
     "$SCRIPT_DIR"
 
 # Run container to extract artifact
 echo "Extracting artifact..."
 docker run --rm \
-    --platform linux/arm64 \
+    --platform "$DOCKER_PLATFORM" \
     -v "$OUTPUT_DIR:/dist" \
-    sqlite-builder:$VERSION
+    "sqlite-builder:$VERSION-$PLATFORM"
 
 echo ""
 echo "Build complete!"

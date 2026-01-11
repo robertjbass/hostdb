@@ -11,6 +11,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { execSync } from 'node:child_process'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT_DIR = resolve(__dirname, '..')
@@ -247,6 +248,17 @@ async function main() {
   console.log(
     `  Platforms: ${Object.keys(versionRelease.platforms).join(', ')}`,
   )
+
+  // Run reconciliation to remove any stale entries
+  console.log('\nRunning reconciliation to validate releases...')
+  try {
+    execSync('pnpm tsx scripts/reconcile-releases.ts', {
+      cwd: ROOT_DIR,
+      stdio: 'inherit',
+    })
+  } catch {
+    console.warn('Warning: Reconciliation failed, but release was updated')
+  }
 }
 
 main().catch((err) => {

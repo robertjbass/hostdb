@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.3] - 2026-01-11
+
+### Fixed
+
+- **SQLite Linux binaries GLIBC compatibility**
+  - Official SQLite binaries from sqlite.org require GLIBC 2.38+, breaking Ubuntu 22.04 and older
+  - Both `linux-x64` and `linux-arm64` now build from source on Ubuntu 20.04
+  - Binaries now require only GLIBC 2.31+ (compatible with Ubuntu 20.04+)
+  - macOS and Windows continue using official binaries (unaffected by GLIBC)
+
+### Changed
+
+- **SQLite Dockerfile** updated to use Ubuntu 20.04 base image and support both x64/arm64
+- **SQLite workflow** restructured with `build-linux` matrix job for source builds
+- **SQLite build-local.sh** now supports `--platform linux-x64` in addition to `linux-arm64`
+
+## [0.9.2] - 2026-01-11
+
+### Added
+
+- **Release reconciliation script** (`pnpm reconcile:releases`)
+  - Validates `releases.json` against actual GitHub releases
+  - Removes stale entries for releases that no longer exist (deleted binaries)
+  - Supports `--dry-run` flag to preview changes without modifying
+  - Handles pagination for repositories with many releases
+  - Uses `GITHUB_TOKEN` env var if available to avoid rate limits
+
+### Changed
+
+- **`update:releases` script** now automatically runs reconciliation after appending new releases
+  - Ensures `releases.json` stays in sync with GitHub even when releases are deleted
+
 ## [0.9.1] - 2026-01-11
 
 ### Added

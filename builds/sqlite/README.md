@@ -14,11 +14,13 @@ SQLite doesn't have LTS versions - they expect everyone to use the latest due to
 
 | Platform | Source | Notes |
 |----------|--------|-------|
-| linux-x64 | Official binary | From sqlite.org |
-| linux-arm64 | **Source build** | No official binary available |
+| linux-x64 | **Source build** | GLIBC 2.31+ (Ubuntu 20.04+) |
+| linux-arm64 | **Source build** | GLIBC 2.31+ (Ubuntu 20.04+) |
 | darwin-x64 | Official binary | From sqlite.org |
 | darwin-arm64 | Official binary | From sqlite.org |
 | win32-x64 | Official binary | From sqlite.org |
+
+**Why source builds for Linux?** Official SQLite binaries require GLIBC 2.38+, which breaks compatibility with Ubuntu 22.04 and older. We build from source on Ubuntu 20.04 to ensure compatibility with GLIBC 2.31+.
 
 ## Included Tools
 
@@ -47,16 +49,19 @@ pnpm download:sqlite -- --version 3.51.2 --platform darwin-arm64
 pnpm download:sqlite -- --all-platforms
 ```
 
-## Building linux-arm64
+## Building Linux Binaries
 
-Since SQLite doesn't provide ARM64 Linux binaries, we build from source:
+Both Linux platforms are built from source using Docker for GLIBC 2.31 compatibility:
 
 ```bash
-# Local Docker build
-./builds/sqlite/build-local.sh --version 3.51.2
+# Local Docker build for linux-arm64
+./builds/sqlite/build-local.sh --version 3.51.2 --platform linux-arm64
+
+# Local Docker build for linux-x64
+./builds/sqlite/build-local.sh --version 3.51.2 --platform linux-x64
 
 # Or via GitHub Actions workflow
-# (automatically handles linux-arm64 with Docker build)
+# (automatically builds both Linux platforms with Docker)
 ```
 
 ## Output Structure
@@ -90,3 +95,8 @@ SQLite is in the **public domain**. No restrictions on use, modification, or dis
 - SQLite is an embedded database - no server process required
 - The CLI tools are statically linked and self-contained
 - Version numbering in filenames: 3.51.2 → 3510200 (MAJOR×1000000 + MINOR×1000 + PATCH×100)
+
+## Known Limitations
+
+- **Linux source builds only include sqlite3 CLI** - The other tools (sqldiff, sqlite3_analyzer, sqlite3_rsync) are not built from source. macOS and Windows official binaries include all 4 tools.
+  - TODO: Build all tools from full source tree for Linux platform parity (low priority - sqlite3 CLI covers primary use case)

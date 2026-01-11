@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.9.1",
+  "version": "0.9.3",
   "description": "Pre-built database binaries for multiple platforms, distributed via GitHub Releases",
   "private": true,
   "type": "module",
@@ -25,6 +25,7 @@
     "format": "prettier --write .",
     "lint": "tsc --noEmit && eslint .",
     "prep": "tsx scripts/prep.ts",
+    "reconcile:releases": "tsx scripts/reconcile-releases.ts",
     "sync:versions": "tsx scripts/sync-versions.ts",
     "update:releases": "tsx scripts/update-releases.ts"
   },

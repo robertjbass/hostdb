@@ -4,9 +4,10 @@
   "versions": {
     "3.51.2": {
       "linux-x64": {
-        "url": "https://sqlite.org/2026/sqlite-tools-linux-x64-3510200.zip",
-        "format": "zip",
-        "sha3_256": "cd04740c391542745fec69f930714471e17d67dd454dc19fbdb6d1be61ec822e"
+        "sourceType": "build-required",
+        "sourceUrl": "https://sqlite.org/2026/sqlite-amalgamation-3510200.zip",
+        "sha3_256": "9a9dd4eef7a97809bfacd84a7db5080a5c0eff7aaf1fc1aca20a6dc9a0c26f96",
+        "note": "Official binaries require GLIBC 2.38+; build from source for Ubuntu 20.04+ compatibility"
       },
       "linux-arm64": {
         "sourceType": "build-required",
@@ -33,7 +34,7 @@
   "notes": {
     "license": "Public Domain - SQLite is released into the public domain with no restrictions on use",
     "checksums": "SQLite uses SHA3-256 checksums (not SHA-256). The sha3_256 field contains these values.",
-    "linux-arm64": "No official prebuilt binary available; requires source build from amalgamation",
+    "linux-builds": "Both linux-x64 and linux-arm64 are built from source on Ubuntu 20.04 for GLIBC 2.31 compatibility. Official binaries require GLIBC 2.38+ which breaks Ubuntu 22.04 and older.",
     "tools": "The tools package includes sqlite3 (CLI), sqldiff, sqlite3_analyzer, and sqlite3_rsync",
     "version-format": "SQLite version 3.51.2 = 3510200 in filenames (MAJOR*1000000 + MINOR*1000 + PATCH*100)"
   }
