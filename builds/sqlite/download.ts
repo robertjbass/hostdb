@@ -399,6 +399,9 @@ Examples:
 `)
         process.exit(0)
         break // unreachable, but required for no-fallthrough rule
+      case '--':
+        // Ignore -- (end of options delimiter from pnpm)
+        break
       default:
         if (args[i].startsWith('-')) {
           logError(`Unknown option: ${args[i]}`)
