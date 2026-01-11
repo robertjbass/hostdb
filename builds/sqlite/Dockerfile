@@ -1,16 +1,20 @@
-# Build SQLite tools from source for Linux ARM64
+# Build SQLite tools from source for Linux (x64 and ARM64)
 #
-# SQLite doesn't provide official ARM64 binaries, so we build from the amalgamation.
-# The amalgamation is a single sqlite3.c file that compiles everything.
+# SQLite official binaries have high GLIBC requirements (2.38+), so we build from
+# source on Ubuntu 20.04 for maximum compatibility (GLIBC 2.31).
 #
 # Usage:
 #   docker build --build-arg VERSION=3.51.2 -t sqlite-builder .
 #   docker run --rm -v $(pwd)/dist:/dist sqlite-builder
 #
-# Output: /dist/sqlite-3.51.2-linux-arm64.tar.gz
+# For cross-architecture builds:
+#   docker buildx build --platform linux/arm64 --build-arg VERSION=3.51.2 ...
+#   docker buildx build --platform linux/amd64 --build-arg VERSION=3.51.2 ...
+#
+# Output: /dist/sqlite-3.51.2-linux-{x64,arm64}.tar.gz
 
-ARG UBUNTU_VERSION=22.04
-FROM ubuntu:${UBUNTU_VERSION}
+# Ubuntu 20.04 provides GLIBC 2.31, compatible with Ubuntu 20.04+
+FROM ubuntu:20.04
 
 ARG VERSION=3.51.2
 
@@ -57,14 +61,29 @@ RUN make install
 WORKDIR /build/package
 ARG VERSION
 ENV VERSION=${VERSION}
-RUN mkdir -p sqlite/bin && \
+
+# Detect architecture and map to hostdb platform names
+# Docker sets TARGETARCH to amd64/arm64, we convert to x64/arm64
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then PLATFORM="linux-x64"; \
+    elif [ "$ARCH" = "aarch64" ]; then PLATFORM="linux-arm64"; \
+    else echo "Unknown architecture: $ARCH" && exit 1; fi && \
+    echo "PLATFORM=${PLATFORM}" > /tmp/platform_env
+
+RUN . /tmp/platform_env && \
+    mkdir -p sqlite/bin && \
     cp /build/output/bin/sqlite3 sqlite/bin/ && \
     chmod 755 sqlite/bin/sqlite3 && \
     # Add metadata \
-    echo "{\n  \"name\": \"sqlite\",\n  \"version\": \"${VERSION}\",\n  \"platform\": \"linux-arm64\",\n  \"source\": \"source-build\",\n  \"tools\": [\"sqlite3\"],\n  \"rehosted_by\": \"hostdb\",\n  \"rehosted_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"\n}" > sqlite/.hostdb-metadata.json
+    echo "{\n  \"name\": \"sqlite\",\n  \"version\": \"${VERSION}\",\n  \"platform\": \"${PLATFORM}\",\n  \"source\": \"source-build\",\n  \"tools\": [\"sqlite3\"],\n  \"rehosted_by\": \"hostdb\",\n  \"rehosted_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"\n}" > sqlite/.hostdb-metadata.json
 
-# Create tarball
-RUN tar -czf /build/sqlite-${VERSION}-linux-arm64.tar.gz sqlite
+# Create tarball with architecture-specific name
+RUN . /tmp/platform_env && \
+    tar -czf /build/sqlite-${VERSION}-${PLATFORM}.tar.gz sqlite
 
-# Copy to output on container run
-CMD cp /build/sqlite-${VERSION}-linux-arm64.tar.gz /dist/
+# Copy to output on container run (detect platform at runtime)
+CMD ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then PLATFORM="linux-x64"; \
+    elif [ "$ARCH" = "aarch64" ]; then PLATFORM="linux-arm64"; \
+    else echo "Unknown architecture: $ARCH" && exit 1; fi && \
+    cp /build/sqlite-${VERSION}-${PLATFORM}.tar.gz /dist/
