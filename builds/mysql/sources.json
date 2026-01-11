@@ -86,7 +86,7 @@
   },
   "notes": {
     "glibc": "Linux binaries require glibc 2.28+ (Ubuntu 20.04+, Debian 10+, RHEL 8+)",
-    "macos": "macOS binaries target macOS 14 (Sonoma) but may work on earlier versions",
+    "macos": "macOS binaries target macos14 (Sonoma) for 8.x versions; MySQL 9.5.0+ targets macos15 (Sequoia). Binaries may work on earlier macOS versions.",
     "cdn": "Use cdn.mysql.com/archives/ for direct downloads (dev.mysql.com redirects require auth)"
   }
 }

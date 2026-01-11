@@ -11,7 +11,7 @@ on:
           - 9.5.0
           - 8.4.7
           - 8.0.40
-        default: 9.5.0
+        default: 8.4.7
       platforms:
         description: 'Platforms'
         required: true
