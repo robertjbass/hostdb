@@ -15,8 +15,9 @@ FROM ubuntu:${UBUNTU_VERSION}
 ARG VERSION=3.51.2
 
 # Convert version to SQLite's filename format: 3.51.2 -> 3510200
-# Formula: MAJOR*1000000 + MINOR*1000 + PATCH*100
-RUN VERSION_NUM=$(echo "${VERSION}" | awk -F. '{printf "%d%03d%02d", $1, $2, $3*100}') && \
+# Formula: MAJOR*1000000 + MINOR*10000 + PATCH*100
+# Format: MAJOR + 2-digit MINOR + 2-digit PATCH + "00"
+RUN VERSION_NUM=$(echo "${VERSION}" | awk -F. '{printf "%d%02d%02d00", $1, $2, $3}') && \
     echo "VERSION_NUM=${VERSION_NUM}" > /tmp/version_env
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -65,5 +66,4 @@ RUN mkdir -p sqlite/bin && \
 RUN tar -czf /build/sqlite-${VERSION}-linux-arm64.tar.gz sqlite
 
 # Copy to output on container run
-ARG VERSION
 CMD cp /build/sqlite-${VERSION}-linux-arm64.tar.gz /dist/

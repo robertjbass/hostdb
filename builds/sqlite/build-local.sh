@@ -72,6 +72,13 @@ fi
 echo "Building SQLite $VERSION for $PLATFORM"
 echo "========================================"
 
+# Check Docker is available
+if ! command -v docker &>/dev/null; then
+    echo "Error: Docker is not installed or not in PATH"
+    echo "Please install Docker: https://docs.docker.com/get-docker/"
+    exit 1
+fi
+
 # Create output directory
 OUTPUT_DIR="$SCRIPT_DIR/../../dist"
 mkdir -p "$OUTPUT_DIR"

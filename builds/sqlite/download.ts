@@ -283,7 +283,7 @@ function repackage(
       try {
         chmodSync(destPath, 0o755)
       } catch {
-        // Ignore chmod errors on Windows
+        // Silently ignore chmod failures (e.g., read-only filesystem)
       }
     }
   }
@@ -398,6 +398,12 @@ Examples:
   ./builds/sqlite/download.ts --all-platforms
 `)
         process.exit(0)
+        break
+      default:
+        if (args[i].startsWith('-')) {
+          logError(`Unknown option: ${args[i]}`)
+          process.exit(1)
+        }
     }
   }
 

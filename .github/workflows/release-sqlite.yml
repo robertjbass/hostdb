@@ -171,7 +171,7 @@ jobs:
 
   release:
     needs: [build-arm64, build-download]
-    if: always() && (needs.build-arm64.result == 'success' || needs.build-arm64.result == 'skipped') && (needs.build-download.result == 'success' || needs.build-download.result == 'skipped')
+    if: always() && (needs.build-arm64.result == 'success' || needs.build-download.result == 'success')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -196,8 +196,15 @@ jobs:
       - name: Generate checksums
         run: |
           cd release-assets
-          sha256sum *.tar.gz *.zip 2>/dev/null > checksums.txt || sha256sum *.tar.gz > checksums.txt || echo "No files to checksum"
-          cat checksums.txt || true
+          shopt -s nullglob
+          files=(*.tar.gz *.zip)
+          if [ ${#files[@]} -gt 0 ]; then
+            sha256sum "${files[@]}" > checksums.txt
+            echo "Generated checksums for ${#files[@]} file(s):"
+            cat checksums.txt
+          else
+            echo "No .tar.gz or .zip files found - skipping checksum generation"
+          fi
 
       - name: List release assets
         run: ls -la ./release-assets/
