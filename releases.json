@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-11T04:13:20.330Z",
+  "lastUpdated": "2026-01-11T17:55:58.620Z",
   "databases": {
     "mysql": {
       "8.4.3": {
@@ -97,6 +97,38 @@
             "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-win32-x64.zip",
             "sha256": "4bc4068ae41cdc1b7bc5dfca524d90cb4f625923eab8d29d7a199a4bbbf2498d",
             "size": 302352713
+          }
+        }
+      },
+      "9.5.0": {
+        "version": "9.5.0",
+        "releaseTag": "mysql-9.5.0",
+        "releasedAt": "2026-01-11T17:55:44Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-darwin-arm64.tar.gz",
+            "sha256": "6b37e0871a84ac6fdf7451fb676227e33f86642505dea0da225284b1d72d16e8",
+            "size": 170887642
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-darwin-x64.tar.gz",
+            "sha256": "0bd0f2aebc6cf62f8d20f08d033573391294cb62b1489fbf3e1aa5ce691eb2bd",
+            "size": 175620519
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-linux-arm64.tar.gz",
+            "sha256": "a7fe8e0163186c2eecc664229b9b7effcd401f61daab487027c248684d38956b",
+            "size": 1071979514
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-linux-x64.tar.gz",
+            "sha256": "37b7004ae583245f67843a2393b9743233b78399789edfbcda2ebbbeae6b48cb",
+            "size": 1082100845
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-win32-x64.zip",
+            "sha256": "240d0fcb48663ff32a475e3e04fa4e5691ccaae489c35cf49fc0bbd000b256cd",
+            "size": 302737000
           }
         }
       }
