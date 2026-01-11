@@ -321,12 +321,13 @@ function copyBinaries(srcBinDir: string, destBinDir: string): void {
 async function downloadAndExtractComponent(
   componentName: string,
   source: SourceEntry,
+  platform: Platform,
   downloadDir: string,
   extractDir: string,
 ): Promise<string> {
   const downloadPath = join(
     downloadDir,
-    `${componentName}-original.${source.format}`,
+    `${componentName}-${platform}-original.${source.format}`,
   )
 
   // Download if not cached
@@ -441,6 +442,7 @@ async function repackage(
         const mongoshExtractDir = await downloadAndExtractComponent(
           'mongosh',
           mongoshSource,
+          platform,
           downloadDir,
           extractDir,
         )
@@ -467,6 +469,7 @@ async function repackage(
         const toolsExtractDir = await downloadAndExtractComponent(
           'database-tools',
           toolsSource,
+          platform,
           downloadDir,
           extractDir,
         )
