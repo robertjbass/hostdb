@@ -290,6 +290,26 @@ jobs:
           fi
           echo "✓ Verified ARM64 architecture"
 
+          # Fix RPATH on all ELF binaries to use $ORIGIN-relative paths
+          # This ensures binaries find their bundled libraries regardless of install location
+          echo "Installing patchelf..."
+          sudo apt-get update && sudo apt-get install -y patchelf
+
+          echo "Fixing RPATH on binaries..."
+          find postgresql/bin -type f -executable | while read bin; do
+            if file "$bin" | grep -q "ELF"; then
+              echo "  Fixing RPATH: $bin"
+              patchelf --set-rpath '$ORIGIN/../lib' "$bin" 2>/dev/null || true
+            fi
+          done
+
+          find postgresql/lib -name "*.so*" -type f 2>/dev/null | while read lib; do
+            if file "$lib" | grep -q "ELF"; then
+              echo "  Fixing RPATH: $lib"
+              patchelf --set-rpath '$ORIGIN' "$lib" 2>/dev/null || true
+            fi
+          done
+
           # Create tarball (use full VERSION for artifact naming, e.g., 18.1.0)
           tar -czvf "../postgresql-${VERSION}-${PLATFORM}.tar.gz" postgresql
 
