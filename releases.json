@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-11T22:33:21.839Z",
+  "lastUpdated": "2026-01-12T07:24:56.257Z",
   "databases": {
     "mysql": {
       "8.4.3": {
@@ -141,27 +141,27 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-darwin-arm64.tar.gz",
-            "sha256": "ee5a7ae80456bd6cce19f4ad0574328fd817d67eea5605d4d2bff1b7a378b96a",
-            "size": 11573814
+            "sha256": "41b9a9f0b02d6bb9d4960a0fed4949e413d5dd4c9087d1ef9fff80480ad26221",
+            "size": 11573677
           },
           "darwin-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-darwin-x64.tar.gz",
-            "sha256": "97998c8e696cbf003f931a734ccdb7e93da56767a90728e16f306a7c0a3850f9",
-            "size": 11236571
+            "sha256": "7dbbf27186e1cb8ce630c3a4f87a239dfb2593fb35e319a16d963892f0b8df5c",
+            "size": 11236521
           },
           "linux-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-linux-arm64.tar.gz",
-            "sha256": "36cb85c658b0ff9a250b3ac6fd9b428e26a75994ca76c30472605d183e5104b5",
-            "size": 143177794
+            "sha256": "0effddc49f2bb150a4e380e14579e5a52192d99d378cb30ebac8df887e6cc9d4",
+            "size": 143166514
           },
           "linux-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-linux-x64.tar.gz",
-            "sha256": "eb922d8f76f393bfe870272db0f7792124531efcf6efd3d23093c52444cd7d3a",
-            "size": 12190521
+            "sha256": "4848726339939d62b28199da27dbfef5e7f3803df6bc92bbec71212126789f51",
+            "size": 12194011
           },
           "win32-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-win32-x64.zip",
-            "sha256": "bc030245776b82521bbbd58014c917ed8390fba2f993916f41b594a29fe1b142",
+            "sha256": "797c1d618229d56159c1df20e33c7562f8ba505a0d76b5e86c104f25f8095d76",
             "size": 338310981
           }
         }
