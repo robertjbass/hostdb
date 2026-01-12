@@ -61,6 +61,7 @@ WORKDIR /build/postgresql-src
 # - Enable readline for psql history/editing
 # - Enable XML support for XML functions
 # - Enable ICU for internationalization
+# - Use $ORIGIN-relative RPATH for relocatable binaries (not hardcoded /opt/postgresql/lib)
 RUN ./configure \
     --prefix=/opt/postgresql \
     --with-openssl \
@@ -68,7 +69,8 @@ RUN ./configure \
     --with-libxml \
     --with-libxslt \
     --with-icu \
-    --without-systemd
+    --without-systemd \
+    LDFLAGS="-Wl,-rpath,'\$\$ORIGIN/../lib'"
 
 # Build PostgreSQL
 RUN make -j$(nproc)
@@ -87,7 +89,7 @@ FROM ubuntu:22.04 AS packager
 ARG FULL_VERSION
 ARG TARGETARCH
 
-# Install minimal runtime dependencies for verification
+# Install minimal runtime dependencies for verification + patchelf for RPATH fixing
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl3 \
     libreadline8 \
@@ -95,12 +97,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxslt1.1 \
     libicu70 \
     zlib1g \
+    patchelf \
+    file \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy built PostgreSQL
 COPY --from=builder /opt/postgresql /opt/postgresql
 
 WORKDIR /opt/postgresql
+
+# Fix RPATH on all ELF binaries to use $ORIGIN-relative paths
+# This ensures binaries find their bundled libraries regardless of install location
+RUN find /opt/postgresql/bin -type f -executable | while read bin; do \
+        if file "$bin" | grep -q "ELF"; then \
+            patchelf --set-rpath '$ORIGIN/../lib' "$bin" 2>/dev/null || true; \
+        fi; \
+    done && \
+    find /opt/postgresql/lib -name "*.so*" -type f | while read lib; do \
+        if file "$lib" | grep -q "ELF"; then \
+            patchelf --set-rpath '$ORIGIN' "$lib" 2>/dev/null || true; \
+        fi; \
+    done
 
 # Map Docker TARGETARCH to hostdb platform naming
 # Use FULL_VERSION (3-part) for metadata
