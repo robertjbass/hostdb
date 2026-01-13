@@ -1,0 +1,41 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "clickhouse",
+  "versions": {
+    "25.12.3.21": {
+      "linux-x64": {
+        "url": "https://github.com/ClickHouse/ClickHouse/releases/download/v25.12.3.21-stable/clickhouse-common-static-25.12.3.21-amd64.tgz",
+        "format": "tar.gz",
+        "sha256": "dc8da37814b7c24a4b1ee8d3d63ff668e8c8fcfe45dfa69d80fde87d92f0b552"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/ClickHouse/ClickHouse/releases/download/v25.12.3.21-stable/clickhouse-common-static-25.12.3.21-arm64.tgz",
+        "format": "tar.gz",
+        "sha256": "74fe5a5c13b5d06179a337aebd71ec734f7ed6e57c8b6a912b5a52ddcb2336a1"
+      },
+      "darwin-x64": {
+        "url": "https://github.com/ClickHouse/ClickHouse/releases/download/v25.12.3.21-stable/clickhouse-macos",
+        "format": "tar.gz",
+        "sha256": "77de677b774ab499aec42fb1d88c52b50cd51e1dbc60733b6ae389e743dc9b64"
+      },
+      "darwin-arm64": {
+        "url": "https://github.com/ClickHouse/ClickHouse/releases/download/v25.12.3.21-stable/clickhouse-macos-aarch64",
+        "format": "tar.gz",
+        "sha256": "6023fd26d38612389ec332841166a8684393ed025b5f61dfbb3fcd0344965525"
+      },
+      "win32-x64": {
+        "sourceType": "build-required",
+        "note": "Experimental Cygwin build - no official Windows binaries available"
+      }
+    }
+  },
+  "notes": {
+    "license": "Apache-2.0 - Fully permissive for commercial use",
+    "github-releases": "Official binaries from GitHub Releases at https://github.com/ClickHouse/ClickHouse/releases",
+    "linux": "Linux binaries from clickhouse-common-static tarball contain the main clickhouse binary",
+    "macos": "macOS binaries are single monolithic executables (not tarballs), wrapped in tar.gz by download.ts",
+    "windows": "No official Windows support - experimental Cygwin build attempted in CI",
+    "checksums": "ClickHouse provides SHA-512 checksums; sha256 field left null for now",
+    "single-binary": "ClickHouse uses a single binary with subcommands: clickhouse server, clickhouse client, clickhouse local"
+  }
+}
