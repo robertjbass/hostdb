@@ -14,6 +14,7 @@
     "add:engine": "tsx scripts/add-engine.ts",
     "checksums:populate": "tsx scripts/populate-checksums.ts",
     "dbs": "tsx scripts/list-databases.ts",
+    "download:clickhouse": "tsx builds/clickhouse/download.ts",
     "download:mariadb": "tsx builds/mariadb/download.ts",
     "download:mongodb": "tsx builds/mongodb/download.ts",
     "download:mysql": "tsx builds/mysql/download.ts",

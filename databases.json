@@ -87,18 +87,17 @@
       "license": "Apache-2.0",
       "commercialUse": true,
       "protocol": null,
-      "note": "No native Windows support; requires WSL",
-      "latestLts": "25.8",
+      "note": "Windows build is experimental (Cygwin); may require WSL for production use",
+      "latestLts": "25.12",
       "versions": {
-        "25.8.13.73-lts": true,
-        "25.3.11.20-lts": false
+        "25.12.3.21": true
       },
       "platforms": {
         "linux-x64": true,
         "linux-arm64": true,
         "darwin-x64": true,
         "darwin-arm64": true,
-        "win32-x64": false
+        "win32-x64": true
       },
       "cliTools": {
         "server": "clickhouse-server",
@@ -114,7 +113,7 @@
         "defaultUser": "default",
         "queryLanguage": "SQL"
       },
-      "status": "unsupported"
+      "status": "in-progress"
     },
     "cockroachdb": {
       "displayName": "CockroachDB",
