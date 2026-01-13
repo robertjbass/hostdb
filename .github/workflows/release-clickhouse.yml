@@ -1,0 +1,523 @@
+name: Release ClickHouse
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'ClickHouse version'
+        required: true
+        type: choice
+        options:
+          - 25.12.3.21
+        default: 25.12.3.21
+      platforms:
+        description: 'Platforms to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'linux-x64'
+          - 'linux-arm64'
+          - 'darwin-x64'
+          - 'darwin-arm64'
+          - 'win32-x64'
+
+# Prevent concurrent runs that could conflict when updating releases.json
+concurrency:
+  group: release-clickhouse
+  cancel-in-progress: false
+
+jobs:
+  # Validate version against databases.json
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version against databases.json
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DB="clickhouse"
+
+          echo "Validating ClickHouse version: $VERSION"
+
+          # Check if version exists and is enabled in databases.json
+          ENABLED=$(jq -r ".databases.$DB.versions[\"$VERSION\"] // false" databases.json)
+          if [ "$ENABLED" != "true" ]; then
+            echo "::error::Version '$VERSION' is not enabled in databases.json"
+            echo ""
+            echo "Available versions:"
+            jq -r ".databases.$DB.versions | to_entries | map(select(.value == true)) | .[].key" databases.json
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION is enabled in databases.json"
+
+      - name: Validate sources.json exists
+        run: |
+          DB="clickhouse"
+          if [ ! -f "builds/$DB/sources.json" ]; then
+            echo "::error::Missing builds/$DB/sources.json"
+            exit 1
+          fi
+          echo "✓ builds/$DB/sources.json exists"
+
+      - name: Validate version in sources.json
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DB="clickhouse"
+
+          HAS_VERSION=$(jq -r ".versions[\"$VERSION\"] // empty" "builds/$DB/sources.json")
+          if [ -z "$HAS_VERSION" ]; then
+            echo "::error::Version '$VERSION' not found in builds/$DB/sources.json"
+            echo ""
+            echo "Available versions in sources.json:"
+            jq -r ".versions | keys[]" "builds/$DB/sources.json"
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION found in sources.json"
+
+  # Determine which platforms to build based on input
+  prepare:
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      download-matrix: ${{ steps.set-matrix.outputs.download-matrix }}
+      build-matrix: ${{ steps.set-matrix.outputs.build-matrix }}
+      has-downloads: ${{ steps.set-matrix.outputs.has-downloads }}
+      has-builds: ${{ steps.set-matrix.outputs.has-builds }}
+    steps:
+      - name: Set build matrix
+        id: set-matrix
+        run: |
+          PLATFORMS="${{ github.event.inputs.platforms }}"
+
+          # Download platforms (Linux + macOS - have official binaries)
+          DOWNLOAD_PLATFORMS='["linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64"]'
+
+          # Build platforms (Windows - requires source build)
+          BUILD_PLATFORMS='["win32-x64"]'
+
+          if [ "$PLATFORMS" = "all" ]; then
+            # All platforms
+            DOWNLOAD_MATRIX='[
+              {"platform": "linux-x64", "runner": "ubuntu-latest"},
+              {"platform": "linux-arm64", "runner": "ubuntu-latest"},
+              {"platform": "darwin-x64", "runner": "macos-15-intel"},
+              {"platform": "darwin-arm64", "runner": "macos-14"}
+            ]'
+            BUILD_MATRIX='[
+              {"platform": "win32-x64", "runner": "windows-latest"}
+            ]'
+            HAS_DOWNLOADS="true"
+            HAS_BUILDS="true"
+          elif echo "$DOWNLOAD_PLATFORMS" | jq -e "index(\"$PLATFORMS\")" > /dev/null; then
+            # Single download platform
+            case "$PLATFORMS" in
+              linux-x64|linux-arm64)
+                DOWNLOAD_MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\"}]"
+                ;;
+              darwin-x64)
+                DOWNLOAD_MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\"}]"
+                ;;
+              darwin-arm64)
+                DOWNLOAD_MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-14\"}]"
+                ;;
+            esac
+            BUILD_MATRIX='[]'
+            HAS_DOWNLOADS="true"
+            HAS_BUILDS="false"
+          elif echo "$BUILD_PLATFORMS" | jq -e "index(\"$PLATFORMS\")" > /dev/null; then
+            # Single build platform
+            DOWNLOAD_MATRIX='[]'
+            BUILD_MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"windows-latest\"}]"
+            HAS_DOWNLOADS="false"
+            HAS_BUILDS="true"
+          else
+            echo "::error::Unknown platform: $PLATFORMS"
+            exit 1
+          fi
+
+          # Compact the JSON for output
+          DOWNLOAD_MATRIX=$(echo "$DOWNLOAD_MATRIX" | jq -c .)
+          BUILD_MATRIX=$(echo "$BUILD_MATRIX" | jq -c .)
+
+          echo "download-matrix=$DOWNLOAD_MATRIX" >> $GITHUB_OUTPUT
+          echo "build-matrix=$BUILD_MATRIX" >> $GITHUB_OUTPUT
+          echo "has-downloads=$HAS_DOWNLOADS" >> $GITHUB_OUTPUT
+          echo "has-builds=$HAS_BUILDS" >> $GITHUB_OUTPUT
+
+          echo "Download platforms: $DOWNLOAD_MATRIX"
+          echo "Build platforms: $BUILD_MATRIX"
+
+  # Download and repackage official binaries (Linux + macOS)
+  build-download:
+    needs: prepare
+    if: needs.prepare.outputs.has-downloads == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.download-matrix) }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download and repackage binary
+        id: download
+        timeout-minutes: 30
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          echo "Downloading ClickHouse $VERSION for $PLATFORM"
+
+          pnpm download:clickhouse -- \
+            --version "$VERSION" \
+            --platform "$PLATFORM" \
+            --output ./dist
+
+          # Check if artifact was created
+          shopt -s nullglob
+          FILES=(./dist/clickhouse-*.tar.gz)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "::error::No artifact created for $PLATFORM"
+            exit 1
+          fi
+          ls -la ./dist/
+
+      - name: Generate checksum
+        shell: bash
+        run: |
+          cd dist
+          shopt -s nullglob
+          for f in *.tar.gz *.zip; do
+            if [ -f "$f" ]; then
+              if command -v sha256sum &> /dev/null; then
+                sha256sum "$f" >> checksums.txt
+              else
+                # macOS uses shasum
+                shasum -a 256 "$f" >> checksums.txt
+              fi
+            fi
+          done
+          cat checksums.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clickhouse-${{ github.event.inputs.version }}-${{ matrix.platform }}
+          path: |
+            dist/*.tar.gz
+            dist/checksums.txt
+          retention-days: 1
+
+  # Build from source (Windows - EXPERIMENTAL)
+  build-source:
+    needs: prepare
+    if: needs.prepare.outputs.has-builds == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.build-matrix) }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Setup Cygwin for Windows builds (provides POSIX compatibility layer)
+      - name: Setup Cygwin
+        uses: cygwin/cygwin-install-action@master
+        with:
+          packages: >-
+            clang
+            llvm
+            cmake
+            ninja
+            git
+            curl
+            pkg-config
+            libssl-devel
+            zip
+            python3
+
+      # EXPERIMENTAL: Build ClickHouse for Windows using Cygwin
+      # This has never been done before and may fail!
+      - name: Build ClickHouse (Cygwin - EXPERIMENTAL)
+        id: build-windows
+        timeout-minutes: 360
+        shell: C:\cygwin\bin\bash.exe --login -eo pipefail -o igncr '{0}'
+        env:
+          CYGWIN: winsymlinks:native
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PLATFORM="win32-x64"
+
+          echo "=========================================="
+          echo "EXPERIMENTAL: Building ClickHouse $VERSION for Windows (Cygwin)"
+          echo "This build is experimental and may fail!"
+          echo "=========================================="
+
+          cd "$(cygpath "$GITHUB_WORKSPACE")"
+
+          # Check Clang version
+          echo "Clang version:"
+          clang --version
+
+          # Clone ClickHouse source (shallow for speed)
+          echo "Cloning ClickHouse source..."
+          git clone --depth 1 --branch "v${VERSION}-stable" \
+            --recurse-submodules --shallow-submodules \
+            https://github.com/ClickHouse/ClickHouse.git
+
+          cd ClickHouse
+
+          # Configure with CMake
+          echo "Configuring with CMake..."
+          mkdir -p build && cd build
+
+          cmake .. \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DENABLE_TESTS=OFF \
+            -DENABLE_UTILS=OFF \
+            -GNinja || {
+              echo "::warning::CMake configuration failed. This is expected for experimental Windows builds."
+              echo "::warning::ClickHouse does not officially support Windows."
+              exit 1
+            }
+
+          # Build (this may fail with platform-specific errors)
+          echo "Building ClickHouse..."
+          ninja clickhouse || {
+            echo "::warning::Build failed. This is expected for experimental Windows builds."
+            echo "::warning::ClickHouse does not officially support Windows."
+            exit 1
+          }
+
+          # If we get here, the build succeeded! Package it.
+          echo "Build succeeded! Packaging..."
+
+          cd "$GITHUB_WORKSPACE"
+          mkdir -p install/clickhouse/bin
+
+          # Copy binary
+          cp ClickHouse/build/programs/clickhouse install/clickhouse/bin/
+
+          # Add metadata
+          printf '%s\n' \
+            '{' \
+            '  "name": "clickhouse",' \
+            "  \"version\": \"${VERSION}\"," \
+            "  \"platform\": \"${PLATFORM}\"," \
+            '  "source": "source-build",' \
+            '  "sourceUrl": "https://github.com/ClickHouse/ClickHouse",' \
+            '  "rehosted_by": "hostdb",' \
+            "  \"rehosted_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"," \
+            '  "note": "Experimental Cygwin build - may have limited functionality"' \
+            '}' > install/clickhouse/.hostdb-metadata.json
+
+          # Create zip (Windows convention)
+          mkdir -p dist
+          cd install
+          zip -r "../dist/clickhouse-${VERSION}-${PLATFORM}.zip" clickhouse
+
+          echo "Build complete:"
+          ls -la ../dist/
+
+      - name: Generate checksum (Windows)
+        if: steps.build-windows.outcome == 'success'
+        shell: C:\cygwin\bin\bash.exe --login -eo pipefail -o igncr '{0}'
+        run: |
+          cd "$(cygpath "$GITHUB_WORKSPACE")/dist"
+          for f in *.tar.gz *.zip; do
+            if [ -f "$f" ]; then
+              sha256sum "$f" >> checksums.txt
+            fi
+          done
+          cat checksums.txt
+
+      - name: Upload artifact
+        if: steps.build-windows.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: clickhouse-${{ github.event.inputs.version }}-${{ matrix.platform }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
+          retention-days: 1
+
+  # Collect all artifacts and create release
+  release:
+    needs: [build-download, build-source]
+    if: always() && (needs.build-download.result == 'success' || needs.build-download.result == 'skipped') && (needs.build-source.result == 'success' || needs.build-source.result == 'skipped' || needs.build-source.result == 'failure')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check if any artifacts exist
+        id: check-artifacts
+        run: |
+          # We'll check after downloading
+          echo "Checking for artifacts..."
+
+      - name: Download download-job artifacts
+        if: needs.build-download.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          pattern: clickhouse-${{ github.event.inputs.version }}-*
+
+      - name: Prepare release assets
+        id: prepare
+        run: |
+          mkdir -p ./release-assets
+
+          # Move all artifacts to release-assets, flattening the directory structure
+          if [ -d ./artifacts ]; then
+            find ./artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec mv {} ./release-assets/ \; 2>/dev/null || true
+
+            # Combine all checksums
+            find ./artifacts -name "checksums.txt" -exec cat {} \; > ./release-assets/checksums.txt 2>/dev/null || true
+          fi
+
+          echo "Release assets:"
+          ls -la ./release-assets/ || echo "No release assets found"
+
+          # Check if we have at least one artifact
+          shopt -s nullglob
+          FILES=(./release-assets/*.tar.gz ./release-assets/*.zip)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "::error::No artifacts were created for any platform"
+            echo "has-artifacts=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          echo "has-artifacts=true" >> $GITHUB_OUTPUT
+
+          echo ""
+          echo "Checksums:"
+          cat ./release-assets/checksums.txt || echo "No checksums"
+
+      - name: Create Release
+        if: steps.prepare.outputs.has-artifacts == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: clickhouse-${{ github.event.inputs.version }}
+          name: ClickHouse ${{ github.event.inputs.version }}
+          body: |
+            ## ClickHouse ${{ github.event.inputs.version }}
+
+            ClickHouse binaries for hostdb.
+
+            ClickHouse is a column-oriented database for real-time analytics and big data processing.
+
+            ### Available Platforms
+            | Platform | Source |
+            |----------|--------|
+            | `linux-x64` | Official binary (GitHub releases) |
+            | `linux-arm64` | Official binary (GitHub releases) |
+            | `darwin-x64` | Official binary (GitHub releases) |
+            | `darwin-arm64` | Official binary (GitHub releases) |
+            | `win32-x64` | **EXPERIMENTAL** Source build (Cygwin) |
+
+            **Note:** Windows builds are experimental. ClickHouse does not officially support Windows. For production Windows use, consider WSL.
+
+            ### Usage
+            ```bash
+            # Download URL pattern
+            https://github.com/${{ github.repository }}/releases/download/clickhouse-${{ github.event.inputs.version }}/clickhouse-${{ github.event.inputs.version }}-<platform>.tar.gz
+            ```
+
+            ### Checksums
+            See `checksums.txt` for SHA256 checksums.
+
+            ### License
+            ClickHouse is licensed under Apache-2.0.
+
+            ### Sources
+            - **Official**: [github.com/ClickHouse/ClickHouse](https://github.com/ClickHouse/ClickHouse)
+          files: |
+            release-assets/*.tar.gz
+            release-assets/*.zip
+            release-assets/checksums.txt
+          fail_on_unmatched_files: false
+
+  # Update the releases manifest
+  update-manifest:
+    needs: release
+    if: needs.release.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update releases.json
+        run: |
+          pnpm tsx scripts/update-releases.ts \
+            --database clickhouse \
+            --version "${{ github.event.inputs.version }}" \
+            --tag "clickhouse-${{ github.event.inputs.version }}"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add releases.json
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "chore: update releases.json for clickhouse-${{ github.event.inputs.version }}"
+
+          # Retry push with rebase if remote has changed
+          for i in 1 2 3; do
+            if git push; then
+              echo "Push succeeded"
+              exit 0
+            fi
+            echo "Push failed, attempting rebase (attempt $i/3)..."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "ERROR: Rebase failed due to conflicts. Manual intervention required."
+              git rebase --abort
+              exit 1
+            fi
+            sleep $((2**i))
+          done
+          echo "ERROR: Push failed after 3 attempts"
+          exit 1
