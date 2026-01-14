@@ -436,11 +436,11 @@ jobs:
               exit 1
             }
 
-          # Build clickhouse-local first (smaller target, avoids server/networking code)
-          # This reduces attack surface by avoiding epoll/io_uring networking code
+          # Build clickhouse binary (includes all subcommands: server, client, local, etc.)
+          # Note: clickhouse-local is an alias, not a separate target - we must build 'clickhouse'
           echo ""
-          echo "Building clickhouse-local (minimal target for Windows)..."
-          ninja clickhouse-local || {
+          echo "Building ClickHouse..."
+          ninja clickhouse || {
             echo "::warning::Build failed. This is expected for experimental Windows builds."
             echo "::warning::ClickHouse does not officially support Windows."
             exit 1
