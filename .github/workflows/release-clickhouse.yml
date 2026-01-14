@@ -312,7 +312,15 @@ jobs:
 
           # Patch cmake/target.cmake to support Windows
           # ClickHouse only supports Linux/Darwin/FreeBSD/Android/SunOS
-          # We add Windows support, treating it like Linux since MSYS2 provides POSIX layer
+          # We add Windows support using a DUAL-FLAG approach:
+          #   - OS_LINUX=1: Required because ClickHouse has no Windows code paths.
+          #     The entire codebase uses #ifdef OS_LINUX guards. Without this flag,
+          #     compilation fails immediately. MSYS2 provides POSIX compatibility
+          #     that can handle many Linux-isms.
+          #   - OS_WINDOWS=1: Marker flag for any Windows-specific edge cases.
+          # This intentional tradeoff may cause conflicts in rare cases where code
+          # checks both flags, but it's the only viable path since ClickHouse has
+          # zero native Windows support.
           echo ""
           echo "Patching cmake/target.cmake for Windows support..."
           WINDOWS_PATCH='elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")\n    set (OS_LINUX 1)\n    set (OS_WINDOWS 1)\n    add_definitions(-D OS_LINUX)\n    add_definitions(-D OS_WINDOWS)\nelse ()'
