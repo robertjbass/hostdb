@@ -373,53 +373,50 @@ jobs:
           fi
 
           # Create Windows compatibility header with POSIX stubs
+          # IMPORTANT: Do NOT include <windows.h> here - it causes massive macro pollution
+          # (IMAGE_FILE_MACHINE_*, NO_ERROR, OPTIONAL, etc.) that breaks LLVM enums.
+          # Instead, provide minimal stubs without Windows SDK dependencies.
           echo ""
-          echo "Creating Windows compatibility header..."
+          echo "Creating Windows compatibility header (minimal, no windows.h)..."
           printf '%s\n' \
             '#pragma once' \
             '#ifdef _WIN32' \
-            '#include <windows.h>' \
             '' \
-            '// Undefine Windows macros that pollute the namespace and break code' \
-            '// OPTIONAL is defined in Windows SAL annotations, breaks LLVM enums' \
-            '#ifdef OPTIONAL' \
-            '#undef OPTIONAL' \
-            '#endif' \
-            '#ifdef IN' \
-            '#undef IN' \
-            '#endif' \
-            '#ifdef OUT' \
-            '#undef OUT' \
-            '#endif' \
-            '#ifdef near' \
-            '#undef near' \
-            '#endif' \
-            '#ifdef far' \
-            '#undef far' \
-            '#endif' \
-            '// Note: DELETE is a legitimate Windows API constant (0x00010000L) - do not undef' \
-            '#ifdef ERROR' \
-            '#undef ERROR' \
-            '#endif' \
-            '// Note: NO_ERROR cannot be undef - Windows API code needs it' \
-            '// We patch LLVM source files that use NO_ERROR as enum values instead' \
+            '// Minimal POSIX compatibility stubs for Windows' \
+            '// We intentionally do NOT include <windows.h> to avoid macro pollution' \
             '' \
+            '#include <stddef.h>  // for size_t' \
+            '' \
+            '// sysconf constants' \
             '#ifndef _SC_PAGESIZE' \
             '#define _SC_PAGESIZE 1' \
             '#endif' \
             '#ifndef _SC_NPROCESSORS_ONLN' \
             '#define _SC_NPROCESSORS_ONLN 2' \
             '#endif' \
-            'static inline int getpagesize(void) { SYSTEM_INFO si; GetSystemInfo(&si); return (int)si.dwPageSize; }' \
-            'static inline long sysconf(int name) { switch(name) { case _SC_PAGESIZE: return getpagesize(); case _SC_NPROCESSORS_ONLN: { SYSTEM_INFO si; GetSystemInfo(&si); return (long)si.dwNumberOfProcessors; } default: return -1; } }' \
+            '' \
+            '// Simple stubs - use reasonable defaults instead of calling Windows API' \
+            'static inline int getpagesize(void) { return 4096; }' \
+            'static inline long sysconf(int name) {' \
+            '    switch(name) {' \
+            '        case _SC_PAGESIZE: return 4096;' \
+            '        case _SC_NPROCESSORS_ONLN: return 4;' \
+            '        default: return -1;' \
+            '    }' \
+            '}' \
+            '' \
+            '// Signal stack stubs (not used on Windows)' \
             '#ifndef SIGSTKSZ' \
             '#define SIGSTKSZ 8192' \
             '#endif' \
             'typedef struct { void *ss_sp; int ss_flags; size_t ss_size; } stack_t;' \
-            'static inline int sigaltstack(const stack_t *ss, stack_t *old_ss) { (void)ss; (void)old_ss; return 0; }' \
-            '#endif' \
+            'static inline int sigaltstack(const stack_t *ss, stack_t *old_ss) {' \
+            '    (void)ss; (void)old_ss; return 0;' \
+            '}' \
+            '' \
+            '#endif // _WIN32' \
             > compat_windows.h
-          echo "Created compat_windows.h"
+          echo "Created compat_windows.h (minimal, no windows.h)"
 
           # Configure with CMake
           echo ""
