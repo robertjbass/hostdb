@@ -355,6 +355,7 @@ jobs:
             -DENABLE_CLICKHOUSE_SU=OFF \
             -DENABLE_CLICKHOUSE_DISKS=OFF \
             -DENABLE_LDAP=OFF \
+            -DENABLE_ISA_L=OFF \
             -GNinja || {
               echo "::warning::CMake configuration failed. This is expected for experimental Windows builds."
               echo "::warning::ClickHouse does not officially support Windows."
