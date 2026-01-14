@@ -277,7 +277,7 @@ jobs:
           echo "This build is experimental and may fail!"
           echo "=========================================="
 
-          # Check environment
+          # Check build environment
           echo "Environment:"
           echo "MSYSTEM: $MSYSTEM"
           echo "PATH: $PATH"
