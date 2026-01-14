@@ -259,6 +259,7 @@ jobs:
             mingw-w64-clang-x86_64-xz
             mingw-w64-clang-x86_64-libxml2
             mingw-w64-clang-x86_64-python
+            mingw-w64-clang-x86_64-nasm
             git
             zip
 
