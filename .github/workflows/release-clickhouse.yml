@@ -357,6 +357,18 @@ jobs:
             -DENABLE_CLICKHOUSE_DISKS=OFF \
             -DENABLE_LDAP=OFF \
             -DENABLE_ISA_L=OFF \
+            -DENABLE_HDFS=OFF \
+            -DENABLE_KAFKA=OFF \
+            -DENABLE_NATS=OFF \
+            -DENABLE_AMQPCPP=OFF \
+            -DENABLE_CASSANDRA=OFF \
+            -DENABLE_S3=OFF \
+            -DENABLE_AZURE_BLOB_STORAGE=OFF \
+            -DENABLE_GRPC=OFF \
+            -DENABLE_MYSQL=OFF \
+            -DENABLE_MONGODB=OFF \
+            -DENABLE_POSTGRESQL=OFF \
+            -DENABLE_LIBURING=OFF \
             -GNinja || {
               echo "::warning::CMake configuration failed. This is expected for experimental Windows builds."
               echo "::warning::ClickHouse does not officially support Windows."
