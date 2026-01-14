@@ -372,6 +372,18 @@ jobs:
             echo "Patched TargetParser files (NO_ERROR -> FEATURE_NO_ERROR)"
           fi
 
+          # Patch OpenSSL bn_div.c to disable broken inline assembly on Windows
+          # The issue is that the inline asm uses "divq %4" which generates "divq %r11d"
+          # (64-bit instruction with 32-bit register) - this is broken on MSYS2/Windows.
+          # We undefine the ASM macros at the top of the file to use pure C fallback.
+          echo ""
+          echo "Patching OpenSSL bn_div.c to disable broken inline assembly..."
+          OPENSSL_BN_DIV="contrib/openssl/crypto/bn/bn_div.c"
+          if [ -f "$OPENSSL_BN_DIV" ]; then
+            sed -i '1i\/* Disable broken inline assembly on Windows */\n#undef OPENSSL_BN_ASM_MONT\n#undef OPENSSL_BN_ASM_MONT5\n#undef OPENSSL_BN_ASM_GF2m\n#undef BN_DIV3W\n' "$OPENSSL_BN_DIV"
+            echo "Patched bn_div.c (disabled inline assembly)"
+          fi
+
           # Create Windows compatibility header with POSIX stubs
           # IMPORTANT: Do NOT include <windows.h> here - it causes massive macro pollution
           # (IMAGE_FILE_MACHINE_*, NO_ERROR, OPTIONAL, etc.) that breaks LLVM enums.
@@ -465,7 +477,6 @@ jobs:
             -DENABLE_LIBURING=OFF \
             -DENABLE_PARQUET=OFF \
             -DENABLE_SSH=OFF \
-            -DOPENSSL_NO_ASM=ON \
             -GNinja || {
               echo "::warning::CMake configuration failed. This is expected for experimental Windows builds."
               echo "::warning::ClickHouse does not officially support Windows."

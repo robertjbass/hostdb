@@ -36,3 +36,6 @@ coverage/
 
 # Scratchpad for queuing prompts
 .prompts.md
+
+# Debugging
+clickhouse-windows-build-log.md
