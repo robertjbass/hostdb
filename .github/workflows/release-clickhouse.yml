@@ -345,6 +345,13 @@ jobs:
           echo "Patched target.cmake:"
           grep -n -A2 "Windows" cmake/target.cmake || true
 
+          # Patch PreLoad.cmake to allow custom CMAKE_CXX_FLAGS
+          # ClickHouse normally rejects any custom flags, but we need -include for our compat header
+          echo ""
+          echo "Patching PreLoad.cmake to allow custom flags..."
+          sed -i 's/message(FATAL_ERROR/message(WARNING/' PreLoad.cmake
+          echo "Patched PreLoad.cmake (changed FATAL_ERROR to WARNING)"
+
           # Create Windows compatibility header with POSIX stubs
           echo ""
           echo "Creating Windows compatibility header..."
