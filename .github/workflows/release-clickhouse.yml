@@ -382,13 +382,25 @@ jobs:
             if ! grep -q "OPENSSL_TARGET_FORCE_WINDOWS" "$OPENSSL_CMAKE"; then
               sed -i '/project(/a\\n# OPENSSL_TARGET_FORCE_WINDOWS\nif (WIN32)\n  if (NOT OPENSSL_TARGET)\n    set(OPENSSL_TARGET "mingw64")\n  endif()\nendif()\n' "$OPENSSL_CMAKE"
             fi
+            echo "=== ARCH_AMD64 block (for debugging pattern match) ==="
+            sed -n '/if(ARCH_AMD64)/,/elseif(ARCH_AARCH64)/p' "$OPENSSL_CMAKE" | head -40
             # Add a Windows branch under ARCH_AMD64 to avoid ASM defines.
-            python -c $'from pathlib import Path\npath = Path("contrib/openssl-cmake/CMakeLists.txt")\ntext = path.read_text()\nmarker = "# OPENSSL_WINDOWS_NO_ASM"\nif marker not in text:\n    arch_start = text.find("if(ARCH_AMD64)")\n    arch_end = text.find("elseif(ARCH_AARCH64)", arch_start)\n    if arch_start != -1 and arch_end != -1:\n        block = text[arch_start:arch_end]\n        needle = "    else()\\\\n        set(PLATFORM_DIRECTORY linux_x86_64)\\\\n        add_definitions("\n        if needle in block:\n            replacement = (\n                "    elseif(OS_WINDOWS)\\\\n"\n                f"        {marker}\\\\n"\n                "        set(PLATFORM_DIRECTORY linux_x86_64)\\\\n"\n                "        add_definitions(-DOPENSSL_NO_ASM -DOPENSSL_NO_BN_ASM -DL_ENDIAN)\\\\n"\n                "    else()\\\\n"\n                "        set(PLATFORM_DIRECTORY linux_x86_64)\\\\n"\n                "        add_definitions("\n            )\n            block = block.replace(needle, replacement, 1)\n            text = text[:arch_start] + block + text[arch_end:]\n            path.write_text(text)\n'
+            python -c $'from pathlib import Path\nimport re\npath = Path("contrib/openssl-cmake/CMakeLists.txt")\ntext = path.read_text()\nmarker = "# OPENSSL_WINDOWS_NO_ASM"\nif marker not in text:\n    arch_start = text.find("if(ARCH_AMD64)")\n    arch_end = text.find("elseif(ARCH_AARCH64)", arch_start)\n    if arch_start != -1 and arch_end != -1:\n        block = text[arch_start:arch_end]\n        pattern = r"\\n\\s*else\\(\\)\\n\\s*set\\(PLATFORM_DIRECTORY linux_x86_64\\)\\n\\s*add_definitions\\("\n        replacement = (\"\\n    elseif(OS_WINDOWS)\\n        \" + marker + \"\\n        set(PLATFORM_DIRECTORY linux_x86_64)\\n        add_definitions(-DOPENSSL_NO_ASM -DOPENSSL_NO_BN_ASM -DL_ENDIAN)\\n    else()\\n        set(PLATFORM_DIRECTORY linux_x86_64)\\n        add_definitions(\")\n        new_block, count = re.subn(pattern, replacement, block, count=1)\n        if count:\n            text = text[:arch_start] + new_block + text[arch_end:]\n            path.write_text(text)\n'
             echo "Patched openssl-cmake (forced OPENSSL_TARGET=mingw64 on WIN32)"
             echo "openssl-cmake header (first 80 lines):"
             sed -n '1,80p' "$OPENSSL_CMAKE" || true
             echo "openssl-cmake target/platform hints:"
             grep -nE "OPENSSL_TARGET|OPENSSL_PLATFORM|OPENSSL_CONFIG|mingw|win64|linux_x86_64|CMAKE_SYSTEM_NAME|CMAKE_SYSTEM_PROCESSOR|OPENSSL_WINDOWS_NO_ASM" "$OPENSSL_CMAKE" || true
+            if grep -q "OPENSSL_WINDOWS_NO_ASM" "$OPENSSL_CMAKE"; then
+              echo "Verified: OPENSSL_WINDOWS_NO_ASM patch applied"
+            else
+              echo "WARNING: OPENSSL_WINDOWS_NO_ASM patch missing, stripping ASM defines"
+              sed -i 's/-D[A-Z0-9_]*_ASM//g' "$OPENSSL_CMAKE"
+              sed -i 's/-DOPENSSL_BN_ASM_[A-Z0-9_]*//g' "$OPENSSL_CMAKE"
+              sed -i 's/-DOPENSSL_CPUID_OBJ//g' "$OPENSSL_CMAKE"
+              sed -i 's/-DOPENSSL_IA32_SSE2//g' "$OPENSSL_CMAKE"
+              echo "WARNING: OPENSSL_WINDOWS_NO_ASM patch missing"
+            fi
           else
             echo "WARNING: openssl-cmake CMakeLists.txt not found"
           fi
