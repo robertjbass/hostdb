@@ -326,6 +326,18 @@ jobs:
             "  \"rehosted_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"" \
             '}' > valkey/.hostdb-metadata.json
 
+          # Copy required Cygwin DLLs to the bin directory
+          # These are needed for the executables to run on Windows without Cygwin installed
+          echo "Copying Cygwin DLLs..."
+          cp /usr/bin/cygwin1.dll valkey/bin/
+          cp /usr/bin/cygssl-3.dll valkey/bin/
+          cp /usr/bin/cygcrypto-3.dll valkey/bin/
+          cp /usr/bin/cygz.dll valkey/bin/
+          cp /usr/bin/cyggcc_s-seh-1.dll valkey/bin/
+
+          echo "Contents of valkey/bin:"
+          ls -la valkey/bin/
+
           # Create zip (Windows convention) - archive from install/ to include valkey/ prefix
           mkdir -p ../dist
           zip -r "../dist/valkey-${VERSION}-${PLATFORM}.zip" valkey

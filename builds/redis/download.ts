@@ -263,6 +263,18 @@ function repackageRedisWindows(
   const finalDir = resolve(tempDir, 'redis')
   execFileSync('mv', [extractedPath, finalDir])
 
+  // Log DLLs present (redis-windows includes MSYS2 DLLs)
+  const binDir = resolve(finalDir, 'bin') || finalDir
+  const files = readdirSync(existsSync(binDir) ? binDir : finalDir)
+  const dlls = files.filter((f) => f.endsWith('.dll'))
+  if (dlls.length > 0) {
+    logInfo(`DLLs included: ${dlls.join(', ')}`)
+  } else {
+    logWarn(
+      'No DLLs found in package - Windows binaries may not run standalone',
+    )
+  }
+
   // Create ZIP
   execFileSync('zip', ['-rq', outputPath, 'redis'], {
     cwd: tempDir,
@@ -468,7 +480,9 @@ async function main() {
         // Try to build from source
         const canBuild = platform === 'linux-x64' || platform === 'linux-arm64'
         if (canBuild) {
-          logInfo(`No binary available for ${platform}, building from source...`)
+          logInfo(
+            `No binary available for ${platform}, building from source...`,
+          )
           const success = buildFromSource(version, platform, outputDir)
           if (success) {
             builtCount++
