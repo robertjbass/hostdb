@@ -465,7 +465,7 @@ jobs:
             -DENABLE_LIBURING=OFF \
             -DENABLE_PARQUET=OFF \
             -DENABLE_SSH=OFF \
-            -DUSE_INTERNAL_SSL_LIBRARY=OFF \
+            -DENABLE_SSL=OFF \
             -GNinja || {
               echo "::warning::CMake configuration failed. This is expected for experimental Windows builds."
               echo "::warning::ClickHouse does not officially support Windows."
