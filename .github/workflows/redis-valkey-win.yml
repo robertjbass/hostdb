@@ -1,0 +1,281 @@
+name: Redis & Valkey Windows Builds
+
+# TODO - DELETE
+# Temporary workflow to rebuild all Windows binaries for Redis and Valkey
+# Can be deleted after all builds are complete
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: redis-valkey-win
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Redis versions
+          - database: redis
+            version: '8.4.0'
+            build_type: download
+          - database: redis
+            version: '7.4.7'
+            build_type: download
+          # Valkey versions
+          - database: valkey
+            version: '9.0.1'
+            build_type: cygwin
+          - database: valkey
+            version: '8.0.6'
+            build_type: cygwin
+    runs-on: ${{ matrix.build_type == 'cygwin' && 'windows-latest' || 'ubuntu-latest' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Redis: Download from redis-windows (runs on ubuntu)
+      - name: Setup pnpm (Redis)
+        if: matrix.build_type == 'download'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js (Redis)
+        if: matrix.build_type == 'download'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies (Redis)
+        if: matrix.build_type == 'download'
+        run: pnpm install --frozen-lockfile
+
+      - name: Download Redis for Windows
+        if: matrix.build_type == 'download'
+        run: |
+          pnpm download:redis -- \
+            --version "${{ matrix.version }}" \
+            --platform win32-x64 \
+            --output ./dist
+
+          ls -la ./dist/
+
+      # Valkey: Build with Cygwin (runs on windows)
+      - name: Setup Cygwin (Valkey)
+        if: matrix.build_type == 'cygwin'
+        uses: cygwin/cygwin-install-action@master
+        with:
+          packages: >-
+            make
+            gcc-core
+            gcc-g++
+            libssl-devel
+            pkg-config
+            zip
+            curl
+
+      - name: Build Valkey for Windows (Cygwin)
+        if: matrix.build_type == 'cygwin'
+        shell: C:\cygwin\bin\bash.exe --login -eo pipefail -o igncr '{0}'
+        env:
+          CYGWIN: winsymlinks:native
+        run: |
+          VERSION="${{ matrix.version }}"
+          PLATFORM="win32-x64"
+
+          echo "Building Valkey $VERSION for $PLATFORM (Cygwin build)"
+
+          # Apply redis-windows patches to enable GNU extensions
+          sed -i 's/\_\_GNU\_VISIBLE/1/' /usr/include/dlfcn.h
+
+          cd "$(cygpath "$GITHUB_WORKSPACE")"
+
+          # Download source from GitHub
+          curl -fsSL "https://github.com/valkey-io/valkey/archive/refs/tags/${VERSION}.tar.gz" \
+            -o valkey-source.tar.gz
+          tar -xzf valkey-source.tar.gz
+
+          cd "valkey-${VERSION}"
+
+          # Remove module_tests from build targets (not supported on Windows)
+          sed -i 's/all: \(.*\) module_tests$/all: \1/' src/Makefile
+
+          # Patch Makefile to handle Cygwin: remove -rdynamic flag
+          sed -i 's/-rdynamic//' src/Makefile
+
+          # Build with TLS support
+          make -j$(nproc) BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0"
+
+          # Install
+          make PREFIX="$(pwd)/../install/valkey" install
+
+          # Copy config files
+          cp valkey.conf ../install/valkey/
+          cp sentinel.conf ../install/valkey/
+
+          # Add metadata
+          cd ../install
+          printf '%s\n' \
+            '{' \
+            '  "name": "valkey",' \
+            "  \"version\": \"${VERSION}\"," \
+            "  \"platform\": \"${PLATFORM}\"," \
+            '  "source": "source-build",' \
+            '  "sourceUrl": "https://github.com/valkey-io/valkey/releases",' \
+            '  "rehosted_by": "hostdb",' \
+            "  \"rehosted_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"" \
+            '}' > valkey/.hostdb-metadata.json
+
+          # Copy required Cygwin DLLs to the bin directory
+          echo "Copying Cygwin DLLs..."
+          cp /usr/bin/cygwin1.dll valkey/bin/
+          cp /usr/bin/cygssl-3.dll valkey/bin/
+          cp /usr/bin/cygcrypto-3.dll valkey/bin/
+          cp /usr/bin/cygz.dll valkey/bin/
+          cp /usr/bin/cyggcc_s-seh-1.dll valkey/bin/
+
+          echo "Contents of valkey/bin:"
+          ls -la valkey/bin/
+
+          # Create zip
+          mkdir -p ../dist
+          zip -r "../dist/valkey-${VERSION}-${PLATFORM}.zip" valkey
+
+          echo "Build complete:"
+          ls -la ../dist/
+
+      - name: Generate checksum (Ubuntu)
+        if: matrix.build_type == 'download'
+        run: |
+          cd dist
+          for f in *.zip; do
+            if [ -f "$f" ]; then
+              sha256sum "$f" >> checksums.txt
+            fi
+          done
+          cat checksums.txt
+
+      - name: Generate checksum (Windows)
+        if: matrix.build_type == 'cygwin'
+        shell: C:\cygwin\bin\bash.exe --login -eo pipefail -o igncr '{0}'
+        run: |
+          cd "$(cygpath "$GITHUB_WORKSPACE")/dist"
+          for f in *.zip; do
+            if [ -f "$f" ]; then
+              sha256sum "$f" >> checksums.txt
+            fi
+          done
+          cat checksums.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.database }}-${{ matrix.version }}-win32-x64
+          path: |
+            dist/*.zip
+            dist/checksums.txt
+          retention-days: 1
+
+  # Create releases for each database/version
+  release:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - database: redis
+            version: '8.4.0'
+          - database: redis
+            version: '7.4.7'
+          - database: valkey
+            version: '9.0.1'
+          - database: valkey
+            version: '8.0.6'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.database }}-${{ matrix.version }}-win32-x64
+          path: ./release-assets
+
+      - name: List release assets
+        run: ls -la ./release-assets/
+
+      - name: Upload to existing release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ matrix.database }}-${{ matrix.version }}
+          files: |
+            release-assets/*.zip
+            release-assets/checksums.txt
+          fail_on_unmatched_files: false
+
+  # Update releases.json for all versions
+  update-manifest:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update releases.json for all versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Update each release
+          for db_version in "redis:8.4.0" "redis:7.4.7" "valkey:9.0.1" "valkey:8.0.6"; do
+            DB="${db_version%%:*}"
+            VERSION="${db_version##*:}"
+            echo "Updating $DB $VERSION..."
+            pnpm tsx scripts/update-releases.ts \
+              --database "$DB" \
+              --version "$VERSION" \
+              --tag "$DB-$VERSION" || echo "Warning: Failed to update $DB-$VERSION"
+          done
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add releases.json
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "chore: update releases.json for Redis/Valkey Windows builds"
+
+          for i in 1 2 3; do
+            if git push; then
+              echo "Push succeeded"
+              exit 0
+            fi
+            echo "Push failed, attempting rebase (attempt $i/3)..."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "ERROR: Rebase failed due to conflicts."
+              git rebase --abort
+              exit 1
+            fi
+            sleep $((2**i))
+          done
+          echo "ERROR: Push failed after 3 attempts"
+          exit 1

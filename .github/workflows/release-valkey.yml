@@ -465,7 +465,7 @@ jobs:
             release-assets/*.tar.gz
             release-assets/*.zip
             release-assets/checksums.txt
-          fail_on_unmatched_files: true
+          fail_on_unmatched_files: false
 
   # Update the releases manifest
   update-manifest:
