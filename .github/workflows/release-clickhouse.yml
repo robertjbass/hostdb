@@ -332,6 +332,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_SYSTEM_PROCESSOR=x86_64 \
+            -DCOMPILER_CACHE=disabled \
             -DENABLE_TESTS=OFF \
             -DENABLE_UTILS=OFF \
             -DENABLE_EMBEDDED_COMPILER=OFF \
