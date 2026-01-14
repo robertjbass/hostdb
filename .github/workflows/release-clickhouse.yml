@@ -301,6 +301,15 @@ jobs:
 
           cd ClickHouse
 
+          # Patch cmake/arch.cmake to support Windows (AMD64)
+          # ClickHouse's pattern "amd64|x86_64" is lowercase only, but Windows reports "AMD64" uppercase
+          # This is a bug/oversight in ClickHouse - ARM64 patterns include uppercase variants but x86 doesn't
+          echo ""
+          echo "Patching cmake/arch.cmake for Windows AMD64 support..."
+          sed -i 's/"amd64|x86_64"/"amd64|AMD64|x86_64"/g' cmake/arch.cmake
+          echo "Patched pattern:"
+          grep -n "amd64" cmake/arch.cmake || true
+
           # Configure with CMake
           echo ""
           echo "Configuring with CMake..."
