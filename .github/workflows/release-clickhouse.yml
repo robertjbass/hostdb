@@ -372,6 +372,25 @@ jobs:
             echo "Patched TargetParser files (NO_ERROR -> FEATURE_NO_ERROR)"
           fi
 
+          # Patch openssl-cmake to force a Windows target so it doesn't select linux_x86_64
+          # This prevents Linux asm config from being chosen on Windows builds.
+          echo ""
+          echo "Patching openssl-cmake to force Windows target..."
+          OPENSSL_CMAKE="contrib/openssl-cmake/CMakeLists.txt"
+          if [ -f "$OPENSSL_CMAKE" ]; then
+            # Insert once, right after project() to keep it near the top.
+            if ! rg -q "OPENSSL_TARGET_FORCE_WINDOWS" "$OPENSSL_CMAKE"; then
+              sed -i '/project(/a\\n# OPENSSL_TARGET_FORCE_WINDOWS\nif (WIN32)\n  if (NOT OPENSSL_TARGET)\n    set(OPENSSL_TARGET "mingw64")\n  endif()\nendif()\n' "$OPENSSL_CMAKE"
+            fi
+            echo "Patched openssl-cmake (forced OPENSSL_TARGET=mingw64 on WIN32)"
+            echo "openssl-cmake header (first 80 lines):"
+            sed -n '1,80p' "$OPENSSL_CMAKE" || true
+            echo "openssl-cmake target/platform hints:"
+            rg -n "OPENSSL_TARGET|OPENSSL_PLATFORM|OPENSSL_CONFIG|mingw|win64|linux_x86_64|CMAKE_SYSTEM_NAME|CMAKE_SYSTEM_PROCESSOR" "$OPENSSL_CMAKE" || true
+          else
+            echo "WARNING: openssl-cmake CMakeLists.txt not found"
+          fi
+
           # Patch OpenSSL bn_div.c to disable broken inline assembly on Windows
           # The issue is that the inline asm uses "divq %4" which generates "divq %r11d"
           # (64-bit instruction with 32-bit register) - this is broken on MSYS2/Windows.
