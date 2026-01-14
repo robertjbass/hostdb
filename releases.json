@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-12T07:38:34.165Z",
+  "lastUpdated": "2026-01-14T09:10:01.901Z",
   "databases": {
     "mysql": {
       "8.4.3": {
@@ -367,29 +367,9 @@
         "releaseTag": "redis-7.4.7",
         "releasedAt": "2026-01-07T15:39:06Z",
         "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-darwin-arm64.tar.gz",
-            "sha256": "a060ff64be58e1e9ee622222411df028293454ea58f07a6e2adbf1a089413482",
-            "size": 1278481
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-darwin-x64.tar.gz",
-            "sha256": "4cc319cabbf00fbd0d5e662f67abfe060d470776cfa80b8b84c4f67869bcddea",
-            "size": 1360554
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-linux-arm64.tar.gz",
-            "sha256": "921724df4b2a43e2e6d1bf23a6070d9ee0fb4a357280a4d9f7a1d1127b729c1d",
-            "size": 12730660
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-linux-x64.tar.gz",
-            "sha256": "1080b8ede021c529d0b540e93dd64d62ea589b422437e24b6fe794a617dc56a7",
-            "size": 12658739
-          },
           "win32-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-win32-x64.zip",
-            "sha256": "f38b403f7e8c9b022c54bb52ad54b801c32b8270bb55cdbf24e4825952168415",
+            "sha256": "8846aaf20860063263542ebf535bc874e475a17f82e5e4aee9540958abf583cf",
             "size": 11481934
           }
         }
@@ -399,29 +379,9 @@
         "releaseTag": "redis-8.4.0",
         "releasedAt": "2026-01-07T16:02:41Z",
         "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-8.4.0/redis-8.4.0-darwin-arm64.tar.gz",
-            "sha256": "eeac10db13ce778c07dcab215ea4b71c8a14595ce7a62d3ef4bd3eeb4a9a00ab",
-            "size": 1497752
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-8.4.0/redis-8.4.0-darwin-x64.tar.gz",
-            "sha256": "0a11a44c16ac5df97fd2e7b3811bef5449d2bec19c7dbb51cc86f84c63611b48",
-            "size": 1582372
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-8.4.0/redis-8.4.0-linux-arm64.tar.gz",
-            "sha256": "f580eb8d8dd82e98f2d7dbd30cf3737d3f8640affee5b8053e9bc4be3fb2d937",
-            "size": 13816267
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-8.4.0/redis-8.4.0-linux-x64.tar.gz",
-            "sha256": "14b4d4e4d78e71b0e9800d411bd49586606eaaff5ce95d1e063226e01dc70c36",
-            "size": 13738541
-          },
           "win32-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/redis-8.4.0/redis-8.4.0-win32-x64.zip",
-            "sha256": "1741f9ad58fa926056641c193951b910bb82a64167f5f6cccedf3570f4e216ad",
+            "sha256": "80847d5e55488a74b1bd474978c516ae23bd0de604ec160549536c673ab5762e",
             "size": 12750074
           }
         }
@@ -432,55 +392,13 @@
         "version": "8.0.6",
         "releaseTag": "valkey-8.0.6",
         "releasedAt": "2026-01-07T18:14:22Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/valkey-8.0.6/valkey-8.0.6-darwin-arm64.tar.gz",
-            "sha256": "17e868ed49b8b663cd1c216748133cf582419336994bcad8714ed9144be5fbef",
-            "size": 1285136
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/valkey-8.0.6/valkey-8.0.6-darwin-x64.tar.gz",
-            "sha256": "71b7cfb3c8033bbaac1b42d1a9dac6d4facfd4ba180c73c4147ea097859a1566",
-            "size": 1365448
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/valkey-8.0.6/valkey-8.0.6-linux-arm64.tar.gz",
-            "sha256": "844d49da6fb0676997a685804738d8cc1dfa9d07137991e8e24cc70a829deeba",
-            "size": 12800279
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/valkey-8.0.6/valkey-8.0.6-linux-x64.tar.gz",
-            "sha256": "d50de7772631dface7fc81c7df2175034c0c5514b068407e94c5f4f181cc3ba9",
-            "size": 12718461
-          }
-        }
+        "platforms": {}
       },
       "9.0.1": {
         "version": "9.0.1",
         "releaseTag": "valkey-9.0.1",
         "releasedAt": "2026-01-08T00:23:09Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/valkey-9.0.1/valkey-9.0.1-darwin-arm64.tar.gz",
-            "sha256": "4cfd2aec2120d4d36b2a8cb8b1dd1d292ca0930f940fb7e108bcf415dfdd0183",
-            "size": 1391047
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/valkey-9.0.1/valkey-9.0.1-darwin-x64.tar.gz",
-            "sha256": "bae40b31af7c2a83a58b61a39c23fa6c4d03d307199ed4668a828e6d8de01412",
-            "size": 1490869
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/valkey-9.0.1/valkey-9.0.1-linux-arm64.tar.gz",
-            "sha256": "4a2ad2b5c07c698415132fb43a7265e999bffc607600c970a20060931174309e",
-            "size": 13718081
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/valkey-9.0.1/valkey-9.0.1-linux-x64.tar.gz",
-            "sha256": "767ca095cbe179e65cf1b4426a01f50e819752dc1a2e04c39b78e2cc94004084",
-            "size": 13670174
-          }
-        }
+        "platforms": {}
       }
     },
     "mongodb": {
