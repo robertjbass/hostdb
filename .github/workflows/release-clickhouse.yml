@@ -240,47 +240,61 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Setup Cygwin for Windows builds (provides POSIX compatibility layer)
-      - name: Setup Cygwin
-        uses: cygwin/cygwin-install-action@master
+      # Setup MSYS2 with CLANG64 environment for Windows builds
+      # CLANG64 provides native Windows binaries using Clang/LLVM
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
         with:
-          packages: >-
-            clang
-            llvm
-            cmake
-            ninja
+          msystem: CLANG64
+          update: true
+          install: >-
+            mingw-w64-clang-x86_64-clang
+            mingw-w64-clang-x86_64-lld
+            mingw-w64-clang-x86_64-cmake
+            mingw-w64-clang-x86_64-ninja
+            mingw-w64-clang-x86_64-openssl
+            mingw-w64-clang-x86_64-zlib
+            mingw-w64-clang-x86_64-zstd
+            mingw-w64-clang-x86_64-lz4
+            mingw-w64-clang-x86_64-xz
+            mingw-w64-clang-x86_64-libxml2
+            mingw-w64-clang-x86_64-python
             git
-            curl
-            pkg-config
-            libssl-devel
             zip
-            python3
 
-      # EXPERIMENTAL: Build ClickHouse for Windows using Cygwin
-      # This has never been done before and may fail!
-      - name: Build ClickHouse (Cygwin - EXPERIMENTAL)
+      # EXPERIMENTAL: Build ClickHouse for Windows using MSYS2 CLANG64
+      # This targets native Windows (not POSIX emulation like Cygwin)
+      - name: Build ClickHouse (MSYS2 CLANG64 - EXPERIMENTAL)
         id: build-windows
         timeout-minutes: 360
-        shell: C:\cygwin\bin\bash.exe --login -eo pipefail -o igncr '{0}'
-        env:
-          CYGWIN: winsymlinks:native
+        shell: msys2 {0}
         run: |
           VERSION="${{ github.event.inputs.version }}"
           PLATFORM="win32-x64"
 
           echo "=========================================="
-          echo "EXPERIMENTAL: Building ClickHouse $VERSION for Windows (Cygwin)"
+          echo "EXPERIMENTAL: Building ClickHouse $VERSION for Windows (MSYS2 CLANG64)"
           echo "This build is experimental and may fail!"
           echo "=========================================="
 
-          cd "$(cygpath "$GITHUB_WORKSPACE")"
+          # Check environment
+          echo "Environment:"
+          echo "MSYSTEM: $MSYSTEM"
+          echo "PATH: $PATH"
 
           # Check Clang version
+          echo ""
           echo "Clang version:"
           clang --version
 
+          echo ""
+          echo "CMake version:"
+          cmake --version
+
           # Clone ClickHouse source (shallow for speed)
+          echo ""
           echo "Cloning ClickHouse source..."
+          cd "$GITHUB_WORKSPACE"
           git clone --depth 1 --branch "v${VERSION}-stable" \
             --recurse-submodules --shallow-submodules \
             https://github.com/ClickHouse/ClickHouse.git
@@ -288,15 +302,20 @@ jobs:
           cd ClickHouse
 
           # Configure with CMake
+          echo ""
           echo "Configuring with CMake..."
           mkdir -p build && cd build
 
+          # Use MSYS2's clang from CLANG64 environment
           cmake .. \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_BUILD_TYPE=Release \
             -DENABLE_TESTS=OFF \
             -DENABLE_UTILS=OFF \
+            -DENABLE_EMBEDDED_COMPILER=OFF \
+            -DENABLE_RUST=OFF \
+            -DUSE_STATIC_LIBRARIES=ON \
             -GNinja || {
               echo "::warning::CMake configuration failed. This is expected for experimental Windows builds."
               echo "::warning::ClickHouse does not officially support Windows."
@@ -304,6 +323,7 @@ jobs:
             }
 
           # Build (this may fail with platform-specific errors)
+          echo ""
           echo "Building ClickHouse..."
           ninja clickhouse || {
             echo "::warning::Build failed. This is expected for experimental Windows builds."
@@ -312,40 +332,47 @@ jobs:
           }
 
           # If we get here, the build succeeded! Package it.
+          echo ""
           echo "Build succeeded! Packaging..."
 
           cd "$GITHUB_WORKSPACE"
           mkdir -p install/clickhouse/bin
 
-          # Copy binary
-          cp ClickHouse/build/programs/clickhouse install/clickhouse/bin/
+          # Copy binary (might be .exe on Windows)
+          if [ -f ClickHouse/build/programs/clickhouse.exe ]; then
+            cp ClickHouse/build/programs/clickhouse.exe install/clickhouse/bin/
+          else
+            cp ClickHouse/build/programs/clickhouse install/clickhouse/bin/
+          fi
 
           # Add metadata
-          printf '%s\n' \
-            '{' \
-            '  "name": "clickhouse",' \
-            "  \"version\": \"${VERSION}\"," \
-            "  \"platform\": \"${PLATFORM}\"," \
-            '  "source": "source-build",' \
-            '  "sourceUrl": "https://github.com/ClickHouse/ClickHouse",' \
-            '  "rehosted_by": "hostdb",' \
-            "  \"rehosted_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"," \
-            '  "note": "Experimental Cygwin build - may have limited functionality"' \
-            '}' > install/clickhouse/.hostdb-metadata.json
+          cat > install/clickhouse/.hostdb-metadata.json << EOF
+          {
+            "name": "clickhouse",
+            "version": "${VERSION}",
+            "platform": "${PLATFORM}",
+            "source": "source-build",
+            "sourceUrl": "https://github.com/ClickHouse/ClickHouse",
+            "rehosted_by": "hostdb",
+            "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "note": "Experimental MSYS2 CLANG64 build - may have limited functionality"
+          }
+          EOF
 
           # Create zip (Windows convention)
           mkdir -p dist
           cd install
           zip -r "../dist/clickhouse-${VERSION}-${PLATFORM}.zip" clickhouse
 
+          echo ""
           echo "Build complete:"
           ls -la ../dist/
 
       - name: Generate checksum (Windows)
         if: steps.build-windows.outcome == 'success'
-        shell: C:\cygwin\bin\bash.exe --login -eo pipefail -o igncr '{0}'
+        shell: msys2 {0}
         run: |
-          cd "$(cygpath "$GITHUB_WORKSPACE")/dist"
+          cd "$GITHUB_WORKSPACE/dist"
           for f in *.tar.gz *.zip; do
             if [ -f "$f" ]; then
               sha256sum "$f" >> checksums.txt
