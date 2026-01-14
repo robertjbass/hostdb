@@ -377,13 +377,21 @@ jobs:
           # (64-bit instruction with 32-bit register) - this is broken on MSYS2/Windows.
           # The bn_div_words macro is controlled by SIXTY_FOUR_BIT / SIXTY_FOUR_BIT_LONG.
           # We insert undefs RIGHT BEFORE the macro definition (after includes).
+          # NOTE: Removed ^ anchor - the line may have leading whitespace.
           echo ""
           echo "Patching OpenSSL bn_div.c to disable broken inline assembly..."
           OPENSSL_BN_DIV="contrib/openssl/crypto/bn/bn_div.c"
           if [ -f "$OPENSSL_BN_DIV" ]; then
             # Insert undefs right before the bn_div_words macro definition
-            sed -i '/^#if defined(SIXTY_FOUR_BIT_LONG)/i\/* Disable broken inline asm on Windows - must be after includes */\n#undef SIXTY_FOUR_BIT_LONG\n#undef SIXTY_FOUR_BIT\n' "$OPENSSL_BN_DIV"
+            # Pattern without ^ anchor to match regardless of leading whitespace
+            sed -i '/#if defined(SIXTY_FOUR_BIT_LONG)/i\/* Disable broken inline asm on Windows - must be after includes */\n#undef SIXTY_FOUR_BIT_LONG\n#undef SIXTY_FOUR_BIT\n' "$OPENSSL_BN_DIV"
             echo "Patched bn_div.c (disabled inline assembly before macro def)"
+            # Verify the patch was applied by checking if our comment exists
+            if grep -q "Disable broken inline asm" "$OPENSSL_BN_DIV"; then
+              echo "Verified: patch successfully applied"
+            else
+              echo "WARNING: patch may not have been applied!"
+            fi
           fi
 
           # Create Windows compatibility header with POSIX stubs
