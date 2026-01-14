@@ -1,0 +1,74 @@
+name: Rebuild releases.json
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (show changes without committing)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Reconcile releases.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            pnpm tsx scripts/reconcile-releases.ts --dry-run
+          else
+            pnpm tsx scripts/reconcile-releases.ts
+          fi
+
+      - name: Show diff
+        run: git diff releases.json || echo "No changes"
+
+      - name: Commit and push
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add releases.json
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "chore: reconcile releases.json with GitHub releases"
+
+          # Retry push with rebase if remote has changed
+          for i in 1 2 3; do
+            if git push; then
+              echo "Push succeeded"
+              exit 0
+            fi
+            echo "Push failed, attempting rebase (attempt $i/3)..."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "ERROR: Rebase failed due to conflicts. Manual intervention required."
+              git rebase --abort
+              exit 1
+            fi
+            sleep $((2**i))
+          done
+          echo "ERROR: Push failed after 3 attempts"
+          exit 1
