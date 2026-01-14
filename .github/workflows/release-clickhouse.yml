@@ -384,9 +384,7 @@ jobs:
             '#ifdef far' \
             '#undef far' \
             '#endif' \
-            '#ifdef DELETE' \
-            '#undef DELETE' \
-            '#endif' \
+            '// Note: DELETE is a legitimate Windows API constant (0x00010000L) - do not undef' \
             '#ifdef ERROR' \
             '#undef ERROR' \
             '#endif' \
