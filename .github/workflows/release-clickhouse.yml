@@ -366,6 +366,31 @@ jobs:
             '#pragma once' \
             '#ifdef _WIN32' \
             '#include <windows.h>' \
+            '' \
+            '// Undefine Windows macros that pollute the namespace and break code' \
+            '// OPTIONAL is defined in Windows SAL annotations, breaks LLVM enums' \
+            '#ifdef OPTIONAL' \
+            '#undef OPTIONAL' \
+            '#endif' \
+            '#ifdef IN' \
+            '#undef IN' \
+            '#endif' \
+            '#ifdef OUT' \
+            '#undef OUT' \
+            '#endif' \
+            '#ifdef near' \
+            '#undef near' \
+            '#endif' \
+            '#ifdef far' \
+            '#undef far' \
+            '#endif' \
+            '#ifdef DELETE' \
+            '#undef DELETE' \
+            '#endif' \
+            '#ifdef ERROR' \
+            '#undef ERROR' \
+            '#endif' \
+            '' \
             '#ifndef _SC_PAGESIZE' \
             '#define _SC_PAGESIZE 1' \
             '#endif' \
