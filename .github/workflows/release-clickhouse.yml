@@ -263,6 +263,14 @@ jobs:
             git
             zip
 
+      # Cache ClickHouse source to speed up iteration (~3 min savings)
+      - name: Cache ClickHouse source
+        id: cache-clickhouse
+        uses: actions/cache@v4
+        with:
+          path: ClickHouse
+          key: clickhouse-source-${{ github.event.inputs.version }}
+
       # EXPERIMENTAL: Build ClickHouse for Windows using MSYS2 CLANG64
       # This targets native Windows (not POSIX emulation like Cygwin)
       - name: Build ClickHouse (MSYS2 CLANG64 - EXPERIMENTAL)
@@ -292,13 +300,21 @@ jobs:
           echo "CMake version:"
           cmake --version
 
-          # Clone ClickHouse source (shallow for speed)
-          echo ""
-          echo "Cloning ClickHouse source..."
+          # Clone ClickHouse source (shallow for speed) - skip if cached
           cd "$GITHUB_WORKSPACE"
-          git clone --depth 1 --branch "v${VERSION}-stable" \
-            --recurse-submodules --shallow-submodules \
-            https://github.com/ClickHouse/ClickHouse.git
+          if [ -d "ClickHouse" ] && [ -f "ClickHouse/CMakeLists.txt" ]; then
+            echo ""
+            echo "Using cached ClickHouse source..."
+            # Clean any previous build artifacts
+            rm -rf ClickHouse/build
+          else
+            echo ""
+            echo "Cloning ClickHouse source..."
+            rm -rf ClickHouse
+            git clone --depth 1 --branch "v${VERSION}-stable" \
+              --recurse-submodules --shallow-submodules \
+              https://github.com/ClickHouse/ClickHouse.git
+          fi
 
           cd ClickHouse
 
@@ -329,18 +345,48 @@ jobs:
           echo "Patched target.cmake:"
           grep -n -A2 "Windows" cmake/target.cmake || true
 
+          # Create Windows compatibility header with POSIX stubs
+          echo ""
+          echo "Creating Windows compatibility header..."
+          printf '%s\n' \
+            '#pragma once' \
+            '#ifdef _WIN32' \
+            '#include <windows.h>' \
+            '#ifndef _SC_PAGESIZE' \
+            '#define _SC_PAGESIZE 1' \
+            '#endif' \
+            '#ifndef _SC_NPROCESSORS_ONLN' \
+            '#define _SC_NPROCESSORS_ONLN 2' \
+            '#endif' \
+            'static inline int getpagesize(void) { SYSTEM_INFO si; GetSystemInfo(&si); return (int)si.dwPageSize; }' \
+            'static inline long sysconf(int name) { switch(name) { case _SC_PAGESIZE: return getpagesize(); case _SC_NPROCESSORS_ONLN: { SYSTEM_INFO si; GetSystemInfo(&si); return (long)si.dwNumberOfProcessors; } default: return -1; } }' \
+            '#ifndef SIGSTKSZ' \
+            '#define SIGSTKSZ 8192' \
+            '#endif' \
+            'typedef struct { void *ss_sp; int ss_flags; size_t ss_size; } stack_t;' \
+            'static inline int sigaltstack(const stack_t *ss, stack_t *old_ss) { (void)ss; (void)old_ss; return 0; }' \
+            '#endif' \
+            > compat_windows.h
+          echo "Created compat_windows.h"
+
           # Configure with CMake
           echo ""
           echo "Configuring with CMake..."
           mkdir -p build && cd build
+          COMPAT_HEADER="$GITHUB_WORKSPACE/ClickHouse/compat_windows.h"
 
           # Use MSYS2's clang from CLANG64 environment
           # Disable many features that require Linux-specific APIs
+          # Include compat_windows.h for POSIX stubs
           cmake .. \
             -DCMAKE_C_COMPILER=clang \
             -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_CXX_FLAGS="-include ${COMPAT_HEADER}" \
             -DCMAKE_LINKER=ld.lld \
             -DLINKER_NAME=ld.lld \
+            -DTHREADS_PREFER_PTHREAD_FLAG=ON \
+            -DCMAKE_THREAD_LIBS_INIT="-lpthread" \
+            -DCMAKE_USE_PTHREADS_INIT=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_SYSTEM_PROCESSOR=x86_64 \
             -DCOMPILER_CACHE=disabled \
@@ -379,10 +425,11 @@ jobs:
               exit 1
             }
 
-          # Build (this may fail with platform-specific errors)
+          # Build clickhouse-local first (smaller target, avoids server/networking code)
+          # This reduces attack surface by avoiding epoll/io_uring networking code
           echo ""
-          echo "Building ClickHouse..."
-          ninja clickhouse || {
+          echo "Building clickhouse-local (minimal target for Windows)..."
+          ninja clickhouse-local || {
             echo "::warning::Build failed. This is expected for experimental Windows builds."
             echo "::warning::ClickHouse does not officially support Windows."
             exit 1
@@ -395,11 +442,18 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           mkdir -p install/clickhouse/bin
 
-          # Copy binary (might be .exe on Windows)
-          if [ -f ClickHouse/build/programs/clickhouse.exe ]; then
-            cp ClickHouse/build/programs/clickhouse.exe install/clickhouse/bin/
+          # Copy clickhouse-local binary (might be .exe on Windows)
+          if [ -f ClickHouse/build/programs/clickhouse-local.exe ]; then
+            cp ClickHouse/build/programs/clickhouse-local.exe install/clickhouse/bin/clickhouse-local.exe
+          elif [ -f ClickHouse/build/programs/clickhouse-local ]; then
+            cp ClickHouse/build/programs/clickhouse-local install/clickhouse/bin/
           else
-            cp ClickHouse/build/programs/clickhouse install/clickhouse/bin/
+            # Fallback: clickhouse-local might be part of main clickhouse binary
+            if [ -f ClickHouse/build/programs/clickhouse.exe ]; then
+              cp ClickHouse/build/programs/clickhouse.exe install/clickhouse/bin/
+            else
+              cp ClickHouse/build/programs/clickhouse install/clickhouse/bin/
+            fi
           fi
 
           # Add metadata
@@ -412,7 +466,7 @@ jobs:
             "sourceUrl": "https://github.com/ClickHouse/ClickHouse",
             "rehosted_by": "hostdb",
             "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "note": "Experimental MSYS2 CLANG64 build - may have limited functionality"
+            "note": "Experimental MSYS2 CLANG64 build - clickhouse-local only, limited functionality"
           }
           EOF
 
