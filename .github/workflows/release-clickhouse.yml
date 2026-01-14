@@ -352,6 +352,13 @@ jobs:
           sed -i 's/message(FATAL_ERROR/message(WARNING/' PreLoad.cmake
           echo "Patched PreLoad.cmake (changed FATAL_ERROR to WARNING)"
 
+          # Patch CMakeLists.txt to add find_package(Threads) early
+          # ClickHouse doesn't call this, but abseil-cpp and xz need Threads::Threads target
+          echo ""
+          echo "Patching CMakeLists.txt to add Threads package..."
+          sed -i '/^project(/a\\n# Added for Windows build - create Threads::Threads target\nset(THREADS_PREFER_PTHREAD_FLAG ON)\nfind_package(Threads REQUIRED)\n' CMakeLists.txt
+          echo "Patched CMakeLists.txt (added find_package(Threads))"
+
           # Create Windows compatibility header with POSIX stubs
           echo ""
           echo "Creating Windows compatibility header..."
@@ -391,9 +398,6 @@ jobs:
             -DCMAKE_CXX_FLAGS="-include ${COMPAT_HEADER}" \
             -DCMAKE_LINKER=ld.lld \
             -DLINKER_NAME=ld.lld \
-            -DTHREADS_PREFER_PTHREAD_FLAG=ON \
-            -DCMAKE_THREAD_LIBS_INIT="-lpthread" \
-            -DCMAKE_USE_PTHREADS_INIT=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_SYSTEM_PROCESSOR=x86_64 \
             -DCOMPILER_CACHE=disabled \
