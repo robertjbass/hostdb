@@ -447,6 +447,19 @@ jobs:
             fi
           fi
 
+          # Patch zlib-ng to not use posix_memalign on Windows
+          # The HAVE_POSIX_MEMALIGN check is auto-detected but incorrect for Windows
+          echo ""
+          echo "Patching zlib-ng to disable posix_memalign on Windows..."
+          ZLIB_CMAKE="contrib/zlib-ng-cmake/CMakeLists.txt"
+          if [ -f "$ZLIB_CMAKE" ]; then
+            # Remove -DHAVE_POSIX_MEMALIGN from compile definitions
+            sed -i 's/-DHAVE_POSIX_MEMALIGN//g' "$ZLIB_CMAKE"
+            echo "Removed -DHAVE_POSIX_MEMALIGN from zlib-ng cmake"
+          else
+            echo "zlib-ng cmake not found at $ZLIB_CMAKE"
+          fi
+
           # Create Windows compatibility header with POSIX stubs
           # IMPORTANT: Do NOT include <windows.h> here - it causes massive macro pollution
           # (IMAGE_FILE_MACHINE_*, NO_ERROR, OPTIONAL, etc.) that breaks LLVM enums.
@@ -461,6 +474,8 @@ jobs:
             '// We intentionally do NOT include <windows.h> to avoid macro pollution' \
             '' \
             '#include <stddef.h>  // for size_t' \
+            '#include <malloc.h>  // for _aligned_malloc, _aligned_free' \
+            '#include <errno.h>   // for ENOMEM, EINVAL' \
             '' \
             '// sysconf constants' \
             '#ifndef _SC_PAGESIZE' \
@@ -488,6 +503,19 @@ jobs:
             'static inline int sigaltstack(const stack_t *ss, stack_t *old_ss) {' \
             '    (void)ss; (void)old_ss; return 0;' \
             '}' \
+            '' \
+            '// posix_memalign shim using Windows _aligned_malloc' \
+            '// Note: memory must be freed with _aligned_free, not free()' \
+            '// Prefer posix_memalign_free() when available.' \
+            'static inline int posix_memalign(void **memptr, size_t alignment, size_t size) {' \
+            '    if (!memptr || alignment == 0 || (alignment & (alignment - 1)) != 0 ||' \
+            '        (alignment % sizeof(void *)) != 0) {' \
+            '        return EINVAL;' \
+            '    }' \
+            '    *memptr = _aligned_malloc(size, alignment);' \
+            '    return (*memptr) ? 0 : ENOMEM;' \
+            '}' \
+            'static inline void posix_memalign_free(void *ptr) { _aligned_free(ptr); }' \
             '' \
             '#endif // _WIN32' \
             > compat_windows.h

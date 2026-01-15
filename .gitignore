@@ -38,5 +38,4 @@ coverage/
 .prompts.md
 
 # Debugging / Windows build iteration logs
-*-windows-build-log.md
 err.log
