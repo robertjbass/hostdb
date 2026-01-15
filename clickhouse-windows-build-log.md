@@ -6,6 +6,44 @@
 |----------|---------------|-------|---------------|--------|
 | 1 | 25:36 | Compile (1866/9265) | `sigset_t` undefined in xz mythread.h | ✅ Fixed |
 | 2 | 25:06 | Compile (1866/9265) | Same - compat header not applied to C files | ✅ Fixed |
+| 3 | 27:19 | Compile (2195/9265) | boost.context using Unix/ELF asm instead of Windows/PE | ✅ Fixed |
+
+---
+
+## Iteration 3 - 2026-01-15
+
+**Duration:** Failed at 27:19 (compile phase, 2195/9265 objects) - **+2:13 progress**
+
+**Changes:** Added `CMAKE_C_FLAGS` to include compat header for C files
+
+**Errors:**
+1. `jump_x86_64_sysv_elf_gas.S` - ELF assembly directives (`.type`, `.size`, `.section .note.GNU-stack`) not supported on Windows/PE
+2. `src/posix/stack_traits.cpp` - `'sys/resource.h' file not found`
+
+**Root Cause:**
+- boost.context CMake is selecting Unix/POSIX source files instead of Windows files
+- Should use: `jump_x86_64_ms_pe_clang_gas.S` (Windows PE assembly)
+- Should use: `src/windows/stack_traits.cpp` (Windows stack traits)
+- Both `-D OS_LINUX` and `-D OS_WINDOWS` are defined, confusing platform detection
+
+**Proposed Fix:**
+Patch `contrib/boost-cmake/CMakeLists.txt` to use Windows-specific files:
+```bash
+# Replace SYSV ELF assembly with Windows PE assembly
+sed -i 's/jump_x86_64_sysv_elf_gas\.S/jump_x86_64_ms_pe_clang_gas.S/g' contrib/boost-cmake/CMakeLists.txt
+sed -i 's/make_x86_64_sysv_elf_gas\.S/make_x86_64_ms_pe_clang_gas.S/g' contrib/boost-cmake/CMakeLists.txt
+sed -i 's/ontop_x86_64_sysv_elf_gas\.S/ontop_x86_64_ms_pe_clang_gas.S/g' contrib/boost-cmake/CMakeLists.txt
+
+# Replace POSIX stack_traits with Windows stack_traits
+sed -i 's|src/posix/stack_traits\.cpp|src/windows/stack_traits.cpp|g' contrib/boost-cmake/CMakeLists.txt
+```
+
+**Files to modify:**
+- `.github/workflows/release-clickhouse.yml` (add sed patches before cmake configuration)
+
+**Next:** Re-run build
+
+**Fix Applied:** `.github/workflows/release-clickhouse.yml` lines 463-477
 
 ---
 

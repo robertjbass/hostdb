@@ -460,6 +460,22 @@ jobs:
             echo "zlib-ng cmake not found at $ZLIB_CMAKE"
           fi
 
+          # Patch boost.context to use Windows-specific assembly and source files
+          echo ""
+          echo "Patching boost-cmake for Windows..."
+          BOOST_CMAKE="contrib/boost-cmake/CMakeLists.txt"
+          if [ -f "$BOOST_CMAKE" ]; then
+            # Replace Unix/ELF assembly files with Windows/PE assembly files
+            sed -i 's/jump_x86_64_sysv_elf_gas\.S/jump_x86_64_ms_pe_clang_gas.S/g' "$BOOST_CMAKE"
+            sed -i 's/make_x86_64_sysv_elf_gas\.S/make_x86_64_ms_pe_clang_gas.S/g' "$BOOST_CMAKE"
+            sed -i 's/ontop_x86_64_sysv_elf_gas\.S/ontop_x86_64_ms_pe_clang_gas.S/g' "$BOOST_CMAKE"
+            # Replace POSIX stack_traits with Windows stack_traits
+            sed -i 's|context/src/posix/stack_traits\.cpp|context/src/windows/stack_traits.cpp|g' "$BOOST_CMAKE"
+            echo "Patched boost-cmake (sysv_elf -> ms_pe, posix -> windows)"
+          else
+            echo "boost-cmake not found at $BOOST_CMAKE"
+          fi
+
           # Create Windows compatibility header with POSIX stubs
           # IMPORTANT: Do NOT include <windows.h> here - it causes massive macro pollution
           # (IMAGE_FILE_MACHINE_*, NO_ERROR, OPTIONAL, etc.) that breaks LLVM enums.
