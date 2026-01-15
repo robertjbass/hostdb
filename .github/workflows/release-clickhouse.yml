@@ -447,6 +447,19 @@ jobs:
             fi
           fi
 
+          # Patch zlib-ng to not use posix_memalign on Windows
+          # The HAVE_POSIX_MEMALIGN check is auto-detected but incorrect for Windows
+          echo ""
+          echo "Patching zlib-ng to disable posix_memalign on Windows..."
+          ZLIB_CMAKE="contrib/zlib-ng-cmake/CMakeLists.txt"
+          if [ -f "$ZLIB_CMAKE" ]; then
+            # Remove -DHAVE_POSIX_MEMALIGN from compile definitions
+            sed -i 's/-DHAVE_POSIX_MEMALIGN//g' "$ZLIB_CMAKE"
+            echo "Removed -DHAVE_POSIX_MEMALIGN from zlib-ng cmake"
+          else
+            echo "zlib-ng cmake not found at $ZLIB_CMAKE"
+          fi
+
           # Create Windows compatibility header with POSIX stubs
           # IMPORTANT: Do NOT include <windows.h> here - it causes massive macro pollution
           # (IMAGE_FILE_MACHINE_*, NO_ERROR, OPTIONAL, etc.) that breaks LLVM enums.
