@@ -492,6 +492,9 @@ jobs:
             '#include <stddef.h>  // for size_t' \
             '#include <malloc.h>  // for _aligned_malloc, _aligned_free' \
             '#include <errno.h>   // for ENOMEM, EINVAL' \
+            '#include <io.h>      // for _commit, _write' \
+            '#include <stdarg.h>  // for va_list' \
+            '#include <stdio.h>   // for vsnprintf' \
             '' \
             '// sysconf constants' \
             '#ifndef _SC_PAGESIZE' \
@@ -537,6 +540,20 @@ jobs:
             '    return (*memptr) ? 0 : ENOMEM;' \
             '}' \
             'static inline void posix_memalign_free(void *ptr) { _aligned_free(ptr); }' \
+            '' \
+            '// fsync -> _commit on Windows' \
+            'static inline int fsync(int fd) { return _commit(fd); }' \
+            '' \
+            '// dprintf implementation for Windows (write formatted string to fd)' \
+            'static inline int dprintf(int fd, const char *fmt, ...) {' \
+            '    char buf[4096];' \
+            '    va_list args;' \
+            '    va_start(args, fmt);' \
+            '    int len = vsnprintf(buf, sizeof(buf), fmt, args);' \
+            '    va_end(args);' \
+            '    if (len > 0) return _write(fd, buf, len);' \
+            '    return len;' \
+            '}' \
             '' \
             '#endif // _WIN32' \
             > compat_windows.h

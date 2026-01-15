@@ -7,6 +7,52 @@
 | 1 | 25:36 | Compile (1866/9265) | `sigset_t` undefined in xz mythread.h | ✅ Fixed |
 | 2 | 25:06 | Compile (1866/9265) | Same - compat header not applied to C files | ✅ Fixed |
 | 3 | 27:19 | Compile (2195/9265) | boost.context using Unix/ELF asm instead of Windows/PE | ✅ Fixed |
+| 4 | 30:06 | Compile (2235/9265) | replxx: `dprintf` and `fsync` undefined | ✅ Fixed |
+
+---
+
+## Iteration 4 - 2026-01-15
+
+**Duration:** Failed at 30:06 (compile phase, 2235/9265 objects) - **+2:47 progress**
+
+**Changes:** Patched boost.context to use Windows PE assembly and Windows stack_traits
+
+**Errors:**
+- `dprintf` - POSIX function to write formatted output to file descriptor
+- `fsync` - POSIX function to sync file to disk
+
+**Root Cause:**
+- replxx library uses POSIX I/O functions not available on Windows
+- Windows equivalents: `fsync` → `_commit()`, `dprintf` needs custom implementation
+
+**Proposed Fix:**
+Add to `compat_windows.h`:
+```c
+#include <io.h>      // for _commit, _write
+#include <stdio.h>   // for vsnprintf
+#include <stdarg.h>  // for va_list
+
+// fsync -> _commit on Windows
+static inline int fsync(int fd) { return _commit(fd); }
+
+// dprintf implementation for Windows
+static inline int dprintf(int fd, const char *fmt, ...) {
+    char buf[4096];
+    va_list args;
+    va_start(args, fmt);
+    int len = vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    if (len > 0) return _write(fd, buf, len);
+    return len;
+}
+```
+
+**Files to modify:**
+- `.github/workflows/release-clickhouse.yml` (compat_windows.h generation)
+
+**Next:** Re-run build
+
+**Fix Applied:** Added `fsync` and `dprintf` stubs to compat_windows.h
 
 ---
 
