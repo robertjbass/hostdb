@@ -504,6 +504,11 @@ jobs:
             '    (void)ss; (void)old_ss; return 0;' \
             '}' \
             '' \
+            '// Signal set type for pthread_sigmask compatibility' \
+            '// Windows MSYS2 only has _sigset_t, need to alias it' \
+            '#include <sys/types.h>  // for _sigset_t' \
+            'typedef _sigset_t sigset_t;' \
+            '' \
             '// posix_memalign shim using Windows _aligned_malloc' \
             '// Note: memory must be freed with _aligned_free, not free()' \
             '// Prefer posix_memalign_free() when available.' \
