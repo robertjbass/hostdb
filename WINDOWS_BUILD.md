@@ -599,6 +599,76 @@ zip -r "database-${VERSION}-${PLATFORM}.zip" database
 
 ---
 
+## When Developing on a Windows VM
+
+For complex Windows builds like ClickHouse, iterating via GitHub Actions is too slow (each run can take hours). Instead, develop locally on a Windows machine or VM.
+
+### Setup
+
+Databases with local build scripts (e.g., ClickHouse) provide a PowerShell launcher:
+
+```powershell
+cd C:\Users\Bob\hostdb\builds\clickhouse
+.\build-windows.ps1 -Version 25.12.3.21
+```
+
+The launcher automatically installs MSYS2 and required packages on first run.
+
+### What Gets Cached
+
+After the first run, subsequent builds are much faster:
+
+| Step | First run | Subsequent runs |
+|------|-----------|-----------------|
+| MSYS2 install | ~5 min | Skipped |
+| Package install | ~5-10 min | Skipped (detected) |
+| Git clone + submodules | ~10-20 min | Skipped (reuses source) |
+| Patches | ~30 sec | ~30 sec |
+| CMake configure | ~5-10 min | ~5-10 min |
+| Ninja build | Hours (until failure) | Hours (until failure) |
+
+You save **20-35 minutes** of setup on each iteration. The main time sink becomes the compile step.
+
+### Iteration Workflow
+
+1. **First attempt** - Full build, will likely fail somewhere:
+   ```powershell
+   .\build-windows.ps1 -Version 25.12.3.21
+   ```
+
+2. **Test cmake changes quickly** - Only configure, skip compile:
+   ```powershell
+   .\build-windows.ps1 -Version 25.12.3.21 -ConfigureOnly
+   ```
+
+3. **Re-run after editing patches** - Just run again (source is reused automatically):
+   ```powershell
+   .\build-windows.ps1 -Version 25.12.3.21
+   ```
+
+4. **Clean rebuild** - Remove cached source and start fresh:
+   ```powershell
+   .\build-windows.ps1 -Version 25.12.3.21 -Clean
+   ```
+
+### Tips
+
+- **Use `-ConfigureOnly`** to quickly validate cmake changes without waiting for compile
+- **Source is reused automatically** - no flag needed, just re-run the script
+- **Track progress** in `<database>-windows-build-log.md` (see "Iterating on Build Failures" above)
+- **Edit the `.sh` script directly** - patches are in `build-windows.sh`, not the workflow
+- **Sync with CI** - After successful local build, copy patches back to the GitHub workflow
+
+### Syncing Local Changes with GitHub Actions
+
+When your local build succeeds (or progresses further), update the GitHub Actions workflow:
+
+1. Compare `builds/<db>/build-windows.sh` with `.github/workflows/release-<db>.yml`
+2. Copy new patches from the local script to the workflow
+3. Test in CI with a single platform: select `win32-x64` in the workflow dispatch
+
+---
+
 ## References
 
 - [Cygwin](https://www.cygwin.com/) - POSIX compatibility layer

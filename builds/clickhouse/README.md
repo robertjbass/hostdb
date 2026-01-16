@@ -31,9 +31,60 @@ pnpm download:clickhouse -- --version 25.12.3.21 --platform linux-x64
 pnpm download:clickhouse -- --version 25.12.3.21 --all-platforms
 ```
 
-### Windows build
+### Windows build (local)
 
-Windows builds are handled by the GitHub Actions workflow using Cygwin. They cannot be built locally with this script.
+Windows builds can be done locally using MSYS2 CLANG64. This is much faster for iteration than waiting for GitHub Actions.
+
+**Quick start** (from PowerShell or Command Prompt):
+```powershell
+cd C:\Users\Bob\dev\hostdb\builds\clickhouse
+.\build-windows.ps1 -Version 25.12.3.21
+```
+
+The PowerShell script automatically:
+- Installs MSYS2 if not present
+- Installs all required CLANG64 packages
+- Runs the build inside the correct environment
+
+**Build directory:** `~/clickhouse-build` (outside the repo to avoid bloating it)
+
+**Build options:**
+```powershell
+# Full build (reuses existing source automatically)
+.\build-windows.ps1 -Version 25.12.3.21
+
+# Clean rebuild (removes cached source)
+.\build-windows.ps1 -Version 25.12.3.21 -Clean
+
+# Just configure to check cmake errors
+.\build-windows.ps1 -Version 25.12.3.21 -ConfigureOnly
+```
+
+**Alternative: Run directly in MSYS2**
+
+If you prefer to work directly in the MSYS2 terminal:
+
+1. Launch "MSYS2 CLANG64" from Start menu
+2. Run:
+   ```bash
+   cd /c/Users/Bob/dev/hostdb/builds/clickhouse
+   ./build-windows.sh --version 25.12.3.21
+   ```
+
+**Tracking progress:**
+
+Create `clickhouse-windows-build-log.md` to track iterations:
+```markdown
+# ClickHouse Windows Build Log
+
+## Iteration 1 - 2024-01-14
+**Duration:** Failed at 45 min
+**Changes:** Initial attempt
+**Result:** CMake configuration failed - missing Threads package
+**Next:** Add find_package(Threads) to CMakeLists.txt
+```
+
+See `WINDOWS_BUILD.md` in the repo root for more details on Windows build strategies.
 
 ## Versions
 

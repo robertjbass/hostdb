@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:/msys64/usr/bin/env.exe MSYSTEM=CLANG64 C:/msys64/usr/bin/bash.exe -l -c \"cd /c/users/bob/hostdb/builds/clickhouse/clickhouse-build/ClickHouse && echo ''int main\\(\\) { return 0; }'' > test.c && clang -include ''C:/users/bob/hostdb/builds/clickhouse/clickhouse-build/ClickHouse/compat_windows.h'' test.c -o test.exe && echo SUCCESS || echo FAILED\")",
+      "Bash(C:/msys64/usr/bin/env.exe MSYSTEM=CLANG64 C:/msys64/usr/bin/bash.exe -l -c \"cd /c/users/bob/hostdb/builds/clickhouse/clickhouse-build/ClickHouse && rm -rf build && mkdir build && cd build && COMPAT_HEADER=''C:/Users/Bob/hostdb/builds/clickhouse/clickhouse-build/ClickHouse/compat_windows.h'' && timeout 30 cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS=\"\"-include $COMPAT_HEADER\"\" -DCMAKE_CXX_FLAGS=\"\"-include $COMPAT_HEADER\"\" -GNinja --debug-output 2>&1 | head -100\")",
+      "Bash(C:/msys64/usr/bin/env.exe MSYSTEM=CLANG64 C:/msys64/usr/bin/bash.exe -l -c 'cd /c/users/bob/hostdb/builds/clickhouse/clickhouse-build/ClickHouse && rm -rf build && mkdir build && cd build && timeout 60 cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -GNinja 2>&1 | head -150')",
+      "Bash(C:/msys64/usr/bin/env.exe MSYSTEM=CLANG64 C:/msys64/usr/bin/bash.exe -l -c 'which lld; which ld.lld; ls -la /clang64/bin/lld* /clang64/bin/ld.lld* 2>/dev/null || echo \"\"lld binaries:\"\"; ls /clang64/bin/*lld* 2>/dev/null')",
+      "Bash(C:/msys64/usr/bin/env.exe MSYSTEM=CLANG64 C:/msys64/usr/bin/bash.exe -l -c 'head -80 /c/users/bob/hostdb/builds/clickhouse/clickhouse-build/ClickHouse/cmake/tools.cmake')",
+      "Bash(C:/msys64/usr/bin/env.exe MSYSTEM=CLANG64 C:/msys64/usr/bin/bash.exe:*)",
+      "Bash(findstr:*)",
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File build-windows.ps1 -Version 25.12.3.21)",
+      "Bash(tasklist:*)",
+      "Bash(git submodule update:*)",
+      "Bash(tee:*)",
+      "Bash(git submodule:*)",
+      "Bash(git config:*)",
+      "Bash(powershell:*)",
+      "Bash(test:*)",
+      "Bash(C:/msys64/usr/bin/bash.exe -lc 'echo \"\"HOME=$HOME\"\" && ls -la \"\"$HOME/clickhouse-build/\"\" 2>/dev/null && test -f \"\"$HOME/clickhouse-build/ClickHouse/CMakeLists.txt\"\" && echo \"\"CMakeLists EXISTS\"\" || echo \"\"CMakeLists MISSING\"\"')",
+      "Bash(C:/msys64/usr/bin/bash.exe -lc 'ls -la \"\"$HOME/clickhouse-build/\"\" && du -sh \"\"$HOME/clickhouse-build/\"\"')",
+      "Bash(C:/msys64/usr/bin/bash.exe -lc 'du -sh \"\"$HOME/clickhouse-build/ClickHouse\"\" && ls \"\"$HOME/clickhouse-build/ClickHouse/CMakeLists.txt\"\" 2>/dev/null || echo \"\"No CMakeLists.txt\"\"')",
+      "Bash(wmic process where \"name=''git.exe''\" get processid,commandline)",
+      "Bash(taskkill:*)",
+      "Bash(grep:*)",
+      "Bash(python3:*)"
+    ]
+  }
+}
