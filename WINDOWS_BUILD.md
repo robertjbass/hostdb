@@ -502,78 +502,46 @@ zip -r "../dist/valkey-${VERSION}-${PLATFORM}.zip" valkey
 
 ### ClickHouse MSYS2 CLANG64 Build (Experimental)
 
-**File:** `.github/workflows/release-clickhouse.yml`
+**Files:**
+- `.github/workflows/release-clickhouse.yml` - Workflow that calls build script
+- `builds/clickhouse/build-windows.sh` - Main build script with all patches
 
-**MSYS2 setup:**
+**Architecture:** The workflow sets up MSYS2 CLANG64, then calls the build script:
+
 ```yaml
-- name: Setup MSYS2
-  uses: msys2/setup-msys2@v2
-  with:
-    msystem: CLANG64
-    update: true
-    install: >-
-      mingw-w64-clang-x86_64-clang
-      mingw-w64-clang-x86_64-lld
-      mingw-w64-clang-x86_64-cmake
-      mingw-w64-clang-x86_64-ninja
-      mingw-w64-clang-x86_64-openssl
-      mingw-w64-clang-x86_64-zlib
-      mingw-w64-clang-x86_64-zstd
-      git
-      zip
+# Workflow calls the build script (single source of truth)
+- name: Build ClickHouse (MSYS2 CLANG64 - EXPERIMENTAL)
+  shell: msys2 {0}
+  run: |
+    ./builds/clickhouse/build-windows.sh \
+      --version "$VERSION" \
+      --build-dir "$GITHUB_WORKSPACE/clickhouse-build" \
+      --output-dir "$GITHUB_WORKSPACE/dist"
 ```
 
-**Build shell:**
-```yaml
-shell: msys2 {0}
-```
+**Key patches in build-windows.sh (11+ patches):**
+1. `cmake/arch.cmake` - AMD64 uppercase detection
+2. `cmake/target.cmake` - Windows OS support
+3. `PreLoad.cmake` - Allow custom CMAKE_CXX_FLAGS
+4. `CMakeLists.txt` - Add find_package(Threads)
+5. LLVM TargetParser - NO_ERROR macro conflict
+6. OpenSSL cmake - Disable ASM, remove POSIX sources
+7. OpenSSL bn_div.c - Disable broken inline assembly
+8. zlib-ng - Disable posix_memalign
+9. boost-cmake - Windows PE assembly files
+10. cmake/git.cmake - Skip slow git status
+11. libarchive - Windows crypto headers and config
 
-**Key patches (ClickHouse-specific):**
-```bash
-# Fix architecture detection (Windows reports AMD64 uppercase)
-sed -i 's/"amd64|x86_64"/"amd64|AMD64|x86_64"/g' cmake/arch.cmake
+**Fake POSIX headers created:**
+- `endian.h`, `sys/uio.h`, `sys/mman.h`, `sys/utsname.h`, `sys/wait.h`
+- `sys/ioctl.h`, `spawn.h`, `poll.h`, `langinfo.h`, `grp.h`, `pwd.h`
 
-# Add Windows support to target.cmake
-# (Sets OS_WINDOWS CMake var, defines OS_LINUX for preprocessor)
+**CMake configuration (see build-windows.sh for full list):**
+- Uses `-include compat_windows.h` for POSIX stubs
+- Uses `-isystem compat_headers` for fake system headers
+- Disables 20+ features (jemalloc, S3, gRPC, Kafka, etc.)
 
-# Allow custom CMAKE_CXX_FLAGS (ClickHouse normally rejects them)
-sed -i 's/message(FATAL_ERROR/message(WARNING/' PreLoad.cmake
-
-# Add Threads package (needed by abseil-cpp and xz)
-sed -i '/^project(/a\\nfind_package(Threads REQUIRED)\n' CMakeLists.txt
-
-# Fix LLVM NO_ERROR enum conflict with Windows macro
-sed -i 's/NO_ERROR/FEATURE_NO_ERROR/g' contrib/llvm-project/...
-
-# Disable broken OpenSSL inline assembly
-sed -i '1i\#undef BN_DIV3W\n' contrib/openssl/crypto/bn/bn_div.c
-```
-
-**CMake configuration:**
-```bash
-cmake .. \
-  -DCMAKE_C_COMPILER=clang \
-  -DCMAKE_CXX_COMPILER=clang++ \
-  -DCMAKE_CXX_FLAGS="-include ${COMPAT_HEADER}" \
-  -DCMAKE_LINKER=ld.lld \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DENABLE_TESTS=OFF \
-  -DENABLE_EMBEDDED_COMPILER=OFF \
-  -DENABLE_JEMALLOC=OFF \
-  # ... many features disabled for Windows compatibility
-  -GNinja
-```
-
-**Build command:**
-```bash
-ninja clickhouse
-```
-
-**Packaging (native .exe, no DLLs needed):**
-```bash
-cp ClickHouse/build/programs/clickhouse.exe install/clickhouse/bin/
-zip -r "../dist/clickhouse-${VERSION}-${PLATFORM}.zip" clickhouse
-```
+**Output:** Native `.exe` without Cygwin DLLs
 
 ---
 
@@ -596,6 +564,81 @@ tar -czvf "database-${VERSION}-${PLATFORM}.tar.gz" database
 # Windows: zip (native convention)
 zip -r "database-${VERSION}-${PLATFORM}.zip" database
 ```
+
+---
+
+## When Developing on a Windows VM
+
+For complex Windows builds like ClickHouse, iterating via GitHub Actions is too slow (each run can take hours). Instead, develop locally on a Windows machine or VM.
+
+### Setup
+
+Databases with local build scripts (e.g., ClickHouse) provide a PowerShell launcher:
+
+```powershell
+cd C:\Users\Bob\hostdb\builds\clickhouse
+.\build-windows.ps1 -Version 25.12.3.21
+```
+
+The launcher automatically installs MSYS2 and required packages on first run.
+
+### What Gets Cached
+
+After the first run, subsequent builds are much faster:
+
+| Step | First run | Subsequent runs |
+|------|-----------|-----------------|
+| MSYS2 install | ~5 min | Skipped |
+| Package install | ~5-10 min | Skipped (detected) |
+| Git clone + submodules | ~10-20 min | Skipped (reuses source) |
+| Patches | ~30 sec | ~30 sec |
+| CMake configure | ~5-10 min | ~5-10 min |
+| Ninja build | Hours (until failure) | Hours (until failure) |
+
+You save **20-35 minutes** of setup on each iteration. The main time sink becomes the compile step.
+
+### Iteration Workflow
+
+1. **First attempt** - Full build, will likely fail somewhere:
+   ```powershell
+   .\build-windows.ps1 -Version 25.12.3.21
+   ```
+
+2. **Test cmake changes quickly** - Only configure, skip compile:
+   ```powershell
+   .\build-windows.ps1 -Version 25.12.3.21 -ConfigureOnly
+   ```
+
+3. **Re-run after editing patches** - Just run again (source is reused automatically):
+   ```powershell
+   .\build-windows.ps1 -Version 25.12.3.21
+   ```
+
+4. **Clean rebuild** - Remove cached source and start fresh:
+   ```powershell
+   .\build-windows.ps1 -Version 25.12.3.21 -Clean
+   ```
+
+### Tips
+
+- **Use `-ConfigureOnly`** to quickly validate cmake changes without waiting for compile
+- **Source is reused automatically** - no flag needed, just re-run the script
+- **Track progress** in `<database>-windows-build-log.md` (see "Iterating on Build Failures" above)
+- **Edit the `.sh` script directly** - patches are in `build-windows.sh`, not the workflow
+- **Sync with CI** - After successful local build, copy patches back to the GitHub workflow
+
+### Syncing Local Changes with GitHub Actions
+
+The GitHub Actions workflow now **calls the same build script** (`builds/<db>/build-windows.sh`) that you use locally. This means:
+
+1. **No manual syncing needed** - Changes to `build-windows.sh` automatically apply to CI
+2. **Single source of truth** - All patches live in the build script, not duplicated in the workflow
+3. **Test locally first** - Your local build and CI use identical code
+
+To test in CI after local changes:
+1. Commit your changes to `builds/<db>/build-windows.sh`
+2. Push to a branch and run the workflow
+3. Select `win32-x64` in the workflow dispatch dropdown to test just Windows
 
 ---
 
