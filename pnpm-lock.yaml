@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      tsx:
+        specifier: ^4.19.0
+        version: 4.21.0
     devDependencies:
       '@eslint/js':
         specifier: ^9.17.0
@@ -26,9 +30,6 @@ importers:
       prettier:
         specifier: ^3.4.0
         version: 3.7.4
-      tsx:
-        specifier: ^4.19.0
-        version: 4.21.0
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
