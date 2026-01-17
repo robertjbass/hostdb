@@ -1,6 +1,11 @@
 name: Build Missing Releases
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'databases.json'
+      - 'releases.json'
   workflow_dispatch:
     inputs:
       action:
@@ -17,6 +22,11 @@ on:
         type: string
         default: ''
 
+env:
+  # Default to check-only for push triggers, use input for workflow_dispatch
+  ACTION: ${{ github.event.inputs.action || 'check-only' }}
+  DATABASE_FILTER: ${{ github.event.inputs.database || '' }}
+
 jobs:
   find-missing:
     runs-on: ubuntu-latest
@@ -31,7 +41,7 @@ jobs:
       - name: Find missing releases
         id: check
         run: |
-          DATABASE_FILTER="${{ github.event.inputs.database }}"
+          DATABASE_FILTER="${{ env.DATABASE_FILTER }}"
 
           echo "## Finding Missing Releases" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -55,7 +65,8 @@ jobs:
 
           for DB in $DATABASES; do
             # Skip databases that aren't in-progress or completed
-            STATUS=$(jq -r ".databases.$DB.status // \"pending\"" databases.json)
+            # Use bracket notation for keys with hyphens (e.g., apache-cassandra)
+            STATUS=$(jq -r ".databases[\"$DB\"].status // \"pending\"" databases.json)
             if [ "$STATUS" != "in-progress" ] && [ "$STATUS" != "completed" ]; then
               continue
             fi
@@ -63,14 +74,14 @@ jobs:
             echo "Checking $DB..."
 
             # Get enabled versions
-            VERSIONS=$(jq -r ".databases.$DB.versions | to_entries | map(select(.value == true)) | .[].key" databases.json)
+            VERSIONS=$(jq -r ".databases[\"$DB\"].versions | to_entries | map(select(.value == true)) | .[].key" databases.json)
 
             # Get enabled platforms
-            PLATFORMS=$(jq -r ".databases.$DB.platforms | to_entries | map(select(.value == true)) | .[].key" databases.json)
+            PLATFORMS=$(jq -r ".databases[\"$DB\"].platforms | to_entries | map(select(.value == true)) | .[].key" databases.json)
 
             for VERSION in $VERSIONS; do
               # Check if this version exists in releases.json
-              RELEASE_EXISTS=$(jq -r ".databases.$DB[\"$VERSION\"] // empty" releases.json)
+              RELEASE_EXISTS=$(jq -r ".databases[\"$DB\"][\"$VERSION\"] // empty" releases.json)
 
               if [ -z "$RELEASE_EXISTS" ]; then
                 # Entire version is missing - need to build all platforms
@@ -80,7 +91,7 @@ jobs:
                 # Version exists, check individual platforms
                 MISSING_PLATFORMS=""
                 for PLATFORM in $PLATFORMS; do
-                  PLATFORM_EXISTS=$(jq -r ".databases.$DB[\"$VERSION\"].platforms[\"$PLATFORM\"] // empty" releases.json)
+                  PLATFORM_EXISTS=$(jq -r ".databases[\"$DB\"][\"$VERSION\"].platforms[\"$PLATFORM\"] // empty" releases.json)
                   if [ -z "$PLATFORM_EXISTS" ]; then
                     if [ -z "$MISSING_PLATFORMS" ]; then
                       MISSING_PLATFORMS="$PLATFORM"
@@ -125,7 +136,7 @@ jobs:
   # Trigger release workflows for each missing release
   trigger-builds:
     needs: find-missing
-    if: github.event.inputs.action == 'build-missing' && needs.find-missing.outputs.has-missing == 'true'
+    if: env.ACTION == 'build-missing' && needs.find-missing.outputs.has-missing == 'true'
     runs-on: ubuntu-latest
     outputs:
       triggered: ${{ steps.trigger.outputs.triggered }}
@@ -166,7 +177,7 @@ jobs:
   # Wait for all triggered workflows to complete
   wait-for-builds:
     needs: [find-missing, trigger-builds]
-    if: github.event.inputs.action == 'build-missing' && needs.find-missing.outputs.has-missing == 'true'
+    if: env.ACTION == 'build-missing' && needs.find-missing.outputs.has-missing == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Wait for release workflows to complete
@@ -230,7 +241,7 @@ jobs:
   # Repair any missing checksums and update releases.json
   finalize:
     needs: [find-missing, trigger-builds, wait-for-builds]
-    if: always() && github.event.inputs.action == 'build-missing' && needs.find-missing.outputs.has-missing == 'true' && needs.trigger-builds.result == 'success'
+    if: always() && env.ACTION == 'build-missing' && needs.find-missing.outputs.has-missing == 'true' && needs.trigger-builds.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -359,7 +370,7 @@ jobs:
     steps:
       - name: Generate summary
         run: |
-          ACTION="${{ github.event.inputs.action }}"
+          ACTION="${{ env.ACTION }}"
           HAS_MISSING="${{ needs.find-missing.outputs.has-missing }}"
           MISSING_COUNT="${{ needs.find-missing.outputs.missing-count }}"
           TRIGGER_RESULT="${{ needs.trigger-builds.result }}"
