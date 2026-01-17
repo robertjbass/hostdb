@@ -1,0 +1,35 @@
+# Development and CI
+.github/
+.claude/
+builds/
+scripts/
+dist/
+
+# Logs and temp files
+*.log
+.prompts.md
+
+# Documentation (except README)
+ARCHITECTURE.md
+CHANGELOG.md
+CHECKLIST.md
+CLAUDE.md
+WINDOWS_BUILD.md
+clickhouse-windows-build-log.md
+
+# Config files
+.prettierrc
+.prettierignore
+eslint.config.js
+tsconfig.json
+
+# Schemas (not needed for consumers)
+schemas/
+
+# Only publish these files:
+# - package.json
+# - README.md
+# - LICENSE
+# - databases.json
+# - releases.json
+# - downloads.json

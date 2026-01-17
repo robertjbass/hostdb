@@ -112,6 +112,54 @@ function extractPlatform(filename: string): Platform | null {
   return null
 }
 
+// Sort releases manifest for deterministic output
+function sortReleasesManifest(releases: ReleasesManifest): ReleasesManifest {
+  const sortedDatabases: Record<string, Record<string, VersionRelease>> = {}
+
+  // Sort databases alphabetically
+  const dbKeys = Object.keys(releases.databases).sort()
+
+  for (const db of dbKeys) {
+    const versions = releases.databases[db]
+    const sortedVersions: Record<string, VersionRelease> = {}
+
+    // Sort versions by semver descending (newest first)
+    const versionKeys = Object.keys(versions).sort((a, b) => {
+      const partsA = a.split('.').map((p) => parseInt(p, 10) || 0)
+      const partsB = b.split('.').map((p) => parseInt(p, 10) || 0)
+      for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+        const diff = (partsB[i] || 0) - (partsA[i] || 0)
+        if (diff !== 0) return diff
+      }
+      return 0
+    })
+
+    for (const version of versionKeys) {
+      const release = versions[version]
+
+      // Sort platforms alphabetically
+      const sortedPlatforms: Partial<Record<Platform, PlatformAsset>> = {}
+      const platformKeys = (Object.keys(release.platforms) as Platform[]).sort()
+
+      for (const platform of platformKeys) {
+        sortedPlatforms[platform] = release.platforms[platform]
+      }
+
+      sortedVersions[version] = {
+        ...release,
+        platforms: sortedPlatforms,
+      }
+    }
+
+    sortedDatabases[db] = sortedVersions
+  }
+
+  return {
+    ...releases,
+    databases: sortedDatabases,
+  }
+}
+
 // Fetch checksums.txt from a release
 async function fetchChecksums(
   repo: string,
@@ -270,9 +318,19 @@ async function main() {
     }
   }
 
-  if (!hasChanges) {
+  // Always sort for deterministic output, even if no additions/removals
+  const sortedReleases = sortReleasesManifest(releases)
+  const currentContent = readFileSync(releasesPath, 'utf-8')
+  const sortedContent = JSON.stringify(sortedReleases, null, 2) + '\n'
+  const needsReorder = currentContent !== sortedContent
+
+  if (!hasChanges && !needsReorder) {
     console.log('\n✓ releases.json is in sync with GitHub releases')
     return
+  }
+
+  if (needsReorder && !hasChanges) {
+    console.log('\nRe-ordering releases.json for consistent output...')
   }
 
   if (dryRun) {
@@ -353,8 +411,9 @@ async function main() {
 
   releases.lastUpdated = new Date().toISOString()
 
-  // Write updated releases.json
-  writeFileSync(releasesPath, JSON.stringify(releases, null, 2) + '\n')
+  // Sort for deterministic output and write
+  const finalReleases = sortReleasesManifest(releases)
+  writeFileSync(releasesPath, JSON.stringify(finalReleases, null, 2) + '\n')
 
   console.log('\n✓ Updated releases.json')
   if (removals.length > 0) {

@@ -1,9 +1,298 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-17T18:57:41.596Z",
+  "lastUpdated": "2026-01-17T19:08:20.758Z",
   "databases": {
+    "clickhouse": {
+      "25.12.3.21": {
+        "version": "25.12.3.21",
+        "releaseTag": "clickhouse-25.12.3.21",
+        "releasedAt": "2026-01-13T23:56:18Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/clickhouse-25.12.3.21/clickhouse-25.12.3.21-darwin-arm64.tar.gz",
+            "sha256": "62c44f6b32a4bd341170bdee807930ba717334e627a852c549d6f0c651f22dc3",
+            "size": 122045216
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/clickhouse-25.12.3.21/clickhouse-25.12.3.21-darwin-x64.tar.gz",
+            "sha256": "6f665ce0148ea6e50a7dca22bdca09436db573389e8d952389d354dae5f3f13a",
+            "size": 130493954
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/clickhouse-25.12.3.21/clickhouse-25.12.3.21-linux-arm64.tar.gz",
+            "sha256": "3982d017e4d501d24141b8a3a56f68e68d90ae7221fdaf0459695042d8e9a344",
+            "size": 184983261
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/clickhouse-25.12.3.21/clickhouse-25.12.3.21-linux-x64.tar.gz",
+            "sha256": "fcaf7545792f1c52728ede2a004420795d1b4e6805140892bf18297ac81fae48",
+            "size": 203775176
+          }
+        }
+      }
+    },
+    "mariadb": {
+      "11.8.5": {
+        "version": "11.8.5",
+        "releaseTag": "mariadb-11.8.5",
+        "releasedAt": "2026-01-07T02:31:24Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-darwin-arm64.tar.gz",
+            "sha256": "6fdd569e40ce8ddddbbed7e45273e078c34d87a823c3581a043f560d2fe2f4fc",
+            "size": 78302849
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-darwin-x64.tar.gz",
+            "sha256": "2a343d94b6f6e56f46d113be7c360e68b307c9145ed1d5b4078e1c1f2497a4c2",
+            "size": 79510963
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-linux-arm64.tar.gz",
+            "sha256": "166301bc1b57f86b67b07e76b8e5a3d41c9af73bec05b808ea5eb86fb2cd1c81",
+            "size": 90583362
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-linux-x64.tar.gz",
+            "sha256": "1851a0c4d1afe68668f9835ed90ddb6a12f7a709caea5672842193598bc806f3",
+            "size": 427348777
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-win32-x64.zip",
+            "sha256": "928f2aa500c741a7cd43c93d6b717f45a9b4efc3d6d93644957abf56240ee723",
+            "size": 95628803
+          }
+        }
+      },
+      "11.4.5": {
+        "version": "11.4.5",
+        "releaseTag": "mariadb-11.4.5",
+        "releasedAt": "2026-01-07T12:15:53Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-darwin-arm64.tar.gz",
+            "sha256": "d0b4e0d32c27d8141ace67368711ecff28ae4d3c5a6eb366e051db4cd3cf878b",
+            "size": 77158056
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-darwin-x64.tar.gz",
+            "sha256": "0b169586f063fe294bf541eb5dd3863cb0148c049c0d66654c657c1c2dcd44a9",
+            "size": 78331686
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-linux-arm64.tar.gz",
+            "sha256": "b7a2b4f8b562cdabb5fdfd36f2a2e39a7c5f8a4e0c74586c4d5bf9b1ab4646cd",
+            "size": 89043339
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-linux-x64.tar.gz",
+            "sha256": "56875f0cec14e33c3643513681649510a654a0590edbdd4a344ff7e3c57efd14",
+            "size": 349156896
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-win32-x64.zip",
+            "sha256": "b9da836893d54d16bbd21f4202b7f964387e3001789bbbce79253cbfd24ced2a",
+            "size": 90640728
+          }
+        }
+      },
+      "10.11.15": {
+        "version": "10.11.15",
+        "releaseTag": "mariadb-10.11.15",
+        "releasedAt": "2026-01-07T07:50:03Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-10.11.15/mariadb-10.11.15-darwin-arm64.tar.gz",
+            "sha256": "784efdf5e6d66e57b610e0d8642e1849cac678a26fe84c5ec78d3f4345205767",
+            "size": 76998863
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-10.11.15/mariadb-10.11.15-darwin-x64.tar.gz",
+            "sha256": "09d499629ba20f8a9d243d38fb2157ec61cb923748168f5cdac54fdf0c124f75",
+            "size": 78162243
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-10.11.15/mariadb-10.11.15-linux-arm64.tar.gz",
+            "sha256": "f67f8e43d6ac1c21a6f68b4438fd5a5d9f9a63f9e8bcd60d2a73b82cc107fa3e",
+            "size": 88733054
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-10.11.15/mariadb-10.11.15-linux-x64.tar.gz",
+            "sha256": "0d4c28a62329e1bd76f5cf3272bc0816e118f5f18ef49c2d5baf0d0f75050209",
+            "size": 375447846
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-10.11.15/mariadb-10.11.15-win32-x64.zip",
+            "sha256": "a884c0d23729fec2beed08e52807b1a92af407da46eebe22fbb54e23e657772e",
+            "size": 93004045
+          }
+        }
+      }
+    },
+    "mongodb": {
+      "8.2.3": {
+        "version": "8.2.3",
+        "releaseTag": "mongodb-8.2.3",
+        "releasedAt": "2026-01-11T01:38:24Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.2.3/mongodb-8.2.3-darwin-arm64.tar.gz",
+            "sha256": "6c5fb1379cbaa49b3dec28989d58022aabd7ded9ad20e83fc2f978a539a7ff72",
+            "size": 224549633
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.2.3/mongodb-8.2.3-darwin-x64.tar.gz",
+            "sha256": "ced88f0bb091b44087adc1c2f08559e6cf612b3d58edb2bcd4cbef415a97204d",
+            "size": 242358694
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.2.3/mongodb-8.2.3-linux-arm64.tar.gz",
+            "sha256": "1928d50fe4d4383fd79f806a6ae58dcd43e3462f38ba36a1ee72ab40d99946ba",
+            "size": 270283467
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.2.3/mongodb-8.2.3-linux-x64.tar.gz",
+            "sha256": "3fb4ccebe7357b97bb986e234c3436e099fd9f139f41c23a27d46ba34e74b3a6",
+            "size": 285607517
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.2.3/mongodb-8.2.3-win32-x64.zip",
+            "sha256": "b2a1ef17a1e5e1e90ef280d664c5ca36065ede7c0f2c2e458c9bf3239c37ce25",
+            "size": 945022319
+          }
+        }
+      },
+      "8.0.17": {
+        "version": "8.0.17",
+        "releaseTag": "mongodb-8.0.17",
+        "releasedAt": "2026-01-11T01:49:43Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.0.17/mongodb-8.0.17-darwin-arm64.tar.gz",
+            "sha256": "9ac071398a631c8f9dd6da35369fcb5d7b09d9ea5f919037c4a2aabb0b4d34f6",
+            "size": 224952956
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.0.17/mongodb-8.0.17-darwin-x64.tar.gz",
+            "sha256": "ed2dfedc03346f2863dac7472424a5265a5a4abd581847589d4af7ba5cf73013",
+            "size": 242072111
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.0.17/mongodb-8.0.17-linux-arm64.tar.gz",
+            "sha256": "f5dcab4b598a550b15cb6505c0353a768fcb8454a125ed833087ea5d6d9a0c73",
+            "size": 247819903
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.0.17/mongodb-8.0.17-linux-x64.tar.gz",
+            "sha256": "53d95533af572baa919a14ccada4c0e181f5f1dde8492a819fe518824e6df8f7",
+            "size": 261291133
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.0.17/mongodb-8.0.17-win32-x64.zip",
+            "sha256": "6cf637aaa53b383a568d4b880620396948f6cc3ae2ea3ec0192e4fbab492f65c",
+            "size": 919005550
+          }
+        }
+      },
+      "7.0.28": {
+        "version": "7.0.28",
+        "releaseTag": "mongodb-7.0.28",
+        "releasedAt": "2026-01-11T01:58:44Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-7.0.28/mongodb-7.0.28-darwin-arm64.tar.gz",
+            "sha256": "9cba7f77512970e0c83fa02037c25251fda7bf3fd3d34efe6f614b7d5089cf1e",
+            "size": 214269397
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-7.0.28/mongodb-7.0.28-darwin-x64.tar.gz",
+            "sha256": "d6f9907f9212216919b025ce3667fa7eb2a61981111d7d9a739d77357968b666",
+            "size": 230156786
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-7.0.28/mongodb-7.0.28-linux-arm64.tar.gz",
+            "sha256": "a859680f9a87da976cc8ac9c67864f315ba820b8aed1dee78c84eccbae40ff3c",
+            "size": 231045442
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-7.0.28/mongodb-7.0.28-linux-x64.tar.gz",
+            "sha256": "5ed95d38f4603d52b283939df2b4f84197d64c89836df05a4b31bd7f26509e9f",
+            "size": 243478465
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-7.0.28/mongodb-7.0.28-win32-x64.zip",
+            "sha256": "60d340a82ef41580525f004f0072e3bd61cefae75a091dffa4478937ea73f431",
+            "size": 755959740
+          }
+        }
+      }
+    },
     "mysql": {
+      "9.5.0": {
+        "version": "9.5.0",
+        "releaseTag": "mysql-9.5.0",
+        "releasedAt": "2026-01-11T17:55:44Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-darwin-arm64.tar.gz",
+            "sha256": "6b37e0871a84ac6fdf7451fb676227e33f86642505dea0da225284b1d72d16e8",
+            "size": 170887642
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-darwin-x64.tar.gz",
+            "sha256": "0bd0f2aebc6cf62f8d20f08d033573391294cb62b1489fbf3e1aa5ce691eb2bd",
+            "size": 175620519
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-linux-arm64.tar.gz",
+            "sha256": "a7fe8e0163186c2eecc664229b9b7effcd401f61daab487027c248684d38956b",
+            "size": 1071979514
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-linux-x64.tar.gz",
+            "sha256": "37b7004ae583245f67843a2393b9743233b78399789edfbcda2ebbbeae6b48cb",
+            "size": 1082100845
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-win32-x64.zip",
+            "sha256": "240d0fcb48663ff32a475e3e04fa4e5691ccaae489c35cf49fc0bbd000b256cd",
+            "size": 302737000
+          }
+        }
+      },
+      "9.1.0": {
+        "version": "9.1.0",
+        "releaseTag": "mysql-9.1.0",
+        "releasedAt": "2026-01-04T21:01:00Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-darwin-arm64.tar.gz",
+            "sha256": "155a1864ebb72d187931ec753f038b1bdb538b914b90cdd8b369cb0d408c1bd8",
+            "size": 167944373
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-darwin-x64.tar.gz",
+            "sha256": "e28a25cde95c4ee5aa467e642c59739edde7aaa5665be6d1281f6e788b3d14f6",
+            "size": 172556610
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-linux-arm64.tar.gz",
+            "sha256": "5ed095732fa7a0a71fa792074d16e9afadfcbc0c793d98a75bcbf500d186c828",
+            "size": 1035584752
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-linux-x64.tar.gz",
+            "sha256": "b5bf61ddca25bdafee69e55f8d404a2c95ed821a1a26e8a29cf4dc5c89e3918e",
+            "size": 1044803387
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-win32-x64.zip",
+            "sha256": "4bc4068ae41cdc1b7bc5dfca524d90cb4f625923eab8d29d7a199a4bbbf2498d",
+            "size": 302352713
+          }
+        }
+      },
       "8.4.3": {
         "version": "8.4.3",
         "releaseTag": "mysql-8.4.3",
@@ -67,70 +356,6 @@
             "size": 243702261
           }
         }
-      },
-      "9.1.0": {
-        "version": "9.1.0",
-        "releaseTag": "mysql-9.1.0",
-        "releasedAt": "2026-01-04T21:01:00Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-darwin-arm64.tar.gz",
-            "sha256": "155a1864ebb72d187931ec753f038b1bdb538b914b90cdd8b369cb0d408c1bd8",
-            "size": 167944373
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-darwin-x64.tar.gz",
-            "sha256": "e28a25cde95c4ee5aa467e642c59739edde7aaa5665be6d1281f6e788b3d14f6",
-            "size": 172556610
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-linux-arm64.tar.gz",
-            "sha256": "5ed095732fa7a0a71fa792074d16e9afadfcbc0c793d98a75bcbf500d186c828",
-            "size": 1035584752
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-linux-x64.tar.gz",
-            "sha256": "b5bf61ddca25bdafee69e55f8d404a2c95ed821a1a26e8a29cf4dc5c89e3918e",
-            "size": 1044803387
-          },
-          "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.1.0/mysql-9.1.0-win32-x64.zip",
-            "sha256": "4bc4068ae41cdc1b7bc5dfca524d90cb4f625923eab8d29d7a199a4bbbf2498d",
-            "size": 302352713
-          }
-        }
-      },
-      "9.5.0": {
-        "version": "9.5.0",
-        "releaseTag": "mysql-9.5.0",
-        "releasedAt": "2026-01-11T17:55:44Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-darwin-arm64.tar.gz",
-            "sha256": "6b37e0871a84ac6fdf7451fb676227e33f86642505dea0da225284b1d72d16e8",
-            "size": 170887642
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-darwin-x64.tar.gz",
-            "sha256": "0bd0f2aebc6cf62f8d20f08d033573391294cb62b1489fbf3e1aa5ce691eb2bd",
-            "size": 175620519
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-linux-arm64.tar.gz",
-            "sha256": "a7fe8e0163186c2eecc664229b9b7effcd401f61daab487027c248684d38956b",
-            "size": 1071979514
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-linux-x64.tar.gz",
-            "sha256": "37b7004ae583245f67843a2393b9743233b78399789edfbcda2ebbbeae6b48cb",
-            "size": 1082100845
-          },
-          "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mysql-9.5.0/mysql-9.5.0-win32-x64.zip",
-            "sha256": "240d0fcb48663ff32a475e3e04fa4e5691ccaae489c35cf49fc0bbd000b256cd",
-            "size": 302737000
-          }
-        }
       }
     },
     "postgresql": {
@@ -166,35 +391,35 @@
           }
         }
       },
-      "15.15.0": {
-        "version": "15.15.0",
-        "releaseTag": "postgresql-15.15.0",
-        "releasedAt": "2026-01-10T23:21:48Z",
+      "17.7.0": {
+        "version": "17.7.0",
+        "releaseTag": "postgresql-17.7.0",
+        "releasedAt": "2026-01-10T23:12:53Z",
         "platforms": {
           "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-darwin-arm64.tar.gz",
-            "sha256": "4f0908b45fa87c22e5926504944b69cb7ed51676f7532d9f6de706c6e490e046",
-            "size": 10131037
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-darwin-arm64.tar.gz",
+            "sha256": "0ecbca90a47638f88599b29c232a826085c86bee06f1de5118d3d939eac73f70",
+            "size": 11178637
           },
           "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-darwin-x64.tar.gz",
-            "sha256": "d707692702067fd0ce5fa84a313e5dc391901fb2c908ebf715445fa531481436",
-            "size": 9840766
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-darwin-x64.tar.gz",
+            "sha256": "659865a0de855e5472404188ea58ac26237427a547b271319e99e98dc267017b",
+            "size": 10864350
           },
           "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-linux-arm64.tar.gz",
-            "sha256": "c4385f7eee52ccd03f6e5647131430cdaa64111c723cc3888ec731da54127383",
-            "size": 135986967
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-linux-arm64.tar.gz",
+            "sha256": "3ed41d14a1ccd7bed04fcd5879daace2138820e4cc3d43a34a139d137fbed1ed",
+            "size": 144429862
           },
           "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-linux-x64.tar.gz",
-            "sha256": "6f6602b634d20cfaf3f3ad516635817b303a30dd68568da4fb9454aa6406d74f",
-            "size": 10839490
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-linux-x64.tar.gz",
+            "sha256": "a435b148e8e7481e457ccb7b18812e094ececfd004dc78fa98084434ac17d288",
+            "size": 11792930
           },
           "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-win32-x64.zip",
-            "sha256": "a53e703e9410055287dcceaff03c5f677f6ade58da1fe521eed7f1f07f8a5e73",
-            "size": 324647117
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-win32-x64.zip",
+            "sha256": "e87e90376b3b319cba966de4244227844ceace3aa6351e28c4191b42762819f6",
+            "size": 334822039
           }
         }
       },
@@ -230,150 +455,40 @@
           }
         }
       },
-      "17.7.0": {
-        "version": "17.7.0",
-        "releaseTag": "postgresql-17.7.0",
-        "releasedAt": "2026-01-10T23:12:53Z",
+      "15.15.0": {
+        "version": "15.15.0",
+        "releaseTag": "postgresql-15.15.0",
+        "releasedAt": "2026-01-10T23:21:48Z",
         "platforms": {
           "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-darwin-arm64.tar.gz",
-            "sha256": "0ecbca90a47638f88599b29c232a826085c86bee06f1de5118d3d939eac73f70",
-            "size": 11178637
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-darwin-arm64.tar.gz",
+            "sha256": "4f0908b45fa87c22e5926504944b69cb7ed51676f7532d9f6de706c6e490e046",
+            "size": 10131037
           },
           "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-darwin-x64.tar.gz",
-            "sha256": "659865a0de855e5472404188ea58ac26237427a547b271319e99e98dc267017b",
-            "size": 10864350
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-darwin-x64.tar.gz",
+            "sha256": "d707692702067fd0ce5fa84a313e5dc391901fb2c908ebf715445fa531481436",
+            "size": 9840766
           },
           "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-linux-arm64.tar.gz",
-            "sha256": "3ed41d14a1ccd7bed04fcd5879daace2138820e4cc3d43a34a139d137fbed1ed",
-            "size": 144429862
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-linux-arm64.tar.gz",
+            "sha256": "c4385f7eee52ccd03f6e5647131430cdaa64111c723cc3888ec731da54127383",
+            "size": 135986967
           },
           "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-linux-x64.tar.gz",
-            "sha256": "a435b148e8e7481e457ccb7b18812e094ececfd004dc78fa98084434ac17d288",
-            "size": 11792930
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-linux-x64.tar.gz",
+            "sha256": "6f6602b634d20cfaf3f3ad516635817b303a30dd68568da4fb9454aa6406d74f",
+            "size": 10839490
           },
           "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-17.7.0/postgresql-17.7.0-win32-x64.zip",
-            "sha256": "e87e90376b3b319cba966de4244227844ceace3aa6351e28c4191b42762819f6",
-            "size": 334822039
-          }
-        }
-      }
-    },
-    "mariadb": {
-      "11.8.5": {
-        "version": "11.8.5",
-        "releaseTag": "mariadb-11.8.5",
-        "releasedAt": "2026-01-07T02:31:24Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-darwin-arm64.tar.gz",
-            "sha256": "6fdd569e40ce8ddddbbed7e45273e078c34d87a823c3581a043f560d2fe2f4fc",
-            "size": 78302849
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-darwin-x64.tar.gz",
-            "sha256": "2a343d94b6f6e56f46d113be7c360e68b307c9145ed1d5b4078e1c1f2497a4c2",
-            "size": 79510963
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-linux-arm64.tar.gz",
-            "sha256": "166301bc1b57f86b67b07e76b8e5a3d41c9af73bec05b808ea5eb86fb2cd1c81",
-            "size": 90583362
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-linux-x64.tar.gz",
-            "sha256": "1851a0c4d1afe68668f9835ed90ddb6a12f7a709caea5672842193598bc806f3",
-            "size": 427348777
-          },
-          "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.8.5/mariadb-11.8.5-win32-x64.zip",
-            "sha256": "928f2aa500c741a7cd43c93d6b717f45a9b4efc3d6d93644957abf56240ee723",
-            "size": 95628803
-          }
-        }
-      },
-      "10.11.15": {
-        "version": "10.11.15",
-        "releaseTag": "mariadb-10.11.15",
-        "releasedAt": "2026-01-07T07:50:03Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-10.11.15/mariadb-10.11.15-darwin-arm64.tar.gz",
-            "sha256": "784efdf5e6d66e57b610e0d8642e1849cac678a26fe84c5ec78d3f4345205767",
-            "size": 76998863
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-10.11.15/mariadb-10.11.15-darwin-x64.tar.gz",
-            "sha256": "09d499629ba20f8a9d243d38fb2157ec61cb923748168f5cdac54fdf0c124f75",
-            "size": 78162243
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-10.11.15/mariadb-10.11.15-linux-arm64.tar.gz",
-            "sha256": "f67f8e43d6ac1c21a6f68b4438fd5a5d9f9a63f9e8bcd60d2a73b82cc107fa3e",
-            "size": 88733054
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-10.11.15/mariadb-10.11.15-linux-x64.tar.gz",
-            "sha256": "0d4c28a62329e1bd76f5cf3272bc0816e118f5f18ef49c2d5baf0d0f75050209",
-            "size": 375447846
-          },
-          "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-10.11.15/mariadb-10.11.15-win32-x64.zip",
-            "sha256": "a884c0d23729fec2beed08e52807b1a92af407da46eebe22fbb54e23e657772e",
-            "size": 93004045
-          }
-        }
-      },
-      "11.4.5": {
-        "version": "11.4.5",
-        "releaseTag": "mariadb-11.4.5",
-        "releasedAt": "2026-01-07T12:15:53Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-darwin-arm64.tar.gz",
-            "sha256": "d0b4e0d32c27d8141ace67368711ecff28ae4d3c5a6eb366e051db4cd3cf878b",
-            "size": 77158056
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-darwin-x64.tar.gz",
-            "sha256": "0b169586f063fe294bf541eb5dd3863cb0148c049c0d66654c657c1c2dcd44a9",
-            "size": 78331686
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-linux-arm64.tar.gz",
-            "sha256": "b7a2b4f8b562cdabb5fdfd36f2a2e39a7c5f8a4e0c74586c4d5bf9b1ab4646cd",
-            "size": 89043339
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-linux-x64.tar.gz",
-            "sha256": "56875f0cec14e33c3643513681649510a654a0590edbdd4a344ff7e3c57efd14",
-            "size": 349156896
-          },
-          "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mariadb-11.4.5/mariadb-11.4.5-win32-x64.zip",
-            "sha256": "b9da836893d54d16bbd21f4202b7f964387e3001789bbbce79253cbfd24ced2a",
-            "size": 90640728
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-win32-x64.zip",
+            "sha256": "a53e703e9410055287dcceaff03c5f677f6ade58da1fe521eed7f1f07f8a5e73",
+            "size": 324647117
           }
         }
       }
     },
     "redis": {
-      "7.4.7": {
-        "version": "7.4.7",
-        "releaseTag": "redis-7.4.7",
-        "releasedAt": "2026-01-07T15:39:06Z",
-        "platforms": {
-          "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-win32-x64.zip",
-            "sha256": "8846aaf20860063263542ebf535bc874e475a17f82e5e4aee9540958abf583cf",
-            "size": 11481934
-          }
-        }
-      },
       "8.4.0": {
         "version": "8.4.0",
         "releaseTag": "redis-8.4.0",
@@ -385,116 +500,16 @@
             "size": 12750074
           }
         }
-      }
-    },
-    "valkey": {
-      "8.0.6": {
-        "version": "8.0.6",
-        "releaseTag": "valkey-8.0.6",
-        "releasedAt": "2026-01-07T18:14:22Z",
-        "platforms": {}
       },
-      "9.0.1": {
-        "version": "9.0.1",
-        "releaseTag": "valkey-9.0.1",
-        "releasedAt": "2026-01-08T00:23:09Z",
-        "platforms": {}
-      }
-    },
-    "mongodb": {
-      "7.0.28": {
-        "version": "7.0.28",
-        "releaseTag": "mongodb-7.0.28",
-        "releasedAt": "2026-01-11T01:58:44Z",
+      "7.4.7": {
+        "version": "7.4.7",
+        "releaseTag": "redis-7.4.7",
+        "releasedAt": "2026-01-07T15:39:06Z",
         "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-7.0.28/mongodb-7.0.28-darwin-arm64.tar.gz",
-            "sha256": "9cba7f77512970e0c83fa02037c25251fda7bf3fd3d34efe6f614b7d5089cf1e",
-            "size": 214269397
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-7.0.28/mongodb-7.0.28-darwin-x64.tar.gz",
-            "sha256": "d6f9907f9212216919b025ce3667fa7eb2a61981111d7d9a739d77357968b666",
-            "size": 230156786
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-7.0.28/mongodb-7.0.28-linux-arm64.tar.gz",
-            "sha256": "a859680f9a87da976cc8ac9c67864f315ba820b8aed1dee78c84eccbae40ff3c",
-            "size": 231045442
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-7.0.28/mongodb-7.0.28-linux-x64.tar.gz",
-            "sha256": "5ed95d38f4603d52b283939df2b4f84197d64c89836df05a4b31bd7f26509e9f",
-            "size": 243478465
-          },
           "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-7.0.28/mongodb-7.0.28-win32-x64.zip",
-            "sha256": "60d340a82ef41580525f004f0072e3bd61cefae75a091dffa4478937ea73f431",
-            "size": 755959740
-          }
-        }
-      },
-      "8.0.17": {
-        "version": "8.0.17",
-        "releaseTag": "mongodb-8.0.17",
-        "releasedAt": "2026-01-11T01:49:43Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.0.17/mongodb-8.0.17-darwin-arm64.tar.gz",
-            "sha256": "9ac071398a631c8f9dd6da35369fcb5d7b09d9ea5f919037c4a2aabb0b4d34f6",
-            "size": 224952956
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.0.17/mongodb-8.0.17-darwin-x64.tar.gz",
-            "sha256": "ed2dfedc03346f2863dac7472424a5265a5a4abd581847589d4af7ba5cf73013",
-            "size": 242072111
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.0.17/mongodb-8.0.17-linux-arm64.tar.gz",
-            "sha256": "f5dcab4b598a550b15cb6505c0353a768fcb8454a125ed833087ea5d6d9a0c73",
-            "size": 247819903
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.0.17/mongodb-8.0.17-linux-x64.tar.gz",
-            "sha256": "53d95533af572baa919a14ccada4c0e181f5f1dde8492a819fe518824e6df8f7",
-            "size": 261291133
-          },
-          "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.0.17/mongodb-8.0.17-win32-x64.zip",
-            "sha256": "6cf637aaa53b383a568d4b880620396948f6cc3ae2ea3ec0192e4fbab492f65c",
-            "size": 919005550
-          }
-        }
-      },
-      "8.2.3": {
-        "version": "8.2.3",
-        "releaseTag": "mongodb-8.2.3",
-        "releasedAt": "2026-01-11T01:38:24Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.2.3/mongodb-8.2.3-darwin-arm64.tar.gz",
-            "sha256": "6c5fb1379cbaa49b3dec28989d58022aabd7ded9ad20e83fc2f978a539a7ff72",
-            "size": 224549633
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.2.3/mongodb-8.2.3-darwin-x64.tar.gz",
-            "sha256": "ced88f0bb091b44087adc1c2f08559e6cf612b3d58edb2bcd4cbef415a97204d",
-            "size": 242358694
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.2.3/mongodb-8.2.3-linux-arm64.tar.gz",
-            "sha256": "1928d50fe4d4383fd79f806a6ae58dcd43e3462f38ba36a1ee72ab40d99946ba",
-            "size": 270283467
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.2.3/mongodb-8.2.3-linux-x64.tar.gz",
-            "sha256": "3fb4ccebe7357b97bb986e234c3436e099fd9f139f41c23a27d46ba34e74b3a6",
-            "size": 285607517
-          },
-          "win32-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/mongodb-8.2.3/mongodb-8.2.3-win32-x64.zip",
-            "sha256": "b2a1ef17a1e5e1e90ef280d664c5ca36065ede7c0f2c2e458c9bf3239c37ce25",
-            "size": 945022319
+            "url": "https://github.com/robertjbass/hostdb/releases/download/redis-7.4.7/redis-7.4.7-win32-x64.zip",
+            "sha256": "8846aaf20860063263542ebf535bc874e475a17f82e5e4aee9540958abf583cf",
+            "size": 11481934
           }
         }
       }
@@ -533,33 +548,18 @@
         }
       }
     },
-    "clickhouse": {
-      "25.12.3.21": {
-        "version": "25.12.3.21",
-        "releaseTag": "clickhouse-25.12.3.21",
-        "releasedAt": "2026-01-13T23:56:18Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/clickhouse-25.12.3.21/clickhouse-25.12.3.21-darwin-arm64.tar.gz",
-            "sha256": "62c44f6b32a4bd341170bdee807930ba717334e627a852c549d6f0c651f22dc3",
-            "size": 122045216
-          },
-          "darwin-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/clickhouse-25.12.3.21/clickhouse-25.12.3.21-darwin-x64.tar.gz",
-            "sha256": "6f665ce0148ea6e50a7dca22bdca09436db573389e8d952389d354dae5f3f13a",
-            "size": 130493954
-          },
-          "linux-arm64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/clickhouse-25.12.3.21/clickhouse-25.12.3.21-linux-arm64.tar.gz",
-            "sha256": "3982d017e4d501d24141b8a3a56f68e68d90ae7221fdaf0459695042d8e9a344",
-            "size": 184983261
-          },
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/clickhouse-25.12.3.21/clickhouse-25.12.3.21-linux-x64.tar.gz",
-            "sha256": "fcaf7545792f1c52728ede2a004420795d1b4e6805140892bf18297ac81fae48",
-            "size": 203775176
-          }
-        }
+    "valkey": {
+      "9.0.1": {
+        "version": "9.0.1",
+        "releaseTag": "valkey-9.0.1",
+        "releasedAt": "2026-01-08T00:23:09Z",
+        "platforms": {}
+      },
+      "8.0.6": {
+        "version": "8.0.6",
+        "releaseTag": "valkey-8.0.6",
+        "releasedAt": "2026-01-07T18:14:22Z",
+        "platforms": {}
       }
     }
   }
