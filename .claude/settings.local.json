@@ -37,7 +37,9 @@
       "Bash(pnpm prep:*)",
       "Bash(pnpm sync:versions:*)",
       "Bash(gh release list:*)",
-      "Bash(pnpm reconcile:releases)"
+      "Bash(pnpm reconcile:releases)",
+      "WebFetch(domain:github.com)",
+      "Bash(pnpm add:engine:*)"
     ]
   }
 }

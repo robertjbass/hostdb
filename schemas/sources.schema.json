@@ -55,7 +55,7 @@
             },
             "format": {
               "type": "string",
-              "enum": ["tar.gz", "tar.xz", "zip", "dmg", "msi", "jar"],
+              "enum": ["tar.gz", "tar.xz", "zip", "gz", "dmg", "msi", "jar"],
               "description": "Archive format"
             },
             "sha256": {
