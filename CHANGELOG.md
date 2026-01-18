@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [0.11.1] - 2026-01-18
 
+### Added
+
+- **CLI alias** `duck` → `duckdb` for convenience
+
 ### Fixed
 
 - **DuckDB download script cross-platform compatibility**
