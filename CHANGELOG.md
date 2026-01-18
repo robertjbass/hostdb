@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.1] - 2026-01-18
+
+### Added
+
+- **CLI alias** `duck` → `duckdb` for convenience
+
+### Fixed
+
+- **DuckDB download script cross-platform compatibility**
+  - `verifyCommand()` now uses `where` on Windows instead of Unix-only `which`
+  - `extractZip()` now uses PowerShell `Expand-Archive` on Windows instead of requiring `unzip`
+  - Binary copy now uses `copyFileSync` for idiomatic file copying with metadata preservation
+
+- **DuckDB workflow checksum generation**
+  - Fixed "Generate checksums" step to handle Windows-only, Unix-only, and mixed builds
+  - Uses `shopt -s nullglob` to properly detect available archive types
+
 ## [0.11.0] - 2026-01-18
 
 ### Added

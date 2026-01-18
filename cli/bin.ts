@@ -19,6 +19,7 @@ const DATABASE_ALIASES: Record<string, string> = {
   mongo: 'mongodb',
   maria: 'mariadb',
   ch: 'clickhouse',
+  duck: 'duckdb',
 }
 
 // Aliases for platforms - maps to array of platforms
@@ -176,6 +177,7 @@ Database Aliases:
   mongo                         → mongodb
   maria                         → mariadb
   ch                            → clickhouse
+  duck                          → duckdb
 `)
 }
 
