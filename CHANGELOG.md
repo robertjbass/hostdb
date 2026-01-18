@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2026-01-18
+
+### Added
+
+- **DuckDB support** with full 5-platform coverage
+  - Fast in-process analytical database optimized for OLAP workloads
+  - Version: 1.4.3 (latest stable)
+  - Official binaries from GitHub releases for all platforms
+  - MIT license (fully permissive for commercial use)
+  - Single CLI binary (`duckdb`) - no server/client architecture needed
+
+### Changed
+
+- **Sources schema** updated to support `gz` format for gzip-compressed single binaries
+
 ## [0.10.1] - 2026-01-17
 
 ### Added

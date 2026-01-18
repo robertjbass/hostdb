@@ -223,7 +223,7 @@
         "defaultUser": null,
         "queryLanguage": "SQL"
       },
-      "status": "pending"
+      "status": "in-progress"
     },
     "ferretdb": {
       "displayName": "FerretDB",
