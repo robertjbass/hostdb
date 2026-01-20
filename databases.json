@@ -659,7 +659,7 @@
       },
       "platforms": {
         "linux-x64": true,
-        "linux-arm64": false,
+        "linux-arm64": true,
         "darwin-x64": true,
         "darwin-arm64": true,
         "win32-x64": true
@@ -679,7 +679,7 @@
         "defaultUser": null,
         "queryLanguage": "HTTP"
       },
-      "status": "pending"
+      "status": "in-progress"
     },
     "questdb": {
       "displayName": "QuestDB",

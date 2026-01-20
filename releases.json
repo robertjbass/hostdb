@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-17T21:26:58.053Z",
+  "lastUpdated": "2026-01-18T07:53:22.351Z",
   "databases": {
     "clickhouse": {
       "25.12.3.21": {
@@ -28,6 +28,40 @@
             "url": "https://github.com/robertjbass/hostdb/releases/download/clickhouse-25.12.3.21/clickhouse-25.12.3.21-linux-x64.tar.gz",
             "sha256": "fcaf7545792f1c52728ede2a004420795d1b4e6805140892bf18297ac81fae48",
             "size": 203775176
+          }
+        }
+      }
+    },
+    "duckdb": {
+      "1.4.3": {
+        "version": "1.4.3",
+        "releaseTag": "duckdb-1.4.3",
+        "releasedAt": "2026-01-18T07:53:09Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/duckdb-1.4.3/duckdb-1.4.3-darwin-arm64.tar.gz",
+            "sha256": "fa193eed3b66fce4620b71e8f4d78fc6d5b92aae634295529b4edea75a4cbe71",
+            "size": 15824489
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/duckdb-1.4.3/duckdb-1.4.3-darwin-x64.tar.gz",
+            "sha256": "83ac5422f99db28a7336c584004f91aa63ad1c9104f198098135922a527a8f90",
+            "size": 18174276
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/duckdb-1.4.3/duckdb-1.4.3-linux-arm64.tar.gz",
+            "sha256": "08cc7723ee6fe9df9aaf3bd51c98c87f2bc73a8bbc29ab4ae68af5b1c79ed0bd",
+            "size": 17562405
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/duckdb-1.4.3/duckdb-1.4.3-linux-x64.tar.gz",
+            "sha256": "761af538c9281ccbd2d7bf928d307d8f912577bc06153103130e9ec502641db1",
+            "size": 19135214
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/duckdb-1.4.3/duckdb-1.4.3-win32-x64.zip",
+            "sha256": "00c23a7b2ec7cf4826cc9a097c86022a99fda9d985ef45e00664e0a19deaa083",
+            "size": 11864734
           }
         }
       }
