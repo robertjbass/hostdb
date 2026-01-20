@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.11.1",
+  "version": "0.12.0",
   "description": "Source and download pre-built database binaries for multiple platforms, distributed via GitHub Releases",
   "private": false,
   "type": "module",
@@ -35,6 +35,7 @@
     "download:mongodb": "tsx builds/mongodb/download.ts",
     "download:mysql": "tsx builds/mysql/download.ts",
     "download:postgresql": "tsx builds/postgresql/download.ts",
+    "download:qdrant": "tsx builds/qdrant/download.ts",
     "download:redis": "tsx builds/redis/download.ts",
     "download:sqlite": "tsx builds/sqlite/download.ts",
     "download:valkey": "tsx builds/valkey/download.ts",
