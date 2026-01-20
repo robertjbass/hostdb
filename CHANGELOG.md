@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.0] - 2026-01-20
+
+### Added
+
+- **Qdrant vector database support** with full 5-platform coverage
+  - High-performance vector similarity search engine
+  - Version: 1.16.3 (latest stable)
+  - Official binaries from GitHub releases for all platforms
+  - Apache-2.0 license (fully permissive for commercial use)
+
 ## [0.11.1] - 2026-01-18
 
 ### Added
