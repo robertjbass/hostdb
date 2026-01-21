@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.1] - 2026-01-20
+
+### Fixed
+
+- **macOS PostgreSQL binaries now relocatable**
+  - Fixed hardcoded build paths (`/Users/runner/work/...`) that caused `dyld: Library not loaded` errors
+  - Fixed Homebrew dependency paths (`/opt/homebrew/opt/icu4c@78/...`) that required users to have specific Homebrew packages installed
+  - Binaries now bundle all required dylibs (ICU, OpenSSL, readline, etc.) into the package
+  - Uses `install_name_tool` to rewrite paths with `@executable_path/../lib/` and `@rpath/`
+  - Affects all PostgreSQL binaries: `postgres`, `psql`, `initdb`, `pg_dump`, `pg_restore`, etc.
+  - Verification step ensures no hardcoded paths remain before packaging
+
+### Added
+
+- **Rebuild macOS PostgreSQL workflow** (`.github/workflows/rebuild-macos-postgresql.yml`)
+  - Rebuilds all macOS PostgreSQL binaries for all supported versions
+  - Supports both darwin-x64 (Intel) and darwin-arm64 (Apple Silicon)
+  - Can rebuild a single version or all versions at once
+
 ## [0.12.0] - 2026-01-20
 
 ### Added

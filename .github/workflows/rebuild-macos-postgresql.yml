@@ -1,0 +1,470 @@
+name: Rebuild macOS PostgreSQL
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'PostgreSQL version (or "all" for all versions)'
+        required: true
+        type: choice
+        options:
+          - all
+          - 18.1.0
+          - 17.7.0
+          - 16.11.0
+          - 15.15.0
+        default: all
+
+# Prevent concurrent runs
+concurrency:
+  group: rebuild-macos-postgresql
+  cancel-in-progress: false
+
+jobs:
+  # Determine which versions and platforms to build
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set build matrix
+        id: set-matrix
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+
+          if [ "$VERSION" = "all" ]; then
+            VERSIONS='["18.1.0", "17.7.0", "16.11.0", "15.15.0"]'
+          else
+            VERSIONS="[\"$VERSION\"]"
+          fi
+
+          # Build matrix: all versions × both macOS platforms
+          MATRIX=$(jq -n \
+            --argjson versions "$VERSIONS" \
+            '{
+              include: [
+                ($versions[] | . as $v | [
+                  {version: $v, platform: "darwin-x64", runner: "macos-15-intel"},
+                  {version: $v, platform: "darwin-arm64", runner: "macos-14"}
+                ]) | .[]
+              ]
+            }')
+
+          echo "matrix=$(echo "$MATRIX" | jq -c .)" >> $GITHUB_OUTPUT
+          echo "Building matrix:"
+          echo "$MATRIX" | jq .
+
+  # Build each version/platform combination
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse version for source download
+        id: parse-version
+        run: |
+          # databases.json uses 3-part versions (18.1.0) but PostgreSQL source uses 2-part (18.1)
+          VERSION="${{ matrix.version }}"
+          SOURCE_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
+          echo "source_version=$SOURCE_VERSION" >> $GITHUB_OUTPUT
+          echo "Source version: $SOURCE_VERSION (from $VERSION)"
+
+      - name: Install macOS build dependencies
+        run: |
+          brew install openssl@3 readline libxml2 libxslt icu4c pkg-config
+
+      - name: Build for macOS (native)
+        timeout-minutes: 90
+        run: |
+          # SOURCE_VERSION is 2-part (e.g., 18.1) for downloading PostgreSQL source
+          # FULL_VERSION is 3-part (e.g., 18.1.0) for artifact naming
+          SOURCE_VERSION="${{ steps.parse-version.outputs.source_version }}"
+          FULL_VERSION="${{ matrix.version }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          echo "Building PostgreSQL $FULL_VERSION for $PLATFORM (native macOS build)"
+
+          # Get Homebrew prefix (differs between ARM64 and Intel macOS)
+          BREW_PREFIX=$(brew --prefix)
+          OPENSSL_PREFIX=$(brew --prefix openssl@3)
+          ICU_PREFIX=$(brew --prefix icu4c)
+
+          echo "Using OpenSSL at: $OPENSSL_PREFIX"
+          echo "Using ICU at: $ICU_PREFIX"
+
+          # Clean up any previous build artifacts
+          rm -rf postgresql-source.tar.gz postgresql-${SOURCE_VERSION} install dist
+
+          # Download source (uses 2-part version, e.g., postgresql-18.1.tar.gz)
+          curl -fsSL "https://ftp.postgresql.org/pub/source/v${SOURCE_VERSION}/postgresql-${SOURCE_VERSION}.tar.gz" \
+            -o postgresql-source.tar.gz
+          tar -xzf postgresql-source.tar.gz
+
+          cd postgresql-${SOURCE_VERSION}
+
+          # Fix for Xcode 16+ SDK/toolchain mismatch issues
+          # Force latest Xcode as the active developer directory
+          XCODE_PATH=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          echo "Using Xcode: $XCODE_PATH"
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+
+          # Get SDK and toolchain paths
+          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+          XCODE_TOOLCHAIN=$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain
+
+          echo "Using Xcode SDK (SDKROOT): $SDKROOT"
+          echo "Using Xcode Toolchain: $XCODE_TOOLCHAIN"
+
+          # Set compiler environment variables to force correct SDK
+          export CC="$XCODE_TOOLCHAIN/usr/bin/clang"
+          export CXX="$XCODE_TOOLCHAIN/usr/bin/clang++"
+          export CFLAGS="--sysroot=$SDKROOT -I${OPENSSL_PREFIX}/include -I${ICU_PREFIX}/include"
+          export CPPFLAGS="$CFLAGS"
+          export LDFLAGS="--sysroot=$SDKROOT -L${OPENSSL_PREFIX}/lib -L${ICU_PREFIX}/lib"
+          export PKG_CONFIG_PATH="${OPENSSL_PREFIX}/lib/pkgconfig:${ICU_PREFIX}/lib/pkgconfig"
+
+          # Verify clang uses correct SDK
+          echo "Clang SDK check:"
+          $CC --version
+          $CC -v -E -x c /dev/null 2>&1 | grep "selected sysroot" || true
+
+          # Configure PostgreSQL
+          ./configure \
+            --prefix="$GITHUB_WORKSPACE/install/postgresql" \
+            --with-openssl \
+            --with-readline \
+            --with-libxml \
+            --with-libxslt \
+            --with-icu \
+            --without-systemd
+
+          # Build
+          make -j$(sysctl -n hw.ncpu)
+
+          # Install
+          make install
+
+          # Build and install contrib modules
+          cd contrib
+          make -j$(sysctl -n hw.ncpu)
+          make install
+          cd ..
+
+          # Add metadata (use full 3-part version for consistency)
+          cd "$GITHUB_WORKSPACE/install"
+          cat > postgresql/.hostdb-metadata.json << EOF
+          {
+            "name": "postgresql",
+            "version": "${FULL_VERSION}",
+            "platform": "${PLATFORM}",
+            "source": "source-build",
+            "sourceUrl": "https://ftp.postgresql.org/",
+            "rehosted_by": "hostdb",
+            "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          # Verify key binaries exist
+          test -f postgresql/bin/postgres || { echo "::error::postgres binary not found"; exit 1; }
+          test -f postgresql/bin/psql || { echo "::error::psql binary not found"; exit 1; }
+          test -f postgresql/lib/pg_stat_statements.so || echo "::warning::pg_stat_statements.so not found"
+
+          # Make binaries relocatable by fixing hardcoded paths
+          # This ensures binaries work regardless of where they're installed
+          echo "Making binaries relocatable..."
+
+          # Function to get all non-system dylib dependencies
+          get_external_deps() {
+            otool -L "$1" 2>/dev/null | tail -n +2 | awk '{print $1}' | \
+              grep -v '^/usr/lib/' | grep -v '^/System/' | grep -v '@executable_path' | grep -v '@rpath' | grep -v '@loader_path' || true
+          }
+
+          # Copy required Homebrew dylibs into our lib directory
+          echo "Bundling external dependencies..."
+          DEPS_TO_PROCESS=()
+          PROCESSED_DEPS=()
+
+          # Collect initial dependencies from all binaries and libraries
+          for binary in postgresql/bin/*; do
+            if [[ -f "$binary" && -x "$binary" ]]; then
+              while IFS= read -r dep; do
+                [[ -n "$dep" ]] && DEPS_TO_PROCESS+=("$dep")
+              done < <(get_external_deps "$binary")
+            fi
+          done
+
+          for lib in postgresql/lib/*.dylib postgresql/lib/*.so 2>/dev/null; do
+            if [[ -f "$lib" ]]; then
+              while IFS= read -r dep; do
+                [[ -n "$dep" ]] && DEPS_TO_PROCESS+=("$dep")
+              done < <(get_external_deps "$lib")
+            fi
+          done
+
+          # Process dependencies (including transitive ones)
+          while [[ ${#DEPS_TO_PROCESS[@]} -gt 0 ]]; do
+            dep="${DEPS_TO_PROCESS[0]}"
+            DEPS_TO_PROCESS=("${DEPS_TO_PROCESS[@]:1}")
+
+            # Skip if already processed
+            for processed in "${PROCESSED_DEPS[@]:-}"; do
+              [[ "$dep" == "$processed" ]] && continue 2
+            done
+            PROCESSED_DEPS+=("$dep")
+
+            # Skip if not a file
+            [[ ! -f "$dep" ]] && continue
+
+            libname=$(basename "$dep")
+            target="postgresql/lib/$libname"
+
+            # Skip if already exists
+            [[ -f "$target" ]] && continue
+
+            echo "  Bundling: $libname"
+            cp "$dep" "$target"
+            chmod 755 "$target"
+
+            # Check for transitive dependencies
+            while IFS= read -r transitive; do
+              [[ -n "$transitive" ]] && DEPS_TO_PROCESS+=("$transitive")
+            done < <(get_external_deps "$target")
+          done
+
+          # Fix the bundled dylibs - set their install names and fix internal references
+          echo "Fixing bundled dylib install names..."
+          for dylib in postgresql/lib/*.dylib; do
+            if [[ -f "$dylib" ]]; then
+              libname=$(basename "$dylib")
+
+              # Set the library's own install name to use @rpath
+              install_name_tool -id "@rpath/$libname" "$dylib" 2>/dev/null || true
+
+              # Fix references to other libraries
+              while IFS= read -r dep; do
+                if [[ -n "$dep" ]]; then
+                  depname=$(basename "$dep")
+                  install_name_tool -change "$dep" "@rpath/$depname" "$dylib" 2>/dev/null || true
+                fi
+              done < <(get_external_deps "$dylib")
+            fi
+          done
+
+          # Fix binaries to use @executable_path/../lib for bundled libraries
+          echo "Fixing binary library paths..."
+          for binary in postgresql/bin/*; do
+            if [[ -f "$binary" && -x "$binary" ]]; then
+              # Add rpath for finding libraries relative to executable
+              install_name_tool -add_rpath "@executable_path/../lib" "$binary" 2>/dev/null || true
+
+              # Fix references to external libraries
+              while IFS= read -r dep; do
+                if [[ -n "$dep" ]]; then
+                  depname=$(basename "$dep")
+                  install_name_tool -change "$dep" "@executable_path/../lib/$depname" "$binary" 2>/dev/null || true
+                fi
+              done < <(otool -L "$binary" 2>/dev/null | tail -n +2 | awk '{print $1}' | \
+                grep -v '^/usr/lib/' | grep -v '^/System/' | grep -v '@executable_path' | grep -v '@rpath' || true)
+            fi
+          done
+
+          # Fix .so files (PostgreSQL extensions) the same way
+          echo "Fixing extension library paths..."
+          for lib in postgresql/lib/*.so; do
+            if [[ -f "$lib" ]]; then
+              install_name_tool -add_rpath "@loader_path" "$lib" 2>/dev/null || true
+
+              while IFS= read -r dep; do
+                if [[ -n "$dep" ]]; then
+                  depname=$(basename "$dep")
+                  install_name_tool -change "$dep" "@rpath/$depname" "$lib" 2>/dev/null || true
+                fi
+              done < <(otool -L "$lib" 2>/dev/null | tail -n +2 | awk '{print $1}' | \
+                grep -v '^/usr/lib/' | grep -v '^/System/' | grep -v '@executable_path' | grep -v '@rpath' || true)
+            fi
+          done
+
+          # Verify no hardcoded paths remain
+          echo "Verifying relocatable binaries..."
+          FAILED=0
+          for binary in postgresql/bin/postgres postgresql/bin/psql postgresql/bin/initdb; do
+            if [[ -f "$binary" ]]; then
+              REMAINING=$(otool -L "$binary" 2>/dev/null | grep -E '/Users/|/opt/homebrew/' || true)
+              if [[ -n "$REMAINING" ]]; then
+                echo "::warning::Hardcoded paths remain in $(basename $binary):"
+                echo "$REMAINING"
+                FAILED=1
+              fi
+            fi
+          done
+
+          if [[ $FAILED -eq 0 ]]; then
+            echo "✓ All binaries are relocatable"
+          fi
+
+          # Create tarball (use full 3-part version for artifact naming)
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          tar -czvf "$GITHUB_WORKSPACE/dist/postgresql-${FULL_VERSION}-${PLATFORM}.tar.gz" postgresql
+
+          echo "Build complete:"
+          ls -la "$GITHUB_WORKSPACE/dist/"
+
+      - name: Generate checksum
+        run: |
+          cd dist
+          for f in *.tar.gz; do
+            shasum -a 256 "$f" >> checksums.txt
+          done
+          cat checksums.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgresql-${{ matrix.version }}-${{ matrix.platform }}
+          path: |
+            dist/*.tar.gz
+            dist/checksums.txt
+          retention-days: 1
+
+  # Update existing releases with new macOS binaries
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{ github.event.inputs.version == 'all' && fromJson('["18.1.0", "17.7.0", "16.11.0", "15.15.0"]') || fromJson(format('["{0}"]', github.event.inputs.version)) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifacts for this version
+        uses: actions/download-artifact@v4
+        with:
+          pattern: postgresql-${{ matrix.version }}-darwin-*
+          path: ./artifacts
+          merge-multiple: false
+
+      - name: Prepare release assets
+        run: |
+          VERSION="${{ matrix.version }}"
+          mkdir -p ./release-assets
+
+          # Move all artifacts to release-assets
+          find ./artifacts -name "*.tar.gz" -exec mv {} ./release-assets/ \;
+
+          # Combine checksums
+          echo "# macOS binaries (rebuilt with relocatable paths)" > ./release-assets/checksums-macos.txt
+          find ./artifacts -name "checksums.txt" -exec cat {} \; >> ./release-assets/checksums-macos.txt
+
+          echo "Release assets for PostgreSQL $VERSION:"
+          ls -la ./release-assets/
+
+          echo ""
+          echo "Checksums:"
+          cat ./release-assets/checksums-macos.txt
+
+      - name: Upload to existing release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ matrix.version }}"
+          TAG="postgresql-${VERSION}"
+
+          echo "Uploading macOS binaries to release: $TAG"
+
+          # Check if release exists
+          if ! gh release view "$TAG" &>/dev/null; then
+            echo "::error::Release $TAG does not exist. Run the main release workflow first."
+            exit 1
+          fi
+
+          # Delete existing macOS assets if they exist (to replace them)
+          for platform in darwin-x64 darwin-arm64; do
+            ASSET="postgresql-${VERSION}-${platform}.tar.gz"
+            if gh release view "$TAG" --json assets -q ".assets[].name" | grep -q "^${ASSET}$"; then
+              echo "Deleting existing asset: $ASSET"
+              gh release delete-asset "$TAG" "$ASSET" --yes || true
+            fi
+          done
+
+          # Upload new assets
+          for asset in ./release-assets/*.tar.gz; do
+            echo "Uploading: $(basename $asset)"
+            gh release upload "$TAG" "$asset" --clobber
+          done
+
+          # Also upload the macOS checksums file
+          gh release upload "$TAG" ./release-assets/checksums-macos.txt --clobber
+
+          echo "✓ Successfully updated release $TAG with relocatable macOS binaries"
+
+  # Update releases.json after all uploads complete
+  update-manifest:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        version: ${{ github.event.inputs.version == 'all' && fromJson('["18.1.0", "17.7.0", "16.11.0", "15.15.0"]') || fromJson(format('["{0}"]', github.event.inputs.version)) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update releases.json
+        run: |
+          VERSION="${{ matrix.version }}"
+          pnpm tsx scripts/update-releases.ts \
+            --database postgresql \
+            --version "$VERSION" \
+            --tag "postgresql-$VERSION"
+
+      - name: Commit and push
+        run: |
+          VERSION="${{ matrix.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add releases.json
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "chore: update releases.json for postgresql-$VERSION (macOS rebuild)"
+
+          # Retry push with rebase if remote has changed
+          for i in 1 2 3; do
+            if git push; then
+              echo "Push succeeded"
+              exit 0
+            fi
+            echo "Push failed, attempting rebase (attempt $i/3)..."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "ERROR: Rebase failed due to conflicts. Manual intervention required."
+              git rebase --abort
+              exit 1
+            fi
+            sleep $((2**i))
+          done
+          echo "ERROR: Push failed after 3 attempts"
+          exit 1
