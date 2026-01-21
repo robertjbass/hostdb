@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.5] - 2026-01-20
+
+### Fixed
+
+- **Invalid code signatures on macOS PostgreSQL binaries**
+  - `install_name_tool` invalidates existing code signatures when modifying libraries
+  - macOS kills processes that load libraries with invalid signatures ("Killed: 9")
+  - Added `codesign --force --sign -` step to re-sign all modified dylibs and binaries with ad-hoc signatures
+
 ## [0.12.4] - 2026-01-20
 
 ### Fixed

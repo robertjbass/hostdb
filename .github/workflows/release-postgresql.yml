@@ -673,6 +673,21 @@ jobs:
             fi
           done
 
+          # Re-sign all modified binaries and libraries with ad-hoc signatures
+          # install_name_tool invalidates existing code signatures, causing macOS to kill the process
+          echo "Re-signing binaries and libraries..."
+          for dylib in postgresql/lib/*.dylib; do
+            if [[ -f "$dylib" ]]; then
+              codesign --force --sign - "$dylib" 2>/dev/null || true
+            fi
+          done
+          for binary in postgresql/bin/*; do
+            if [[ -f "$binary" && -x "$binary" ]]; then
+              codesign --force --sign - "$binary" 2>/dev/null || true
+            fi
+          done
+          echo "✓ Re-signed all binaries and libraries"
+
           # Verify no hardcoded paths remain
           echo "Verifying relocatable binaries..."
           FAILED=0
