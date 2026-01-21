@@ -533,6 +533,9 @@ jobs:
           # This ensures binaries work regardless of where they're installed
           echo "Making binaries relocatable..."
 
+          # Enable nullglob so unmatched patterns expand to nothing
+          shopt -s nullglob
+
           # Function to get all non-system dylib dependencies
           get_external_deps() {
             otool -L "$1" 2>/dev/null | tail -n +2 | awk '{print $1}' | \
@@ -553,7 +556,7 @@ jobs:
             fi
           done
 
-          for lib in postgresql/lib/*.dylib postgresql/lib/*.so 2>/dev/null; do
+          for lib in postgresql/lib/*.dylib postgresql/lib/*.so; do
             if [[ -f "$lib" ]]; then
               while IFS= read -r dep; do
                 [[ -n "$dep" ]] && DEPS_TO_PROCESS+=("$dep")

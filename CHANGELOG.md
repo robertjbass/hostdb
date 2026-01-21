@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.2] - 2026-01-20
+
+### Fixed
+
+- **Bash syntax error in macOS PostgreSQL build**
+  - Fixed `syntax error near unexpected token '2'` caused by invalid `2>/dev/null` in for loop glob
+  - Added `shopt -s nullglob` to handle missing file patterns gracefully
+
+- **GitHub Actions `env` context error in build-missing-releases workflow**
+  - Fixed `Unrecognized named-value: 'env'` error in job-level `if` conditions
+  - Changed `env.ACTION` to `github.event.inputs.action` (env context not available at job level)
+
 ## [0.12.1] - 2026-01-20
 
 ### Fixed
