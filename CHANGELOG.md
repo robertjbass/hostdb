@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.3] - 2026-01-20
+
+### Fixed
+
+- **Missing ICU data library in macOS PostgreSQL builds**
+  - `libicudata.78.dylib` was not being bundled because ICU uses `@loader_path` references internally
+  - Updated dependency scanner to resolve `@loader_path` references relative to the source library's directory
+  - Updated path fixer to also rewrite `@loader_path` references to `@rpath`
+  - This caused `Killed: 9` errors when running PostgreSQL binaries
+
 ## [0.12.2] - 2026-01-20
 
 ### Fixed
