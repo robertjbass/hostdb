@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-21T06:18:06.549Z",
+  "lastUpdated": "2026-01-21T07:12:12.164Z",
   "databases": {
     "clickhouse": {
       "25.12.3.21": {
@@ -401,12 +401,12 @@
           "darwin-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-darwin-arm64.tar.gz",
             "sha256": "41b9a9f0b02d6bb9d4960a0fed4949e413d5dd4c9087d1ef9fff80480ad26221",
-            "size": 16107904
+            "size": 29191486
           },
           "darwin-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-darwin-x64.tar.gz",
             "sha256": "7dbbf27186e1cb8ce630c3a4f87a239dfb2593fb35e319a16d963892f0b8df5c",
-            "size": 15542136
+            "size": 28944135
           },
           "linux-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-18.1.0/postgresql-18.1.0-linux-arm64.tar.gz",
