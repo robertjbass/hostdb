@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-21T03:44:28.927Z",
+  "lastUpdated": "2026-01-21T06:18:06.549Z",
   "databases": {
     "clickhouse": {
       "25.12.3.21": {
@@ -465,12 +465,12 @@
           "darwin-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-16.11.0/postgresql-16.11.0-darwin-arm64.tar.gz",
             "sha256": "14263aa593747300d1b11c766810a3949e2d5f14e79c6bed4ed4224072ebac2e",
-            "size": 10507783
+            "size": 28101046
           },
           "darwin-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-16.11.0/postgresql-16.11.0-darwin-x64.tar.gz",
             "sha256": "83ea273c6cc8f40ebd53bfce819d80f8437724344053f4920201a00f70a13ac0",
-            "size": 10192699
+            "size": 27299374
           },
           "linux-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-16.11.0/postgresql-16.11.0-linux-arm64.tar.gz",
