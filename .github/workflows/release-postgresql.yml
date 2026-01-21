@@ -559,9 +559,17 @@ jobs:
 
           # Copy required Homebrew dylibs into our lib directory
           echo "Bundling external dependencies..."
-          declare -A PROCESSED_DEPS
-          declare -A ORIGINAL_PATHS  # Track where each lib came from
+          PROCESSED_DEPS=()
           DEPS_TO_PROCESS=()
+
+          # Helper to check if dep was already processed
+          is_processed() {
+            local check="$1"
+            for p in "${PROCESSED_DEPS[@]}"; do
+              [[ "$p" == "$check" ]] && return 0
+            done
+            return 1
+          }
 
           # Collect initial dependencies from all binaries and libraries
           for binary in postgresql/bin/*; do
@@ -586,8 +594,8 @@ jobs:
             DEPS_TO_PROCESS=("${DEPS_TO_PROCESS[@]:1}")
 
             # Skip if already processed
-            [[ -n "${PROCESSED_DEPS[$dep]:-}" ]] && continue
-            PROCESSED_DEPS[$dep]=1
+            is_processed "$dep" && continue
+            PROCESSED_DEPS+=("$dep")
 
             # Skip if not a file
             [[ ! -f "$dep" ]] && continue
@@ -601,7 +609,6 @@ jobs:
             echo "  Bundling: $libname (from $dep)"
             cp "$dep" "$target"
             chmod 755 "$target"
-            ORIGINAL_PATHS[$libname]="$dep"
 
             # Check for transitive dependencies - scan ORIGINAL file to resolve @loader_path correctly
             while IFS= read -r transitive; do

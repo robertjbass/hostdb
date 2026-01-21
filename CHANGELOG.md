@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.12.4] - 2026-01-20
+
+### Fixed
+
+- **Bash 3.2 compatibility for macOS builds**
+  - Removed `declare -A` (associative arrays) which requires Bash 4+
+  - macOS ships with Bash 3.2; GitHub Actions macOS runners use system bash
+  - Replaced with regular arrays and helper function for linear search
+
 ## [0.12.3] - 2026-01-20
 
 ### Fixed
