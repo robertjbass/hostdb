@@ -229,6 +229,8 @@ Then follow the printed instructions to implement the download logic.
 
 See [CHECKLIST.md](./CHECKLIST.md) for the complete checklist.
 
+See [BINARIES.md](./BINARIES.md) for archive structure reference (top-level dirs, binary locations, single vs multi-file).
+
 **Windows builds:** If no official Windows binary exists, see [WINDOWS_BUILD.md](./WINDOWS_BUILD.md) for strategies (Cygwin, MSYS2 CLANG64, cross-compilation, etc.).
 
 ### Download Script Requirements
