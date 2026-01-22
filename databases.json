@@ -452,9 +452,9 @@
       "commercialUse": true,
       "protocol": null,
       "note": "",
-      "latestLts": "1.31",
+      "latestLts": "1.33",
       "versions": {
-        "1.31.0": true
+        "1.33.1": true
       },
       "platforms": {
         "linux-x64": true,
@@ -478,7 +478,7 @@
         "defaultUser": null,
         "queryLanguage": "HTTP"
       },
-      "status": "pending"
+      "status": "in-progress"
     },
     "mongodb": {
       "displayName": "MongoDB",
