@@ -55,8 +55,8 @@
             },
             "format": {
               "type": "string",
-              "enum": ["tar.gz", "tar.xz", "zip", "gz", "dmg", "msi", "jar"],
-              "description": "Archive format"
+              "enum": ["tar.gz", "tar.xz", "zip", "gz", "dmg", "msi", "jar", "binary"],
+              "description": "Archive format (use 'binary' for raw executables)"
             },
             "sha256": {
               "type": ["string", "null"],

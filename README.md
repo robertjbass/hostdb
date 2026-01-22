@@ -126,15 +126,19 @@ Auto-generated manifest updated after each GitHub Release. Structure:
 
 ## Current Status
 
-| Database | Status | Versions | Notes |
-|----------|--------|----------|-------|
-| MySQL | Completed | 8.4.7, 8.0.40 | Official binaries for all platforms |
-| PostgreSQL | In Progress | 18.1.0, 17.7.0, 16.11.0, 15.15.0 | Source builds + EDB (Windows) |
-| MariaDB | Completed | 11.8.5, 11.4.5, 10.11.15 | Official + source builds |
-| Redis | Completed | 8.4.0, 7.4.7 | Source builds |
-| SQLite | In Progress | 3.51.1 | Official amalgamation |
-| Valkey | Completed | 9.0.1, 8.0.6 | Redis-compatible, permissive license (includes bespoke Windows builds via Cygwin) |
-| MongoDB | Completed | 8.0.17, 8.2.3, 7.0.28 | Official binaries (SSPL license) |
+| Database | Type | Status | Versions | Notes |
+|----------|------|--------|----------|-------|
+| MySQL | Relational | Completed | 9.5.0, 9.1.0, 8.4.3, 8.0.40 | Official binaries |
+| PostgreSQL | Relational | In Progress | 18.1.0, 17.7.0, 16.11.0, 15.15.0 | Source builds + EDB (Windows) |
+| MariaDB | Relational | Completed | 11.8.5, 11.4.5, 10.11.15 | Official + source builds |
+| SQLite | Embedded | In Progress | 3.51.2 | Official amalgamation |
+| MongoDB | Document | Completed | 8.2.3, 8.0.17, 7.0.28 | Official binaries (SSPL license) |
+| Redis | Key-Value | Completed | 8.4.0, 7.4.7 | Source builds |
+| Valkey | Key-Value | In Progress | 9.0.1, 8.0.6 | Redis-compatible, BSD-3 license |
+| DuckDB | Analytical | Completed | 1.4.3 | Official binaries |
+| ClickHouse | Analytical | Completed | 25.12.3.21 | Official binaries (no Windows) |
+| Qdrant | Vector | Completed | 1.16.3 | Official binaries |
+| Meilisearch | Search | In Progress | 1.33.1 | Official binaries |
 
 See `pnpm dbs` for the full list.
 
