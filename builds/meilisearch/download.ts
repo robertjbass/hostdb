@@ -22,6 +22,8 @@ import {
   copyFileSync,
   rmSync,
   chmodSync,
+  renameSync,
+  unlinkSync,
 } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { resolve, dirname, basename } from 'node:path'
@@ -189,7 +191,6 @@ async function downloadFile(url: string, destPath: string): Promise<void> {
     })
 
     // Rename temp file to final destination
-    const { renameSync } = await import('node:fs')
     renameSync(tempPath, destPath)
 
     console.log()
@@ -207,7 +208,6 @@ async function downloadFile(url: string, destPath: string): Promise<void> {
       // Ignore cancel errors
     }
     try {
-      const { unlinkSync } = await import('node:fs')
       if (existsSync(tempPath)) {
         unlinkSync(tempPath)
       }

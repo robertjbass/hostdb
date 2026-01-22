@@ -211,6 +211,7 @@ pnpm add:engine sqlite   # Then follow printed instructions
 ## Documentation
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - Visual representation of how this repo works
+- [BINARIES.md](./BINARIES.md) - Archive structure reference for each database
 - [CHECKLIST.md](./CHECKLIST.md) - Checklist for adding a new database
 
 ## TODO
