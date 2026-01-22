@@ -135,7 +135,8 @@ async function downloadFile(url: string, destPath: string): Promise<void> {
 
   mkdirSync(dirname(destPath), { recursive: true })
 
-  const fileStream = createWriteStream(destPath)
+  const tempPath = destPath + '.partial'
+  const fileStream = createWriteStream(tempPath)
   const reader = response.body?.getReader()
 
   if (!reader) {
@@ -145,53 +146,77 @@ async function downloadFile(url: string, destPath: string): Promise<void> {
   let downloadedBytes = 0
   const startTime = Date.now()
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
 
-    const canContinue = fileStream.write(value)
-    downloadedBytes += value.length
+      const canContinue = fileStream.write(value)
+      downloadedBytes += value.length
 
-    if (!canContinue) {
-      await new Promise<void>((resolve, reject) => {
-        const onDrain = () => {
-          fileStream.removeListener('error', onError)
-          resolve()
-        }
-        const onError = (err: Error) => {
-          fileStream.removeListener('drain', onDrain)
-          reject(err)
-        }
-        fileStream.once('drain', onDrain)
-        fileStream.once('error', onError)
-      })
+      if (!canContinue) {
+        await new Promise<void>((resolve, reject) => {
+          const onDrain = () => {
+            fileStream.removeListener('error', onError)
+            resolve()
+          }
+          const onError = (err: Error) => {
+            fileStream.removeListener('drain', onDrain)
+            reject(err)
+          }
+          fileStream.once('drain', onDrain)
+          fileStream.once('error', onError)
+        })
+      }
+
+      if (totalBytes > 0) {
+        const percent = ((downloadedBytes / totalBytes) * 100).toFixed(1)
+        const mbDownloaded = (downloadedBytes / 1024 / 1024).toFixed(1)
+        const mbTotal = (totalBytes / 1024 / 1024).toFixed(1)
+        process.stdout.write(
+          `\r  ${mbDownloaded}MB / ${mbTotal}MB (${percent}%)    `,
+        )
+      } else {
+        const mbDownloaded = (downloadedBytes / 1024 / 1024).toFixed(1)
+        process.stdout.write(`\r  ${mbDownloaded}MB downloaded...    `)
+      }
     }
 
-    if (totalBytes > 0) {
-      const percent = ((downloadedBytes / totalBytes) * 100).toFixed(1)
-      const mbDownloaded = (downloadedBytes / 1024 / 1024).toFixed(1)
-      const mbTotal = (totalBytes / 1024 / 1024).toFixed(1)
-      process.stdout.write(
-        `\r  ${mbDownloaded}MB / ${mbTotal}MB (${percent}%)    `,
-      )
-    } else {
-      const mbDownloaded = (downloadedBytes / 1024 / 1024).toFixed(1)
-      process.stdout.write(`\r  ${mbDownloaded}MB downloaded...    `)
+    await new Promise<void>((resolve, reject) => {
+      fileStream.end()
+      fileStream.on('finish', resolve)
+      fileStream.on('error', reject)
+    })
+
+    // Rename temp file to final destination
+    const { renameSync } = await import('node:fs')
+    renameSync(tempPath, destPath)
+
+    console.log()
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1)
+    logSuccess(
+      `Downloaded ${(downloadedBytes / 1024 / 1024).toFixed(1)}MB in ${duration}s`,
+    )
+  } catch (error) {
+    // Clean up partial file on error
+    fileStream.destroy()
+    try {
+      reader.cancel()
+    } catch {
+      // Ignore cancel errors
     }
+    try {
+      const { unlinkSync } = await import('node:fs')
+      if (existsSync(tempPath)) {
+        unlinkSync(tempPath)
+      }
+    } catch {
+      // Ignore cleanup errors
+    }
+    console.log()
+    throw error
   }
-
-  await new Promise<void>((resolve, reject) => {
-    fileStream.end()
-    fileStream.on('finish', resolve)
-    fileStream.on('error', reject)
-  })
-
-  console.log()
-
-  const duration = ((Date.now() - startTime) / 1000).toFixed(1)
-  logSuccess(
-    `Downloaded ${(downloadedBytes / 1024 / 1024).toFixed(1)}MB in ${duration}s`,
-  )
 }
 
 async function calculateSha256(filePath: string): Promise<string> {
@@ -411,25 +436,54 @@ async function main() {
       `meilisearch-${version}-${platform}.${ext}`,
     )
 
-    // Download
-    if (existsSync(downloadPath)) {
-      logInfo(`Using cached download: ${downloadPath}`)
-    } else {
+    // Download or use cache (with checksum verification)
+    let needsDownload = !existsSync(downloadPath)
+
+    if (!needsDownload) {
+      // Verify cached file integrity
+      const cachedSha256 = await calculateSha256(downloadPath)
+      if (source.sha256) {
+        if (cachedSha256 === source.sha256) {
+          logInfo(`Using cached download: ${downloadPath}`)
+          logSuccess('Cached file checksum verified')
+        } else {
+          logWarn(
+            `Cached file checksum mismatch (got ${cachedSha256.slice(0, 16)}..., expected ${source.sha256.slice(0, 16)}...)`,
+          )
+          logInfo('Re-downloading...')
+          rmSync(downloadPath, { force: true })
+          needsDownload = true
+        }
+      } else {
+        logWarn(
+          `No checksum in sources.json to verify cached file (SHA256: ${cachedSha256})`,
+        )
+        logInfo('Re-downloading to ensure integrity...')
+        rmSync(downloadPath, { force: true })
+        needsDownload = true
+      }
+    }
+
+    if (needsDownload) {
       await downloadFile(source.url, downloadPath)
     }
 
-    // Verify checksum
+    // Verify checksum after download
     const actualSha256 = await calculateSha256(downloadPath)
-    logInfo(`SHA256: ${actualSha256}`)
+    if (needsDownload) {
+      logInfo(`SHA256: ${actualSha256}`)
+    }
 
     if (source.sha256) {
       if (actualSha256 === source.sha256) {
-        logSuccess('Checksum verified')
+        if (needsDownload) {
+          logSuccess('Checksum verified')
+        }
       } else {
         logError(`Checksum mismatch! Expected: ${source.sha256}`)
         process.exit(1)
       }
-    } else {
+    } else if (needsDownload) {
       logWarn('No checksum in sources.json - update it with the SHA256 above')
     }
 

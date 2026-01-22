@@ -130,7 +130,7 @@ jobs:
       - name: Generate checksums
         run: |
           cd dist
-          sha256sum *.tar.gz *.zip 2>/dev/null > checksums.txt || sha256sum *.tar.gz > checksums.txt
+          sha256sum *.tar.gz *.zip 2>/dev/null > checksums.txt || sha256sum *.tar.gz 2>/dev/null > checksums.txt || sha256sum *.zip > checksums.txt
           cat checksums.txt
 
       - name: Upload artifacts
@@ -141,7 +141,7 @@ jobs:
             dist/*.tar.gz
             dist/*.zip
             dist/checksums.txt
-          retention-days: 1
+          retention-days: 7
 
   release:
     needs: build
