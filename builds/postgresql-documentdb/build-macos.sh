@@ -41,6 +41,12 @@ OUTPUT_DIR="${3:-./dist}"
 PG_MAJOR="${VERSION%%-*}"        # "17" from "17-0.107.0"
 DOCDB_VERSION="${VERSION#*-}"    # "0.107.0" from "17-0.107.0"
 
+# Convert DocumentDB version to git tag format
+# Version "0.107.0" -> Tag "v0.107-0" (major.minor-patch, not major.minor.patch)
+DOCDB_MAJOR_MINOR="${DOCDB_VERSION%.*}"  # "0.107" from "0.107.0"
+DOCDB_PATCH="${DOCDB_VERSION##*.}"       # "0" from "0.107.0"
+DOCDB_GIT_TAG="v${DOCDB_MAJOR_MINOR}-${DOCDB_PATCH}"  # "v0.107-0"
+
 # Component versions (should match sources.json)
 PG_CRON_VERSION="1.6.4"
 PGVECTOR_VERSION="0.8.0"
@@ -109,10 +115,10 @@ log_info "Installing build dependencies..."
 brew install cmake pkg-config || true
 
 # Build DocumentDB extension
-log_info "Building DocumentDB extension v${DOCDB_VERSION}..."
+log_info "Building DocumentDB extension v${DOCDB_VERSION} (tag: ${DOCDB_GIT_TAG})..."
 cd "${SOURCES_DIR}"
 if [[ ! -d "documentdb" ]]; then
-    git clone --depth 1 --branch "v${DOCDB_VERSION}" https://github.com/FerretDB/documentdb.git
+    git clone --depth 1 --branch "${DOCDB_GIT_TAG}" https://github.com/FerretDB/documentdb.git
 fi
 cd documentdb
 

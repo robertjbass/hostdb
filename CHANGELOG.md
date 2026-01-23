@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.3] - 2026-01-23
+
+### Fixed
+
+- **PostgreSQL-DocumentDB macOS build failing on git clone**
+  - DocumentDB git tags use format `v0.107-0` not `v0.107.0`
+  - Updated `build-macos.sh` to convert version format to correct git tag
+  - Version `0.107.0` now correctly maps to tag `v0.107-0`
+
 ## [0.14.2] - 2026-01-23
 
 ### Fixed
