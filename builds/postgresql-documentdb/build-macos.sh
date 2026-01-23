@@ -137,8 +137,12 @@ Libs: -L\${libdir} -lbson-1.0
 EOF
 
 export PKG_CONFIG_PATH="${FAKE_PKGCONFIG_DIR}:${MONGO_C_PREFIX}/lib/pkgconfig:${ICU_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-# libbson headers are in libbson-1.0/bson/ subdirectory, but DocumentDB expects <bson.h> directly
-BSON_INCLUDE="${MONGO_C_PREFIX}/include/libbson-1.0"
+# Find the actual bson include directory (varies by mongo-c-driver version)
+# mongo-c-driver 2.x uses bson-X.Y.Z/, older versions use libbson-1.0/
+BSON_INCLUDE=$(find "${MONGO_C_PREFIX}/include" -type d -name "bson*" | head -1)
+if [[ -z "${BSON_INCLUDE}" ]]; then
+    BSON_INCLUDE="${MONGO_C_PREFIX}/include/libbson-1.0"
+fi
 export CPPFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include ${CPPFLAGS:-}"
 export CFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include ${CFLAGS:-}"
 export LDFLAGS="-L${MONGO_C_PREFIX}/lib -L${ICU_PREFIX}/lib ${LDFLAGS:-}"
