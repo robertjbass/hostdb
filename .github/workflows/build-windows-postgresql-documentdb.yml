@@ -151,18 +151,43 @@ jobs:
             }
           done
 
+          # Check available libraries
+          echo ""
+          echo "=== Available PostgreSQL libraries ==="
+          ls -la "$PG_LIB/" | head -20
+          echo ""
+          echo "Looking for postgres library..."
+          ls -la "$PG_LIB/"*postgres* 2>/dev/null || echo "No postgres library found"
+          ls -la "$PG_LIB/"*.lib 2>/dev/null || echo "No .lib files found"
+          ls -la "$PG_LIB/"*.dll 2>/dev/null || echo "No .dll files found"
+
           # Link into DLL
           echo ""
           echo "=== Linking vector.dll ==="
           OBJECTS=$(ls src/*.o)
-          gcc $LDFLAGS -o vector.dll $OBJECTS -lpostgres || {
-            echo ""
-            echo "=== Link failed, trying without -lpostgres ==="
-            gcc $LDFLAGS -o vector.dll $OBJECTS || {
-              echo "Link failed"
-              exit 1
+
+          # On Windows, extensions are loaded into the postgres process which
+          # provides the symbols at runtime. We need to either:
+          # 1. Link against postgres.lib (import library)
+          # 2. Use -Wl,--enable-auto-import and rely on runtime linking
+
+          # Try linking with import library first
+          if [ -f "$PG_LIB/postgres.lib" ]; then
+            echo "Found postgres.lib, linking..."
+            gcc $LDFLAGS -o vector.dll $OBJECTS "$PG_LIB/postgres.lib"
+          else
+            # Try auto-import (symbols resolved at runtime by postgres.exe)
+            echo "No postgres.lib found, trying auto-import..."
+            gcc $LDFLAGS -Wl,--enable-auto-import -o vector.dll $OBJECTS || {
+              echo ""
+              echo "=== Link failed ==="
+              echo "Trying with -Wl,--allow-shlib-undefined..."
+              gcc $LDFLAGS -Wl,--allow-shlib-undefined -o vector.dll $OBJECTS || {
+                echo "Link failed - PostgreSQL symbols not available for linking"
+                exit 1
+              }
             }
-          }
+          fi
 
           echo ""
           echo "=== Build succeeded! ==="
