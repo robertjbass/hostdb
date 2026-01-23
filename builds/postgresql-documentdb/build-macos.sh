@@ -83,13 +83,14 @@ if ! command -v brew &> /dev/null; then
     exit 1
 fi
 
-# Set up build directories
+# Set up build directories (convert to absolute paths to avoid issues with cd)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="${OUTPUT_DIR}/build-${VERSION}-${PLATFORM}"
+rm -rf "${BUILD_DIR}"
+mkdir -p "${BUILD_DIR}"
+BUILD_DIR="$(cd "${BUILD_DIR}" && pwd)"  # Convert to absolute path
 BUNDLE_DIR="${BUILD_DIR}/postgresql-documentdb"
 SOURCES_DIR="${BUILD_DIR}/sources"
-
-rm -rf "${BUILD_DIR}"
 mkdir -p "${BUNDLE_DIR}" "${SOURCES_DIR}"
 
 # Install base PostgreSQL via Homebrew
