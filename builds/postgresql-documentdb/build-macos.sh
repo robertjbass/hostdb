@@ -290,6 +290,22 @@ if [[ ! -d "documentdb" ]]; then
 fi
 cd documentdb
 
+# Fix bash compatibility: macOS ships with bash 3.2, but DocumentDB scripts use bash 4+ features
+# like ${var^^} for uppercase. Patch scripts to use Homebrew's modern bash.
+if [[ -f /opt/homebrew/bin/bash ]]; then
+    MODERN_BASH="/opt/homebrew/bin/bash"
+elif [[ -f /usr/local/bin/bash ]]; then
+    MODERN_BASH="/usr/local/bin/bash"
+else
+    log_info "Installing modern bash via Homebrew..."
+    brew install bash
+    MODERN_BASH="$(brew --prefix)/bin/bash"
+fi
+log_info "Using modern bash: ${MODERN_BASH} (version: $(${MODERN_BASH} --version | head -1))"
+# Patch shell scripts to use modern bash
+find . -name "*.sh" -type f -exec sed -i '' "1s|#!/bin/bash|#!${MODERN_BASH}|" {} \;
+find . -name "*.sh" -type f -exec sed -i '' "1s|#!/usr/bin/env bash|#!${MODERN_BASH}|" {} \;
+
 # DocumentDB uses PostgreSQL PGXS build system (Makefiles, not CMake)
 # Build only the non-distributed components (pg_documentdb_core and pg_documentdb)
 # Note: PostgreSQL's PGXS passes flags that Apple clang doesn't support:
