@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.7] - 2026-01-23
+
+### Fixed
+
+- **PostgreSQL-DocumentDB macOS build - missing headers**
+  - Added `icu4c` dependency for `unicode/ures.h`
+  - Set up include paths for libbson (`bson.h`) and ICU via CFLAGS/CPPFLAGS
+  - Export PKG_CONFIG_PATH for proper dependency discovery
+
 ## [0.14.6] - 2026-01-23
 
 ### Fixed
