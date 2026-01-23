@@ -290,7 +290,9 @@ cd documentdb
 # Note: Use LDFLAGS (not SHLIB_LINK) for ICU to avoid overriding bundle_loader flag
 #   SHLIB_LINK on command line replaces default; LDFLAGS is additive
 export LIBRARY_PATH="${COMPAT_LIB_DIR}:${ICU_PREFIX}/lib:${LIBRARY_PATH:-}"
-EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option -Wno-error=typedef-redefinition -Wno-error=deprecated-non-prototype -Wno-error=format -Wno-error=unused-function -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include"
+# Suppress -Werror entirely for macOS compatibility
+# DocumentDB has some code patterns that trigger warnings on Apple clang that don't on Linux GCC
+EXTRA_CFLAGS="-Wno-error -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include"
 ICU_LINK="-L${ICU_PREFIX}/lib -licuuc -licui18n -licudata"
 make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
