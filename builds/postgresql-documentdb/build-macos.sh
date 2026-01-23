@@ -249,18 +249,31 @@ fi
 CLANG_WRAPPER="${BUILD_DIR}/clang-wrapper.sh"
 cat > "${CLANG_WRAPPER}" <<'WRAPPER_EOF'
 #!/bin/bash
-# Clang wrapper to translate Linux-style rpath flags to macOS style
-# Linux: -Wl,-rpath=/path (single -Wl arg with =)
-# macOS: -Wl,-rpath,/path (comma separates -rpath from path)
+# Clang wrapper to:
+# 1. Translate Linux-style rpath flags to macOS style
+#    Linux: -Wl,-rpath=/path (single -Wl arg with =)
+#    macOS: -Wl,-rpath,/path (comma separates -rpath from path)
+# 2. Filter out GCC-specific flags not supported by Apple clang
+# 3. Convert -Werror to -Wno-error for cross-platform compatibility
 args=()
 for arg in "$@"; do
-    if [[ "$arg" == -Wl,-rpath=* ]]; then
-        # Convert -Wl,-rpath=/path to -Wl,-rpath,/path
-        path="${arg#-Wl,-rpath=}"
-        args+=("-Wl,-rpath,${path}")
-    else
-        args+=("$arg")
-    fi
+    case "$arg" in
+        -Wl,-rpath=*)
+            # Convert -Wl,-rpath=/path to -Wl,-rpath,/path
+            path="${arg#-Wl,-rpath=}"
+            args+=("-Wl,-rpath,${path}")
+            ;;
+        -fexcess-precision=*)
+            # GCC-specific flag, skip on clang
+            ;;
+        -Werror)
+            # Convert -Werror to -Wno-error for macOS compatibility
+            args+=("-Wno-error")
+            ;;
+        *)
+            args+=("$arg")
+            ;;
+    esac
 done
 exec /usr/bin/clang "${args[@]}"
 WRAPPER_EOF
