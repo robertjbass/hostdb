@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.1] - 2026-01-23
+
+### Fixed
+
+- **Workflow permission for trigger-sync job** - Added `actions: write` permission to new ferretdb and postgresql-documentdb workflows to allow triggering sync-releases workflow
+
 ## [0.14.0] - 2026-01-23
 
 ### Added
