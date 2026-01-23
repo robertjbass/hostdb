@@ -75,6 +75,9 @@ jobs:
         with:
           arch: x64
 
+      - name: Install GNU Make
+        run: choco install make -y
+
       - name: Build pgvector with MSVC (Phase 1)
         shell: cmd
         run: |
@@ -109,10 +112,11 @@ jobs:
           more +1 Makefile | findstr /n "^" | findstr "^[1-9]:" | findstr /v "^[3-9][0-9]:"
 
           echo.
-          echo === Building with nmake and PGXS ===
+          echo === Building with GNU Make and PGXS ===
 
-          :: Use nmake with PGXS (standard PostgreSQL extension build)
-          nmake /F Makefile PG_CONFIG="%PG_CONFIG%"
+          :: PGXS requires GNU Make (not nmake)
+          :: GNU Make installed via chocolatey
+          make PG_CONFIG="%PG_CONFIG%"
 
           if errorlevel 1 (
             echo.
@@ -140,7 +144,7 @@ jobs:
           cd C:\build\pgvector
 
           echo === Installing pgvector ===
-          nmake /F Makefile PG_CONFIG="%PG_CONFIG%" install
+          make PG_CONFIG="%PG_CONFIG%" install
 
           if errorlevel 1 (
             echo Install failed
