@@ -138,6 +138,9 @@ if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
     log_success "Intel Decimal Math Library built"
 fi
 
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
+INTEL_MATH_INSTALL="$(cd "${INTEL_MATH_INSTALL}" && pwd)"
+
 # Set up environment for dependencies
 # mongo-c-driver provides libbson, icu4c provides unicode headers
 MONGO_C_PREFIX="$(brew --prefix mongo-c-driver)"
