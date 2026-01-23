@@ -114,6 +114,30 @@ cp -R "${PG_PREFIX}/"* "${BUNDLE_DIR}/"
 log_info "Installing build dependencies..."
 brew install cmake pkg-config pcre2 mongo-c-driver icu4c || true
 
+# Build Intel Decimal Math Library from source
+# (required for DocumentDB's decimal128 support, not available via Homebrew)
+INTEL_MATH_DIR="${SOURCES_DIR}/intelrdfpmath"
+INTEL_MATH_INSTALL="${BUILD_DIR}/intelmathlib"
+INTEL_MATH_VERSION="import/1.0.0-14"
+
+if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
+    log_info "Building Intel Decimal Math Library..."
+    git clone --depth 1 https://git.launchpad.net/ubuntu/+source/intelrdfpmath "${INTEL_MATH_DIR}"
+    cd "${INTEL_MATH_DIR}"
+    git fetch --depth 1 origin "${INTEL_MATH_VERSION}"
+    git checkout FETCH_HEAD
+    cd LIBRARY
+    # Build with position-independent code
+    make -j"$(sysctl -n hw.ncpu)" CC=clang _CFLAGS_OPT="-fPIC"
+
+    # Install to local directory
+    mkdir -p "${INTEL_MATH_INSTALL}/lib" "${INTEL_MATH_INSTALL}/include"
+    cp libbid.a "${INTEL_MATH_INSTALL}/lib/"
+    cp src/*.h "${INTEL_MATH_INSTALL}/include/"
+
+    log_success "Intel Decimal Math Library built"
+fi
+
 # Set up environment for dependencies
 # mongo-c-driver provides libbson, icu4c provides unicode headers
 MONGO_C_PREFIX="$(brew --prefix mongo-c-driver)"
@@ -145,10 +169,23 @@ Cflags: -I\${includedir} -I\${includedir}/bson
 Libs: -L\${libdir} -lbson-1.0
 EOF
 
+# Create pkgconfig file for Intel math library
+cat > "${FAKE_PKGCONFIG_DIR}/intelmathlib.pc" <<EOF
+prefix=${INTEL_MATH_INSTALL}
+includedir=\${prefix}/include
+libdir=\${prefix}/lib
+
+Name: intelmathlib
+Description: Intel Decimal Floating-Point Math Library
+Version: 1.0.0
+Cflags: -I\${includedir}
+Libs: -L\${libdir} -lbid
+EOF
+
 export PKG_CONFIG_PATH="${FAKE_PKGCONFIG_DIR}:${MONGO_C_PREFIX}/lib/pkgconfig:${ICU_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-export CPPFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include ${CPPFLAGS:-}"
-export CFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include ${CFLAGS:-}"
-export LDFLAGS="-L${MONGO_C_PREFIX}/lib -L${ICU_PREFIX}/lib ${LDFLAGS:-}"
+export CPPFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include ${CPPFLAGS:-}"
+export CFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include ${CFLAGS:-}"
+export LDFLAGS="-L${MONGO_C_PREFIX}/lib -L${ICU_PREFIX}/lib -L${INTEL_MATH_INSTALL}/lib ${LDFLAGS:-}"
 
 log_info "PKG_CONFIG_PATH: ${PKG_CONFIG_PATH}"
 log_info "BSON_INCLUDE: ${BSON_INCLUDE}"
@@ -172,8 +209,9 @@ cd documentdb
 # Note: PostgreSQL's PGXS passes flags that Apple clang doesn't support:
 #   - -fexcess-precision=standard (GCC-specific)
 #   - -Wno-cast-function-type-strict (unknown to older clang)
+#   - typedef redefinition is a C11 feature (-Wtypedef-redefinition)
 # We suppress these errors to allow the build to proceed.
-EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include"
+EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option -Wno-error=typedef-redefinition -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include"
 make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
 
