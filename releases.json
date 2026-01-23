@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-23T06:56:10.399Z",
+  "lastUpdated": "2026-01-23T23:05:14.422Z",
   "databases": {
     "clickhouse": {
       "25.12.3.21": {
@@ -586,6 +586,35 @@
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-15.15.0/postgresql-15.15.0-win32-x64.zip",
             "sha256": "a53e703e9410055287dcceaff03c5f677f6ade58da1fe521eed7f1f07f8a5e73",
             "size": 324647117
+          }
+        }
+      }
+    },
+    "postgresql-documentdb": {
+      "17-0.107.0": {
+        "version": "17-0.107.0",
+        "releaseTag": "postgresql-documentdb-17-0.107.0",
+        "releasedAt": "2026-01-23T23:05:02Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-darwin-arm64.tar.gz",
+            "sha256": "2a3892c1fb5fc91ba6cfcaf883b8deff89d11be3c7fa9e8ab3820290f6cc26a6",
+            "size": 22443375
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-darwin-x64.tar.gz",
+            "sha256": "e8de62aac7a93352a89d9a501b8966accb69412ef6dbf829f3009c5c6752f6b6",
+            "size": 22558764
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-linux-arm64.tar.gz",
+            "sha256": "3ef93791c96d04ec5c5e018a8fa821a6b1b4fd1fa3656d6781e3961f8c032015",
+            "size": 38428366
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-linux-x64.tar.gz",
+            "sha256": "b86be77dc8a809c627fdbc83768734eb537b5b708bba1e4cd2e63967d86d14ba",
+            "size": 38841772
           }
         }
       }
