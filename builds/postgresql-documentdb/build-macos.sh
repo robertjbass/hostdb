@@ -125,7 +125,8 @@ if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
     git clone --depth 1 --branch applied/ubuntu/jammy https://git.launchpad.net/ubuntu/+source/intelrdfpmath "${INTEL_MATH_DIR}"
     cd "${INTEL_MATH_DIR}/LIBRARY"
     # Build with position-independent code
-    make -j"$(sysctl -n hw.ncpu)" CC=clang _CFLAGS_OPT="-fPIC"
+    # Note: makefile only recognizes cc, gcc, icc, icl, cl - not clang directly
+    make -j"$(sysctl -n hw.ncpu)" CC=cc _CFLAGS_OPT="-fPIC"
 
     # Install to local directory
     mkdir -p "${INTEL_MATH_INSTALL}/lib" "${INTEL_MATH_INSTALL}/include"
