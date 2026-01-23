@@ -109,6 +109,13 @@ jobs:
           echo "PG_CONFIG: $PG_CONFIG"
           echo "PGXS: $($PG_CONFIG --pgxs)"
 
+          # Show what pg_config returns for compiler
+          echo ""
+          echo "=== pg_config compiler settings ==="
+          echo "CC: $($PG_CONFIG --cc || echo 'not available')"
+          echo "CFLAGS: $($PG_CONFIG --cflags || echo 'not available')"
+          echo "LDFLAGS: $($PG_CONFIG --ldflags || echo 'not available')"
+
           mkdir -p /c/build
           cd /c/build
 
@@ -126,15 +133,22 @@ jobs:
           echo ""
           echo "=== Attempting build ==="
 
-          # Try the build
-          # Note: MINGW64 make might need different flags
-          make PG_CONFIG="$PG_CONFIG" || {
+          # EDB PostgreSQL was built with MSVC (cl.exe), but we're using MinGW GCC
+          # Override compiler settings to use GCC instead of MSVC
+          # Also disable -march=native which may not work with all GCC versions
+          echo ""
+          echo "Overriding compiler: CC=gcc (instead of cl.exe from pg_config)"
+
+          make PG_CONFIG="$PG_CONFIG" \
+               CC=gcc \
+               CFLAGS="-I$PG_DIR/include/server -I$PG_DIR/include/server/port/win32 -DWIN32" \
+               OPTFLAGS="" \
+            || {
             echo ""
             echo "=== Build failed, showing diagnostics ==="
             echo ""
             echo "Environment:"
             env | grep -i mingw || true
-            env | grep -i path || true
             echo ""
             echo "GCC version:"
             gcc --version || true
@@ -146,6 +160,7 @@ jobs:
             $PG_CONFIG --cflags || true
             $PG_CONFIG --ldflags || true
             $PG_CONFIG --libs || true
+            $PG_CONFIG --includedir-server || true
             exit 1
           }
 
