@@ -34,256 +34,181 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: >-
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-make
-            mingw-w64-x86_64-pkg-config
-            mingw-w64-x86_64-tools-git
-            make
-            git
-            zip
-            unzip
-            curl
-            tar
-
       - name: Download PostgreSQL Windows binaries
-        shell: msys2 {0}
+        shell: pwsh
         run: |
-          set -euo pipefail
+          Write-Host "=== Downloading PostgreSQL 17 for Windows ==="
 
-          VERSION="${{ github.event.inputs.version }}"
-          PG_MAJOR="${VERSION%%-*}"  # "17" from "17-0.107.0"
+          $PG_URL = "https://sbp.enterprisedb.com/getfile.jsp?fileid=1259911"
+          $PG_DIR = "C:\pg-windows"
 
-          echo "=== Downloading PostgreSQL $PG_MAJOR for Windows ==="
+          New-Item -ItemType Directory -Force -Path $PG_DIR | Out-Null
+          Set-Location $PG_DIR
 
-          mkdir -p /c/pg-windows
-          cd /c/pg-windows
+          Write-Host "Downloading from: $PG_URL"
+          Invoke-WebRequest -Uri $PG_URL -OutFile postgresql.zip
 
-          # Download from EDB (using the file ID from sources.json)
-          # PostgreSQL 17.7.0 for Windows
-          PG_URL="https://sbp.enterprisedb.com/getfile.jsp?fileid=1259911"
+          Write-Host "Extracting..."
+          Expand-Archive -Path postgresql.zip -DestinationPath .
 
-          echo "Downloading from: $PG_URL"
-          curl -fsSL -o postgresql.zip "$PG_URL"
+          # Rename to consistent name
+          if (Test-Path "pgsql") {
+            Rename-Item "pgsql" "postgresql"
+          }
 
-          echo "Extracting..."
-          unzip -q postgresql.zip
-
-          # Find the extracted directory (usually pgsql/)
-          ls -la
-
-          # Move to a known location
-          if [ -d "pgsql" ]; then
-            mv pgsql postgresql
-          fi
-
-          echo "PostgreSQL installed at: /c/pg-windows/postgresql"
-          ls -la postgresql/
-          ls -la postgresql/bin/ | head -10
+          Write-Host "PostgreSQL installed at: $PG_DIR\postgresql"
+          Get-ChildItem -Path postgresql
+          Get-ChildItem -Path postgresql\bin | Select-Object -First 10
 
           # Verify pg_config exists
-          if [ -f "postgresql/bin/pg_config.exe" ]; then
-            echo "pg_config found!"
-            ./postgresql/bin/pg_config.exe --version
-            ./postgresql/bin/pg_config.exe --pgxs
-          else
-            echo "ERROR: pg_config.exe not found!"
+          if (Test-Path "postgresql\bin\pg_config.exe") {
+            Write-Host "pg_config found!"
+            & .\postgresql\bin\pg_config.exe --version
+            & .\postgresql\bin\pg_config.exe --pgxs
+          } else {
+            Write-Error "pg_config.exe not found!"
             exit 1
-          fi
+          }
 
-      - name: Build pgvector (Phase 1)
-        shell: msys2 {0}
+      - name: Setup Visual Studio Developer Environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build pgvector with MSVC (Phase 1)
+        shell: cmd
         run: |
-          set -euo pipefail
+          @echo off
+          setlocal enabledelayedexpansion
 
-          VERSION="${{ github.event.inputs.version }}"
-          PGVECTOR_VERSION="0.8.0"
-          PG_DIR="/c/pg-windows/postgresql"
+          set VERSION=${{ github.event.inputs.version }}
+          set PGVECTOR_VERSION=0.8.0
+          set PG_DIR=C:\pg-windows\postgresql
+          set PG_CONFIG=%PG_DIR%\bin\pg_config.exe
 
-          echo "=== Building pgvector v${PGVECTOR_VERSION} ==="
-          echo "PG_DIR: $PG_DIR"
+          echo === Building pgvector v%PGVECTOR_VERSION% with MSVC ===
+          echo PG_CONFIG: %PG_CONFIG%
 
-          mkdir -p /c/build
-          cd /c/build
+          :: Get PGXS path
+          for /f "tokens=*" %%i in ('"%PG_CONFIG%" --pgxs') do set PGXS=%%i
+          echo PGXS: %PGXS%
 
-          # Clone pgvector
-          if [ ! -d "pgvector" ]; then
-            git clone --depth 1 --branch "v${PGVECTOR_VERSION}" https://github.com/pgvector/pgvector.git
-          fi
+          :: Clone pgvector
+          mkdir C:\build 2>nul
+          cd C:\build
+
+          if not exist pgvector (
+            git clone --depth 1 --branch v%PGVECTOR_VERSION% https://github.com/pgvector/pgvector.git
+          )
 
           cd pgvector
 
-          echo ""
-          echo "=== Manual build (bypassing PGXS - MSVC incompatible with GCC) ==="
+          :: Show Makefile
+          echo.
+          echo === pgvector Makefile (first 30 lines) ===
+          more +1 Makefile | findstr /n "^" | findstr "^[1-9]:" | findstr /v "^[3-9][0-9]:"
 
-          # EDB PostgreSQL was built with MSVC. Its PGXS uses MSVC-style flags
-          # like /DWIN32 that GCC interprets as paths. We must bypass PGXS
-          # and compile manually with GCC.
+          echo.
+          echo === Building with nmake and PGXS ===
 
-          # Compiler flags for PostgreSQL extensions on Windows
-          PG_INCLUDE="$PG_DIR/include/server"
-          PG_INCLUDE_WIN32="$PG_DIR/include/server/port/win32"
-          PG_LIB="$PG_DIR/lib"
+          :: Use nmake with PGXS (standard PostgreSQL extension build)
+          nmake /F Makefile PG_CONFIG="%PG_CONFIG%"
 
-          CFLAGS="-O2 -Wall -I$PG_INCLUDE -I$PG_INCLUDE_WIN32 -DWIN32 -D_WIN32 -D__WIN32__"
-          LDFLAGS="-shared -L$PG_LIB"
+          if errorlevel 1 (
+            echo.
+            echo === Build failed ===
+            echo.
+            echo Trying to show pg_config details...
+            "%PG_CONFIG%" --cflags
+            "%PG_CONFIG%" --ldflags
+            "%PG_CONFIG%" --libs
+            exit /b 1
+          )
 
-          echo "CFLAGS: $CFLAGS"
-          echo "LDFLAGS: $LDFLAGS"
+          echo.
+          echo === Build succeeded! ===
+          dir *.dll 2>nul || dir
 
-          # List source files
-          SOURCES=$(ls src/*.c)
-          echo "Source files: $SOURCES"
-
-          # Compile each source file
-          echo ""
-          echo "=== Compiling ==="
-          for src in $SOURCES; do
-            obj="${src%.c}.o"
-            echo "  $src -> $obj"
-            gcc $CFLAGS -c -o "$obj" "$src" || {
-              echo "Failed to compile $src"
-              exit 1
-            }
-          done
-
-          # Create MinGW-compatible import library from postgres.exe
-          # The MSVC postgres.lib doesn't work with MinGW's linker
-          echo ""
-          echo "=== Creating MinGW import library from postgres.exe ==="
-          PG_BIN="$PG_DIR/bin"
-
-          if [ -f "$PG_BIN/postgres.exe" ]; then
-            echo "Found postgres.exe, creating import library..."
-
-            # Generate .def file from postgres.exe exports
-            gendef "$PG_BIN/postgres.exe" 2>/dev/null || {
-              echo "gendef failed, trying pexports..."
-              pexports "$PG_BIN/postgres.exe" > postgres.def 2>/dev/null || {
-                echo "Could not extract exports from postgres.exe"
-                exit 1
-              }
-            }
-
-            # Check if def file was created
-            if [ -f "postgres.def" ]; then
-              echo "Generated postgres.def"
-              head -20 postgres.def
-            else
-              echo "ERROR: postgres.def not found"
-              ls -la *.def 2>/dev/null || echo "No .def files"
-              exit 1
-            fi
-
-            # Create import library with dlltool
-            dlltool -d postgres.def -l libpostgres.a -D postgres.exe
-            echo "Created libpostgres.a"
-            ls -la libpostgres.a
-          else
-            echo "ERROR: postgres.exe not found at $PG_BIN/postgres.exe"
-            ls -la "$PG_BIN/" | head -20
-            exit 1
-          fi
-
-          # Link into DLL
-          echo ""
-          echo "=== Linking vector.dll ==="
-          OBJECTS=$(ls src/*.o)
-
-          gcc $LDFLAGS -o vector.dll $OBJECTS -L. -lpostgres || {
-            echo ""
-            echo "=== Link failed with libpostgres.a ==="
-            echo "Trying to link directly against postgres.exe..."
-            gcc $LDFLAGS -o vector.dll $OBJECTS "$PG_BIN/postgres.exe" || {
-              echo "Direct link also failed"
-              exit 1
-            }
-          }
-
-          echo ""
-          echo "=== Build succeeded! ==="
-          ls -la *.dll 2>/dev/null || ls -la
-
-      - name: Install and test pgvector
+      - name: Install and verify pgvector
         if: success()
-        shell: msys2 {0}
+        shell: cmd
         run: |
-          set -euo pipefail
+          @echo off
+          set PG_DIR=C:\pg-windows\postgresql
+          set PG_CONFIG=%PG_DIR%\bin\pg_config.exe
 
-          PG_DIR="/c/pg-windows/postgresql"
-          PG_CONFIG="${PG_DIR}/bin/pg_config.exe"
+          cd C:\build\pgvector
 
-          cd /c/build/pgvector
+          echo === Installing pgvector ===
+          nmake /F Makefile PG_CONFIG="%PG_CONFIG%" install
 
-          echo "=== Installing pgvector ==="
-          make PG_CONFIG="$PG_CONFIG" install
+          if errorlevel 1 (
+            echo Install failed
+            exit /b 1
+          )
 
-          echo ""
-          echo "=== Verifying installation ==="
+          echo.
+          echo === Verifying installation ===
 
-          # Check if extension files were installed
-          SHAREDIR=$($PG_CONFIG --sharedir)
-          PKGLIBDIR=$($PG_CONFIG --pkglibdir)
+          :: Check extension files
+          for /f "tokens=*" %%i in ('"%PG_CONFIG%" --sharedir') do set SHAREDIR=%%i
+          for /f "tokens=*" %%i in ('"%PG_CONFIG%" --pkglibdir') do set PKGLIBDIR=%%i
 
-          echo "Share dir: $SHAREDIR"
-          echo "Lib dir: $PKGLIBDIR"
+          echo Share dir: %SHAREDIR%
+          echo Lib dir: %PKGLIBDIR%
 
-          echo ""
-          echo "Extension control file:"
-          ls -la "$SHAREDIR/extension/"vector* 2>/dev/null || echo "Not found in sharedir"
+          echo.
+          echo Extension control file:
+          dir "%SHAREDIR%\extension\vector*" 2>nul || echo Not found
 
-          echo ""
-          echo "Extension library:"
-          ls -la "$PKGLIBDIR/"vector* 2>/dev/null || echo "Not found in pkglibdir"
+          echo.
+          echo Extension library:
+          dir "%PKGLIBDIR%\vector*" 2>nul || echo Not found
 
       - name: Create artifact
         if: success()
-        shell: msys2 {0}
+        shell: pwsh
         run: |
-          set -euo pipefail
+          $VERSION = "${{ github.event.inputs.version }}"
+          $PHASE = "${{ github.event.inputs.phase }}"
+          $PG_DIR = "C:\pg-windows\postgresql"
 
-          VERSION="${{ github.event.inputs.version }}"
-          PHASE="${{ github.event.inputs.phase }}"
-          PG_DIR="/c/pg-windows/postgresql"
+          Write-Host "=== Creating artifact ==="
 
-          echo "=== Creating artifact ==="
-
-          mkdir -p /c/output
-          cd /c/output
+          New-Item -ItemType Directory -Force -Path C:\output | Out-Null
+          Set-Location C:\output
 
           # Copy PostgreSQL with installed extensions
-          cp -r "$PG_DIR" ./postgresql-documentdb
+          Copy-Item -Recurse -Path $PG_DIR -Destination .\postgresql-documentdb
 
           # Add metadata
-          cat > postgresql-documentdb/.hostdb-metadata.json << EOF
-          {
-            "name": "postgresql-documentdb",
-            "version": "${VERSION}",
-            "platform": "win32-x64",
-            "phase": "${PHASE}",
-            "source": "windows-build-debug",
-            "rehosted_by": "hostdb",
-            "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          }
-          EOF
+          $metadata = @{
+            name = "postgresql-documentdb"
+            version = $VERSION
+            platform = "win32-x64"
+            phase = $PHASE
+            source = "windows-build-debug"
+            rehosted_by = "hostdb"
+            rehosted_at = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
+          } | ConvertTo-Json
+
+          $metadata | Out-File -FilePath ".\postgresql-documentdb\.hostdb-metadata.json" -Encoding utf8
 
           # Create zip
-          zip -r "postgresql-documentdb-${VERSION}-win32-x64-${PHASE}.zip" postgresql-documentdb
+          $zipName = "postgresql-documentdb-$VERSION-win32-x64-$PHASE.zip"
+          Compress-Archive -Path .\postgresql-documentdb -DestinationPath $zipName
 
-          echo ""
-          echo "=== Artifact created ==="
-          ls -la *.zip
+          Write-Host ""
+          Write-Host "=== Artifact created ==="
+          Get-ChildItem *.zip
 
           # Calculate checksum
-          sha256sum *.zip > checksums.txt
-          cat checksums.txt
+          $hash = Get-FileHash -Algorithm SHA256 $zipName
+          "$($hash.Hash)  $zipName" | Out-File -FilePath checksums.txt -Encoding utf8
+          Get-Content checksums.txt
 
       - name: Upload artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: postgresql-documentdb-${{ github.event.inputs.version }}-win32-x64-${{ github.event.inputs.phase }}
