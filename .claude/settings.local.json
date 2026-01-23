@@ -50,7 +50,8 @@
       "WebFetch(domain:pkg.ferretdb.io)",
       "WebFetch(domain:hub.docker.com)",
       "Bash(chmod:*)",
-      "Bash(pnpm checksums:populate:*)"
+      "Bash(pnpm checksums:populate:*)",
+      "Bash(git fetch:*)"
     ]
   }
 }
