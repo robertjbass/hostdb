@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.13] - 2026-01-23
+
+### Added
+
+- **PostgreSQL-DocumentDB macOS build - Intel Decimal Math Library**
+  - DocumentDB requires `bid_conf.h` from Intel's decimal floating-point library for decimal128 support
+  - Build Intel RDF Math Library from source (`git.launchpad.net/ubuntu/+source/intelrdfpmath`)
+  - Create `intelmathlib.pc` pkgconfig file for DocumentDB build system
+
+### Fixed
+
+- **PostgreSQL-DocumentDB macOS build - C11 typedef redefinition warning**
+  - Apple clang treats typedef redefinition as error by default
+  - Add `-Wno-error=typedef-redefinition` to suppress
+
 ## [0.14.12] - 2026-01-23
 
 ### Fixed
