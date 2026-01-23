@@ -336,10 +336,15 @@ function buildFromSource(
     throw new Error(`Build script not found: ${buildScript}`)
   }
 
+  // Convert outputDir to absolute path to ensure consistency between
+  // the build script (which runs with cwd set to project root) and
+  // the existsSync check (which runs in the current process)
+  const absoluteOutputDir = resolve(outputDir)
+
   logInfo(`Building ${platform} from source...`)
   logInfo(`Running: ${buildScript} ${version}`)
 
-  const result = spawnSync('bash', [buildScript, version, platform, outputDir], {
+  const result = spawnSync('bash', [buildScript, version, platform, absoluteOutputDir], {
     stdio: 'inherit',
     cwd: resolve(__dirname, '../..'),
     env: { ...process.env },
@@ -350,7 +355,7 @@ function buildFromSource(
   }
 
   const ext = 'tar.gz'
-  const outputPath = join(outputDir, `postgresql-documentdb-${version}-${platform}.${ext}`)
+  const outputPath = join(absoluteOutputDir, `postgresql-documentdb-${version}-${platform}.${ext}`)
 
   if (!existsSync(outputPath)) {
     throw new Error(`Expected output not found: ${outputPath}`)
