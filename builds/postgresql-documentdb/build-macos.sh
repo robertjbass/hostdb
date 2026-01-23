@@ -137,12 +137,14 @@ Libs: -L\${libdir} -lbson-1.0
 EOF
 
 export PKG_CONFIG_PATH="${FAKE_PKGCONFIG_DIR}:${MONGO_C_PREFIX}/lib/pkgconfig:${ICU_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-export CPPFLAGS="-I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include ${CPPFLAGS:-}"
-export CFLAGS="-I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include ${CFLAGS:-}"
+# libbson headers are in libbson-1.0/bson/ subdirectory, but DocumentDB expects <bson.h> directly
+BSON_INCLUDE="${MONGO_C_PREFIX}/include/libbson-1.0"
+export CPPFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include ${CPPFLAGS:-}"
+export CFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include ${CFLAGS:-}"
 export LDFLAGS="-L${MONGO_C_PREFIX}/lib -L${ICU_PREFIX}/lib ${LDFLAGS:-}"
 
 log_info "PKG_CONFIG_PATH: ${PKG_CONFIG_PATH}"
-log_info "Created fake libbson-static-1.0.pc"
+log_info "BSON_INCLUDE: ${BSON_INCLUDE}"
 
 # Build DocumentDB extension
 log_info "Building DocumentDB extension v${DOCDB_VERSION} (tag: ${DOCDB_GIT_TAG})..."
@@ -158,7 +160,7 @@ cd documentdb
 #   - -fexcess-precision=standard (GCC-specific)
 #   - -Wno-cast-function-type-strict (unknown to older clang)
 # We suppress these errors to allow the build to proceed.
-EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option -I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include"
+EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include"
 make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
 
