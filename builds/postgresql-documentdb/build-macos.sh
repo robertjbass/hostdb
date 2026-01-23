@@ -383,8 +383,8 @@ if [[ ! -d "pg_cron" ]]; then
     git clone --depth 1 --branch "v${PG_CRON_VERSION}" https://github.com/citusdata/pg_cron.git
 fi
 cd pg_cron
-make PG_CONFIG="${PG_CONFIG}" -j"$(sysctl -n hw.ncpu)"
-make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/pg_cron_install"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install DESTDIR="${BUILD_DIR}/pg_cron_install"
 
 # Copy pg_cron files to bundle
 if [[ -d "${BUILD_DIR}/pg_cron_install${PG_PREFIX}" ]]; then
@@ -400,8 +400,8 @@ if [[ ! -d "pgvector" ]]; then
     git clone --depth 1 --branch "v${PGVECTOR_VERSION}" https://github.com/pgvector/pgvector.git
 fi
 cd pgvector
-make PG_CONFIG="${PG_CONFIG}" -j"$(sysctl -n hw.ncpu)"
-make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/pgvector_install"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install DESTDIR="${BUILD_DIR}/pgvector_install"
 
 # Copy pgvector files to bundle
 if [[ -d "${BUILD_DIR}/pgvector_install${PG_PREFIX}" ]]; then
@@ -417,8 +417,8 @@ if [[ ! -d "rum" ]]; then
     git clone --depth 1 --branch "${RUM_VERSION}" https://github.com/postgrespro/rum.git
 fi
 cd rum
-make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" -j"$(sysctl -n hw.ncpu)"
-make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/rum_install"
+make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
+make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install DESTDIR="${BUILD_DIR}/rum_install"
 
 # Copy rum files to bundle
 if [[ -d "${BUILD_DIR}/rum_install${PG_PREFIX}" ]]; then
