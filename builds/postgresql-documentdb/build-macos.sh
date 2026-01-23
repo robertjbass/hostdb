@@ -255,7 +255,9 @@ cat > "${CLANG_WRAPPER}" <<'WRAPPER_EOF'
 #    macOS: -Wl,-rpath,/path (comma separates -rpath from path)
 # 2. Filter out GCC-specific flags not supported by Apple clang
 # 3. Convert -Werror to -Wno-error for cross-platform compatibility
+# 4. Handle GNU ld -l:filename syntax (not supported by macOS ld)
 args=()
+last_L_path=""
 for arg in "$@"; do
     case "$arg" in
         -Wl,-rpath=*)
@@ -269,6 +271,21 @@ for arg in "$@"; do
         -Werror)
             # Convert -Werror to -Wno-error for macOS compatibility
             args+=("-Wno-error")
+            ;;
+        -L*)
+            # Track the last -L path for resolving -l: references
+            last_L_path="${arg#-L}"
+            args+=("$arg")
+            ;;
+        -l:pg_documentdb_core.so)
+            # GNU ld -l:filename syntax - macOS doesn't support this
+            # Replace with direct path to the .so symlink (which points to .dylib)
+            if [[ -n "$last_L_path" && -f "${last_L_path}/pg_documentdb_core.so" ]]; then
+                args+=("${last_L_path}/pg_documentdb_core.so")
+            else
+                # Fallback: try relative path from current directory
+                args+=("../pg_documentdb_core/pg_documentdb_core.so")
+            fi
             ;;
         *)
             args+=("$arg")
