@@ -43,6 +43,7 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-make
             mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-tools-git
             make
             git
             zip
@@ -151,43 +152,58 @@ jobs:
             }
           done
 
-          # Check available libraries
+          # Create MinGW-compatible import library from postgres.exe
+          # The MSVC postgres.lib doesn't work with MinGW's linker
           echo ""
-          echo "=== Available PostgreSQL libraries ==="
-          ls -la "$PG_LIB/" | head -20
-          echo ""
-          echo "Looking for postgres library..."
-          ls -la "$PG_LIB/"*postgres* 2>/dev/null || echo "No postgres library found"
-          ls -la "$PG_LIB/"*.lib 2>/dev/null || echo "No .lib files found"
-          ls -la "$PG_LIB/"*.dll 2>/dev/null || echo "No .dll files found"
+          echo "=== Creating MinGW import library from postgres.exe ==="
+          PG_BIN="$PG_DIR/bin"
+
+          if [ -f "$PG_BIN/postgres.exe" ]; then
+            echo "Found postgres.exe, creating import library..."
+
+            # Generate .def file from postgres.exe exports
+            gendef "$PG_BIN/postgres.exe" 2>/dev/null || {
+              echo "gendef failed, trying pexports..."
+              pexports "$PG_BIN/postgres.exe" > postgres.def 2>/dev/null || {
+                echo "Could not extract exports from postgres.exe"
+                exit 1
+              }
+            }
+
+            # Check if def file was created
+            if [ -f "postgres.def" ]; then
+              echo "Generated postgres.def"
+              head -20 postgres.def
+            else
+              echo "ERROR: postgres.def not found"
+              ls -la *.def 2>/dev/null || echo "No .def files"
+              exit 1
+            fi
+
+            # Create import library with dlltool
+            dlltool -d postgres.def -l libpostgres.a -D postgres.exe
+            echo "Created libpostgres.a"
+            ls -la libpostgres.a
+          else
+            echo "ERROR: postgres.exe not found at $PG_BIN/postgres.exe"
+            ls -la "$PG_BIN/" | head -20
+            exit 1
+          fi
 
           # Link into DLL
           echo ""
           echo "=== Linking vector.dll ==="
           OBJECTS=$(ls src/*.o)
 
-          # On Windows, extensions are loaded into the postgres process which
-          # provides the symbols at runtime. We need to either:
-          # 1. Link against postgres.lib (import library)
-          # 2. Use -Wl,--enable-auto-import and rely on runtime linking
-
-          # Try linking with import library first
-          if [ -f "$PG_LIB/postgres.lib" ]; then
-            echo "Found postgres.lib, linking..."
-            gcc $LDFLAGS -o vector.dll $OBJECTS "$PG_LIB/postgres.lib"
-          else
-            # Try auto-import (symbols resolved at runtime by postgres.exe)
-            echo "No postgres.lib found, trying auto-import..."
-            gcc $LDFLAGS -Wl,--enable-auto-import -o vector.dll $OBJECTS || {
-              echo ""
-              echo "=== Link failed ==="
-              echo "Trying with -Wl,--allow-shlib-undefined..."
-              gcc $LDFLAGS -Wl,--allow-shlib-undefined -o vector.dll $OBJECTS || {
-                echo "Link failed - PostgreSQL symbols not available for linking"
-                exit 1
-              }
+          gcc $LDFLAGS -o vector.dll $OBJECTS -L. -lpostgres || {
+            echo ""
+            echo "=== Link failed with libpostgres.a ==="
+            echo "Trying to link directly against postgres.exe..."
+            gcc $LDFLAGS -o vector.dll $OBJECTS "$PG_BIN/postgres.exe" || {
+              echo "Direct link also failed"
+              exit 1
             }
-          fi
+          }
 
           echo ""
           echo "=== Build succeeded! ==="
