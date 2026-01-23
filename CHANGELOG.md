@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.11] - 2026-01-23
+
+### Fixed
+
+- **PostgreSQL-DocumentDB macOS build - bson.h still not found with mongo-c-driver 2.x**
+  - mongo-c-driver 2.x uses `bson-X.Y.Z/` include directory, not `libbson-1.0/`
+  - Use `find` to dynamically locate the correct bson include directory
+  - Fall back to `libbson-1.0/` for older mongo-c-driver versions
+
 ## [0.14.8] - 2026-01-23
 
 ### Fixed
