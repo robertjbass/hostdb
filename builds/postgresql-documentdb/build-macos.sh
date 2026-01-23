@@ -229,6 +229,20 @@ ls -la "${MONGO_C_PREFIX}/lib/"*.a 2>/dev/null || log_warn "No .a files found"
 log_info "Looking for bson library:"
 find "${MONGO_C_PREFIX}/lib" -name "*bson*" 2>/dev/null || log_warn "No bson library found"
 
+# Create compatibility symlinks for mongo-c-driver 2.x
+# DocumentDB's Makefile hardcodes -lbson-1.0 but mongo-c-driver 2.x ships libbson2.dylib
+# Create a local lib directory with symlinks to make the linker happy
+COMPAT_LIB_DIR="${BUILD_DIR}/compat-lib"
+mkdir -p "${COMPAT_LIB_DIR}"
+if [[ -f "${MONGO_C_PREFIX}/lib/libbson2.dylib" ]]; then
+    log_info "Creating compatibility symlinks for mongo-c-driver 2.x..."
+    ln -sf "${MONGO_C_PREFIX}/lib/libbson2.dylib" "${COMPAT_LIB_DIR}/libbson-1.0.dylib"
+    ln -sf "${MONGO_C_PREFIX}/lib/libbson2.a" "${COMPAT_LIB_DIR}/libbson-1.0.a" 2>/dev/null || true
+    # Add compat lib dir to LDFLAGS (prepend so it's searched first)
+    export LDFLAGS="-L${COMPAT_LIB_DIR} ${LDFLAGS}"
+    log_success "Created libbson-1.0 -> libbson2 compatibility symlinks"
+fi
+
 # Create a clang wrapper to fix macOS rpath syntax in -Wl flags
 # PostgreSQL's PGXS generates Linux-style "-Wl,-rpath=/path" but macOS ld needs "-Wl,-rpath,/path"
 # The difference is: equals (Linux) vs comma (macOS) to separate -rpath from path
