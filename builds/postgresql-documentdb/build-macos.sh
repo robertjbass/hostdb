@@ -112,7 +112,20 @@ cp -R "${PG_PREFIX}/"* "${BUNDLE_DIR}/"
 
 # Install build dependencies
 log_info "Installing build dependencies..."
-brew install cmake pkg-config pcre2 mongo-c-driver || true
+brew install cmake pkg-config pcre2 mongo-c-driver icu4c || true
+
+# Set up environment for dependencies
+# mongo-c-driver provides libbson, icu4c provides unicode headers
+MONGO_C_PREFIX="$(brew --prefix mongo-c-driver)"
+ICU_PREFIX="$(brew --prefix icu4c)"
+
+export PKG_CONFIG_PATH="${MONGO_C_PREFIX}/lib/pkgconfig:${ICU_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+export CPPFLAGS="-I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include ${CPPFLAGS:-}"
+export CFLAGS="-I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include ${CFLAGS:-}"
+export LDFLAGS="-L${MONGO_C_PREFIX}/lib -L${ICU_PREFIX}/lib ${LDFLAGS:-}"
+
+log_info "PKG_CONFIG_PATH: ${PKG_CONFIG_PATH}"
+log_info "CPPFLAGS: ${CPPFLAGS}"
 
 # Build DocumentDB extension
 log_info "Building DocumentDB extension v${DOCDB_VERSION} (tag: ${DOCDB_GIT_TAG})..."
@@ -128,7 +141,7 @@ cd documentdb
 #   - -fexcess-precision=standard (GCC-specific)
 #   - -Wno-cast-function-type-strict (unknown to older clang)
 # We suppress these errors to allow the build to proceed.
-EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option"
+EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option -I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include"
 make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
 
