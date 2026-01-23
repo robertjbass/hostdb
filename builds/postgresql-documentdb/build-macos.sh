@@ -199,41 +199,29 @@ find "${MONGO_C_PREFIX}/include" -name "*.h" 2>/dev/null | head -20 || log_warn 
 log_info "Looking for bson.h:"
 find "${MONGO_C_PREFIX}" -name "bson.h" 2>/dev/null || log_warn "bson.h not found in mongo-c-driver"
 
-# Create a linker wrapper to fix macOS rpath syntax
-# PostgreSQL's PGXS generates Linux-style "-rpath=/path" but macOS ld expects "-rpath /path"
-LINKER_WRAPPER="${BUILD_DIR}/ld-wrapper.sh"
-cat > "${LINKER_WRAPPER}" <<'WRAPPER_EOF'
+# Create a clang wrapper to fix macOS rpath syntax in -Wl flags
+# PostgreSQL's PGXS generates Linux-style "-Wl,-rpath=/path" but macOS ld needs "-Wl,-rpath,/path"
+# The difference is: equals (Linux) vs comma (macOS) to separate -rpath from path
+CLANG_WRAPPER="${BUILD_DIR}/clang-wrapper.sh"
+cat > "${CLANG_WRAPPER}" <<'WRAPPER_EOF'
 #!/bin/bash
-# Linker wrapper to translate Linux-style rpath flags to macOS style
-# Linux: -rpath=/path or -rpath /path (with =)
-# macOS: -rpath /path (no =, separate arguments)
+# Clang wrapper to translate Linux-style rpath flags to macOS style
+# Linux: -Wl,-rpath=/path (single -Wl arg with =)
+# macOS: -Wl,-rpath,/path (comma separates -rpath from path)
 args=()
-i=0
-while [[ $i -lt $# ]]; do
-    arg="${!i}"
-    ((i++))
-    if [[ "$arg" == -rpath=* ]]; then
-        # Convert -rpath=/path to -rpath /path
-        path="${arg#-rpath=}"
-        args+=("-rpath" "$path")
-    elif [[ "$arg" == "-rpath" && $i -lt $# ]]; then
-        # Handle -rpath /path (already correct, but next arg might have =)
-        next="${!i}"
-        ((i++))
-        if [[ "$next" == =* ]]; then
-            # Strip leading = if present
-            args+=("-rpath" "${next#=}")
-        else
-            args+=("-rpath" "$next")
-        fi
+for arg in "$@"; do
+    if [[ "$arg" == -Wl,-rpath=* ]]; then
+        # Convert -Wl,-rpath=/path to -Wl,-rpath,/path
+        path="${arg#-Wl,-rpath=}"
+        args+=("-Wl,-rpath,${path}")
     else
         args+=("$arg")
     fi
 done
-exec /usr/bin/ld "${args[@]}"
+exec /usr/bin/clang "${args[@]}"
 WRAPPER_EOF
-chmod +x "${LINKER_WRAPPER}"
-log_success "Created linker wrapper for macOS rpath compatibility"
+chmod +x "${CLANG_WRAPPER}"
+log_success "Created clang wrapper for macOS rpath compatibility"
 
 # Build DocumentDB extension
 log_info "Building DocumentDB extension v${DOCDB_VERSION} (tag: ${DOCDB_GIT_TAG})..."
@@ -250,9 +238,10 @@ cd documentdb
 #   - -Wno-cast-function-type-strict (unknown to older clang)
 #   - typedef redefinition is a C11 feature (-Wtypedef-redefinition)
 # We suppress these errors to allow the build to proceed.
-# Note: We use a custom linker wrapper (LD) to fix rpath syntax for macOS
+# Note: We use a custom clang wrapper (CC) to fix rpath syntax for macOS
+#   PGXS generates -Wl,-rpath=/path but macOS needs -Wl,-rpath,/path
 EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option -Wno-error=typedef-redefinition -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include"
-make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LD="${LINKER_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
+make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
 
 # Copy DocumentDB files to bundle
