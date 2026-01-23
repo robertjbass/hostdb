@@ -103,18 +103,9 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           PGVECTOR_VERSION="0.8.0"
           PG_DIR="/c/pg-windows/postgresql"
-          PG_CONFIG="${PG_DIR}/bin/pg_config.exe"
 
           echo "=== Building pgvector v${PGVECTOR_VERSION} ==="
-          echo "PG_CONFIG: $PG_CONFIG"
-          echo "PGXS: $($PG_CONFIG --pgxs)"
-
-          # Show what pg_config returns for compiler
-          echo ""
-          echo "=== pg_config compiler settings ==="
-          echo "CC: $($PG_CONFIG --cc || echo 'not available')"
-          echo "CFLAGS: $($PG_CONFIG --cflags || echo 'not available')"
-          echo "LDFLAGS: $($PG_CONFIG --ldflags || echo 'not available')"
+          echo "PG_DIR: $PG_DIR"
 
           mkdir -p /c/build
           cd /c/build
@@ -126,47 +117,56 @@ jobs:
 
           cd pgvector
 
-          # Show what we're working with
-          echo "=== pgvector Makefile ==="
-          head -50 Makefile
-
           echo ""
-          echo "=== Attempting build ==="
+          echo "=== Manual build (bypassing PGXS - MSVC incompatible with GCC) ==="
 
-          # EDB PostgreSQL was built with MSVC (cl.exe), but we're using MinGW GCC
-          # Override compiler settings to use GCC instead of MSVC
-          # Also disable -march=native which may not work with all GCC versions
+          # EDB PostgreSQL was built with MSVC. Its PGXS uses MSVC-style flags
+          # like /DWIN32 that GCC interprets as paths. We must bypass PGXS
+          # and compile manually with GCC.
+
+          # Compiler flags for PostgreSQL extensions on Windows
+          PG_INCLUDE="$PG_DIR/include/server"
+          PG_INCLUDE_WIN32="$PG_DIR/include/server/port/win32"
+          PG_LIB="$PG_DIR/lib"
+
+          CFLAGS="-O2 -Wall -I$PG_INCLUDE -I$PG_INCLUDE_WIN32 -DWIN32 -D_WIN32 -D__WIN32__"
+          LDFLAGS="-shared -L$PG_LIB"
+
+          echo "CFLAGS: $CFLAGS"
+          echo "LDFLAGS: $LDFLAGS"
+
+          # List source files
+          SOURCES=$(ls src/*.c)
+          echo "Source files: $SOURCES"
+
+          # Compile each source file
           echo ""
-          echo "Overriding compiler: CC=gcc (instead of cl.exe from pg_config)"
+          echo "=== Compiling ==="
+          for src in $SOURCES; do
+            obj="${src%.c}.o"
+            echo "  $src -> $obj"
+            gcc $CFLAGS -c -o "$obj" "$src" || {
+              echo "Failed to compile $src"
+              exit 1
+            }
+          done
 
-          make PG_CONFIG="$PG_CONFIG" \
-               CC=gcc \
-               CFLAGS="-I$PG_DIR/include/server -I$PG_DIR/include/server/port/win32 -DWIN32" \
-               OPTFLAGS="" \
-            || {
+          # Link into DLL
+          echo ""
+          echo "=== Linking vector.dll ==="
+          OBJECTS=$(ls src/*.o)
+          gcc $LDFLAGS -o vector.dll $OBJECTS -lpostgres || {
             echo ""
-            echo "=== Build failed, showing diagnostics ==="
-            echo ""
-            echo "Environment:"
-            env | grep -i mingw || true
-            echo ""
-            echo "GCC version:"
-            gcc --version || true
-            echo ""
-            echo "Make version:"
-            make --version || true
-            echo ""
-            echo "pg_config output:"
-            $PG_CONFIG --cflags || true
-            $PG_CONFIG --ldflags || true
-            $PG_CONFIG --libs || true
-            $PG_CONFIG --includedir-server || true
-            exit 1
+            echo "=== Link failed, trying without -lpostgres ==="
+            gcc $LDFLAGS -o vector.dll $OBJECTS || {
+              echo "Link failed"
+              exit 1
+            }
           }
 
           echo ""
           echo "=== Build succeeded! ==="
-          ls -la *.dll *.so 2>/dev/null || ls -la
+          ls -la *.dll 2>/dev/null || ls -la
 
       - name: Install and test pgvector
         if: success()
