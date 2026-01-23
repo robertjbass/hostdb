@@ -51,7 +51,7 @@
       "WebFetch(domain:hub.docker.com)",
       "Bash(chmod:*)",
       "Bash(pnpm checksums:populate:*)",
-      "Bash(git fetch:*)"
+      "Bash(gh run watch:*)"
     ]
   }
 }
