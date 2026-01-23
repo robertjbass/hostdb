@@ -178,15 +178,6 @@ jobs:
           ls -la ./dist/
 
       # For macOS: native build
-      - name: Install macOS build dependencies
-        if: matrix.build_type == 'native'
-        run: |
-          # Install PostgreSQL and build tools
-          brew install postgresql@17 cmake pkg-config
-
-          # Install PostGIS dependencies (will be used for PostGIS extension)
-          brew install postgis || true
-
       - name: Build for macOS (native)
         if: matrix.build_type == 'native'
         id: build-macos
@@ -197,10 +188,18 @@ jobs:
 
           echo "Building PostgreSQL + DocumentDB $VERSION for $PLATFORM (native macOS build)"
 
-          # Run the macOS build script
-          ./builds/postgresql-documentdb/build-macos.sh "$VERSION" "$PLATFORM" ./dist
+          pnpm download:postgresql-documentdb -- \
+            --version "$VERSION" \
+            --platform "$PLATFORM" \
+            --output ./dist
 
-          echo "Build complete:"
+          # Check if artifact was created
+          shopt -s nullglob
+          FILES=(./dist/postgresql-documentdb-*.tar.gz)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "::error::No artifact created for $PLATFORM"
+            exit 1
+          fi
           ls -la ./dist/
 
       - name: Generate checksum

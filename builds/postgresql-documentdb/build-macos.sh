@@ -83,13 +83,14 @@ if ! command -v brew &> /dev/null; then
     exit 1
 fi
 
-# Set up build directories
+# Set up build directories (convert to absolute paths to avoid issues with cd)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="${OUTPUT_DIR}/build-${VERSION}-${PLATFORM}"
+rm -rf "${BUILD_DIR}"
+mkdir -p "${BUILD_DIR}"
+BUILD_DIR="$(cd "${BUILD_DIR}" && pwd)"  # Convert to absolute path
 BUNDLE_DIR="${BUILD_DIR}/postgresql-documentdb"
 SOURCES_DIR="${BUILD_DIR}/sources"
-
-rm -rf "${BUILD_DIR}"
 mkdir -p "${BUNDLE_DIR}" "${SOURCES_DIR}"
 
 # Install base PostgreSQL via Homebrew
@@ -114,35 +115,189 @@ cp -R "${PG_PREFIX}/"* "${BUNDLE_DIR}/"
 log_info "Installing build dependencies..."
 brew install cmake pkg-config pcre2 mongo-c-driver icu4c || true
 
+# Build Intel Decimal Math Library from source
+# (required for DocumentDB's decimal128 support, not available via Homebrew)
+INTEL_MATH_DIR="${SOURCES_DIR}/intelrdfpmath"
+INTEL_MATH_INSTALL="${BUILD_DIR}/intelmathlib"
+
+if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
+    log_info "Building Intel Decimal Math Library..."
+    # Clone the applied/ubuntu/jammy branch (Ubuntu 22.04 LTS version)
+    git clone --depth 1 --branch applied/ubuntu/jammy https://git.launchpad.net/ubuntu/+source/intelrdfpmath "${INTEL_MATH_DIR}"
+    pushd "${INTEL_MATH_DIR}/LIBRARY" > /dev/null
+    # Build with position-independent code
+    # Note: makefile only recognizes cc, gcc, icc, icl, cl - not clang directly
+    # Note: Add -Wno-error flags for macOS clang compatibility (missing signal.h, etc.)
+    make -j"$(sysctl -n hw.ncpu)" CC=cc _CFLAGS_OPT="-fPIC -Wno-error=implicit-function-declaration"
+    popd > /dev/null
+
+    # Install to local directory (must be after popd to use correct relative paths)
+    mkdir -p "${INTEL_MATH_INSTALL}/lib" "${INTEL_MATH_INSTALL}/include"
+    cp "${INTEL_MATH_DIR}/LIBRARY/libbid.a" "${INTEL_MATH_INSTALL}/lib/"
+    cp "${INTEL_MATH_DIR}/LIBRARY/src/"*.h "${INTEL_MATH_INSTALL}/include/"
+
+    log_success "Intel Decimal Math Library built"
+fi
+
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
+INTEL_MATH_INSTALL="$(cd "${INTEL_MATH_INSTALL}" && pwd)"
+
 # Set up environment for dependencies
 # mongo-c-driver provides libbson, icu4c provides unicode headers
 MONGO_C_PREFIX="$(brew --prefix mongo-c-driver)"
 ICU_PREFIX="$(brew --prefix icu4c)"
 
+# Find the actual bson include directory (varies by mongo-c-driver version)
+# mongo-c-driver 2.x uses bson-X.Y.Z/, older versions use libbson-1.0/
+BSON_INCLUDE=$(find "${MONGO_C_PREFIX}/include" -type d -name "bson*" | head -1)
+if [[ -z "${BSON_INCLUDE}" ]]; then
+    BSON_INCLUDE="${MONGO_C_PREFIX}/include/libbson-1.0"
+fi
+
 # DocumentDB's Makefile uses pkg-config to find libbson-static-1.0, but Homebrew
 # only provides libbson-1.0 (dynamic). Create a fake pkgconfig file for the static version.
 FAKE_PKGCONFIG_DIR="${BUILD_DIR}/pkgconfig"
 mkdir -p "${FAKE_PKGCONFIG_DIR}"
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
+FAKE_PKGCONFIG_DIR="$(cd "${FAKE_PKGCONFIG_DIR}" && pwd)"
+
+# Detect the actual bson library name (mongo-c-driver 2.x may use libbson2, older uses libbson-1.0)
+# Look for libbson*.dylib and extract the library name
+BSON_LIB_NAME=""
+for lib in "${MONGO_C_PREFIX}/lib/"libbson*.dylib; do
+    if [[ -f "$lib" ]]; then
+        # Extract name like "bson-1.0" from "libbson-1.0.dylib" or "libbson-1.0.123.dylib"
+        libname=$(basename "$lib" | sed -E 's/^lib([^.]+)\..*$/\1/')
+        # Skip versioned symlinks, prefer base name
+        if [[ ! "$libname" =~ [0-9]+$ ]]; then
+            BSON_LIB_NAME="$libname"
+            break
+        fi
+    fi
+done
+
+# Fall back to bson-1.0 if detection fails
+if [[ -z "$BSON_LIB_NAME" ]]; then
+    BSON_LIB_NAME="bson-1.0"
+    log_warn "Could not detect bson library name, falling back to $BSON_LIB_NAME"
+else
+    log_info "Detected bson library: $BSON_LIB_NAME"
+fi
 
 cat > "${FAKE_PKGCONFIG_DIR}/libbson-static-1.0.pc" <<EOF
 prefix=${MONGO_C_PREFIX}
-includedir=\${prefix}/include/libbson-1.0
+includedir=${BSON_INCLUDE}
 libdir=\${prefix}/lib
 
 Name: libbson-static
 Description: libbson static library (fake pkgconfig for Homebrew)
 Version: 1.0
+Cflags: -I\${includedir} -I\${includedir}/bson
+Libs: -L\${libdir} -l${BSON_LIB_NAME}
+EOF
+
+# Create pkgconfig file for Intel math library
+cat > "${FAKE_PKGCONFIG_DIR}/intelmathlib.pc" <<EOF
+prefix=${INTEL_MATH_INSTALL}
+includedir=\${prefix}/include
+libdir=\${prefix}/lib
+
+Name: intelmathlib
+Description: Intel Decimal Floating-Point Math Library
+Version: 1.0.0
 Cflags: -I\${includedir}
-Libs: -L\${libdir} -lbson-1.0
+Libs: -L\${libdir} -lbid
 EOF
 
 export PKG_CONFIG_PATH="${FAKE_PKGCONFIG_DIR}:${MONGO_C_PREFIX}/lib/pkgconfig:${ICU_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-export CPPFLAGS="-I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include ${CPPFLAGS:-}"
-export CFLAGS="-I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include ${CFLAGS:-}"
-export LDFLAGS="-L${MONGO_C_PREFIX}/lib -L${ICU_PREFIX}/lib ${LDFLAGS:-}"
+export CPPFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include ${CPPFLAGS:-}"
+export CFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include ${CFLAGS:-}"
+export LDFLAGS="-L${MONGO_C_PREFIX}/lib -L${ICU_PREFIX}/lib -L${INTEL_MATH_INSTALL}/lib ${LDFLAGS:-}"
 
 log_info "PKG_CONFIG_PATH: ${PKG_CONFIG_PATH}"
-log_info "Created fake libbson-static-1.0.pc"
+log_info "BSON_INCLUDE: ${BSON_INCLUDE}"
+
+# Debug: show what's actually in the mongo-c-driver include directory
+log_info "Contents of mongo-c-driver include directory:"
+find "${MONGO_C_PREFIX}/include" -name "*.h" 2>/dev/null | head -20 || log_warn "Could not list include directory"
+log_info "Looking for bson.h:"
+find "${MONGO_C_PREFIX}" -name "bson.h" 2>/dev/null || log_warn "bson.h not found in mongo-c-driver"
+
+# Debug: show what library files exist in mongo-c-driver
+log_info "Contents of mongo-c-driver lib directory:"
+ls -la "${MONGO_C_PREFIX}/lib/"*.dylib 2>/dev/null || log_warn "No dylib files found"
+ls -la "${MONGO_C_PREFIX}/lib/"*.a 2>/dev/null || log_warn "No .a files found"
+log_info "Looking for bson library:"
+find "${MONGO_C_PREFIX}/lib" -name "*bson*" 2>/dev/null || log_warn "No bson library found"
+
+# Create compatibility symlinks for mongo-c-driver 2.x
+# DocumentDB's Makefile hardcodes -lbson-1.0 but mongo-c-driver 2.x ships libbson2.dylib
+# Create a local lib directory with symlinks to make the linker happy
+COMPAT_LIB_DIR="${BUILD_DIR}/compat-lib"
+mkdir -p "${COMPAT_LIB_DIR}"
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
+COMPAT_LIB_DIR="$(cd "${COMPAT_LIB_DIR}" && pwd)"
+if [[ -f "${MONGO_C_PREFIX}/lib/libbson2.dylib" ]]; then
+    log_info "Creating compatibility symlinks for mongo-c-driver 2.x..."
+    ln -sf "${MONGO_C_PREFIX}/lib/libbson2.dylib" "${COMPAT_LIB_DIR}/libbson-1.0.dylib"
+    ln -sf "${MONGO_C_PREFIX}/lib/libbson2.a" "${COMPAT_LIB_DIR}/libbson-1.0.a" 2>/dev/null || true
+    log_success "Created libbson-1.0 -> libbson2 compatibility symlinks in ${COMPAT_LIB_DIR}"
+fi
+
+# Create a clang wrapper to fix macOS rpath syntax in -Wl flags
+# PostgreSQL's PGXS generates Linux-style "-Wl,-rpath=/path" but macOS ld needs "-Wl,-rpath,/path"
+# The difference is: equals (Linux) vs comma (macOS) to separate -rpath from path
+CLANG_WRAPPER="${BUILD_DIR}/clang-wrapper.sh"
+cat > "${CLANG_WRAPPER}" <<'WRAPPER_EOF'
+#!/bin/bash
+# Clang wrapper to:
+# 1. Translate Linux-style rpath flags to macOS style
+#    Linux: -Wl,-rpath=/path (single -Wl arg with =)
+#    macOS: -Wl,-rpath,/path (comma separates -rpath from path)
+# 2. Filter out GCC-specific flags not supported by Apple clang
+# 3. Convert -Werror to -Wno-error for cross-platform compatibility
+# 4. Handle GNU ld -l:filename syntax (not supported by macOS ld)
+args=()
+last_L_path=""
+for arg in "$@"; do
+    case "$arg" in
+        -Wl,-rpath=*)
+            # Convert -Wl,-rpath=/path to -Wl,-rpath,/path
+            path="${arg#-Wl,-rpath=}"
+            args+=("-Wl,-rpath,${path}")
+            ;;
+        -fexcess-precision=*)
+            # GCC-specific flag, skip on clang
+            ;;
+        -Werror)
+            # Convert -Werror to -Wno-error for macOS compatibility
+            args+=("-Wno-error")
+            ;;
+        -L*)
+            # Track the last -L path for resolving -l: references
+            last_L_path="${arg#-L}"
+            args+=("$arg")
+            ;;
+        -l:pg_documentdb_core.so)
+            # GNU ld -l:filename syntax - macOS doesn't support this
+            # On macOS, PostgreSQL extensions are bundles (MH_BUNDLE), not dylibs
+            # Bundles can't be linked against directly, so we need to:
+            # 1. Skip this library reference entirely
+            # 2. Add -undefined dynamic_lookup to defer symbol resolution to runtime
+            # The symbols will be available once PostgreSQL loads both extensions
+            args+=("-undefined" "dynamic_lookup")
+            ;;
+        *)
+            args+=("$arg")
+            ;;
+    esac
+done
+exec /usr/bin/clang "${args[@]}"
+WRAPPER_EOF
+chmod +x "${CLANG_WRAPPER}"
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
+CLANG_WRAPPER="$(cd "$(dirname "${CLANG_WRAPPER}")" && pwd)/$(basename "${CLANG_WRAPPER}")"
+log_success "Created clang wrapper for macOS rpath compatibility: ${CLANG_WRAPPER}"
 
 # Build DocumentDB extension
 log_info "Building DocumentDB extension v${DOCDB_VERSION} (tag: ${DOCDB_GIT_TAG})..."
@@ -152,15 +307,67 @@ if [[ ! -d "documentdb" ]]; then
 fi
 cd documentdb
 
+# Fix bash compatibility: macOS ships with bash 3.2, but DocumentDB scripts use bash 4+ features
+# like ${var^^} for uppercase. Patch scripts to use Homebrew's modern bash.
+if [[ -f /opt/homebrew/bin/bash ]]; then
+    MODERN_BASH="/opt/homebrew/bin/bash"
+elif [[ -f /usr/local/bin/bash ]]; then
+    MODERN_BASH="/usr/local/bin/bash"
+else
+    log_info "Installing modern bash via Homebrew..."
+    brew install bash
+    MODERN_BASH="$(brew --prefix)/bin/bash"
+fi
+log_info "Using modern bash: ${MODERN_BASH} (version: $(${MODERN_BASH} --version | head -1))"
+# Patch shell scripts to use modern bash
+find . -name "*.sh" -type f -exec sed -i '' "1s|#!/bin/bash|#!${MODERN_BASH}|" {} \;
+find . -name "*.sh" -type f -exec sed -i '' "1s|#!/usr/bin/env bash|#!${MODERN_BASH}|" {} \;
+
+# Fix type mismatch between header and implementation
+# Header uses PostgreSQL's int64, implementation uses C's int64_t
+# These are typedef'd differently on macOS (int64=long, int64_t=long long)
+log_info "Patching type mismatches for macOS compatibility..."
+find . -name "*.c" -type f -exec sed -i '' 's/int64_t \*shardKeyValue/int64 *shardKeyValue/g' {} \;
+
 # DocumentDB uses PostgreSQL PGXS build system (Makefiles, not CMake)
 # Build only the non-distributed components (pg_documentdb_core and pg_documentdb)
 # Note: PostgreSQL's PGXS passes flags that Apple clang doesn't support:
 #   - -fexcess-precision=standard (GCC-specific)
 #   - -Wno-cast-function-type-strict (unknown to older clang)
+#   - typedef redefinition is a C11 feature (-Wtypedef-redefinition)
 # We suppress these errors to allow the build to proceed.
-EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option -I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include"
-make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" -j"$(sysctl -n hw.ncpu)"
-make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
+# Note: We use a custom clang wrapper (CC) to fix rpath syntax for macOS
+#   PGXS generates -Wl,-rpath=/path but macOS needs -Wl,-rpath,/path
+# Note: Use LIBRARY_PATH to add the compat-lib directory for libbson-1.0 -> libbson2 symlink
+# Note: Use LDFLAGS (not SHLIB_LINK) for ICU to avoid overriding bundle_loader flag
+#   SHLIB_LINK on command line replaces default; LDFLAGS is additive
+export LIBRARY_PATH="${COMPAT_LIB_DIR}:${ICU_PREFIX}/lib:${LIBRARY_PATH:-}"
+# Suppress -Werror entirely for macOS compatibility
+# DocumentDB has code patterns that trigger warnings on Apple clang that don't on Linux GCC
+# WERROR= disables the Makefile's -Werror flag
+# COPT provides additional include paths and suppresses remaining warnings
+EXTRA_CFLAGS="-Wno-error -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include"
+ICU_LINK="-L${ICU_PREFIX}/lib -licuuc -licui18n -licudata"
+
+# Build pg_documentdb_core first (it's a dependency of pg_documentdb)
+log_info "Building pg_documentdb_core..."
+make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= -j"$(sysctl -n hw.ncpu)"
+
+# Create .so -> .dylib symlink for pg_documentdb linking
+# The Makefile uses -l:pg_documentdb_core.so which is Linux syntax
+# On macOS, the library is pg_documentdb_core.dylib
+if [[ -f pg_documentdb_core/pg_documentdb_core.dylib ]]; then
+    ln -sf pg_documentdb_core.dylib pg_documentdb_core/pg_documentdb_core.so
+    log_success "Created pg_documentdb_core.so -> pg_documentdb_core.dylib symlink"
+fi
+
+# Now build pg_documentdb
+log_info "Building pg_documentdb..."
+make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= -j"$(sysctl -n hw.ncpu)"
+
+# Install pg_documentdb_core and pg_documentdb extensions (not documentdb_distributed)
+make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= install DESTDIR="${BUILD_DIR}/documentdb_install"
+make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= install DESTDIR="${BUILD_DIR}/documentdb_install"
 
 # Copy DocumentDB files to bundle
 if [[ -d "${BUILD_DIR}/documentdb_install${PG_PREFIX}" ]]; then
@@ -176,8 +383,12 @@ if [[ ! -d "pg_cron" ]]; then
     git clone --depth 1 --branch "v${PG_CRON_VERSION}" https://github.com/citusdata/pg_cron.git
 fi
 cd pg_cron
-make PG_CONFIG="${PG_CONFIG}" -j"$(sysctl -n hw.ncpu)"
-make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/pg_cron_install"
+# pg_cron uses ngettext() from libintl (gettext). Rather than overriding SHLIB_LINK
+# (which would lose the bundle_loader flag), we use -undefined dynamic_lookup via
+# PG_LDFLAGS to defer symbol resolution to runtime. PostgreSQL is already linked
+# against libintl so the symbols will be available when the extension loads.
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" PG_LDFLAGS="-undefined dynamic_lookup" -j"$(sysctl -n hw.ncpu)"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" PG_LDFLAGS="-undefined dynamic_lookup" install DESTDIR="${BUILD_DIR}/pg_cron_install"
 
 # Copy pg_cron files to bundle
 if [[ -d "${BUILD_DIR}/pg_cron_install${PG_PREFIX}" ]]; then
@@ -193,8 +404,8 @@ if [[ ! -d "pgvector" ]]; then
     git clone --depth 1 --branch "v${PGVECTOR_VERSION}" https://github.com/pgvector/pgvector.git
 fi
 cd pgvector
-make PG_CONFIG="${PG_CONFIG}" -j"$(sysctl -n hw.ncpu)"
-make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/pgvector_install"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install DESTDIR="${BUILD_DIR}/pgvector_install"
 
 # Copy pgvector files to bundle
 if [[ -d "${BUILD_DIR}/pgvector_install${PG_PREFIX}" ]]; then
@@ -210,8 +421,8 @@ if [[ ! -d "rum" ]]; then
     git clone --depth 1 --branch "${RUM_VERSION}" https://github.com/postgrespro/rum.git
 fi
 cd rum
-make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" -j"$(sysctl -n hw.ncpu)"
-make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/rum_install"
+make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
+make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install DESTDIR="${BUILD_DIR}/rum_install"
 
 # Copy rum files to bundle
 if [[ -d "${BUILD_DIR}/rum_install${PG_PREFIX}" ]]; then
@@ -274,11 +485,13 @@ if [[ -d "${BUNDLE_DIR}/bin" ]]; then
     log_info "  bin/: $(ls "${BUNDLE_DIR}/bin" | head -10 | tr '\n' ' ')..."
 fi
 if [[ -d "${BUNDLE_DIR}/lib" ]]; then
-    SO_FILES=$(ls "${BUNDLE_DIR}/lib" 2>/dev/null | grep -E '\.(so|dylib)$' | head -10 | tr '\n' ' ')
+    # Use || true to prevent pipefail from exiting on no matches
+    SO_FILES=$(ls "${BUNDLE_DIR}/lib" 2>/dev/null | grep -E '\.(so|dylib)$' | head -10 | tr '\n' ' ' || true)
     log_info "  lib/ (*.so/*.dylib): ${SO_FILES}..."
 fi
 if [[ -d "${BUNDLE_DIR}/share/extension" ]]; then
-    CTRL_FILES=$(ls "${BUNDLE_DIR}/share/extension" 2>/dev/null | grep '\.control$' | tr '\n' ' ')
+    # Use || true to prevent pipefail from exiting on no matches
+    CTRL_FILES=$(ls "${BUNDLE_DIR}/share/extension" 2>/dev/null | grep '\.control$' | tr '\n' ' ' || true)
     log_info "  share/extension/ (*.control): ${CTRL_FILES}"
 fi
 
