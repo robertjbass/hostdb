@@ -160,6 +160,29 @@ mkdir -p "${FAKE_PKGCONFIG_DIR}"
 # Convert to absolute path (critical: make runs from documentdb/, relative paths break)
 FAKE_PKGCONFIG_DIR="$(cd "${FAKE_PKGCONFIG_DIR}" && pwd)"
 
+# Detect the actual bson library name (mongo-c-driver 2.x may use libbson2, older uses libbson-1.0)
+# Look for libbson*.dylib and extract the library name
+BSON_LIB_NAME=""
+for lib in "${MONGO_C_PREFIX}/lib/"libbson*.dylib; do
+    if [[ -f "$lib" ]]; then
+        # Extract name like "bson-1.0" from "libbson-1.0.dylib" or "libbson-1.0.123.dylib"
+        libname=$(basename "$lib" | sed -E 's/^lib([^.]+)\..*$/\1/')
+        # Skip versioned symlinks, prefer base name
+        if [[ ! "$libname" =~ [0-9]+$ ]]; then
+            BSON_LIB_NAME="$libname"
+            break
+        fi
+    fi
+done
+
+# Fall back to bson-1.0 if detection fails
+if [[ -z "$BSON_LIB_NAME" ]]; then
+    BSON_LIB_NAME="bson-1.0"
+    log_warn "Could not detect bson library name, falling back to $BSON_LIB_NAME"
+else
+    log_info "Detected bson library: $BSON_LIB_NAME"
+fi
+
 cat > "${FAKE_PKGCONFIG_DIR}/libbson-static-1.0.pc" <<EOF
 prefix=${MONGO_C_PREFIX}
 includedir=${BSON_INCLUDE}
@@ -169,7 +192,7 @@ Name: libbson-static
 Description: libbson static library (fake pkgconfig for Homebrew)
 Version: 1.0
 Cflags: -I\${includedir} -I\${includedir}/bson
-Libs: -L\${libdir} -lbson-1.0
+Libs: -L\${libdir} -l${BSON_LIB_NAME}
 EOF
 
 # Create pkgconfig file for Intel math library
@@ -198,6 +221,13 @@ log_info "Contents of mongo-c-driver include directory:"
 find "${MONGO_C_PREFIX}/include" -name "*.h" 2>/dev/null | head -20 || log_warn "Could not list include directory"
 log_info "Looking for bson.h:"
 find "${MONGO_C_PREFIX}" -name "bson.h" 2>/dev/null || log_warn "bson.h not found in mongo-c-driver"
+
+# Debug: show what library files exist in mongo-c-driver
+log_info "Contents of mongo-c-driver lib directory:"
+ls -la "${MONGO_C_PREFIX}/lib/"*.dylib 2>/dev/null || log_warn "No dylib files found"
+ls -la "${MONGO_C_PREFIX}/lib/"*.a 2>/dev/null || log_warn "No .a files found"
+log_info "Looking for bson library:"
+find "${MONGO_C_PREFIX}/lib" -name "*bson*" 2>/dev/null || log_warn "No bson library found"
 
 # Create a clang wrapper to fix macOS rpath syntax in -Wl flags
 # PostgreSQL's PGXS generates Linux-style "-Wl,-rpath=/path" but macOS ld needs "-Wl,-rpath,/path"
