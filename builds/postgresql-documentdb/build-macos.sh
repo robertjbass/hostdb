@@ -126,7 +126,8 @@ if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
     cd "${INTEL_MATH_DIR}/LIBRARY"
     # Build with position-independent code
     # Note: makefile only recognizes cc, gcc, icc, icl, cl - not clang directly
-    make -j"$(sysctl -n hw.ncpu)" CC=cc _CFLAGS_OPT="-fPIC"
+    # Note: Add -Wno-error flags for macOS clang compatibility (missing signal.h, etc.)
+    make -j"$(sysctl -n hw.ncpu)" CC=cc _CFLAGS_OPT="-fPIC -Wno-error=implicit-function-declaration"
 
     # Install to local directory
     mkdir -p "${INTEL_MATH_INSTALL}/lib" "${INTEL_MATH_INSTALL}/include"
