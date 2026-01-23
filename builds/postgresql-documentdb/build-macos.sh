@@ -118,15 +118,12 @@ brew install cmake pkg-config pcre2 mongo-c-driver icu4c || true
 # (required for DocumentDB's decimal128 support, not available via Homebrew)
 INTEL_MATH_DIR="${SOURCES_DIR}/intelrdfpmath"
 INTEL_MATH_INSTALL="${BUILD_DIR}/intelmathlib"
-INTEL_MATH_VERSION="import/1.0.0-14"
 
 if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
     log_info "Building Intel Decimal Math Library..."
-    git clone --depth 1 https://git.launchpad.net/ubuntu/+source/intelrdfpmath "${INTEL_MATH_DIR}"
-    cd "${INTEL_MATH_DIR}"
-    git fetch --depth 1 origin "${INTEL_MATH_VERSION}"
-    git checkout FETCH_HEAD
-    cd LIBRARY
+    # Clone the applied/ubuntu/jammy branch (Ubuntu 22.04 LTS version)
+    git clone --depth 1 --branch applied/ubuntu/jammy https://git.launchpad.net/ubuntu/+source/intelrdfpmath "${INTEL_MATH_DIR}"
+    cd "${INTEL_MATH_DIR}/LIBRARY"
     # Build with position-independent code
     make -j"$(sysctl -n hw.ncpu)" CC=clang _CFLAGS_OPT="-fPIC"
 
