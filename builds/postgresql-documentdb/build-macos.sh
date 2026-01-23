@@ -331,7 +331,24 @@ export LIBRARY_PATH="${COMPAT_LIB_DIR}:${ICU_PREFIX}/lib:${LIBRARY_PATH:-}"
 # COPT provides additional include paths and suppresses remaining warnings
 EXTRA_CFLAGS="-Wno-error -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include"
 ICU_LINK="-L${ICU_PREFIX}/lib -licuuc -licui18n -licudata"
-make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= -j"$(sysctl -n hw.ncpu)"
+
+# Build pg_documentdb_core first (it's a dependency of pg_documentdb)
+log_info "Building pg_documentdb_core..."
+make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= -j"$(sysctl -n hw.ncpu)"
+
+# Create .so -> .dylib symlink for pg_documentdb linking
+# The Makefile uses -l:pg_documentdb_core.so which is Linux syntax
+# On macOS, the library is pg_documentdb_core.dylib
+if [[ -f pg_documentdb_core/pg_documentdb_core.dylib ]]; then
+    ln -sf pg_documentdb_core.dylib pg_documentdb_core/pg_documentdb_core.so
+    log_success "Created pg_documentdb_core.so -> pg_documentdb_core.dylib symlink"
+fi
+
+# Now build pg_documentdb
+log_info "Building pg_documentdb..."
+make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= -j"$(sysctl -n hw.ncpu)"
+
+# Install both extensions
 make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
 
 # Copy DocumentDB files to bundle
