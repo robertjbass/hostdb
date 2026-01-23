@@ -381,6 +381,8 @@ jobs:
   trigger-sync:
     needs: update-manifest
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     steps:
       - name: Trigger sync-releases workflow
         env:
