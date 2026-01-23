@@ -122,14 +122,15 @@ if [[ ! -d "documentdb" ]]; then
 fi
 cd documentdb
 
-# DocumentDB uses CMake
-mkdir -p build && cd build
-cmake .. \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DPostgreSQL_CONFIG="${PG_CONFIG}" \
-    -DCMAKE_INSTALL_PREFIX="${BUNDLE_DIR}"
-make -j"$(sysctl -n hw.ncpu)"
-make install
+# DocumentDB uses PostgreSQL PGXS build system (Makefiles, not CMake)
+# Build only the non-distributed components (pg_documentdb_core and pg_documentdb)
+make PG_CONFIG="${PG_CONFIG}" -j"$(sysctl -n hw.ncpu)"
+make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
+
+# Copy DocumentDB files to bundle
+if [[ -d "${BUILD_DIR}/documentdb_install${PG_PREFIX}" ]]; then
+    cp -R "${BUILD_DIR}/documentdb_install${PG_PREFIX}/"* "${BUNDLE_DIR}/"
+fi
 
 log_success "DocumentDB extension built"
 
