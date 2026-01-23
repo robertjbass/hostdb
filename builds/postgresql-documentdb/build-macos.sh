@@ -221,7 +221,9 @@ done
 exec /usr/bin/clang "${args[@]}"
 WRAPPER_EOF
 chmod +x "${CLANG_WRAPPER}"
-log_success "Created clang wrapper for macOS rpath compatibility"
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
+CLANG_WRAPPER="$(cd "$(dirname "${CLANG_WRAPPER}")" && pwd)/$(basename "${CLANG_WRAPPER}")"
+log_success "Created clang wrapper for macOS rpath compatibility: ${CLANG_WRAPPER}"
 
 # Build DocumentDB extension
 log_info "Building DocumentDB extension v${DOCDB_VERSION} (tag: ${DOCDB_GIT_TAG})..."
