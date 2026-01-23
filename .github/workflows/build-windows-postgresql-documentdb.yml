@@ -75,9 +75,6 @@ jobs:
         with:
           arch: x64
 
-      - name: Install GNU Make
-        run: choco install make -y
-
       - name: Build pgvector with MSVC (Phase 1)
         shell: cmd
         run: |
@@ -86,15 +83,10 @@ jobs:
 
           set VERSION=${{ github.event.inputs.version }}
           set PGVECTOR_VERSION=0.8.0
-          set PG_DIR=C:\pg-windows\postgresql
-          set PG_CONFIG=%PG_DIR%\bin\pg_config.exe
+          set PGROOT=C:\pg-windows\postgresql
 
           echo === Building pgvector v%PGVECTOR_VERSION% with MSVC ===
-          echo PG_CONFIG: %PG_CONFIG%
-
-          :: Get PGXS path
-          for /f "tokens=*" %%i in ('"%PG_CONFIG%" --pgxs') do set PGXS=%%i
-          echo PGXS: %PGXS%
+          echo PGROOT: %PGROOT%
 
           :: Clone pgvector
           mkdir C:\build 2>nul
@@ -106,30 +98,24 @@ jobs:
 
           cd pgvector
 
-          :: Show Makefile
+          :: Show Windows Makefile
           echo.
-          echo === pgvector Makefile (first 30 lines) ===
-          more +1 Makefile | findstr /n "^" | findstr "^[1-9]:" | findstr /v "^[3-9][0-9]:"
+          echo === pgvector Makefile.win (first 30 lines) ===
+          more +1 Makefile.win | findstr /n "^" | findstr "^[1-9]:" | findstr /v "^[3-9][0-9]:"
 
           echo.
-          echo === Building with GNU Make and PGXS ===
+          echo === Building with nmake and Makefile.win ===
 
-          :: PGXS requires GNU Make (not nmake)
-          :: GNU Make installed via chocolatey
-          :: Add PostgreSQL include dir for libintl.h
-          set CPPFLAGS=-I%PG_DIR%\include
-          echo CPPFLAGS: %CPPFLAGS%
-
-          make PG_CONFIG="%PG_CONFIG%" CPPFLAGS="%CPPFLAGS%"
+          :: pgvector has Windows-specific Makefile.win for MSVC builds
+          nmake /F Makefile.win
 
           if errorlevel 1 (
             echo.
             echo === Build failed ===
             echo.
-            echo Trying to show pg_config details...
-            "%PG_CONFIG%" --cflags
-            "%PG_CONFIG%" --ldflags
-            "%PG_CONFIG%" --libs
+            echo Checking PGROOT contents...
+            dir "%PGROOT%\include" 2>nul | head -10
+            dir "%PGROOT%\lib" 2>nul | head -10
             exit /b 1
           )
 
@@ -142,13 +128,12 @@ jobs:
         shell: cmd
         run: |
           @echo off
-          set PG_DIR=C:\pg-windows\postgresql
-          set PG_CONFIG=%PG_DIR%\bin\pg_config.exe
+          set PGROOT=C:\pg-windows\postgresql
 
           cd C:\build\pgvector
 
           echo === Installing pgvector ===
-          make PG_CONFIG="%PG_CONFIG%" install
+          nmake /F Makefile.win install
 
           if errorlevel 1 (
             echo Install failed
@@ -158,20 +143,13 @@ jobs:
           echo.
           echo === Verifying installation ===
 
-          :: Check extension files
-          for /f "tokens=*" %%i in ('"%PG_CONFIG%" --sharedir') do set SHAREDIR=%%i
-          for /f "tokens=*" %%i in ('"%PG_CONFIG%" --pkglibdir') do set PKGLIBDIR=%%i
-
-          echo Share dir: %SHAREDIR%
-          echo Lib dir: %PKGLIBDIR%
-
           echo.
           echo Extension control file:
-          dir "%SHAREDIR%\extension\vector*" 2>nul || echo Not found
+          dir "%PGROOT%\share\extension\vector*" 2>nul || echo Not found
 
           echo.
           echo Extension library:
-          dir "%PKGLIBDIR%\vector*" 2>nul || echo Not found
+          dir "%PGROOT%\lib\vector*" 2>nul || echo Not found
 
       - name: Create artifact
         if: success()
