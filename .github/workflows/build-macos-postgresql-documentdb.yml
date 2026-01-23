@@ -32,13 +32,13 @@ jobs:
           PLATFORMS="${{ github.event.inputs.platforms }}"
           if [ "$PLATFORMS" = "all" ]; then
             MATRIX='[
-              {"platform": "darwin-x64", "runner": "macos-13"},
+              {"platform": "darwin-x64", "runner": "macos-15-intel"},
               {"platform": "darwin-arm64", "runner": "macos-14"}
             ]'
           else
             case "$PLATFORMS" in
               darwin-x64)
-                MATRIX='[{"platform": "darwin-x64", "runner": "macos-13"}]'
+                MATRIX='[{"platform": "darwin-x64", "runner": "macos-15-intel"}]'
                 ;;
               darwin-arm64)
                 MATRIX='[{"platform": "darwin-arm64", "runner": "macos-14"}]'
