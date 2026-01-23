@@ -485,11 +485,13 @@ if [[ -d "${BUNDLE_DIR}/bin" ]]; then
     log_info "  bin/: $(ls "${BUNDLE_DIR}/bin" | head -10 | tr '\n' ' ')..."
 fi
 if [[ -d "${BUNDLE_DIR}/lib" ]]; then
-    SO_FILES=$(ls "${BUNDLE_DIR}/lib" 2>/dev/null | grep -E '\.(so|dylib)$' | head -10 | tr '\n' ' ')
+    # Use || true to prevent pipefail from exiting on no matches
+    SO_FILES=$(ls "${BUNDLE_DIR}/lib" 2>/dev/null | grep -E '\.(so|dylib)$' | head -10 | tr '\n' ' ' || true)
     log_info "  lib/ (*.so/*.dylib): ${SO_FILES}..."
 fi
 if [[ -d "${BUNDLE_DIR}/share/extension" ]]; then
-    CTRL_FILES=$(ls "${BUNDLE_DIR}/share/extension" 2>/dev/null | grep '\.control$' | tr '\n' ' ')
+    # Use || true to prevent pipefail from exiting on no matches
+    CTRL_FILES=$(ls "${BUNDLE_DIR}/share/extension" 2>/dev/null | grep '\.control$' | tr '\n' ' ' || true)
     log_info "  share/extension/ (*.control): ${CTRL_FILES}"
 fi
 
