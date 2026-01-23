@@ -1,0 +1,113 @@
+name: Build macOS PostgreSQL-DocumentDB
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: true
+        type: choice
+        options:
+          - 17-0.107.0
+        default: 17-0.107.0
+      platforms:
+        description: 'Platforms to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'darwin-x64'
+          - 'darwin-arm64'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set build matrix
+        id: set-matrix
+        run: |
+          PLATFORMS="${{ github.event.inputs.platforms }}"
+          if [ "$PLATFORMS" = "all" ]; then
+            MATRIX='[
+              {"platform": "darwin-x64", "runner": "macos-13"},
+              {"platform": "darwin-arm64", "runner": "macos-14"}
+            ]'
+          else
+            case "$PLATFORMS" in
+              darwin-x64)
+                MATRIX='[{"platform": "darwin-x64", "runner": "macos-13"}]'
+                ;;
+              darwin-arm64)
+                MATRIX='[{"platform": "darwin-arm64", "runner": "macos-14"}]'
+                ;;
+            esac
+          fi
+          MATRIX=$(echo "$MATRIX" | jq -c .)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "Building: $MATRIX"
+
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build PostgreSQL-DocumentDB
+        id: build
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          echo "Building PostgreSQL + DocumentDB $VERSION for $PLATFORM (native macOS build)"
+
+          pnpm download:postgresql-documentdb -- \
+            --version "$VERSION" \
+            --platform "$PLATFORM" \
+            --output ./dist
+
+          # Check if artifact was created
+          shopt -s nullglob
+          FILES=(./dist/postgresql-documentdb-*.tar.gz)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "::error::No artifact created for $PLATFORM"
+            exit 1
+          fi
+          ls -la ./dist/
+
+      - name: Generate checksum
+        run: |
+          cd dist
+          for f in *.tar.gz; do
+            shasum -a 256 "$f" >> checksums.txt
+          done
+          cat checksums.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgresql-documentdb-${{ github.event.inputs.version }}-${{ matrix.platform }}
+          path: |
+            dist/*.tar.gz
+            dist/checksums.txt
+          retention-days: 7
