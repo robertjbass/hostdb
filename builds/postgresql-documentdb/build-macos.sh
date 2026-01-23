@@ -306,13 +306,11 @@ log_info "Using modern bash: ${MODERN_BASH} (version: $(${MODERN_BASH} --version
 find . -name "*.sh" -type f -exec sed -i '' "1s|#!/bin/bash|#!${MODERN_BASH}|" {} \;
 find . -name "*.sh" -type f -exec sed -i '' "1s|#!/usr/bin/env bash|#!${MODERN_BASH}|" {} \;
 
-# Fix function signatures that cause "conflicting types" errors on clang
-# The .c file has function definitions missing return types that the header declares
-log_info "Patching function signatures for clang compatibility..."
-if [[ -f pg_documentdb/src/commands/commands_common.c ]]; then
-    sed -i '' 's/^FindShardKeyValueForDocumentId/bool FindShardKeyValueForDocumentId/' pg_documentdb/src/commands/commands_common.c
-    log_success "Patched FindShardKeyValueForDocumentId return type"
-fi
+# Fix type mismatch between header and implementation
+# Header uses PostgreSQL's int64, implementation uses C's int64_t
+# These are typedef'd differently on macOS (int64=long, int64_t=long long)
+log_info "Patching type mismatches for macOS compatibility..."
+find . -name "*.c" -type f -exec sed -i '' 's/int64_t \*shardKeyValue/int64 *shardKeyValue/g' {} \;
 
 # DocumentDB uses PostgreSQL PGXS build system (Makefiles, not CMake)
 # Build only the non-distributed components (pg_documentdb_core and pg_documentdb)
