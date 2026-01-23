@@ -116,7 +116,11 @@ jobs:
 
           :: PGXS requires GNU Make (not nmake)
           :: GNU Make installed via chocolatey
-          make PG_CONFIG="%PG_CONFIG%"
+          :: Add PostgreSQL include dir for libintl.h
+          set CPPFLAGS=-I%PG_DIR%\include
+          echo CPPFLAGS: %CPPFLAGS%
+
+          make PG_CONFIG="%PG_CONFIG%" CPPFLAGS="%CPPFLAGS%"
 
           if errorlevel 1 (
             echo.
