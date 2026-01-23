@@ -279,13 +279,12 @@ for arg in "$@"; do
             ;;
         -l:pg_documentdb_core.so)
             # GNU ld -l:filename syntax - macOS doesn't support this
-            # Replace with direct path to the .so symlink (which points to .dylib)
-            if [[ -n "$last_L_path" && -f "${last_L_path}/pg_documentdb_core.so" ]]; then
-                args+=("${last_L_path}/pg_documentdb_core.so")
-            else
-                # Fallback: try relative path from current directory
-                args+=("../pg_documentdb_core/pg_documentdb_core.so")
-            fi
+            # On macOS, PostgreSQL extensions are bundles (MH_BUNDLE), not dylibs
+            # Bundles can't be linked against directly, so we need to:
+            # 1. Skip this library reference entirely
+            # 2. Add -undefined dynamic_lookup to defer symbol resolution to runtime
+            # The symbols will be available once PostgreSQL loads both extensions
+            args+=("-undefined" "dynamic_lookup")
             ;;
         *)
             args+=("$arg")
