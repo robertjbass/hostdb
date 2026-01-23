@@ -112,7 +112,7 @@ cp -R "${PG_PREFIX}/"* "${BUNDLE_DIR}/"
 
 # Install build dependencies
 log_info "Installing build dependencies..."
-brew install cmake pkg-config || true
+brew install cmake pkg-config pcre2 mongo-c-driver || true
 
 # Build DocumentDB extension
 log_info "Building DocumentDB extension v${DOCDB_VERSION} (tag: ${DOCDB_GIT_TAG})..."
@@ -124,7 +124,10 @@ cd documentdb
 
 # DocumentDB uses PostgreSQL PGXS build system (Makefiles, not CMake)
 # Build only the non-distributed components (pg_documentdb_core and pg_documentdb)
-make PG_CONFIG="${PG_CONFIG}" -j"$(sysctl -n hw.ncpu)"
+# Note: PostgreSQL's PGXS passes GCC flags like -fexcess-precision=standard that Apple clang
+# doesn't support. We suppress the error with -Wno-error=ignored-optimization-argument.
+EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument"
+make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
 
 # Copy DocumentDB files to bundle
