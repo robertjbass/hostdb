@@ -364,8 +364,9 @@ fi
 log_info "Building pg_documentdb..."
 make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= -j"$(sysctl -n hw.ncpu)"
 
-# Install both extensions
-make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
+# Install pg_documentdb_core and pg_documentdb extensions (not documentdb_distributed)
+make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= install DESTDIR="${BUILD_DIR}/documentdb_install"
+make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= install DESTDIR="${BUILD_DIR}/documentdb_install"
 
 # Copy DocumentDB files to bundle
 if [[ -d "${BUILD_DIR}/documentdb_install${PG_PREFIX}" ]]; then
