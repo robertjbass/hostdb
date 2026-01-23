@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.0] - 2026-01-23
+
+### Added
+
+- **FerretDB support** - Open-source MongoDB alternative using PostgreSQL backend
+  - Downloads official binaries for Linux x64/arm64
+  - Cross-compiles from source for macOS and Windows (requires Go 1.22+)
+  - Bundles mongosh and MongoDB database-tools for complete MongoDB compatibility
+
+- **PostgreSQL + DocumentDB support** - PostgreSQL with DocumentDB extension for FerretDB backend
+  - Extracts from official FerretDB Docker image for Linux x64/arm64
+  - Builds from source for macOS (Intel and Apple Silicon)
+  - Includes bundled extensions: DocumentDB, pg_cron, pgvector, PostGIS, rum
+  - Pre-configured postgresql.conf.sample with shared_preload_libraries
+
+- **New `docker-extract` source type** in sources.schema.json for extracting binaries from Docker images
+
 ## [0.12.5] - 2026-01-20
 
 ### Fixed

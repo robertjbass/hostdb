@@ -1,0 +1,516 @@
+#!/usr/bin/env tsx
+/**
+ * Download PostgreSQL + DocumentDB binaries for re-hosting
+ *
+ * This script:
+ * - Extracts PostgreSQL + DocumentDB from official Docker images (Linux)
+ * - Builds from source for macOS (via build-macos.sh)
+ *
+ * Usage:
+ *   ./builds/postgresql-documentdb/download.ts [options]
+ *   pnpm tsx builds/postgresql-documentdb/download.ts [options]
+ *
+ * Options:
+ *   --version VERSION    Version (e.g., 17-0.107.0)
+ *   --platform PLATFORM  Target platform (default: current platform)
+ *   --output DIR         Output directory (default: ./downloads)
+ *   --all-platforms      Process all platforms
+ *   --help               Show help
+ */
+
+import {
+  createReadStream,
+  mkdirSync,
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+  cpSync,
+  readdirSync,
+} from 'node:fs'
+import { createHash } from 'node:crypto'
+import { resolve, dirname, basename, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { execFileSync, spawnSync } from 'node:child_process'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+type Platform =
+  | 'linux-x64'
+  | 'linux-arm64'
+  | 'darwin-x64'
+  | 'darwin-arm64'
+  | 'win32-x64'
+
+const VALID_PLATFORMS: Platform[] = [
+  'linux-x64',
+  'linux-arm64',
+  'darwin-x64',
+  'darwin-arm64',
+  'win32-x64',
+]
+
+function isValidPlatform(value: string): value is Platform {
+  return VALID_PLATFORMS.includes(value as Platform)
+}
+
+// Version format: {pg_major}-{documentdb_version} (e.g., "17-0.107.0")
+const VERSION_REGEX = /^\d+-\d+\.\d+\.\d+$/
+
+function isValidVersion(value: string): boolean {
+  return VERSION_REGEX.test(value)
+}
+
+type DockerExtractSource = {
+  sourceType: 'docker-extract'
+  image: string
+  platform: string
+  note?: string
+}
+
+type BuildRequiredSource = {
+  sourceType: 'build-required'
+  note?: string
+}
+
+type SourceEntry = DockerExtractSource | BuildRequiredSource
+
+type Sources = {
+  database: string
+  versions: Record<string, Record<Platform, SourceEntry>>
+  components: Record<string, { version: string; sourceRepo?: string }>
+  config: Record<string, string>
+  notes: Record<string, string>
+}
+
+function isDockerExtractSource(
+  source: SourceEntry,
+): source is DockerExtractSource {
+  return source.sourceType === 'docker-extract'
+}
+
+const colors = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  cyan: '\x1b[36m',
+}
+
+function log(color: keyof typeof colors, prefix: string, msg: string) {
+  console.log(`${colors[color]}[${prefix}]${colors.reset} ${msg}`)
+}
+
+function logInfo(msg: string) {
+  log('blue', 'INFO', msg)
+}
+function logSuccess(msg: string) {
+  log('green', 'OK', msg)
+}
+function logWarn(msg: string) {
+  log('yellow', 'WARN', msg)
+}
+function logError(msg: string) {
+  log('red', 'ERROR', msg)
+}
+
+function detectPlatform(): Platform {
+  const platform = process.platform
+  const arch = process.arch
+
+  if (platform === 'linux' && arch === 'x64') return 'linux-x64'
+  if (platform === 'linux' && arch === 'arm64') return 'linux-arm64'
+  if (platform === 'darwin' && arch === 'x64') return 'darwin-x64'
+  if (platform === 'darwin' && arch === 'arm64') return 'darwin-arm64'
+  if (platform === 'win32' && arch === 'x64') return 'win32-x64'
+
+  throw new Error(`Unsupported platform: ${platform}-${arch}`)
+}
+
+function loadSources(): Sources {
+  const sourcesPath = resolve(__dirname, 'sources.json')
+  const content = readFileSync(sourcesPath, 'utf-8')
+  try {
+    return JSON.parse(content) as Sources
+  } catch (error) {
+    throw new Error(`Failed to parse sources.json: invalid JSON`, {
+      cause: error,
+    })
+  }
+}
+
+async function calculateSha256(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = createHash('sha256')
+    const stream = createReadStream(filePath)
+
+    stream.on('data', (chunk) => hash.update(chunk))
+    stream.on('end', () => resolve(hash.digest('hex')))
+    stream.on('error', reject)
+  })
+}
+
+function verifyCommand(command: string): boolean {
+  const findCmd = process.platform === 'win32' ? 'where' : 'which'
+  try {
+    execFileSync(findCmd, [command], { stdio: 'pipe' })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Extract PostgreSQL + DocumentDB from Docker image
+ */
+function extractFromDocker(
+  source: DockerExtractSource,
+  version: string,
+  platform: Platform,
+  outputDir: string,
+): string {
+  if (!verifyCommand('docker')) {
+    throw new Error('Docker is required for extraction. Install Docker.')
+  }
+
+  const pgVersion = version.split('-')[0] // e.g., "17" from "17-0.107.0"
+  const containerName = `hostdb-pg-extract-${Date.now()}`
+  const extractDir = join(outputDir, 'temp-docker-extract')
+  const bundleDir = join(extractDir, 'postgresql-documentdb')
+
+  rmSync(extractDir, { recursive: true, force: true })
+  mkdirSync(bundleDir, { recursive: true })
+
+  try {
+    // Pull the Docker image for the specific platform
+    logInfo(`Pulling Docker image: ${source.image} (${source.platform})`)
+    execFileSync(
+      'docker',
+      ['pull', '--platform', source.platform, source.image],
+      { stdio: 'inherit' },
+    )
+
+    // Create a container (don't start it)
+    logInfo('Creating container for extraction...')
+    execFileSync('docker', ['create', '--name', containerName, source.image], {
+      stdio: 'inherit',
+    })
+
+    // Copy PostgreSQL files from the container
+    // The FerretDB image has PostgreSQL installed at /usr/lib/postgresql/{version}
+    // and share files at /usr/share/postgresql/{version}
+    logInfo('Extracting PostgreSQL files...')
+
+    // Extract lib directory (includes bin subdirectory)
+    const pgLibPath = `/usr/lib/postgresql/${pgVersion}`
+    execFileSync(
+      'docker',
+      ['cp', `${containerName}:${pgLibPath}/.`, bundleDir],
+      { stdio: 'inherit' },
+    )
+
+    // Extract share directory
+    const pgSharePath = `/usr/share/postgresql/${pgVersion}`
+    const shareDir = join(bundleDir, 'share')
+    mkdirSync(shareDir, { recursive: true })
+    execFileSync(
+      'docker',
+      ['cp', `${containerName}:${pgSharePath}/.`, shareDir],
+      { stdio: 'inherit' },
+    )
+
+    // Copy our pre-configured postgresql.conf.sample
+    const confSamplePath = resolve(__dirname, 'postgresql.conf.sample')
+    if (existsSync(confSamplePath)) {
+      cpSync(confSamplePath, join(shareDir, 'postgresql.conf.sample'))
+      logSuccess('Added pre-configured postgresql.conf.sample')
+    }
+
+    // List what we extracted
+    logInfo('Extracted files:')
+    const binDir = join(bundleDir, 'bin')
+    if (existsSync(binDir)) {
+      const binFiles = readdirSync(binDir)
+      logInfo(`  bin/: ${binFiles.slice(0, 10).join(', ')}${binFiles.length > 10 ? '...' : ''}`)
+    }
+
+    const libDir = join(bundleDir, 'lib')
+    if (existsSync(libDir)) {
+      const libFiles = readdirSync(libDir).filter((f) => f.endsWith('.so'))
+      logInfo(`  lib/ (*.so): ${libFiles.slice(0, 10).join(', ')}${libFiles.length > 10 ? '...' : ''}`)
+    }
+
+    const extDir = join(shareDir, 'extension')
+    if (existsSync(extDir)) {
+      const extFiles = readdirSync(extDir).filter((f) =>
+        f.endsWith('.control'),
+      )
+      logInfo(`  share/extension/ (*.control): ${extFiles.join(', ')}`)
+    }
+
+    // Add metadata file
+    const metadata = {
+      name: 'postgresql-documentdb',
+      version,
+      platform,
+      source: 'docker-extract',
+      sourceImage: source.image,
+      postgresql_version: pgVersion,
+      rehosted_by: 'hostdb',
+      rehosted_at: new Date().toISOString(),
+    }
+    writeFileSync(
+      join(bundleDir, '.hostdb-metadata.json'),
+      JSON.stringify(metadata, null, 2),
+    )
+
+    // Create output archive
+    const ext = 'tar.gz'
+    const outputPath = join(outputDir, `postgresql-documentdb-${version}-${platform}.${ext}`)
+    mkdirSync(dirname(outputPath), { recursive: true })
+
+    logInfo(`Creating: ${basename(outputPath)}`)
+    execFileSync(
+      'tar',
+      ['-czf', outputPath, '-C', extractDir, 'postgresql-documentdb'],
+      { stdio: 'inherit' },
+    )
+
+    logSuccess(`Created: ${outputPath}`)
+    return outputPath
+  } finally {
+    // Cleanup container
+    try {
+      execFileSync('docker', ['rm', '-f', containerName], { stdio: 'pipe' })
+    } catch {
+      // Ignore cleanup errors
+    }
+
+    // Cleanup temp directory
+    rmSync(extractDir, { recursive: true, force: true })
+  }
+}
+
+/**
+ * Build PostgreSQL + DocumentDB from source on macOS
+ */
+function buildFromSource(
+  version: string,
+  platform: Platform,
+  outputDir: string,
+): string {
+  const buildScript = resolve(__dirname, 'build-macos.sh')
+
+  if (!existsSync(buildScript)) {
+    throw new Error(`Build script not found: ${buildScript}`)
+  }
+
+  logInfo(`Building ${platform} from source...`)
+  logInfo(`Running: ${buildScript} ${version}`)
+
+  const result = spawnSync('bash', [buildScript, version, platform, outputDir], {
+    stdio: 'inherit',
+    cwd: resolve(__dirname, '../..'),
+    env: { ...process.env },
+  })
+
+  if (result.status !== 0) {
+    throw new Error(`Source build failed with exit code: ${result.status}`)
+  }
+
+  const ext = 'tar.gz'
+  const outputPath = join(outputDir, `postgresql-documentdb-${version}-${platform}.${ext}`)
+
+  if (!existsSync(outputPath)) {
+    throw new Error(`Expected output not found: ${outputPath}`)
+  }
+
+  logSuccess(`Source build completed for ${platform}`)
+  return outputPath
+}
+
+function parseArgs(): {
+  version: string
+  platforms: Platform[]
+  outputDir: string
+} {
+  const args = process.argv.slice(2)
+  let version = '17-0.107.0'
+  let platforms: Platform[] = []
+  let outputDir = './downloads'
+  let allPlatforms = false
+
+  for (let i = 0; i < args.length; i++) {
+    switch (args[i]) {
+      case '--':
+        // Ignore -- (end of options delimiter from pnpm)
+        break
+      case '--version': {
+        if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
+          logError('--version requires a value')
+          process.exit(1)
+        }
+        const versionValue = args[++i]
+        if (!isValidVersion(versionValue)) {
+          logError(`Invalid version format: ${versionValue}`)
+          logError('Version must be in format: {pg_major}-{documentdb_version} (e.g., 17-0.107.0)')
+          process.exit(1)
+        }
+        version = versionValue
+        break
+      }
+      case '--platform': {
+        if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
+          logError('--platform requires a value')
+          process.exit(1)
+        }
+        const platformValue = args[++i]
+        if (!isValidPlatform(platformValue)) {
+          logError(`Invalid platform: ${platformValue}`)
+          logError(`Valid platforms: ${VALID_PLATFORMS.join(', ')}`)
+          process.exit(1)
+        }
+        platforms.push(platformValue)
+        break
+      }
+      case '--output':
+        if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
+          logError('--output requires a value')
+          process.exit(1)
+        }
+        outputDir = args[++i]
+        break
+      case '--all-platforms':
+        allPlatforms = true
+        break
+      case '--help':
+      case '-h':
+        console.log(`
+Usage: ./builds/postgresql-documentdb/download.ts [options]
+
+Downloads/builds PostgreSQL + DocumentDB for hostdb releases.
+
+Sources:
+  - Linux: Extract from Docker image (ghcr.io/ferretdb/postgres-documentdb)
+  - macOS: Build from source (requires Homebrew)
+  - Windows: Not supported yet
+
+Options:
+  --version VERSION    Version (default: 17-0.107.0)
+  --platform PLATFORM  Target platform (default: current)
+  --output DIR         Output directory (default: ./downloads)
+  --all-platforms      Process all platforms
+  --help               Show this help
+
+Platforms: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+
+Version format: {pg_major}-{documentdb_version} (e.g., 17-0.107.0)
+
+Examples:
+  ./builds/postgresql-documentdb/download.ts
+  ./builds/postgresql-documentdb/download.ts --version 17-0.107.0 --platform linux-x64
+  ./builds/postgresql-documentdb/download.ts --all-platforms
+`)
+        process.exit(0)
+        break
+    }
+  }
+
+  if (allPlatforms) {
+    platforms = [...VALID_PLATFORMS]
+  } else if (platforms.length === 0) {
+    platforms = [detectPlatform()]
+  }
+
+  return { version, platforms, outputDir }
+}
+
+async function main() {
+  const { version, platforms, outputDir } = parseArgs()
+  const sources = loadSources()
+
+  const [pgVersion, docdbVersion] = version.split('-')
+
+  console.log()
+  logInfo(`PostgreSQL + DocumentDB Download Script`)
+  logInfo(`Version: ${version}`)
+  logInfo(`  PostgreSQL: ${pgVersion}`)
+  logInfo(`  DocumentDB: ${docdbVersion}`)
+  logInfo(`Platforms: ${platforms.join(', ')}`)
+  logInfo(`Output: ${outputDir}`)
+  console.log()
+
+  const versionSources = sources.versions[version]
+  if (!versionSources) {
+    logError(`Version ${version} not found in sources.json`)
+    logInfo(`Available versions: ${Object.keys(sources.versions).join(', ')}`)
+    process.exit(1)
+  }
+
+  mkdirSync(outputDir, { recursive: true })
+
+  let successCount = 0
+  let skipCount = 0
+
+  for (const platform of platforms) {
+    console.log()
+    logInfo(`========== ${platform} ==========`)
+
+    const source = versionSources[platform]
+    if (!source) {
+      logWarn(`No source for ${platform}, skipping`)
+      skipCount++
+      continue
+    }
+
+    try {
+      let outputPath: string
+
+      if (isDockerExtractSource(source)) {
+        // Docker extraction (Linux)
+        if (!verifyCommand('docker')) {
+          logWarn(`${platform} requires Docker, but Docker is not installed`)
+          skipCount++
+          continue
+        }
+        outputPath = extractFromDocker(source, version, platform, outputDir)
+      } else {
+        // Build from source (macOS, Windows)
+        if (platform.startsWith('win32')) {
+          logWarn(`${platform} is not yet supported`)
+          skipCount++
+          continue
+        }
+
+        if (platform.startsWith('darwin') && process.platform !== 'darwin') {
+          logWarn(`${platform} requires macOS to build, skipping`)
+          skipCount++
+          continue
+        }
+
+        outputPath = buildFromSource(version, platform, outputDir)
+      }
+
+      const outputSha256 = await calculateSha256(outputPath)
+      logInfo(`Output SHA256: ${outputSha256}`)
+      successCount++
+    } catch (error) {
+      logError(`Failed for ${platform}: ${error}`)
+      skipCount++
+    }
+  }
+
+  console.log()
+  logSuccess('Done!')
+  logInfo(`Built: ${successCount} platform(s)`)
+  if (skipCount > 0) {
+    logInfo(`Skipped: ${skipCount} platform(s)`)
+  }
+  logInfo(`Output files in: ${resolve(outputDir)}`)
+}
+
+main().catch((err) => {
+  logError(err.message)
+  process.exit(1)
+})

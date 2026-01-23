@@ -107,6 +107,31 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "Extract binaries from Docker image",
+          "required": ["sourceType", "image"],
+          "properties": {
+            "sourceType": {
+              "type": "string",
+              "enum": ["docker-extract"],
+              "description": "Extract binaries from a Docker image"
+            },
+            "image": {
+              "type": "string",
+              "description": "Docker image reference (e.g., ghcr.io/ferretdb/postgres-documentdb:17-0.107.0)"
+            },
+            "platform": {
+              "type": "string",
+              "description": "Docker platform (e.g., linux/amd64, linux/arm64)"
+            },
+            "note": {
+              "type": "string",
+              "description": "Additional notes about the extraction"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     }

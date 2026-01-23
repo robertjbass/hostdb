@@ -1,0 +1,65 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "postgresql-documentdb",
+  "versions": {
+    "17-0.107.0": {
+      "linux-x64": {
+        "sourceType": "docker-extract",
+        "image": "ghcr.io/ferretdb/postgres-documentdb:17-0.107.0",
+        "platform": "linux/amd64"
+      },
+      "linux-arm64": {
+        "sourceType": "docker-extract",
+        "image": "ghcr.io/ferretdb/postgres-documentdb:17-0.107.0",
+        "platform": "linux/arm64"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required",
+        "note": "Build from source on macOS Intel (macos-15-intel runner)"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required",
+        "note": "Build from source on macOS Apple Silicon (macos-14 runner)"
+      },
+      "win32-x64": {
+        "sourceType": "build-required",
+        "note": "Stretch goal - hybrid download + source build"
+      }
+    }
+  },
+  "components": {
+    "postgresql": {
+      "version": "17"
+    },
+    "documentdb": {
+      "version": "0.107.0",
+      "sourceRepo": "https://github.com/FerretDB/documentdb"
+    },
+    "pg_cron": {
+      "version": "1.6.4",
+      "sourceRepo": "https://github.com/citusdata/pg_cron"
+    },
+    "pgvector": {
+      "version": "0.8.0",
+      "sourceRepo": "https://github.com/pgvector/pgvector"
+    },
+    "postgis": {
+      "version": "3.5.1",
+      "sourceRepo": "https://github.com/postgis/postgis"
+    },
+    "rum": {
+      "version": "1.3.14",
+      "sourceRepo": "https://github.com/postgrespro/rum"
+    }
+  },
+  "config": {
+    "shared_preload_libraries": "pg_cron,pg_documentdb_core,pg_documentdb",
+    "cron_database_name": "postgres"
+  },
+  "notes": {
+    "license": "Apache-2.0 - Fully permissive for commercial use",
+    "docker-source": "Official FerretDB Docker image with pre-built PostgreSQL + DocumentDB extensions",
+    "version-format": "Version format is {pg_major}-{documentdb_version} (e.g., 17-0.107.0)",
+    "bundled-extensions": "Includes DocumentDB, pg_cron, pgvector, PostGIS, and rum extensions"
+  }
+}

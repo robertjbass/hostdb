@@ -1,0 +1,36 @@
+# hostdb postgresql-documentdb configuration
+# Pre-configured for FerretDB backend usage
+
+# Extensions - required for DocumentDB functionality
+shared_preload_libraries = 'pg_cron,pg_documentdb_core,pg_documentdb'
+
+# pg_cron configuration
+cron.database_name = 'postgres'
+
+# Connection settings
+listen_addresses = 'localhost'
+port = 5432
+
+# Memory settings (adjust based on available RAM)
+shared_buffers = 128MB
+work_mem = 4MB
+maintenance_work_mem = 64MB
+
+# WAL settings
+wal_level = replica
+max_wal_senders = 3
+
+# Logging
+log_destination = 'stderr'
+logging_collector = off
+log_line_prefix = '%m [%p] '
+log_timezone = 'UTC'
+
+# Locale
+datestyle = 'iso, mdy'
+timezone = 'UTC'
+lc_messages = 'en_US.UTF-8'
+lc_monetary = 'en_US.UTF-8'
+lc_numeric = 'en_US.UTF-8'
+lc_time = 'en_US.UTF-8'
+default_text_search_config = 'pg_catalog.english'
