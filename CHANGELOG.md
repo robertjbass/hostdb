@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.12] - 2026-01-23
+
+### Fixed
+
+- **PostgreSQL-DocumentDB macOS build - libbson-static-1.0.pc not found from documentdb directory**
+  - `make` runs from `documentdb/` subdirectory, breaking relative `PKG_CONFIG_PATH`
+  - Convert `FAKE_PKGCONFIG_DIR` to absolute path after creation
+  - Update fake pkgconfig file to use dynamically-found bson include path
+  - Add `-I${includedir}/bson` to Cflags for proper header resolution
+
 ## [0.14.11] - 2026-01-23
 
 ### Fixed
