@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-23T05:50:47.549Z",
+  "lastUpdated": "2026-01-23T06:17:26.987Z",
   "databases": {
     "clickhouse": {
       "25.12.3.21": {
@@ -62,6 +62,40 @@
             "url": "https://github.com/robertjbass/hostdb/releases/download/duckdb-1.4.3/duckdb-1.4.3-win32-x64.zip",
             "sha256": "00c23a7b2ec7cf4826cc9a097c86022a99fda9d985ef45e00664e0a19deaa083",
             "size": 11864734
+          }
+        }
+      }
+    },
+    "ferretdb": {
+      "2.7.0": {
+        "version": "2.7.0",
+        "releaseTag": "ferretdb-2.7.0",
+        "releasedAt": "2026-01-23T06:17:12Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/ferretdb-2.7.0/ferretdb-2.7.0-darwin-arm64.tar.gz",
+            "sha256": "2c741c9b16657ec9235fc8951378a9cc8f9506725e88bb49178fc8048248b265",
+            "size": 162030512
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/ferretdb-2.7.0/ferretdb-2.7.0-darwin-x64.tar.gz",
+            "sha256": "7a0a6b269ba0a1831f94c5c0e26f7e204f97ddfa5a3a0beac666c66eb977ed7c",
+            "size": 173414351
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/ferretdb-2.7.0/ferretdb-2.7.0-linux-arm64.tar.gz",
+            "sha256": "fff6bee0490efed64d9bd343d303704e3f2a46f44d9ca9bb2631606130ad3b37",
+            "size": 166405939
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/ferretdb-2.7.0/ferretdb-2.7.0-linux-x64.tar.gz",
+            "sha256": "d27ecd2d2b2bd9ed6212b111272ad3ee9559f3082ec82379712f8f1ff26d5ed8",
+            "size": 175061655
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/ferretdb-2.7.0/ferretdb-2.7.0-win32-x64.zip",
+            "sha256": "3e4320badea2a0e00f7220674e987fff38db41767aae34dbdd926d953202c617",
+            "size": 142234360
           }
         }
       }
