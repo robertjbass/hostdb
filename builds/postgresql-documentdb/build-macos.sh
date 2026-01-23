@@ -287,11 +287,12 @@ cd documentdb
 # Note: We use a custom clang wrapper (CC) to fix rpath syntax for macOS
 #   PGXS generates -Wl,-rpath=/path but macOS needs -Wl,-rpath,/path
 # Note: Use LIBRARY_PATH to add the compat-lib directory for libbson-1.0 -> libbson2 symlink
-# Note: Use SHLIB_LINK to add ICU libraries (versioned as icu4c@78 on Homebrew)
+# Note: Use LDFLAGS (not SHLIB_LINK) for ICU to avoid overriding bundle_loader flag
+#   SHLIB_LINK on command line replaces default; LDFLAGS is additive
 export LIBRARY_PATH="${COMPAT_LIB_DIR}:${ICU_PREFIX}/lib:${LIBRARY_PATH:-}"
 EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option -Wno-error=typedef-redefinition -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include"
 ICU_LINK="-L${ICU_PREFIX}/lib -licuuc -licui18n -licudata"
-make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" SHLIB_LINK="${ICU_LINK}" -j"$(sysctl -n hw.ncpu)"
+make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
 
 # Copy DocumentDB files to bundle
