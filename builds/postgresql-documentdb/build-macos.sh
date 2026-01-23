@@ -234,13 +234,13 @@ find "${MONGO_C_PREFIX}/lib" -name "*bson*" 2>/dev/null || log_warn "No bson lib
 # Create a local lib directory with symlinks to make the linker happy
 COMPAT_LIB_DIR="${BUILD_DIR}/compat-lib"
 mkdir -p "${COMPAT_LIB_DIR}"
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
+COMPAT_LIB_DIR="$(cd "${COMPAT_LIB_DIR}" && pwd)"
 if [[ -f "${MONGO_C_PREFIX}/lib/libbson2.dylib" ]]; then
     log_info "Creating compatibility symlinks for mongo-c-driver 2.x..."
     ln -sf "${MONGO_C_PREFIX}/lib/libbson2.dylib" "${COMPAT_LIB_DIR}/libbson-1.0.dylib"
     ln -sf "${MONGO_C_PREFIX}/lib/libbson2.a" "${COMPAT_LIB_DIR}/libbson-1.0.a" 2>/dev/null || true
-    # Add compat lib dir to LDFLAGS (prepend so it's searched first)
-    export LDFLAGS="-L${COMPAT_LIB_DIR} ${LDFLAGS}"
-    log_success "Created libbson-1.0 -> libbson2 compatibility symlinks"
+    log_success "Created libbson-1.0 -> libbson2 compatibility symlinks in ${COMPAT_LIB_DIR}"
 fi
 
 # Create a clang wrapper to fix macOS rpath syntax in -Wl flags
@@ -286,8 +286,11 @@ cd documentdb
 # We suppress these errors to allow the build to proceed.
 # Note: We use a custom clang wrapper (CC) to fix rpath syntax for macOS
 #   PGXS generates -Wl,-rpath=/path but macOS needs -Wl,-rpath,/path
+# Note: SHLIB_LINK adds extra linker flags for shared library linking
+#   We add the compat-lib directory to find the libbson-1.0 -> libbson2 symlink
 EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option -Wno-error=typedef-redefinition -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include"
-make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
+EXTRA_LDFLAGS="-L${COMPAT_LIB_DIR}"
+make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" SHLIB_LINK="${EXTRA_LDFLAGS}" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
 
 # Copy DocumentDB files to bundle
