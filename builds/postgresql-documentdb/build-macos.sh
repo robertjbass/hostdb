@@ -128,12 +128,12 @@ if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
     # Note: makefile only recognizes cc, gcc, icc, icl, cl - not clang directly
     # Note: Add -Wno-error flags for macOS clang compatibility (missing signal.h, etc.)
     make -j"$(sysctl -n hw.ncpu)" CC=cc _CFLAGS_OPT="-fPIC -Wno-error=implicit-function-declaration"
-
-    # Install to local directory
-    mkdir -p "${INTEL_MATH_INSTALL}/lib" "${INTEL_MATH_INSTALL}/include"
-    cp libbid.a "${INTEL_MATH_INSTALL}/lib/"
-    cp src/*.h "${INTEL_MATH_INSTALL}/include/"
     popd > /dev/null
+
+    # Install to local directory (must be after popd to use correct relative paths)
+    mkdir -p "${INTEL_MATH_INSTALL}/lib" "${INTEL_MATH_INSTALL}/include"
+    cp "${INTEL_MATH_DIR}/LIBRARY/libbid.a" "${INTEL_MATH_INSTALL}/lib/"
+    cp "${INTEL_MATH_DIR}/LIBRARY/src/"*.h "${INTEL_MATH_INSTALL}/include/"
 
     log_success "Intel Decimal Math Library built"
 fi
