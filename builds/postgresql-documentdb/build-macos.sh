@@ -146,6 +146,12 @@ export LDFLAGS="-L${MONGO_C_PREFIX}/lib -L${ICU_PREFIX}/lib ${LDFLAGS:-}"
 log_info "PKG_CONFIG_PATH: ${PKG_CONFIG_PATH}"
 log_info "BSON_INCLUDE: ${BSON_INCLUDE}"
 
+# Debug: show what's actually in the mongo-c-driver include directory
+log_info "Contents of mongo-c-driver include directory:"
+find "${MONGO_C_PREFIX}/include" -name "*.h" 2>/dev/null | head -20 || log_warn "Could not list include directory"
+log_info "Looking for bson.h:"
+find "${MONGO_C_PREFIX}" -name "bson.h" 2>/dev/null || log_warn "bson.h not found in mongo-c-driver"
+
 # Build DocumentDB extension
 log_info "Building DocumentDB extension v${DOCDB_VERSION} (tag: ${DOCDB_GIT_TAG})..."
 cd "${SOURCES_DIR}"
