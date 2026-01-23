@@ -124,9 +124,11 @@ cd documentdb
 
 # DocumentDB uses PostgreSQL PGXS build system (Makefiles, not CMake)
 # Build only the non-distributed components (pg_documentdb_core and pg_documentdb)
-# Note: PostgreSQL's PGXS passes GCC flags like -fexcess-precision=standard that Apple clang
-# doesn't support. We suppress the error with -Wno-error=ignored-optimization-argument.
-EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument"
+# Note: PostgreSQL's PGXS passes flags that Apple clang doesn't support:
+#   - -fexcess-precision=standard (GCC-specific)
+#   - -Wno-cast-function-type-strict (unknown to older clang)
+# We suppress these errors to allow the build to proceed.
+EXTRA_CFLAGS="-Wno-error=ignored-optimization-argument -Wno-error=unknown-warning-option"
 make PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" install DESTDIR="${BUILD_DIR}/documentdb_install"
 
