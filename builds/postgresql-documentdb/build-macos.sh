@@ -383,10 +383,12 @@ if [[ ! -d "pg_cron" ]]; then
     git clone --depth 1 --branch "v${PG_CRON_VERSION}" https://github.com/citusdata/pg_cron.git
 fi
 cd pg_cron
-# pg_cron uses ngettext() from libintl (gettext), need to link against it
-GETTEXT_PREFIX="$(brew --prefix gettext)"
-make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" SHLIB_LINK="-L${GETTEXT_PREFIX}/lib -lintl" -j"$(sysctl -n hw.ncpu)"
-make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" SHLIB_LINK="-L${GETTEXT_PREFIX}/lib -lintl" install DESTDIR="${BUILD_DIR}/pg_cron_install"
+# pg_cron uses ngettext() from libintl (gettext). Rather than overriding SHLIB_LINK
+# (which would lose the bundle_loader flag), we use -undefined dynamic_lookup via
+# PG_LDFLAGS to defer symbol resolution to runtime. PostgreSQL is already linked
+# against libintl so the symbols will be available when the extension loads.
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" PG_LDFLAGS="-undefined dynamic_lookup" -j"$(sysctl -n hw.ncpu)"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" PG_LDFLAGS="-undefined dynamic_lookup" install DESTDIR="${BUILD_DIR}/pg_cron_install"
 
 # Copy pg_cron files to bundle
 if [[ -d "${BUILD_DIR}/pg_cron_install${PG_PREFIX}" ]]; then
