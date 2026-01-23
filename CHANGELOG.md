@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.2] - 2026-01-23
+
+### Fixed
+
+- **PostgreSQL-DocumentDB Docker extraction failing on symlinks**
+  - `docker cp` fails with "invalid symlink" when copying files that contain symlinks pointing outside the copied directory
+  - Changed extraction to use `docker run` with a shell script that uses `cp -L` to dereference symlinks
+  - Creates proper bundle structure: bin/, lib/, share/extension/
+
 ## [0.14.1] - 2026-01-23
 
 ### Fixed

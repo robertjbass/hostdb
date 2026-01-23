@@ -163,6 +163,9 @@ function verifyCommand(command: string): boolean {
 
 /**
  * Extract PostgreSQL + DocumentDB from Docker image
+ *
+ * Uses tar inside the container to handle symlinks properly,
+ * since `docker cp` fails on symlinks pointing outside the copied directory.
  */
 function extractFromDocker(
   source: DockerExtractSource,
@@ -178,9 +181,10 @@ function extractFromDocker(
   const containerName = `hostdb-pg-extract-${Date.now()}`
   const extractDir = join(outputDir, 'temp-docker-extract')
   const bundleDir = join(extractDir, 'postgresql-documentdb')
+  const tarballName = 'pg-extract.tar.gz'
 
   rmSync(extractDir, { recursive: true, force: true })
-  mkdirSync(bundleDir, { recursive: true })
+  mkdirSync(extractDir, { recursive: true })
 
   try {
     // Pull the Docker image for the specific platform
@@ -191,36 +195,59 @@ function extractFromDocker(
       { stdio: 'inherit' },
     )
 
-    // Create a container (don't start it)
-    logInfo('Creating container for extraction...')
-    execFileSync('docker', ['create', '--name', containerName, source.image], {
-      stdio: 'inherit',
-    })
+    // Run container with a shell command that creates the proper directory structure
+    // and packages it as a tarball. This handles symlinks properly (cp -L dereferences them).
+    logInfo('Creating container and extracting PostgreSQL files...')
 
-    // Copy PostgreSQL files from the container
-    // The FerretDB image has PostgreSQL installed at /usr/lib/postgresql/{version}
-    // and share files at /usr/share/postgresql/{version}
-    logInfo('Extracting PostgreSQL files...')
-
-    // Extract lib directory (includes bin subdirectory)
     const pgLibPath = `/usr/lib/postgresql/${pgVersion}`
+    const pgSharePath = `/usr/share/postgresql/${pgVersion}`
+
+    // Shell script to:
+    // 1. Create temp directory with proper structure
+    // 2. Copy lib files (bin/, lib/) to root
+    // 3. Copy share files (extension/, etc.) to share/
+    // 4. Create tarball
+    const extractScript = [
+      'set -e',
+      'mkdir -p /tmp/pg/share',
+      `cp -rL ${pgLibPath}/* /tmp/pg/`,
+      `cp -rL ${pgSharePath}/* /tmp/pg/share/`,
+      `tar -czf /output/${tarballName} -C /tmp pg`,
+    ].join(' && ')
+
     execFileSync(
       'docker',
-      ['cp', `${containerName}:${pgLibPath}/.`, bundleDir],
+      [
+        'run',
+        '--rm',
+        '--name', containerName,
+        '--platform', source.platform,
+        '-v', `${resolve(extractDir)}:/output`,
+        source.image,
+        '/bin/sh', '-c', extractScript,
+      ],
       { stdio: 'inherit' },
     )
 
-    // Extract share directory
-    const pgSharePath = `/usr/share/postgresql/${pgVersion}`
+    // Extract the tarball on the host
+    // It contains pg/ with the proper structure: bin/, lib/, share/
+    logInfo('Extracting tarball...')
+    execFileSync(
+      'tar',
+      ['-xzf', join(extractDir, tarballName), '-C', extractDir],
+      { stdio: 'inherit' },
+    )
+
+    // Rename pg/ to postgresql-documentdb/
+    const pgDir = join(extractDir, 'pg')
+    if (existsSync(pgDir)) {
+      cpSync(pgDir, bundleDir, { recursive: true })
+      rmSync(pgDir, { recursive: true, force: true })
+    }
+
+    // Copy our pre-configured postgresql.conf.sample (overwrite any existing)
     const shareDir = join(bundleDir, 'share')
     mkdirSync(shareDir, { recursive: true })
-    execFileSync(
-      'docker',
-      ['cp', `${containerName}:${pgSharePath}/.`, shareDir],
-      { stdio: 'inherit' },
-    )
-
-    // Copy our pre-configured postgresql.conf.sample
     const confSamplePath = resolve(__dirname, 'postgresql.conf.sample')
     if (existsSync(confSamplePath)) {
       cpSync(confSamplePath, join(shareDir, 'postgresql.conf.sample'))
@@ -264,6 +291,9 @@ function extractFromDocker(
       join(bundleDir, '.hostdb-metadata.json'),
       JSON.stringify(metadata, null, 2),
     )
+
+    // Clean up intermediate tarball
+    rmSync(join(extractDir, tarballName), { force: true })
 
     // Create output archive
     const ext = 'tar.gz'
