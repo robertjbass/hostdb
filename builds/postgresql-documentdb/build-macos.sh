@@ -123,7 +123,7 @@ if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
     log_info "Building Intel Decimal Math Library..."
     # Clone the applied/ubuntu/jammy branch (Ubuntu 22.04 LTS version)
     git clone --depth 1 --branch applied/ubuntu/jammy https://git.launchpad.net/ubuntu/+source/intelrdfpmath "${INTEL_MATH_DIR}"
-    cd "${INTEL_MATH_DIR}/LIBRARY"
+    pushd "${INTEL_MATH_DIR}/LIBRARY" > /dev/null
     # Build with position-independent code
     # Note: makefile only recognizes cc, gcc, icc, icl, cl - not clang directly
     # Note: Add -Wno-error flags for macOS clang compatibility (missing signal.h, etc.)
@@ -133,6 +133,7 @@ if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
     mkdir -p "${INTEL_MATH_INSTALL}/lib" "${INTEL_MATH_INSTALL}/include"
     cp libbid.a "${INTEL_MATH_INSTALL}/lib/"
     cp src/*.h "${INTEL_MATH_INSTALL}/include/"
+    popd > /dev/null
 
     log_success "Intel Decimal Math Library built"
 fi
