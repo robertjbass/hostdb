@@ -1,0 +1,236 @@
+name: Build Windows PostgreSQL-DocumentDB
+
+# Debug workflow for iterating on Windows builds
+# Does NOT create releases - just builds and uploads artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build'
+        required: true
+        type: choice
+        options:
+          - 17-0.107.0
+        default: 17-0.107.0
+      phase:
+        description: 'Build phase (incremental development)'
+        required: true
+        type: choice
+        options:
+          - '1-pgvector-only'
+          - '2-add-pg_cron-rum'
+          - '3-add-documentdb'
+          - '4-full-bundle'
+        default: '1-pgvector-only'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-make
+            mingw-w64-x86_64-pkg-config
+            make
+            git
+            zip
+            curl
+            tar
+
+      - name: Download PostgreSQL Windows binaries
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ github.event.inputs.version }}"
+          PG_MAJOR="${VERSION%%-*}"  # "17" from "17-0.107.0"
+
+          echo "=== Downloading PostgreSQL $PG_MAJOR for Windows ==="
+
+          mkdir -p /c/pg-windows
+          cd /c/pg-windows
+
+          # Download from EDB (using the file ID from sources.json)
+          # PostgreSQL 17.7.0 for Windows
+          PG_URL="https://sbp.enterprisedb.com/getfile.jsp?fileid=1259911"
+
+          echo "Downloading from: $PG_URL"
+          curl -fsSL -o postgresql.zip "$PG_URL"
+
+          echo "Extracting..."
+          unzip -q postgresql.zip
+
+          # Find the extracted directory (usually pgsql/)
+          ls -la
+
+          # Move to a known location
+          if [ -d "pgsql" ]; then
+            mv pgsql postgresql
+          fi
+
+          echo "PostgreSQL installed at: /c/pg-windows/postgresql"
+          ls -la postgresql/
+          ls -la postgresql/bin/ | head -10
+
+          # Verify pg_config exists
+          if [ -f "postgresql/bin/pg_config.exe" ]; then
+            echo "pg_config found!"
+            ./postgresql/bin/pg_config.exe --version
+            ./postgresql/bin/pg_config.exe --pgxs
+          else
+            echo "ERROR: pg_config.exe not found!"
+            exit 1
+          fi
+
+      - name: Build pgvector (Phase 1)
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ github.event.inputs.version }}"
+          PGVECTOR_VERSION="0.8.0"
+          PG_DIR="/c/pg-windows/postgresql"
+          PG_CONFIG="${PG_DIR}/bin/pg_config.exe"
+
+          echo "=== Building pgvector v${PGVECTOR_VERSION} ==="
+          echo "PG_CONFIG: $PG_CONFIG"
+          echo "PGXS: $($PG_CONFIG --pgxs)"
+
+          mkdir -p /c/build
+          cd /c/build
+
+          # Clone pgvector
+          if [ ! -d "pgvector" ]; then
+            git clone --depth 1 --branch "v${PGVECTOR_VERSION}" https://github.com/pgvector/pgvector.git
+          fi
+
+          cd pgvector
+
+          # Show what we're working with
+          echo "=== pgvector Makefile ==="
+          head -50 Makefile
+
+          echo ""
+          echo "=== Attempting build ==="
+
+          # Try the build
+          # Note: MINGW64 make might need different flags
+          make PG_CONFIG="$PG_CONFIG" || {
+            echo ""
+            echo "=== Build failed, showing diagnostics ==="
+            echo ""
+            echo "Environment:"
+            env | grep -i mingw || true
+            env | grep -i path || true
+            echo ""
+            echo "GCC version:"
+            gcc --version || true
+            echo ""
+            echo "Make version:"
+            make --version || true
+            echo ""
+            echo "pg_config output:"
+            $PG_CONFIG --cflags || true
+            $PG_CONFIG --ldflags || true
+            $PG_CONFIG --libs || true
+            exit 1
+          }
+
+          echo ""
+          echo "=== Build succeeded! ==="
+          ls -la *.dll *.so 2>/dev/null || ls -la
+
+      - name: Install and test pgvector
+        if: success()
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+
+          PG_DIR="/c/pg-windows/postgresql"
+          PG_CONFIG="${PG_DIR}/bin/pg_config.exe"
+
+          cd /c/build/pgvector
+
+          echo "=== Installing pgvector ==="
+          make PG_CONFIG="$PG_CONFIG" install
+
+          echo ""
+          echo "=== Verifying installation ==="
+
+          # Check if extension files were installed
+          SHAREDIR=$($PG_CONFIG --sharedir)
+          PKGLIBDIR=$($PG_CONFIG --pkglibdir)
+
+          echo "Share dir: $SHAREDIR"
+          echo "Lib dir: $PKGLIBDIR"
+
+          echo ""
+          echo "Extension control file:"
+          ls -la "$SHAREDIR/extension/"vector* 2>/dev/null || echo "Not found in sharedir"
+
+          echo ""
+          echo "Extension library:"
+          ls -la "$PKGLIBDIR/"vector* 2>/dev/null || echo "Not found in pkglibdir"
+
+      - name: Create artifact
+        if: success()
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ github.event.inputs.version }}"
+          PHASE="${{ github.event.inputs.phase }}"
+          PG_DIR="/c/pg-windows/postgresql"
+
+          echo "=== Creating artifact ==="
+
+          mkdir -p /c/output
+          cd /c/output
+
+          # Copy PostgreSQL with installed extensions
+          cp -r "$PG_DIR" ./postgresql-documentdb
+
+          # Add metadata
+          cat > postgresql-documentdb/.hostdb-metadata.json << EOF
+          {
+            "name": "postgresql-documentdb",
+            "version": "${VERSION}",
+            "platform": "win32-x64",
+            "phase": "${PHASE}",
+            "source": "windows-build-debug",
+            "rehosted_by": "hostdb",
+            "rehosted_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          # Create zip
+          zip -r "postgresql-documentdb-${VERSION}-win32-x64-${PHASE}.zip" postgresql-documentdb
+
+          echo ""
+          echo "=== Artifact created ==="
+          ls -la *.zip
+
+          # Calculate checksum
+          sha256sum *.zip > checksums.txt
+          cat checksums.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgresql-documentdb-${{ github.event.inputs.version }}-win32-x64-${{ github.event.inputs.phase }}
+          path: |
+            C:/output/*.zip
+            C:/output/checksums.txt
+          retention-days: 7
