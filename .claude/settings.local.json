@@ -42,7 +42,15 @@
       "Bash(pnpm add:engine:*)",
       "Bash(node bin/cli.js:*)",
       "Bash(pnpm download:meilisearch:*)",
-      "Bash(tar:*)"
+      "Bash(tar:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:docs.ferretdb.io)",
+      "WebSearch",
+      "Bash(curl:*)",
+      "WebFetch(domain:pkg.ferretdb.io)",
+      "WebFetch(domain:hub.docker.com)",
+      "Bash(chmod:*)",
+      "Bash(pnpm checksums:populate:*)"
     ]
   }
 }

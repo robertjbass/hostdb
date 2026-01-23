@@ -1,0 +1,113 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "ferretdb",
+  "versions": {
+    "2.7.0": {
+      "linux-x64": {
+        "url": "https://github.com/FerretDB/FerretDB/releases/download/v2.7.0/ferretdb-amd64-linux",
+        "format": "binary",
+        "sha256": "f81ecae6adf33e0c5e949acf85f94a40b0790c07b8f87d480b91518225da26b4"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/FerretDB/FerretDB/releases/download/v2.7.0/ferretdb-arm64-linux",
+        "format": "binary",
+        "sha256": "74abfea8c6647929e8dab8f59f5438cb29948bc5e477626b771721ef1c07576b"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required",
+        "note": "Cross-compile with Go: GOOS=darwin GOARCH=amd64"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required",
+        "note": "Cross-compile with Go: GOOS=darwin GOARCH=arm64"
+      },
+      "win32-x64": {
+        "sourceType": "build-required",
+        "note": "Cross-compile with Go: GOOS=windows GOARCH=amd64"
+      }
+    }
+  },
+  "components": {
+    "mongosh": {
+      "version": "2.5.10",
+      "description": "MongoDB Shell - interactive JavaScript interface",
+      "binaries": [
+        "mongosh"
+      ],
+      "platforms": {
+        "linux-x64": {
+          "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-linux-x64.tgz",
+          "format": "tar.gz",
+          "sha256": "b9c003d80dbf20d2bb2ad097abe7997a5e2a6a349af96b8510c741570116fc79"
+        },
+        "linux-arm64": {
+          "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-linux-arm64.tgz",
+          "format": "tar.gz",
+          "sha256": "00e44c504eccbcfd467b6160b18efbe7eb7fcc0632cac6149efc94193ce3465e"
+        },
+        "darwin-x64": {
+          "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-darwin-x64.zip",
+          "format": "zip",
+          "sha256": "5b2b5525e83623b9ae70b45c323da355eba0299d69b5e697141f2f86bc6c1c3b"
+        },
+        "darwin-arm64": {
+          "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-darwin-arm64.zip",
+          "format": "zip",
+          "sha256": "f27e367c5d5fa6a8c72cabaa9dabfb5eb29f719568aa44ca83104aa1699da64a"
+        },
+        "win32-x64": {
+          "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-win32-x64.zip",
+          "format": "zip",
+          "sha256": "1d35d36092d88e06f867527dfafd5d8a4facd7e319431eab4cf79275361783ca"
+        }
+      }
+    },
+    "database-tools": {
+      "version": "100.14.0",
+      "description": "MongoDB Database Tools - mongodump, mongorestore, etc.",
+      "binaries": [
+        "mongodump",
+        "mongorestore",
+        "mongoexport",
+        "mongoimport",
+        "mongostat",
+        "mongotop",
+        "bsondump",
+        "mongofiles"
+      ],
+      "platforms": {
+        "linux-x64": {
+          "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.14.0.tgz",
+          "format": "tar.gz",
+          "sha256": "4104998bda784a0cb16fc2e06d9c21645516d72c4fb481c9b103f1e0a8458fc0"
+        },
+        "linux-arm64": {
+          "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-arm64-100.14.0.tgz",
+          "format": "tar.gz",
+          "sha256": "ef2945973b7e9c0f95d25dc607d420b0b07c486a675937ac9723b32f56ce718d"
+        },
+        "darwin-x64": {
+          "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-macos-x86_64-100.14.0.zip",
+          "format": "zip",
+          "sha256": "446485dea4709dd39100364b530305195d2441730982f705051c538d2eff17d6"
+        },
+        "darwin-arm64": {
+          "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-macos-arm64-100.14.0.zip",
+          "format": "zip",
+          "sha256": "69ee5a9cc8afd6373ca0723d2c62c7a272c9e629803a361e2f63e61fd32df65e"
+        },
+        "win32-x64": {
+          "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-windows-x86_64-100.14.0.zip",
+          "format": "zip",
+          "sha256": "3ba13d9e504b1bde9b0621471a68c57f47954d1583772e40dd97e174b822cc99"
+        }
+      }
+    }
+  },
+  "notes": {
+    "license": "Apache-2.0 - Fully permissive for commercial use",
+    "binary-format": "Linux releases are raw executables, not archives",
+    "cross-compile": "macOS and Windows are cross-compiled from source using Go",
+    "bundling": "Releases bundle FerretDB server, mongosh, and database-tools for complete MongoDB-compatible installations"
+  }
+}

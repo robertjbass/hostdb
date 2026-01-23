@@ -259,7 +259,7 @@
         "defaultUser": null,
         "queryLanguage": "MQL"
       },
-      "status": "pending"
+      "status": "in-progress"
     },
     "foundationdb": {
       "displayName": "FoundationDB",
@@ -633,6 +633,42 @@
           "dropdb"
         ],
         "enhanced": ["pgcli", "usql"]
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 5432,
+        "scheme": "postgresql",
+        "defaultDatabase": "postgres",
+        "defaultUser": "postgres",
+        "queryLanguage": "SQL"
+      },
+      "status": "in-progress"
+    },
+    "postgresql-documentdb": {
+      "displayName": "PostgreSQL + DocumentDB",
+      "description": "PostgreSQL with DocumentDB extension for FerretDB backend",
+      "type": "Document",
+      "sourceRepo": "https://github.com/FerretDB/documentdb",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": "postgresql",
+      "note": "Backend for FerretDB; includes pg_cron, pgvector, PostGIS, rum extensions",
+      "latestLts": "17",
+      "versions": {
+        "17-0.107.0": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": false
+      },
+      "cliTools": {
+        "server": "postgres",
+        "client": "psql",
+        "utilities": ["pg_dump", "pg_restore", "initdb", "pg_ctl"],
+        "enhanced": ["pgcli"]
       },
       "connection": {
         "runtime": "server",

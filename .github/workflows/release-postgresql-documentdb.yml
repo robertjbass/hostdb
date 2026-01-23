@@ -1,0 +1,390 @@
+name: Release PostgreSQL + DocumentDB
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (pg_major-documentdb_version)'
+        required: true
+        type: choice
+        options:
+          - 17-0.107.0
+        default: 17-0.107.0
+      platforms:
+        description: 'Platforms to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'linux-x64'
+          - 'linux-arm64'
+          - 'darwin-x64'
+          - 'darwin-arm64'
+
+# Prevent concurrent runs that could conflict when updating releases.json
+concurrency:
+  group: release-postgresql-documentdb
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version against databases.json
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DB="postgresql-documentdb"
+
+          echo "Validating PostgreSQL + DocumentDB version: $VERSION"
+
+          # Check if version exists and is enabled in databases.json
+          ENABLED=$(jq -r ".databases.\"$DB\".versions[\"$VERSION\"] // false" databases.json)
+          if [ "$ENABLED" != "true" ]; then
+            echo "::error::Version '$VERSION' is not enabled in databases.json"
+            echo ""
+            echo "Available versions:"
+            jq -r ".databases.\"$DB\".versions | to_entries | map(select(.value == true)) | .[].key" databases.json
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION is enabled in databases.json"
+
+      - name: Validate sources.json exists
+        run: |
+          DB="postgresql-documentdb"
+          if [ ! -f "builds/$DB/sources.json" ]; then
+            echo "::error::Missing builds/$DB/sources.json"
+            exit 1
+          fi
+          echo "✓ builds/$DB/sources.json exists"
+
+      - name: Validate version in sources.json
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          DB="postgresql-documentdb"
+
+          HAS_VERSION=$(jq -r ".versions[\"$VERSION\"] // empty" "builds/$DB/sources.json")
+          if [ -z "$HAS_VERSION" ]; then
+            echo "::error::Version '$VERSION' not found in builds/$DB/sources.json"
+            echo ""
+            echo "Available versions in sources.json:"
+            jq -r ".versions | keys[]" "builds/$DB/sources.json"
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION found in sources.json"
+
+  # Determine which platforms to build
+  prepare:
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set build matrix
+        id: set-matrix
+        run: |
+          PLATFORMS="${{ github.event.inputs.platforms }}"
+          if [ "$PLATFORMS" = "all" ]; then
+            # All 4 supported platforms
+            MATRIX='[
+              {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
+              {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
+              {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
+              {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "native"}
+            ]'
+          else
+            # Single platform
+            case "$PLATFORMS" in
+              linux-x64|linux-arm64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"docker\"}]"
+                ;;
+              darwin-x64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\", \"build_type\": \"native\"}]"
+                ;;
+              darwin-arm64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-14\", \"build_type\": \"native\"}]"
+                ;;
+              *)
+                echo "::error::Unsupported platform: $PLATFORMS"
+                exit 1
+                ;;
+            esac
+          fi
+          MATRIX=$(echo "$MATRIX" | jq -c .)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "Building platforms: $MATRIX"
+
+  # Build each platform in parallel
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Set up QEMU for cross-platform Docker builds (required for linux-arm64 on x64 runners)
+      - name: Set up QEMU
+        if: matrix.build_type == 'docker'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: matrix.build_type == 'docker'
+        uses: docker/setup-buildx-action@v3
+
+      # For Linux: Docker extraction
+      - name: Build for Linux (Docker extraction)
+        if: matrix.build_type == 'docker'
+        id: build-linux
+        timeout-minutes: 60
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          echo "Extracting PostgreSQL + DocumentDB $VERSION for $PLATFORM from Docker image"
+
+          pnpm download:postgresql-documentdb -- \
+            --version "$VERSION" \
+            --platform "$PLATFORM" \
+            --output ./dist
+
+          # Check if artifact was created
+          shopt -s nullglob
+          FILES=(./dist/postgresql-documentdb-*.tar.gz)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "::error::No artifact created for $PLATFORM"
+            exit 1
+          fi
+          ls -la ./dist/
+
+      # For macOS: native build
+      - name: Install macOS build dependencies
+        if: matrix.build_type == 'native'
+        run: |
+          # Install PostgreSQL and build tools
+          brew install postgresql@17 cmake pkg-config
+
+          # Install PostGIS dependencies (will be used for PostGIS extension)
+          brew install postgis || true
+
+      - name: Build for macOS (native)
+        if: matrix.build_type == 'native'
+        id: build-macos
+        timeout-minutes: 120
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          echo "Building PostgreSQL + DocumentDB $VERSION for $PLATFORM (native macOS build)"
+
+          # Run the macOS build script
+          ./builds/postgresql-documentdb/build-macos.sh "$VERSION" "$PLATFORM" ./dist
+
+          echo "Build complete:"
+          ls -la ./dist/
+
+      - name: Generate checksum
+        run: |
+          cd dist
+          shopt -s nullglob
+          for f in *.tar.gz; do
+            if [ -f "$f" ]; then
+              if command -v sha256sum &> /dev/null; then
+                sha256sum "$f" >> checksums.txt
+              else
+                # macOS uses shasum
+                shasum -a 256 "$f" >> checksums.txt
+              fi
+            fi
+          done
+          cat checksums.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgresql-documentdb-${{ github.event.inputs.version }}-${{ matrix.platform }}
+          path: |
+            dist/*.tar.gz
+            dist/checksums.txt
+          retention-days: 1
+
+  # Collect all artifacts and create release
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          pattern: postgresql-documentdb-${{ github.event.inputs.version }}-*
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p ./release-assets
+
+          # Move all artifacts to release-assets
+          find ./artifacts -type f -name "*.tar.gz" -exec mv {} ./release-assets/ \;
+
+          # Combine all checksums
+          find ./artifacts -name "checksums.txt" -exec cat {} \; > ./release-assets/checksums.txt
+
+          echo "Release assets:"
+          ls -la ./release-assets/
+
+          # Verify we have at least one artifact
+          shopt -s nullglob
+          FILES=(./release-assets/*.tar.gz)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "ERROR: No artifacts were created for any platform"
+            exit 1
+          fi
+
+          echo ""
+          echo "Checksums:"
+          cat ./release-assets/checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: postgresql-documentdb-${{ github.event.inputs.version }}
+          name: PostgreSQL + DocumentDB ${{ github.event.inputs.version }}
+          body: |
+            ## PostgreSQL + DocumentDB ${{ github.event.inputs.version }}
+
+            PostgreSQL with DocumentDB extension for use as FerretDB backend.
+
+            ### Bundled Extensions
+            - **DocumentDB** - MongoDB wire protocol support
+            - **pg_cron** - Job scheduler
+            - **pgvector** - Vector similarity search
+            - **PostGIS** - Geospatial extension
+            - **rum** - RUM index access method
+
+            ### License
+            Apache-2.0 - Fully permissive for commercial use.
+
+            ### Available Platforms
+            | Platform | Source |
+            |----------|--------|
+            | `linux-x64` | Extracted from Docker image |
+            | `linux-arm64` | Extracted from Docker image |
+            | `darwin-x64` | Built from source (native macOS) |
+            | `darwin-arm64` | Built from source (native macOS) |
+
+            ### Usage
+            ```bash
+            # Download URL pattern
+            https://github.com/${{ github.repository }}/releases/download/postgresql-documentdb-${{ github.event.inputs.version }}/postgresql-documentdb-${{ github.event.inputs.version }}-<platform>.tar.gz
+
+            # Start with DocumentDB extension
+            ./postgresql-documentdb/bin/initdb -D /path/to/data
+            ./postgresql-documentdb/bin/pg_ctl -D /path/to/data -l logfile start
+            ./postgresql-documentdb/bin/psql -c "CREATE EXTENSION documentdb CASCADE;"
+            ```
+
+            ### Checksums
+            See `checksums.txt` for SHA256 checksums.
+
+            ### Source
+            - Docker image: [ghcr.io/ferretdb/postgres-documentdb](https://github.com/FerretDB/documentdb/pkgs/container/postgres-documentdb)
+            - DocumentDB: [GitHub](https://github.com/FerretDB/documentdb)
+          files: |
+            release-assets/*.tar.gz
+            release-assets/checksums.txt
+          fail_on_unmatched_files: false
+
+  # Update the releases manifest
+  update-manifest:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update releases.json
+        run: |
+          pnpm tsx scripts/update-releases.ts \
+            --database postgresql-documentdb \
+            --version "${{ github.event.inputs.version }}" \
+            --tag "postgresql-documentdb-${{ github.event.inputs.version }}"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add releases.json
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "chore: update releases.json for postgresql-documentdb-${{ github.event.inputs.version }}"
+
+          # Retry push with rebase if remote has changed
+          for i in 1 2 3; do
+            if git push; then
+              echo "Push succeeded"
+              exit 0
+            fi
+            echo "Push failed, attempting rebase (attempt $i/3)..."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "ERROR: Rebase failed due to conflicts. Manual intervention required."
+              git rebase --abort
+              exit 1
+            fi
+            sleep $((2**i))
+          done
+          echo "ERROR: Push failed after 3 attempts"
+          exit 1
+
+  # Trigger sync to ensure releases.json is fully up to date
+  trigger-sync:
+    needs: update-manifest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger sync-releases workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run sync-releases.yml --repo ${{ github.repository }}
+          echo "Triggered sync-releases workflow"
