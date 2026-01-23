@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.14.5] - 2026-01-23
+## [0.14.6] - 2026-01-23
 
 ### Fixed
 
@@ -10,7 +10,12 @@ All notable changes to this project will be documented in this file.
   - DocumentDB git tags use format `v0.107-0` not `v0.107.0` - added version format conversion
   - DocumentDB uses PGXS Makefiles, not CMake - replaced CMake build with `make PG_CONFIG=...`
   - Apple clang doesn't support `-fexcess-precision=standard` flag - added `-Wno-error=ignored-optimization-argument`
+  - Apple clang doesn't support `-Wno-cast-function-type-strict` - added `-Wno-error=unknown-warning-option`
   - Added missing build dependencies: `pcre2`, `mongo-c-driver` (provides libbson)
+
+### Added
+
+- **Build macOS PostgreSQL-DocumentDB workflow** - Dedicated workflow for iterating on macOS builds
 
 ## [0.14.2] - 2026-01-23
 
