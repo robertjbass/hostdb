@@ -119,13 +119,30 @@ brew install cmake pkg-config pcre2 mongo-c-driver icu4c || true
 MONGO_C_PREFIX="$(brew --prefix mongo-c-driver)"
 ICU_PREFIX="$(brew --prefix icu4c)"
 
-export PKG_CONFIG_PATH="${MONGO_C_PREFIX}/lib/pkgconfig:${ICU_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+# DocumentDB's Makefile uses pkg-config to find libbson-static-1.0, but Homebrew
+# only provides libbson-1.0 (dynamic). Create a fake pkgconfig file for the static version.
+FAKE_PKGCONFIG_DIR="${BUILD_DIR}/pkgconfig"
+mkdir -p "${FAKE_PKGCONFIG_DIR}"
+
+cat > "${FAKE_PKGCONFIG_DIR}/libbson-static-1.0.pc" <<EOF
+prefix=${MONGO_C_PREFIX}
+includedir=\${prefix}/include/libbson-1.0
+libdir=\${prefix}/lib
+
+Name: libbson-static
+Description: libbson static library (fake pkgconfig for Homebrew)
+Version: 1.0
+Cflags: -I\${includedir}
+Libs: -L\${libdir} -lbson-1.0
+EOF
+
+export PKG_CONFIG_PATH="${FAKE_PKGCONFIG_DIR}:${MONGO_C_PREFIX}/lib/pkgconfig:${ICU_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
 export CPPFLAGS="-I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include ${CPPFLAGS:-}"
 export CFLAGS="-I${MONGO_C_PREFIX}/include/libbson-1.0 -I${ICU_PREFIX}/include ${CFLAGS:-}"
 export LDFLAGS="-L${MONGO_C_PREFIX}/lib -L${ICU_PREFIX}/lib ${LDFLAGS:-}"
 
 log_info "PKG_CONFIG_PATH: ${PKG_CONFIG_PATH}"
-log_info "CPPFLAGS: ${CPPFLAGS}"
+log_info "Created fake libbson-static-1.0.pc"
 
 # Build DocumentDB extension
 log_info "Building DocumentDB extension v${DOCDB_VERSION} (tag: ${DOCDB_GIT_TAG})..."

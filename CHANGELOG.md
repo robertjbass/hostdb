@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.8] - 2026-01-23
+
+### Fixed
+
+- **PostgreSQL-DocumentDB macOS build - libbson-static-1.0 not found**
+  - DocumentDB Makefile uses `pkg-config --cflags libbson-static-1.0`
+  - Homebrew only provides dynamic libbson-1.0, not static
+  - Create fake `libbson-static-1.0.pc` pkgconfig file pointing to Homebrew paths
+
 ## [0.14.7] - 2026-01-23
 
 ### Fixed
