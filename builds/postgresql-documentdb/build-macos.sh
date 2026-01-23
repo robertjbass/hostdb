@@ -383,8 +383,10 @@ if [[ ! -d "pg_cron" ]]; then
     git clone --depth 1 --branch "v${PG_CRON_VERSION}" https://github.com/citusdata/pg_cron.git
 fi
 cd pg_cron
-make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
-make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install DESTDIR="${BUILD_DIR}/pg_cron_install"
+# pg_cron uses ngettext() from libintl (gettext), need to link against it
+GETTEXT_PREFIX="$(brew --prefix gettext)"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" SHLIB_LINK="-L${GETTEXT_PREFIX}/lib -lintl" -j"$(sysctl -n hw.ncpu)"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" SHLIB_LINK="-L${GETTEXT_PREFIX}/lib -lintl" install DESTDIR="${BUILD_DIR}/pg_cron_install"
 
 # Copy pg_cron files to bundle
 if [[ -d "${BUILD_DIR}/pg_cron_install${PG_PREFIX}" ]]; then
