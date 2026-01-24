@@ -89,14 +89,23 @@ jobs:
           echo PGROOT: %PGROOT%
 
           :: Clone pgvector
+          echo Current directory: %CD%
           mkdir C:\build 2>nul
-          cd C:\build
+          cd /d C:\build
+          echo After cd: %CD%
 
           if not exist pgvector (
+            echo Cloning pgvector...
             git clone --depth 1 --branch v%PGVECTOR_VERSION% https://github.com/pgvector/pgvector.git
+          ) else (
+            echo pgvector already exists
           )
 
-          cd pgvector
+          echo Contents of C:\build:
+          dir C:\build
+
+          cd /d C:\build\pgvector
+          echo Final directory: %CD%
 
           :: Show Windows Makefile
           echo.
@@ -130,7 +139,20 @@ jobs:
           @echo off
           set PGROOT=C:\pg-windows\postgresql
 
+          echo Current directory: %CD%
+          echo Checking if C:\build\pgvector exists...
+          if exist C:\build\pgvector (
+            echo Directory exists!
+            dir C:\build\pgvector
+          ) else (
+            echo ERROR: C:\build\pgvector does not exist!
+            echo Contents of C:\build:
+            dir C:\build 2>nul || echo C:\build does not exist either
+            exit /b 1
+          )
+
           cd /d C:\build\pgvector
+          echo After cd: %CD%
 
           echo === Installing pgvector ===
           nmake /F Makefile.win install

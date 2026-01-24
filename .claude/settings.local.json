@@ -58,7 +58,8 @@
       "Bash(gh workflow run:*)",
       "Bash(git pull:*)",
       "Bash(git merge:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(git worktree:*)"
     ]
   }
 }
