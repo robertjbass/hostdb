@@ -396,17 +396,17 @@ find "${BUNDLE_DIR}/share/extension" -name "documentdb*.sql" -exec \
     sed -i '' -e 's/## //g' -e 's/##_/_/g' -e 's/_##/_/g' -e 's/##//g' {} \;
 log_success "DocumentDB SQL files patched"
 
-# Patch DocumentDB SQL files: bson_in/out/send/recv point to wrong library
+# Patch DocumentDB SQL files: core functions point to wrong library
 # Upstream bug: upgrade scripts reference these functions with MODULE_PATHNAME (pg_documentdb)
 # but they're actually in pg_documentdb_core
-log_info "Patching DocumentDB SQL files (fixing bson function library references)..."
+log_info "Patching DocumentDB SQL files (fixing core function library references)..."
 for sqlfile in "${BUNDLE_DIR}/share/extension/documentdb--0.101-0--0.102-0.sql" \
                "${BUNDLE_DIR}/share/extension/documentdb--0.102-0--0.102-1.sql"; do
     if [[ -f "$sqlfile" ]]; then
-        sed -i '' -E "s/AS 'MODULE_PATHNAME', \\\$function\\\$(bson_in|bson_out|bson_send|bson_recv)\\\$function\\\$/AS '\$libdir\/pg_documentdb_core', \$function\$\1\$function\$/g" "$sqlfile"
+        sed -i '' -E "s/AS 'MODULE_PATHNAME', \\\$function\\\$(bson_in|bson_out|bson_send|bson_recv|bsonquery_equal|bsonquery_lt|bsonquery_lte|bsonquery_gt|bsonquery_gte)\\\$function\\\$/AS '\$libdir\/pg_documentdb_core', \$function\$\1\$function\$/g" "$sqlfile"
     fi
 done
-log_success "DocumentDB bson function references patched"
+log_success "DocumentDB core function references patched"
 
 # ============================================================================
 # STEP 6: Build pg_cron
