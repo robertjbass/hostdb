@@ -563,6 +563,19 @@ copy_lib_recursive() {
             if [[ -f "$resolved_path" ]]; then copy_lib_recursive "$resolved_path"; fi
             continue
         fi
+        if [[ "$dep" == @rpath/* ]]; then
+            # Resolve @rpath references by searching Homebrew locations
+            local rpath_lib="${dep#@rpath/}"
+            local found_path=""
+            for search_dir in "/opt/homebrew/lib" "/usr/local/lib" "${lib_dir}"; do
+                if [[ -f "${search_dir}/${rpath_lib}" ]]; then
+                    found_path="${search_dir}/${rpath_lib}"
+                    break
+                fi
+            done
+            if [[ -n "$found_path" ]]; then copy_lib_recursive "$found_path"; fi
+            continue
+        fi
         if [[ "$dep" == "@"* ]]; then continue; fi
         if [[ -f "$dep" ]]; then copy_lib_recursive "$dep"; fi
     done
