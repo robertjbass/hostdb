@@ -464,7 +464,19 @@ BUNDLE_LIB_DIR="${BUNDLE_DIR}/lib"
 mkdir -p "${BUNDLE_LIB_DIR}"
 
 # Track which libraries we've already processed to avoid infinite loops
-declare -A PROCESSED_LIBS
+# Using a file instead of associative array for bash 3.x compatibility (macOS)
+PROCESSED_LIBS_FILE="${BUILD_DIR}/.processed_libs"
+: > "${PROCESSED_LIBS_FILE}"  # Create/truncate file
+
+# Check if a library has been processed
+is_lib_processed() {
+    grep -qxF "$1" "${PROCESSED_LIBS_FILE}" 2>/dev/null
+}
+
+# Mark a library as processed
+mark_lib_processed() {
+    echo "$1" >> "${PROCESSED_LIBS_FILE}"
+}
 
 # Function to copy a library and all its dependencies recursively
 copy_lib_recursive() {
@@ -473,10 +485,10 @@ copy_lib_recursive() {
     lib_name=$(basename "$lib_path")
 
     # Skip if already processed
-    if [[ -n "${PROCESSED_LIBS[$lib_name]:-}" ]]; then
+    if is_lib_processed "$lib_name"; then
         return 0
     fi
-    PROCESSED_LIBS[$lib_name]=1
+    mark_lib_processed "$lib_name"
 
     # Skip system libraries
     if [[ "$lib_path" == /usr/lib/* ]] || [[ "$lib_path" == /System/* ]] || [[ "$lib_path" == "@"* ]]; then
@@ -547,7 +559,8 @@ if [[ -d "${BUNDLE_LIB_DIR}" ]]; then
     done
 fi
 
-log_success "Bundled ${#PROCESSED_LIBS[@]} libraries"
+BUNDLED_COUNT=$(wc -l < "${PROCESSED_LIBS_FILE}" | tr -d ' ')
+log_success "Bundled ${BUNDLED_COUNT} libraries"
 
 # Step 2: Fix install names (LC_ID_DYLIB) of all bundled dylibs
 log_info "Step 2: Fixing dylib install names..."
