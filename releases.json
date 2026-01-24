@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-24T09:19:36.961Z",
+  "lastUpdated": "2026-01-24T09:33:19.102Z",
   "databases": {
     "clickhouse": {
       "25.12.3.21": {
@@ -598,23 +598,23 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-darwin-arm64.tar.gz",
-            "sha256": "b365d243e3c6fa9c9677b8fcfdd248168029e50989540e2dca5b0bc1c8eafa5d",
-            "size": 41152689
+            "sha256": "2a50b0e15b07815362547063b0b0190443d2826c0e91280d19afbdcb7d29fc45",
+            "size": 45289799
           },
           "darwin-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-darwin-x64.tar.gz",
-            "sha256": "49cd8259be38f1d8fdb26b4e3a0e46d39f327c9a339b8b9548c0661eee2c9b24",
-            "size": 40867851
+            "sha256": "f65a2981ed568ad2c71750a8718aa01c93b6229b5f8c5d4217bcbd3b22240790",
+            "size": 45061673
           },
           "linux-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-linux-arm64.tar.gz",
-            "sha256": "53270cd03b45e1ba3d342191b6d475f5d115b3675b47cedd1b8bb5cfb4e59c5f",
-            "size": 38426287
+            "sha256": "5313024ed2ec55aa83b3b502cd427883bfa994487522eca8d23d7cd45351bc5f",
+            "size": 38429407
           },
           "linux-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-linux-x64.tar.gz",
-            "sha256": "1c8d1902bbfb3bcbcc2650303c1e60f01c2c061cfe8e346fc8ce179e8ea2e959",
-            "size": 38842651
+            "sha256": "831c0282945c25a8e2179844f6028f9b3a470edd606ef6ac69668522f29de0c1",
+            "size": 38841937
           }
         }
       }
