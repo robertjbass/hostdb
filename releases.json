@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-24T19:19:05.517Z",
+  "lastUpdated": "2026-01-24T20:44:08.551Z",
   "databases": {
     "clickhouse": {
       "25.12.3.21": {
