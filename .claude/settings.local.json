@@ -51,7 +51,14 @@
       "WebFetch(domain:hub.docker.com)",
       "Bash(chmod:*)",
       "Bash(pnpm checksums:populate:*)",
-      "Bash(gh run watch:*)"
+      "Bash(gh run watch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git stash:*)"
     ]
   }
 }

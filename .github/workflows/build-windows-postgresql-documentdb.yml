@@ -130,7 +130,7 @@ jobs:
           @echo off
           set PGROOT=C:\pg-windows\postgresql
 
-          cd C:\build\pgvector
+          cd /d C:\build\pgvector
 
           echo === Installing pgvector ===
           nmake /F Makefile.win install
