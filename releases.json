@@ -1,7 +1,7 @@
 {
   "$schema": "./schemas/releases.schema.json",
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2026-01-24T05:38:11.080Z",
+  "lastUpdated": "2026-01-24T05:50:19.742Z",
   "databases": {
     "clickhouse": {
       "25.12.3.21": {
@@ -595,7 +595,28 @@
         "version": "17-0.107.0",
         "releaseTag": "postgresql-documentdb-17-0.107.0",
         "releasedAt": "2026-01-23T23:05:02Z",
-        "platforms": {}
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-darwin-arm64.tar.gz",
+            "sha256": "0a9ac0508be7d5e8bc0b5ba71fd4d8e0d2f78bea5ac61837e5d2312100002989",
+            "size": 28093072
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-darwin-x64.tar.gz",
+            "sha256": "2bc10985503c91b433af0083382099f1701bf40d1d629f7eef4e352633c3c5cf",
+            "size": 28069420
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-linux-arm64.tar.gz",
+            "sha256": "893e032b60c27460afb3aa4a4785e91af4dc19ee13fb2e38ed32797cbe25a533",
+            "size": 38428031
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-linux-x64.tar.gz",
+            "sha256": "b53370c00c1be5f88cbfa4a7cc156831d3281173a228805791b7d602cc941291",
+            "size": 38842108
+          }
+        }
       }
     },
     "qdrant": {
