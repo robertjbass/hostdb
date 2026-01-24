@@ -675,7 +675,8 @@ EXTENSION_DIR="${BUNDLE_DIR}/share/extension"
 if [[ -d "$EXTENSION_DIR" ]]; then
     CTRL_FILES=$(ls "$EXTENSION_DIR" 2>/dev/null | grep '\.control$' | tr '\n' ' ' || true)
     log_info "  extensions (*.control): ${CTRL_FILES}"
-    if ls "$EXTENSION_DIR" 2>/dev/null | grep -q 'documentdb'; then
+    # Use the already-captured CTRL_FILES to check for DocumentDB (avoids shell quirks with repeated ls)
+    if [[ "${CTRL_FILES}" == *"documentdb"* ]]; then
         log_success "DocumentDB extension files present"
     else
         log_error "DocumentDB extension files MISSING - this is a build error!"
