@@ -166,6 +166,8 @@ function verifyCommand(command: string): boolean {
  *
  * Uses tar inside the container to handle symlinks properly,
  * since `docker cp` fails on symlinks pointing outside the copied directory.
+ *
+ * Also fixes library RPATH to make binaries relocatable using $ORIGIN.
  */
 function extractFromDocker(
   source: DockerExtractSource,
@@ -195,8 +197,8 @@ function extractFromDocker(
       { stdio: 'inherit' },
     )
 
-    // Run container with a shell command that creates the proper directory structure
-    // and packages it as a tarball. This handles symlinks properly (cp -L dereferences them).
+    // Run container with a shell command that creates the proper directory structure,
+    // fixes RPATH for relocatable binaries, and packages it as a tarball.
     logInfo('Creating container and extracting PostgreSQL files...')
 
     const pgLibPath = `/usr/lib/postgresql/${pgVersion}`
@@ -206,14 +208,42 @@ function extractFromDocker(
     // 1. Create temp directory with proper structure
     // 2. Copy lib files (bin/, lib/) to root
     // 3. Copy share files (extension/, etc.) to share/
-    // 4. Create tarball
-    const extractScript = [
-      'set -e',
-      'mkdir -p /tmp/pg/share',
-      `cp -rL ${pgLibPath}/* /tmp/pg/`,
-      `cp -rL ${pgSharePath}/* /tmp/pg/share/`,
-      `tar -czf /output/${tarballName} -C /tmp pg`,
-    ].join(' && ')
+    // 4. Install patchelf and fix RPATH for relocatable binaries
+    // 5. Create tarball
+    //
+    // Note: We use single quotes around $ORIGIN in patchelf so the shell
+    // passes it literally (no variable expansion). In JS template literals,
+    // $ only needs escaping when followed by {, so $ORIGIN is fine.
+    const extractScript = `
+set -e
+
+# Create directory structure
+mkdir -p /tmp/pg/share
+cp -rL ${pgLibPath}/* /tmp/pg/
+cp -rL ${pgSharePath}/* /tmp/pg/share/
+
+# Install patchelf for RPATH fixing (suppress output)
+apt-get update -qq && apt-get install -y -qq patchelf > /dev/null 2>&1 || true
+
+# Fix RPATH on binaries to use $ORIGIN/../lib
+echo "Fixing RPATH on binaries..."
+for f in /tmp/pg/bin/*; do
+  if file "$f" | grep -q "ELF"; then
+    patchelf --set-rpath '$ORIGIN/../lib' "$f" 2>/dev/null || true
+  fi
+done
+
+# Fix RPATH on shared libraries to use $ORIGIN
+echo "Fixing RPATH on shared libraries..."
+find /tmp/pg/lib -name "*.so*" -type f 2>/dev/null | while read f; do
+  if file "$f" | grep -q "ELF"; then
+    patchelf --set-rpath '$ORIGIN' "$f" 2>/dev/null || true
+  fi
+done
+
+# Create tarball
+tar -czf /output/${tarballName} -C /tmp pg
+`
 
     execFileSync(
       'docker',
