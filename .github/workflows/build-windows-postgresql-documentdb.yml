@@ -173,85 +173,16 @@ jobs:
           echo Extension library:
           dir "%PGROOT%\lib\vector*" 2>nul || echo Not found
 
-      - name: Build pg_cron with MSVC (Phase 2+)
+      # NOTE: pg_cron is skipped for Windows builds
+      # pg_cron uses Unix-specific types (uid_t, gid_t) that don't exist on Windows
+      # It would require significant patching to port to Windows
+      - name: Skip pg_cron (not available for Windows)
         if: success() && github.event.inputs.phase != '1-pgvector-only'
         shell: pwsh
         run: |
-          $ErrorActionPreference = "Stop"
-          $PG_CRON_VERSION = "1.6.5"
-          $env:PGROOT = "C:\pg-windows\postgresql"
-
-          Write-Host "=== Building pg_cron v$PG_CRON_VERSION with MSVC ==="
-
-          Set-Location C:\build
-
-          if (-not (Test-Path "pg_cron")) {
-            git clone --depth 1 --branch "v$PG_CRON_VERSION" https://github.com/citusdata/pg_cron.git
-          }
-
-          Set-Location C:\build\pg_cron
-
-          Write-Host "`n=== Creating Makefile.win for pg_cron ==="
-
-          # Create Windows makefile for pg_cron
-          @"
-          EXTENSION = pg_cron
-          EXTVERSION = $PG_CRON_VERSION
-
-          OBJS = src\entry.obj src\job_metadata.obj src\misc.obj src\pg_cron.obj src\task_states.obj
-
-          !ifndef PGROOT
-          !error PGROOT is not set
-          !endif
-          BINDIR = `$(PGROOT)\bin
-          INCLUDEDIR = `$(PGROOT)\include
-          INCLUDEDIR_SERVER = `$(PGROOT)\include\server
-          LIBDIR = `$(PGROOT)\lib
-          PKGLIBDIR = `$(PGROOT)\lib
-          SHAREDIR = `$(PGROOT)\share
-
-          CFLAGS = /nologo /I"`$(INCLUDEDIR_SERVER)\port\win32_msvc" /I"`$(INCLUDEDIR_SERVER)\port\win32" /I"`$(INCLUDEDIR_SERVER)" /I"`$(INCLUDEDIR)" /Iinclude /DWIN32 /D_WINDOWS
-
-          SHLIB = `$(EXTENSION).dll
-          LIBS = "`$(LIBDIR)\postgres.lib"
-
-          all: `$(SHLIB)
-
-          .c.obj:
-          	`$(CC) `$(CFLAGS) /c `$< /Fo`$@
-
-          `$(SHLIB): `$(OBJS)
-          	`$(CC) `$(CFLAGS) `$(OBJS) `$(LIBS) /link /DLL /OUT:`$(SHLIB)
-
-          install: all
-          	copy `$(SHLIB) "`$(PKGLIBDIR)"
-          	copy `$(EXTENSION).control "`$(SHAREDIR)\extension"
-          	copy `$(EXTENSION)--*.sql "`$(SHAREDIR)\extension"
-
-          clean:
-          	del /f `$(SHLIB) `$(EXTENSION).lib `$(EXTENSION).exp `$(OBJS)
-          "@ | Out-File -FilePath Makefile.win -Encoding ascii
-
-          Write-Host "`n=== Contents of generated Makefile.win ==="
-          Get-Content Makefile.win
-
-          Write-Host "`n=== Building pg_cron ==="
-          nmake /F Makefile.win
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "`n=== pg_cron build failed ==="
-            exit 1
-          }
-
-          Write-Host "`n=== Installing pg_cron ==="
-          nmake /F Makefile.win install
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "Install failed"
-            exit 1
-          }
-
-          Write-Host "`n=== pg_cron build and install succeeded ==="
-          Get-ChildItem "$env:PGROOT\lib\pg_cron*"
-          Get-ChildItem "$env:PGROOT\share\extension\pg_cron*"
+          Write-Host "=== Skipping pg_cron for Windows build ==="
+          Write-Host "pg_cron uses Unix-specific types (uid_t, gid_t) and requires patching for Windows."
+          Write-Host "This extension is not included in the Windows build."
 
       - name: Build rum with MSVC (Phase 2+)
         if: success() && github.event.inputs.phase != '1-pgvector-only'
