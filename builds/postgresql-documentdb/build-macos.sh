@@ -105,11 +105,49 @@ if [[ ! -x "${PG_CONFIG}" ]]; then
     exit 1
 fi
 
+# Get actual PGXS paths - these are what DESTDIR installs use
+# On Homebrew these differ from brew --prefix (e.g., /opt/homebrew/share/postgresql@17 vs /opt/homebrew/opt/postgresql@17)
+PG_SHAREDIR="$("${PG_CONFIG}" --sharedir)"
+PG_PKGLIBDIR="$("${PG_CONFIG}" --pkglibdir)"
+
+log_info "  pg_config --sharedir: ${PG_SHAREDIR}"
+log_info "  pg_config --pkglibdir: ${PG_PKGLIBDIR}"
+
 log_success "PostgreSQL ${PG_MAJOR} installed at ${PG_PREFIX}"
 
 # Copy base PostgreSQL to bundle
 log_info "Copying base PostgreSQL..."
 cp -R "${PG_PREFIX}/"* "${BUNDLE_DIR}/"
+
+# Helper function to copy extension files from DESTDIR install to bundle
+# PGXS installs to ${DESTDIR}${PG_SHAREDIR} and ${DESTDIR}${PG_PKGLIBDIR}
+# which differ from ${DESTDIR}${PG_PREFIX} on Homebrew
+copy_extension_from_destdir() {
+    local destdir="$1"
+    local name="$2"
+
+    # Copy shared libraries from pkglibdir
+    local src_lib="${destdir}${PG_PKGLIBDIR}"
+    if [[ -d "$src_lib" ]]; then
+        log_info "  Copying ${name} libraries from ${src_lib}"
+        mkdir -p "${BUNDLE_DIR}/lib/postgresql"
+        cp -R "${src_lib}/"* "${BUNDLE_DIR}/lib/postgresql/" 2>/dev/null || true
+    fi
+
+    # Copy extension control files and SQL from sharedir
+    local src_share="${destdir}${PG_SHAREDIR}"
+    if [[ -d "$src_share" ]]; then
+        log_info "  Copying ${name} extension files from ${src_share}"
+        mkdir -p "${BUNDLE_DIR}/share/postgresql"
+        cp -R "${src_share}/"* "${BUNDLE_DIR}/share/postgresql/" 2>/dev/null || true
+    fi
+
+    # Also check the old-style path in case PGXS behavior changes
+    if [[ -d "${destdir}${PG_PREFIX}" ]]; then
+        log_info "  Copying ${name} files from ${destdir}${PG_PREFIX}"
+        cp -R "${destdir}${PG_PREFIX}/"* "${BUNDLE_DIR}/" 2>/dev/null || true
+    fi
+}
 
 # Install build dependencies
 log_info "Installing build dependencies..."
@@ -369,10 +407,8 @@ make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLAN
 make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= install DESTDIR="${BUILD_DIR}/documentdb_install"
 make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= install DESTDIR="${BUILD_DIR}/documentdb_install"
 
-# Copy DocumentDB files to bundle
-if [[ -d "${BUILD_DIR}/documentdb_install${PG_PREFIX}" ]]; then
-    cp -R "${BUILD_DIR}/documentdb_install${PG_PREFIX}/"* "${BUNDLE_DIR}/"
-fi
+# Copy DocumentDB files to bundle using helper (handles PGXS path differences)
+copy_extension_from_destdir "${BUILD_DIR}/documentdb_install" "DocumentDB"
 
 log_success "DocumentDB extension built"
 
@@ -390,10 +426,8 @@ cd pg_cron
 make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" PG_LDFLAGS="-undefined dynamic_lookup" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" PG_LDFLAGS="-undefined dynamic_lookup" install DESTDIR="${BUILD_DIR}/pg_cron_install"
 
-# Copy pg_cron files to bundle
-if [[ -d "${BUILD_DIR}/pg_cron_install${PG_PREFIX}" ]]; then
-    cp -R "${BUILD_DIR}/pg_cron_install${PG_PREFIX}/"* "${BUNDLE_DIR}/"
-fi
+# Copy pg_cron files to bundle using helper (handles PGXS path differences)
+copy_extension_from_destdir "${BUILD_DIR}/pg_cron_install" "pg_cron"
 
 log_success "pg_cron built"
 
@@ -407,10 +441,8 @@ cd pgvector
 make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
 make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install DESTDIR="${BUILD_DIR}/pgvector_install"
 
-# Copy pgvector files to bundle
-if [[ -d "${BUILD_DIR}/pgvector_install${PG_PREFIX}" ]]; then
-    cp -R "${BUILD_DIR}/pgvector_install${PG_PREFIX}/"* "${BUNDLE_DIR}/"
-fi
+# Copy pgvector files to bundle using helper (handles PGXS path differences)
+copy_extension_from_destdir "${BUILD_DIR}/pgvector_install" "pgvector"
 
 log_success "pgvector built"
 
@@ -424,10 +456,8 @@ cd rum
 make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
 make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install DESTDIR="${BUILD_DIR}/rum_install"
 
-# Copy rum files to bundle
-if [[ -d "${BUILD_DIR}/rum_install${PG_PREFIX}" ]]; then
-    cp -R "${BUILD_DIR}/rum_install${PG_PREFIX}/"* "${BUNDLE_DIR}/"
-fi
+# Copy rum files to bundle using helper (handles PGXS path differences)
+copy_extension_from_destdir "${BUILD_DIR}/rum_install" "rum"
 
 log_success "rum built"
 
@@ -728,15 +758,28 @@ log_info "Built files:"
 if [[ -d "${BUNDLE_DIR}/bin" ]]; then
     log_info "  bin/: $(ls "${BUNDLE_DIR}/bin" | head -10 | tr '\n' ' ')..."
 fi
-if [[ -d "${BUNDLE_DIR}/lib" ]]; then
+if [[ -d "${BUNDLE_DIR}/lib/postgresql" ]]; then
     # Use || true to prevent pipefail from exiting on no matches
-    SO_FILES=$(ls "${BUNDLE_DIR}/lib" 2>/dev/null | grep -E '\.(so|dylib)$' | head -10 | tr '\n' ' ' || true)
-    log_info "  lib/ (*.so/*.dylib): ${SO_FILES}..."
+    SO_FILES=$(ls "${BUNDLE_DIR}/lib/postgresql" 2>/dev/null | grep -E '\.(so|dylib)$' | head -10 | tr '\n' ' ' || true)
+    log_info "  lib/postgresql/ (*.so/*.dylib): ${SO_FILES}..."
 fi
-if [[ -d "${BUNDLE_DIR}/share/extension" ]]; then
+# Check both paths for extensions (Homebrew structure vs standard)
+EXTENSION_DIR=""
+if [[ -d "${BUNDLE_DIR}/share/postgresql/extension" ]]; then
+    EXTENSION_DIR="${BUNDLE_DIR}/share/postgresql/extension"
+elif [[ -d "${BUNDLE_DIR}/share/extension" ]]; then
+    EXTENSION_DIR="${BUNDLE_DIR}/share/extension"
+fi
+if [[ -n "$EXTENSION_DIR" ]]; then
     # Use || true to prevent pipefail from exiting on no matches
-    CTRL_FILES=$(ls "${BUNDLE_DIR}/share/extension" 2>/dev/null | grep '\.control$' | tr '\n' ' ' || true)
-    log_info "  share/extension/ (*.control): ${CTRL_FILES}"
+    CTRL_FILES=$(ls "$EXTENSION_DIR" 2>/dev/null | grep '\.control$' | tr '\n' ' ' || true)
+    log_info "  extensions (*.control): ${CTRL_FILES}"
+    # Verify DocumentDB extension is present
+    if ls "$EXTENSION_DIR" 2>/dev/null | grep -q 'documentdb'; then
+        log_success "DocumentDB extension files present"
+    else
+        log_error "DocumentDB extension files MISSING - this is a build error!"
+    fi
 fi
 
 # Create tarball
