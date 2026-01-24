@@ -255,6 +255,16 @@ find "${BUNDLE_DIR}/share/extension" -name "documentdb*.sql" -exec \
     sed -i -e 's/## //g' -e 's/##_/_/g' -e 's/_##/_/g' -e 's/##//g' {} \;
 echo "[OK] DocumentDB SQL files patched"
 
+# Patch DocumentDB SQL files: bson_in/out/send/recv point to wrong library
+echo "[INFO] Patching DocumentDB SQL files (fixing bson function library references)..."
+for sqlfile in "${BUNDLE_DIR}/share/extension/documentdb--0.101-0--0.102-0.sql" \
+               "${BUNDLE_DIR}/share/extension/documentdb--0.102-0--0.102-1.sql"; do
+    if [[ -f "$sqlfile" ]]; then
+        sed -i -E "s/AS 'MODULE_PATHNAME', \\\$function\\\$(bson_in|bson_out|bson_send|bson_recv)\\\$function\\\$/AS '\$libdir\/pg_documentdb_core', \$function\$\1\$function\$/g" "$sqlfile"
+    fi
+done
+echo "[OK] DocumentDB bson function references patched"
+
 # ============================================================================
 # Build pg_cron
 # ============================================================================
