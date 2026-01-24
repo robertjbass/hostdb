@@ -510,11 +510,28 @@ copy_lib_recursive() {
 
     # Recursively process this library's dependencies
     local deps
+    local lib_dir
+    lib_dir=$(dirname "$lib_path")
     deps=$(otool -L "$lib_path" 2>/dev/null | tail -n +2 | awk '{print $1}') || return 0
 
     for dep in $deps; do
-        # Skip system libs and already-relative paths
-        if [[ "$dep" == /usr/lib/* ]] || [[ "$dep" == /System/* ]] || [[ "$dep" == "@"* ]]; then
+        # Skip system libs
+        if [[ "$dep" == /usr/lib/* ]] || [[ "$dep" == /System/* ]]; then
+            continue
+        fi
+
+        # Handle @loader_path references - resolve relative to source library's directory
+        if [[ "$dep" == @loader_path/* ]]; then
+            local relative_name="${dep#@loader_path/}"
+            local resolved_path="${lib_dir}/${relative_name}"
+            if [[ -f "$resolved_path" ]]; then
+                copy_lib_recursive "$resolved_path"
+            fi
+            continue
+        fi
+
+        # Skip other @-prefixed paths (@rpath, @executable_path, etc.)
+        if [[ "$dep" == "@"* ]]; then
             continue
         fi
 
