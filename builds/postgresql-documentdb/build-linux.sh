@@ -249,6 +249,12 @@ make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="$
 make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${ICU_LINK}" WERROR= install > /dev/null 2>&1
 echo "[OK] DocumentDB built and installed"
 
+# Patch DocumentDB SQL files: ## in identifiers is invalid PostgreSQL syntax
+echo "[INFO] Patching DocumentDB SQL files (fixing ## in identifiers)..."
+find "${BUNDLE_DIR}/share/extension" -name "documentdb*.sql" -exec \
+    sed -i 's/documentdb##/documentdb_rum_/g' {} \;
+echo "[OK] DocumentDB SQL files patched"
+
 # ============================================================================
 # Build pg_cron
 # ============================================================================

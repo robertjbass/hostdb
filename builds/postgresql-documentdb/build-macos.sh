@@ -388,6 +388,13 @@ make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLAN
 
 log_success "DocumentDB extension built and installed"
 
+# Patch DocumentDB SQL files: ## in identifiers is invalid PostgreSQL syntax
+# Upstream bug: https://github.com/FerretDB/documentdb uses documentdb##rumhandler etc.
+log_info "Patching DocumentDB SQL files (fixing ## in identifiers)..."
+find "${BUNDLE_DIR}/share/extension" -name "documentdb*.sql" -exec \
+    sed -i '' 's/documentdb##/documentdb_rum_/g' {} \;
+log_success "DocumentDB SQL files patched"
+
 # ============================================================================
 # STEP 6: Build pg_cron
 # ============================================================================
