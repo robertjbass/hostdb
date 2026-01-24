@@ -480,9 +480,36 @@ make -C postgis install
 
 # Generate and install extension SQL files
 log_info "Installing PostGIS extension files..."
+make -C extensions/postgis 2>/dev/null || true
 make -C extensions/postgis install 2>/dev/null || true
 
-log_success "PostGIS ${POSTGIS_VERSION} built and installed"
+# If make install failed, manually copy the essential extension files
+POSTGIS_EXT_DIR="${BUNDLE_DIR}/share/extension"
+if [[ ! -f "${POSTGIS_EXT_DIR}/postgis.control" ]]; then
+    log_warn "PostGIS extension install failed, copying files manually..."
+
+    # Copy control file
+    if [[ -f "${POSTGIS_DIR}/extensions/postgis/postgis.control" ]]; then
+        cp "${POSTGIS_DIR}/extensions/postgis/postgis.control" "${POSTGIS_EXT_DIR}/"
+    fi
+
+    # Copy SQL files - find and copy all postgis*.sql files
+    find "${POSTGIS_DIR}/extensions/postgis/sql" -name "postgis*.sql" -exec cp {} "${POSTGIS_EXT_DIR}/" \; 2>/dev/null || true
+
+    # If that didn't work, try the generated file directly
+    if [[ ! -f "${POSTGIS_EXT_DIR}/postgis--${POSTGIS_VERSION}.sql" ]]; then
+        if [[ -f "${POSTGIS_DIR}/extensions/postgis/sql/postgis--${POSTGIS_VERSION}.sql" ]]; then
+            cp "${POSTGIS_DIR}/extensions/postgis/sql/postgis--${POSTGIS_VERSION}.sql" "${POSTGIS_EXT_DIR}/"
+        fi
+    fi
+fi
+
+# Verify PostGIS extension files
+if [[ -f "${POSTGIS_EXT_DIR}/postgis.control" ]]; then
+    log_success "PostGIS ${POSTGIS_VERSION} built and installed"
+else
+    log_error "PostGIS extension files missing - check build logs"
+fi
 
 # ============================================================================
 # STEP 10: Fix library paths to make binaries fully relocatable
