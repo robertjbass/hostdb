@@ -21,6 +21,7 @@ on:
           - 'linux-arm64'
           - 'darwin-x64'
           - 'darwin-arm64'
+          - 'win32-x64'
 
 # Prevent concurrent runs that could conflict when updating releases.json
 concurrency:
@@ -90,12 +91,13 @@ jobs:
         run: |
           PLATFORMS="${{ github.event.inputs.platforms }}"
           if [ "$PLATFORMS" = "all" ]; then
-            # All 4 supported platforms
+            # All 5 supported platforms
             MATRIX='[
               {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
               {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
               {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
-              {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "native"}
+              {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "native"},
+              {"platform": "win32-x64", "runner": "windows-latest", "build_type": "windows"}
             ]'
           else
             # Single platform
@@ -108,6 +110,9 @@ jobs:
                 ;;
               darwin-arm64)
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-14\", \"build_type\": \"native\"}]"
+                ;;
+              win32-x64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"windows-latest\", \"build_type\": \"windows\"}]"
                 ;;
               *)
                 echo "::error::Unsupported platform: $PLATFORMS"
@@ -202,7 +207,110 @@ jobs:
           fi
           ls -la ./dist/
 
-      - name: Generate checksum
+      # For Windows: MSVC build (pgvector only - DocumentDB not available on Windows)
+      - name: Build for Windows (MSVC)
+        if: matrix.build_type == 'windows'
+        id: build-windows
+        timeout-minutes: 30
+        shell: pwsh
+        run: |
+          $VERSION = "${{ github.event.inputs.version }}"
+          $PGVECTOR_VERSION = "0.8.0"
+
+          Write-Host "=== Building PostgreSQL + pgvector for Windows ==="
+          Write-Host "Note: DocumentDB, pg_cron, and rum are not available on Windows"
+
+          # Download PostgreSQL from EDB
+          $PG_URL = "https://sbp.enterprisedb.com/getfile.jsp?fileid=1259911"
+          $PG_DIR = "C:\pg-windows"
+
+          New-Item -ItemType Directory -Force -Path $PG_DIR | Out-Null
+          Set-Location $PG_DIR
+
+          Write-Host "Downloading PostgreSQL..."
+          Invoke-WebRequest -Uri $PG_URL -OutFile postgresql.zip
+
+          Write-Host "Extracting..."
+          Expand-Archive -Path postgresql.zip -DestinationPath .
+
+          if (Test-Path "pgsql") {
+            Rename-Item "pgsql" "postgresql"
+          }
+
+          $env:PGROOT = "$PG_DIR\postgresql"
+          Write-Host "PostgreSQL installed at: $env:PGROOT"
+
+      - name: Setup Visual Studio (Windows)
+        if: matrix.build_type == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build pgvector (Windows)
+        if: matrix.build_type == 'windows'
+        shell: cmd
+        run: |
+          @echo off
+          setlocal enabledelayedexpansion
+
+          set PGVECTOR_VERSION=0.8.0
+          set PGROOT=C:\pg-windows\postgresql
+
+          echo === Building pgvector v%PGVECTOR_VERSION% ===
+
+          mkdir C:\build 2>nul
+          cd /d C:\build
+
+          if not exist pgvector (
+            git clone --depth 1 --branch v%PGVECTOR_VERSION% https://github.com/pgvector/pgvector.git
+          )
+
+          cd /d C:\build\pgvector
+
+          nmake /F Makefile.win
+          if errorlevel 1 exit /b 1
+
+          nmake /F Makefile.win install
+          if errorlevel 1 exit /b 1
+
+          echo === pgvector installed successfully ===
+
+      - name: Create Windows artifact
+        if: matrix.build_type == 'windows'
+        shell: pwsh
+        run: |
+          $VERSION = "${{ github.event.inputs.version }}"
+          $PG_DIR = "C:\pg-windows\postgresql"
+
+          New-Item -ItemType Directory -Force -Path .\dist | Out-Null
+
+          # Copy PostgreSQL with pgvector
+          Copy-Item -Recurse -Path $PG_DIR -Destination .\dist\postgresql-documentdb
+
+          # Add metadata noting Windows limitations
+          $metadata = @{
+            name = "postgresql-documentdb"
+            version = $VERSION
+            platform = "win32-x64"
+            extensions = @("pgvector")
+            extensions_unavailable = @("documentdb", "pg_cron", "rum", "postgis")
+            source = "windows-msvc-build"
+            rehosted_by = "hostdb"
+            rehosted_at = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
+            note = "Windows build only includes pgvector. DocumentDB and other extensions require Unix."
+          } | ConvertTo-Json -Depth 3
+
+          $metadata | Out-File -FilePath ".\dist\postgresql-documentdb\.hostdb-metadata.json" -Encoding utf8
+
+          # Create zip (Windows convention)
+          $zipName = "postgresql-documentdb-$VERSION-win32-x64.zip"
+          Compress-Archive -Path .\dist\postgresql-documentdb -DestinationPath ".\dist\$zipName"
+
+          Write-Host "Created: $zipName"
+          Get-ChildItem .\dist\*.zip
+
+      - name: Generate checksum (Unix)
+        if: matrix.build_type != 'windows'
         run: |
           cd dist
           shopt -s nullglob
@@ -217,6 +325,17 @@ jobs:
             fi
           done
           cat checksums.txt
+
+      - name: Generate checksum (Windows)
+        if: matrix.build_type == 'windows'
+        shell: pwsh
+        run: |
+          Set-Location dist
+          Get-ChildItem *.zip | ForEach-Object {
+            $hash = Get-FileHash -Algorithm SHA256 $_
+            "$($hash.Hash.ToLower())  $($_.Name)" | Out-File -Append -Encoding ascii checksums.txt
+          }
+          Get-Content checksums.txt
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -247,8 +366,9 @@ jobs:
         run: |
           mkdir -p ./release-assets
 
-          # Move all artifacts to release-assets
+          # Move all artifacts to release-assets (tar.gz for Unix, zip for Windows)
           find ./artifacts -type f -name "*.tar.gz" -exec mv {} ./release-assets/ \;
+          find ./artifacts -type f -name "*.zip" -exec mv {} ./release-assets/ \;
 
           # Combine all checksums
           find ./artifacts -name "checksums.txt" -exec cat {} \; > ./release-assets/checksums.txt
@@ -258,7 +378,7 @@ jobs:
 
           # Verify we have at least one artifact
           shopt -s nullglob
-          FILES=(./release-assets/*.tar.gz)
+          FILES=(./release-assets/*.tar.gz ./release-assets/*.zip)
           if [ ${#FILES[@]} -eq 0 ]; then
             echo "ERROR: No artifacts were created for any platform"
             exit 1
@@ -289,19 +409,25 @@ jobs:
             Apache-2.0 - Fully permissive for commercial use.
 
             ### Available Platforms
-            | Platform | Source |
-            |----------|--------|
-            | `linux-x64` | Extracted from Docker image |
-            | `linux-arm64` | Extracted from Docker image |
-            | `darwin-x64` | Built from source (native macOS) |
-            | `darwin-arm64` | Built from source (native macOS) |
+            | Platform | Extensions | Source |
+            |----------|-----------|--------|
+            | `linux-x64` | Full bundle | Extracted from Docker image |
+            | `linux-arm64` | Full bundle | Extracted from Docker image |
+            | `darwin-x64` | Full bundle | Built from source (native macOS) |
+            | `darwin-arm64` | Full bundle | Built from source (native macOS) |
+            | `win32-x64` | pgvector only* | Built with MSVC |
+
+            *Windows build only includes pgvector. DocumentDB, pg_cron, rum, and PostGIS are not available on Windows due to platform limitations.
 
             ### Usage
             ```bash
-            # Download URL pattern
+            # Download URL pattern (Unix)
             https://github.com/${{ github.repository }}/releases/download/postgresql-documentdb-${{ github.event.inputs.version }}/postgresql-documentdb-${{ github.event.inputs.version }}-<platform>.tar.gz
 
-            # Start with DocumentDB extension
+            # Download URL pattern (Windows)
+            https://github.com/${{ github.repository }}/releases/download/postgresql-documentdb-${{ github.event.inputs.version }}/postgresql-documentdb-${{ github.event.inputs.version }}-win32-x64.zip
+
+            # Start with DocumentDB extension (Unix)
             ./postgresql-documentdb/bin/initdb -D /path/to/data
             ./postgresql-documentdb/bin/pg_ctl -D /path/to/data -l logfile start
             ./postgresql-documentdb/bin/psql -c "CREATE EXTENSION documentdb CASCADE;"
@@ -315,6 +441,7 @@ jobs:
             - DocumentDB: [GitHub](https://github.com/FerretDB/documentdb)
           files: |
             release-assets/*.tar.gz
+            release-assets/*.zip
             release-assets/checksums.txt
           fail_on_unmatched_files: false
 
