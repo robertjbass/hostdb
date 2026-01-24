@@ -448,6 +448,7 @@ JSONC_PREFIX="$(brew --prefix json-c)"
 PROTOBUFC_PREFIX="$(brew --prefix protobuf-c)"
 
 # Configure PostGIS against our source-built PostgreSQL
+# Note: We enable raster/topology because --without-* flags have build system issues in 3.5.x
 log_info "Configuring PostGIS..."
 ./configure \
     --with-pgconfig="${PG_CONFIG}" \
@@ -456,11 +457,10 @@ log_info "Configuring PostGIS..."
     --with-gdalconfig="${GDAL_PREFIX}/bin/gdal-config" \
     --with-jsondir="${JSONC_PREFIX}" \
     --with-protobufdir="${PROTOBUFC_PREFIX}" \
-    --without-raster \
-    --without-topology \
     --without-sfcgal \
     --without-gui \
-    --without-phony-revision
+    --without-phony-revision \
+    --without-interrupt-tests
 
 # Build PostGIS
 log_info "Building PostGIS (this may take a while)..."
