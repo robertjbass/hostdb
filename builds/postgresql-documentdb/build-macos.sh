@@ -21,7 +21,7 @@
 #   - pg_cron
 #   - pgvector
 #   - rum
-#   - PostGIS (via Homebrew - too complex to build from source)
+#   - PostGIS (from source, using Homebrew for dependencies)
 #
 
 set -euo pipefail
@@ -112,7 +112,10 @@ mkdir -p "${BUNDLE_DIR}" "${SOURCES_DIR}" "${PG_INSTALL_DIR}"
 # STEP 1: Install build dependencies via Homebrew
 # ============================================================================
 log_info "Installing build dependencies via Homebrew..."
+# PostgreSQL + extension build dependencies
 brew install openssl@3 readline libxml2 icu4c zlib lz4 zstd pkg-config cmake pcre2 mongo-c-driver || true
+# PostGIS build dependencies (we build PostGIS from source against our PostgreSQL)
+brew install geos proj gdal json-c protobuf-c sfcgal || true
 
 # Get Homebrew prefixes for dependencies
 OPENSSL_PREFIX="$(brew --prefix openssl@3)"
@@ -425,28 +428,49 @@ make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install
 log_success "rum built and installed"
 
 # ============================================================================
-# STEP 9: Install PostGIS via Homebrew (too complex to build from source)
+# STEP 9: Build PostGIS from source
 # ============================================================================
-log_info "Installing PostGIS via Homebrew..."
-brew install postgis || log_warn "PostGIS may already be installed"
+POSTGIS_VERSION="3.5.2"
+POSTGIS_URL="https://download.osgeo.org/postgis/source/postgis-${POSTGIS_VERSION}.tar.gz"
+POSTGIS_DIR="${SOURCES_DIR}/postgis-${POSTGIS_VERSION}"
 
-# Copy PostGIS extension files from Homebrew
-POSTGIS_LIB_DIR="$(brew --prefix postgis)/lib"
-POSTGIS_SHARE_DIR="$(brew --prefix postgis)/share/postgresql@${PG_MAJOR}"
+log_info "Building PostGIS ${POSTGIS_VERSION} from source..."
+log_info "Downloading PostGIS source..."
+curl -fsSL "${POSTGIS_URL}" | tar xz -C "${SOURCES_DIR}"
 
-if [[ -d "${POSTGIS_LIB_DIR}" ]]; then
-    log_info "Copying PostGIS libraries..."
-    mkdir -p "${BUNDLE_DIR}/lib"
-    cp -R "${POSTGIS_LIB_DIR}/"*.dylib "${BUNDLE_DIR}/lib/" 2>/dev/null || true
-fi
+cd "${POSTGIS_DIR}"
 
-if [[ -d "${POSTGIS_SHARE_DIR}/extension" ]]; then
-    log_info "Copying PostGIS extension files..."
-    mkdir -p "${BUNDLE_DIR}/share/extension"
-    cp "${POSTGIS_SHARE_DIR}/extension/"postgis* "${BUNDLE_DIR}/share/extension/" 2>/dev/null || true
-fi
+# Get Homebrew prefix for dependencies
+GEOS_PREFIX="$(brew --prefix geos)"
+PROJ_PREFIX="$(brew --prefix proj)"
+GDAL_PREFIX="$(brew --prefix gdal)"
+JSONC_PREFIX="$(brew --prefix json-c)"
+PROTOBUFC_PREFIX="$(brew --prefix protobuf-c)"
 
-log_success "PostGIS installed"
+# Configure PostGIS against our source-built PostgreSQL
+log_info "Configuring PostGIS..."
+./configure \
+    --with-pgconfig="${PG_CONFIG}" \
+    --with-geosconfig="${GEOS_PREFIX}/bin/geos-config" \
+    --with-projdir="${PROJ_PREFIX}" \
+    --with-gdalconfig="${GDAL_PREFIX}/bin/gdal-config" \
+    --with-jsondir="${JSONC_PREFIX}" \
+    --with-protobufdir="${PROTOBUFC_PREFIX}" \
+    --without-raster \
+    --without-topology \
+    --without-sfcgal \
+    --without-gui \
+    --without-phony-revision
+
+# Build PostGIS
+log_info "Building PostGIS (this may take a while)..."
+make -j"$(sysctl -n hw.ncpu)"
+
+# Install PostGIS to our bundle
+log_info "Installing PostGIS..."
+make install
+
+log_success "PostGIS ${POSTGIS_VERSION} built and installed"
 
 # ============================================================================
 # STEP 10: Fix library paths to make binaries fully relocatable
@@ -682,6 +706,25 @@ if [[ -d "$EXTENSION_DIR" ]]; then
         log_error "DocumentDB extension files MISSING - this is a build error!"
     fi
 fi
+
+# ============================================================================
+# STEP 12: Sign binaries for macOS Gatekeeper
+# ============================================================================
+log_info "Signing binaries for macOS Gatekeeper..."
+
+SIGNED_COUNT=0
+for f in "${BUNDLE_DIR}/bin/"*; do
+    if [[ -f "$f" ]] && file "$f" | grep -q "Mach-O"; then
+        codesign -s - --force "$f" 2>/dev/null && ((SIGNED_COUNT++)) || true
+    fi
+done
+for f in "${BUNDLE_DIR}/lib/"*.dylib; do
+    if [[ -f "$f" ]]; then
+        codesign -s - --force "$f" 2>/dev/null && ((SIGNED_COUNT++)) || true
+    fi
+done
+
+log_success "Signed ${SIGNED_COUNT} binaries"
 
 # Create tarball
 OUTPUT_FILE="${OUTPUT_DIR}/postgresql-documentdb-${VERSION}-${PLATFORM}.tar.gz"
