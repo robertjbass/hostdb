@@ -173,6 +173,196 @@ jobs:
           echo Extension library:
           dir "%PGROOT%\lib\vector*" 2>nul || echo Not found
 
+      - name: Build pg_cron with MSVC (Phase 2+)
+        if: success() && github.event.inputs.phase != '1-pgvector-only'
+        shell: cmd
+        run: |
+          @echo off
+          setlocal enabledelayedexpansion
+
+          set PG_CRON_VERSION=1.6.5
+          set PGROOT=C:\pg-windows\postgresql
+
+          echo === Building pg_cron v%PG_CRON_VERSION% with MSVC ===
+
+          cd /d C:\build
+
+          if not exist pg_cron (
+            git clone --depth 1 --branch v%PG_CRON_VERSION% https://github.com/citusdata/pg_cron.git
+          )
+
+          cd /d C:\build\pg_cron
+
+          echo.
+          echo === Creating Makefile.win for pg_cron ===
+
+          :: Create Windows makefile for pg_cron
+          (
+            echo EXTENSION = pg_cron
+            echo EXTVERSION = %PG_CRON_VERSION%
+            echo.
+            echo OBJS = src\entry.obj src\job_metadata.obj src\misc.obj src\pg_cron.obj src\task_states.obj
+            echo.
+            echo !ifndef PGROOT
+            echo !error PGROOT is not set
+            echo !endif
+            echo BINDIR = $(PGROOT^)\bin
+            echo INCLUDEDIR = $(PGROOT^)\include
+            echo INCLUDEDIR_SERVER = $(PGROOT^)\include\server
+            echo LIBDIR = $(PGROOT^)\lib
+            echo PKGLIBDIR = $(PGROOT^)\lib
+            echo SHAREDIR = $(PGROOT^)\share
+            echo.
+            echo CFLAGS = /nologo /I"$(INCLUDEDIR_SERVER^)\port\win32_msvc" /I"$(INCLUDEDIR_SERVER^)\port\win32" /I"$(INCLUDEDIR_SERVER^)" /I"$(INCLUDEDIR^)" /Iinclude /DWIN32 /D_WINDOWS
+            echo.
+            echo SHLIB = $(EXTENSION^).dll
+            echo LIBS = "$(LIBDIR^)\postgres.lib"
+            echo.
+            echo all: $(SHLIB^)
+            echo.
+            echo .c.obj:
+            echo 	$(CC^) $(CFLAGS^) /c $^< /Fo$@
+            echo.
+            echo $(SHLIB^): $(OBJS^)
+            echo 	$(CC^) $(CFLAGS^) $(OBJS^) $(LIBS^) /link /DLL /OUT:$(SHLIB^)
+            echo.
+            echo install: all
+            echo 	copy $(SHLIB^) "$(PKGLIBDIR^)"
+            echo 	copy $(EXTENSION^).control "$(SHAREDIR^)\extension"
+            echo 	copy $(EXTENSION^)--*.sql "$(SHAREDIR^)\extension"
+            echo.
+            echo clean:
+            echo 	del /f $(SHLIB^) $(EXTENSION^).lib $(EXTENSION^).exp $(OBJS^)
+          ) > Makefile.win
+
+          echo.
+          echo === Contents of generated Makefile.win ===
+          type Makefile.win
+
+          echo.
+          echo === Building pg_cron ===
+          nmake /F Makefile.win
+
+          if errorlevel 1 (
+            echo.
+            echo === pg_cron build failed ===
+            exit /b 1
+          )
+
+          echo.
+          echo === Installing pg_cron ===
+          nmake /F Makefile.win install
+
+          if errorlevel 1 (
+            echo Install failed
+            exit /b 1
+          )
+
+          echo.
+          echo === pg_cron build and install succeeded ===
+          dir "%PGROOT%\lib\pg_cron*"
+          dir "%PGROOT%\share\extension\pg_cron*"
+
+      - name: Build rum with MSVC (Phase 2+)
+        if: success() && github.event.inputs.phase != '1-pgvector-only'
+        shell: cmd
+        run: |
+          @echo off
+          setlocal enabledelayedexpansion
+
+          set RUM_VERSION=1.3.14
+          set PGROOT=C:\pg-windows\postgresql
+
+          echo === Building rum v%RUM_VERSION% with MSVC ===
+
+          cd /d C:\build
+
+          if not exist rum (
+            git clone --depth 1 --branch %RUM_VERSION% https://github.com/postgrespro/rum.git
+          )
+
+          cd /d C:\build\rum
+
+          echo.
+          echo === Checking rum source files ===
+          dir src\*.c
+
+          echo.
+          echo === Creating Makefile.win for rum ===
+
+          :: Get list of source files dynamically
+          set "OBJS="
+          for %%f in (src\*.c) do (
+            set "OBJS=!OBJS! src\%%~nf.obj"
+          )
+
+          :: Create Windows makefile for rum
+          (
+            echo EXTENSION = rum
+            echo EXTVERSION = %RUM_VERSION%
+            echo.
+            echo OBJS = !OBJS!
+            echo.
+            echo !ifndef PGROOT
+            echo !error PGROOT is not set
+            echo !endif
+            echo BINDIR = $(PGROOT^)\bin
+            echo INCLUDEDIR = $(PGROOT^)\include
+            echo INCLUDEDIR_SERVER = $(PGROOT^)\include\server
+            echo LIBDIR = $(PGROOT^)\lib
+            echo PKGLIBDIR = $(PGROOT^)\lib
+            echo SHAREDIR = $(PGROOT^)\share
+            echo.
+            echo CFLAGS = /nologo /I"$(INCLUDEDIR_SERVER^)\port\win32_msvc" /I"$(INCLUDEDIR_SERVER^)\port\win32" /I"$(INCLUDEDIR_SERVER^)" /I"$(INCLUDEDIR^)" /Isrc /DWIN32 /D_WINDOWS
+            echo.
+            echo SHLIB = $(EXTENSION^).dll
+            echo LIBS = "$(LIBDIR^)\postgres.lib"
+            echo.
+            echo all: $(SHLIB^)
+            echo.
+            echo .c.obj:
+            echo 	$(CC^) $(CFLAGS^) /c $^< /Fo$@
+            echo.
+            echo $(SHLIB^): $(OBJS^)
+            echo 	$(CC^) $(CFLAGS^) $(OBJS^) $(LIBS^) /link /DLL /OUT:$(SHLIB^)
+            echo.
+            echo install: all
+            echo 	copy $(SHLIB^) "$(PKGLIBDIR^)"
+            echo 	copy $(EXTENSION^).control "$(SHAREDIR^)\extension"
+            echo 	copy $(EXTENSION^)--*.sql "$(SHAREDIR^)\extension"
+            echo.
+            echo clean:
+            echo 	del /f $(SHLIB^) $(EXTENSION^).lib $(EXTENSION^).exp $(OBJS^)
+          ) > Makefile.win
+
+          echo.
+          echo === Contents of generated Makefile.win ===
+          type Makefile.win
+
+          echo.
+          echo === Building rum ===
+          nmake /F Makefile.win
+
+          if errorlevel 1 (
+            echo.
+            echo === rum build failed ===
+            exit /b 1
+          )
+
+          echo.
+          echo === Installing rum ===
+          nmake /F Makefile.win install
+
+          if errorlevel 1 (
+            echo Install failed
+            exit /b 1
+          )
+
+          echo.
+          echo === rum build and install succeeded ===
+          dir "%PGROOT%\lib\rum*"
+          dir "%PGROOT%\share\extension\rum*"
+
       - name: Create artifact
         if: success()
         shell: pwsh

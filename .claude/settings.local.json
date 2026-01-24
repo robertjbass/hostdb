@@ -59,7 +59,8 @@
       "Bash(git pull:*)",
       "Bash(git merge:*)",
       "Bash(git stash:*)",
-      "Bash(git worktree:*)"
+      "Bash(git worktree:*)",
+      "WebFetch(domain:api.github.com)"
     ]
   }
 }
