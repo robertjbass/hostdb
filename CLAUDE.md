@@ -408,3 +408,99 @@ The root `package.json` has `"private": true` because:
 - Downloads: 2-5 minutes
 - Docker builds (QEMU): 45-90+ minutes
 - Native macOS builds: 30-60 minutes
+
+## macOS Source Build Learnings (PostgreSQL-DocumentDB)
+
+Building PostgreSQL with extensions from source on macOS requires careful handling of library paths and code signing. These lessons apply to any macOS source build that needs relocatable binaries.
+
+### Why Build from Source Instead of Homebrew?
+
+Homebrew binaries have **hardcoded absolute paths** (e.g., `/opt/homebrew/lib/libssl.3.dylib`). For relocatable binaries that work on any machine:
+
+1. Build PostgreSQL from source with relative paths
+2. Build extensions (PostGIS, DocumentDB) from source against that PostgreSQL
+3. Bundle all Homebrew dependencies and rewrite their paths
+
+### macOS dylib Path Rewriting
+
+macOS dynamic libraries use special path prefixes:
+
+| Prefix | Meaning | When to Use |
+|--------|---------|-------------|
+| `@rpath` | Search paths defined in the binary's LC_RPATH | Libraries that could be in multiple locations |
+| `@loader_path` | Directory containing the loading binary | Bundled libraries next to executables |
+| `@executable_path` | Directory containing the main executable | App bundles |
+
+**Workflow for making binaries relocatable:**
+
+1. **Copy dependencies recursively** - Use `otool -L` to find dependencies, copy them to bundle
+2. **Handle `@rpath` references** - Resolve by searching Homebrew locations (`/opt/homebrew/lib`, `/usr/local/lib`)
+3. **Rewrite paths with install_name_tool**:
+   ```bash
+   # Change library's own ID
+   install_name_tool -id "@loader_path/libfoo.dylib" libfoo.dylib
+
+   # Change reference to another library
+   install_name_tool -change "/opt/homebrew/lib/libbar.dylib" "@loader_path/libbar.dylib" libfoo.dylib
+
+   # Add rpath for finding libraries
+   install_name_tool -add_rpath "@loader_path" binary
+
+   # Remove Homebrew rpaths
+   install_name_tool -delete_rpath "/opt/homebrew/lib" binary
+   ```
+
+4. **Re-sign after modification** - macOS requires code signing after any binary modification:
+   ```bash
+   codesign -s - --force --preserve-metadata=entitlements,requirements,flags,runtime binary
+   ```
+
+### Recursive Dependency Bundling
+
+Libraries have transitive dependencies. A recursive function is needed:
+
+```bash
+copy_lib_recursive() {
+    local lib_path="$1"
+    # Skip system libraries (/usr/lib/*, /System/*)
+    # Skip already-processed libraries (track in a file)
+    # Copy to bundle if from Homebrew
+    # Recursively process dependencies from otool -L
+    # Handle @rpath references by searching known locations
+    # Handle @loader_path references relative to library directory
+}
+```
+
+### DocumentDB SQL Patching
+
+FerretDB's DocumentDB extension has upstream SQL issues that need patching:
+
+1. **Token concatenation (`##`)** - PostgreSQL doesn't support C preprocessor-style `##`:
+   ```bash
+   # Fix patterns like "documentdb## _rum_" → "documentdb_rum_"
+   sed -i '' -e 's/## //g' -e 's/##_/_/g' -e 's/_##/_/g' -e 's/##//g' file.sql
+   ```
+
+2. **Wrong library references** - Some functions reference `MODULE_PATHNAME` but are in `pg_documentdb_core`:
+   ```bash
+   # Fix: bson_in, bson_out, bson_send, bson_recv, bsonquery_* functions
+   sed -i '' -E "s/AS 'MODULE_PATHNAME', \\\$function\\\$(bson_in|bson_out|...)...\$/AS '\$libdir\/pg_documentdb_core', .../" file.sql
+   ```
+
+### Linux ARM64 Builds (QEMU)
+
+ARM64 Linux builds use QEMU emulation on x64 runners:
+- Build times: 45-90+ minutes (vs 3-5 minutes for native)
+- Builds can appear "frozen" during long compilation steps
+- Use `docker buildx` with `--platform linux/arm64`
+
+### Workflow Concurrency
+
+The release workflow uses concurrency groups to prevent conflicts:
+```yaml
+concurrency:
+  group: release-postgresql-documentdb
+  cancel-in-progress: false
+```
+
+This means only one build runs at a time - subsequent triggers are queued, not cancelled.

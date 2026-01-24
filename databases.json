@@ -259,7 +259,7 @@
         "defaultUser": null,
         "queryLanguage": "MQL"
       },
-      "status": "in-progress"
+      "status": "completed"
     },
     "foundationdb": {
       "displayName": "FoundationDB",
@@ -662,7 +662,7 @@
         "linux-arm64": true,
         "darwin-x64": true,
         "darwin-arm64": true,
-        "win32-x64": false
+        "win32-x64": true
       },
       "cliTools": {
         "server": "postgres",
@@ -678,7 +678,7 @@
         "defaultUser": "postgres",
         "queryLanguage": "SQL"
       },
-      "status": "in-progress"
+      "status": "completed"
     },
     "qdrant": {
       "displayName": "Qdrant",

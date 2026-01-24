@@ -598,7 +598,7 @@
           "darwin-arm64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-darwin-arm64.tar.gz",
             "sha256": "6999ac5e7f9ff8c71e5d332f02798fff3f65d0487b4c62a4fddf20a08d080943",
-            "size": 45289933
+            "size": 37575761
           },
           "darwin-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-darwin-x64.tar.gz",
@@ -614,6 +614,11 @@
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-linux-x64.tar.gz",
             "sha256": "a7f9e54ccf268670dd48f052201bd002c673cd38156475ed7235405bb0a2c621",
             "size": 38835739
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-win32-x64.zip",
+            "sha256": "3305c27b01307c6b3cb43df376d463fd191f2bb12da134f17520a206804eb469",
+            "size": 334867318
           }
         }
       }
