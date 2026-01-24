@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.14] - 2026-01-23
+
+### Added
+
+- **PostgreSQL-DocumentDB Windows (win32-x64) support**
+  - Added Windows to the release workflow for postgresql-documentdb
+  - Downloads PostgreSQL 17 from EnterpriseDB
+  - Builds pgvector using MSVC with official `Makefile.win`
+  - Windows build includes pgvector only (DocumentDB, pg_cron, rum, PostGIS not available due to platform limitations)
+
 ## [0.14.13] - 2026-01-23
 
 ### Added
