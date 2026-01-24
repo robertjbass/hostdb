@@ -13,11 +13,6 @@
       "type": "string",
       "description": "GitHub repository (owner/repo)"
     },
-    "lastUpdated": {
-      "type": ["string", "null"],
-      "format": "date-time",
-      "description": "ISO timestamp of last update (null if no releases yet)"
-    },
     "databases": {
       "type": "object",
       "description": "Map of database names to their releases",

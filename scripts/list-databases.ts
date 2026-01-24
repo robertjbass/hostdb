@@ -24,7 +24,6 @@ type ReleaseVersion = {
 
 type ReleasesJson = {
   repository: string
-  lastUpdated: string
   databases: Record<string, Record<string, ReleaseVersion>>
 }
 
@@ -108,7 +107,6 @@ async function loadReleases(): Promise<ReleasesJson> {
   // No releases data available
   return {
     repository: 'robertjbass/hostdb',
-    lastUpdated: '',
     databases: {},
   }
 }

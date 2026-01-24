@@ -49,7 +49,6 @@ type VersionRelease = {
 type ReleasesManifest = {
   $schema: string
   repository: string
-  lastUpdated: string | null
   databases: Record<string, Record<string, VersionRelease>>
 }
 
@@ -462,8 +461,6 @@ async function main() {
 
     console.log(`  Added ${addedCount} missing platforms: ${missingPlatforms.join(', ')}`)
   }
-
-  releases.lastUpdated = new Date().toISOString()
 
   // Sort for deterministic output and write
   const finalReleases = sortReleasesManifest(releases)

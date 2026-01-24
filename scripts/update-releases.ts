@@ -39,7 +39,6 @@ type VersionRelease = {
 type ReleasesManifest = {
   $schema: string
   repository: string
-  lastUpdated: string | null
   databases: Record<string, Record<string, VersionRelease>>
 }
 
@@ -239,7 +238,6 @@ async function main() {
   }
 
   releases.databases[database][version] = versionRelease
-  releases.lastUpdated = new Date().toISOString()
 
   // Write updated releases.json
   writeFileSync(releasesPath, JSON.stringify(releases, null, 2) + '\n')

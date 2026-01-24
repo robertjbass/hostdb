@@ -51,7 +51,6 @@ export type VersionRelease = {
 export type ReleasesJson = {
   $schema?: string
   repository: string
-  lastUpdated: string | null
   databases: Record<string, Record<string, VersionRelease>>
 }
 
