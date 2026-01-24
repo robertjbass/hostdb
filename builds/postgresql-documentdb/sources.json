@@ -23,7 +23,7 @@
       },
       "win32-x64": {
         "sourceType": "build-required",
-        "note": "Stretch goal - hybrid download + source build"
+        "note": "Windows build includes pgvector only. DocumentDB, pg_cron, rum, and PostGIS are not available on Windows due to platform limitations."
       }
     }
   },
