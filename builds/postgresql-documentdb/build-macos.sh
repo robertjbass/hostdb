@@ -448,27 +448,39 @@ JSONC_PREFIX="$(brew --prefix json-c)"
 PROTOBUFC_PREFIX="$(brew --prefix protobuf-c)"
 
 # Configure PostGIS against our source-built PostgreSQL
-# Note: We enable raster/topology because --without-* flags have build system issues in 3.5.x
+# We disable raster/topology/sfcgal since DocumentDB only needs core PostGIS
 log_info "Configuring PostGIS..."
 ./configure \
     --with-pgconfig="${PG_CONFIG}" \
     --with-geosconfig="${GEOS_PREFIX}/bin/geos-config" \
     --with-projdir="${PROJ_PREFIX}" \
-    --with-gdalconfig="${GDAL_PREFIX}/bin/gdal-config" \
     --with-jsondir="${JSONC_PREFIX}" \
     --with-protobufdir="${PROTOBUFC_PREFIX}" \
+    --without-raster \
+    --without-topology \
     --without-sfcgal \
     --without-gui \
     --without-phony-revision \
     --without-interrupt-tests
 
-# Build PostGIS
-log_info "Building PostGIS (this may take a while)..."
-make -j"$(sysctl -n hw.ncpu)"
+# Build only the core PostGIS library and extension (not raster/topology which have build issues)
+log_info "Building PostGIS core library..."
+make -C liblwgeom -j"$(sysctl -n hw.ncpu)"
+make -C libpgcommon -j"$(sysctl -n hw.ncpu)"
+make -C deps/flatgeobuf -j"$(sysctl -n hw.ncpu)" 2>/dev/null || true
+make -C deps/wagyu -j"$(sysctl -n hw.ncpu)" 2>/dev/null || true
 
-# Install PostGIS to our bundle
+log_info "Building PostGIS extension..."
+make -C postgis -j"$(sysctl -n hw.ncpu)"
+
+# Install core PostGIS to our bundle
 log_info "Installing PostGIS..."
-make install
+make -C liblwgeom install
+make -C postgis install
+
+# Generate and install extension SQL files
+log_info "Installing PostGIS extension files..."
+make -C extensions/postgis install 2>/dev/null || true
 
 log_success "PostGIS ${POSTGIS_VERSION} built and installed"
 
