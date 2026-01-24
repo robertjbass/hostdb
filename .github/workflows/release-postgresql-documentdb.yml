@@ -343,6 +343,7 @@ jobs:
           name: postgresql-documentdb-${{ github.event.inputs.version }}-${{ matrix.platform }}
           path: |
             dist/*.tar.gz
+            dist/*.zip
             dist/checksums.txt
           retention-days: 1
 
