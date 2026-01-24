@@ -389,10 +389,11 @@ make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLAN
 log_success "DocumentDB extension built and installed"
 
 # Patch DocumentDB SQL files: ## in identifiers is invalid PostgreSQL syntax
-# Upstream bug: https://github.com/FerretDB/documentdb uses documentdb##rumhandler etc.
+# Upstream bug: https://github.com/FerretDB/documentdb uses ## in identifiers
+# Replace ALL ## with _ to make identifiers valid
 log_info "Patching DocumentDB SQL files (fixing ## in identifiers)..."
 find "${BUNDLE_DIR}/share/extension" -name "documentdb*.sql" -exec \
-    sed -i '' 's/documentdb##/documentdb_rum_/g' {} \;
+    sed -i '' 's/##/_/g' {} \;
 log_success "DocumentDB SQL files patched"
 
 # ============================================================================
@@ -689,6 +690,26 @@ fi
 shopt -s nullglob
 for dylib in "${BUNDLE_LIB_DIR}/"*.dylib "${BUNDLE_LIB_DIR}/postgresql/"*.dylib; do
     [[ -f "$dylib" ]] && fix_references "$dylib" "dylib"
+done
+shopt -u nullglob
+
+# Fix rpaths on dylibs - remove Homebrew paths, add @loader_path
+log_info "Step 3b: Fixing rpaths on dylibs..."
+shopt -s nullglob
+for dylib in "${BUNDLE_LIB_DIR}/"*.dylib "${BUNDLE_LIB_DIR}/postgresql/"*.dylib; do
+    [[ -f "$dylib" ]] || continue
+    # Remove any Homebrew rpaths
+    for rpath in $(otool -l "$dylib" 2>/dev/null | grep -A2 LC_RPATH | grep "path " | awk '{print $2}'); do
+        if [[ "$rpath" == *"/opt/homebrew/"* ]] || [[ "$rpath" == *"/usr/local/"* ]] || [[ "$rpath" == *"/Cellar/"* ]]; then
+            install_name_tool -delete_rpath "$rpath" "$dylib" 2>/dev/null || true
+        fi
+    done
+    # Add @loader_path if dylib references other dylibs via @rpath
+    if otool -L "$dylib" 2>/dev/null | grep -q "@rpath/"; then
+        if ! otool -l "$dylib" 2>/dev/null | grep -A2 "LC_RPATH" | grep -q "@loader_path"; then
+            install_name_tool -add_rpath "@loader_path" "$dylib" 2>/dev/null || true
+        fi
+    fi
 done
 shopt -u nullglob
 
