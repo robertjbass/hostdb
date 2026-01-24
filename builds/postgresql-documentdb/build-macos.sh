@@ -544,8 +544,8 @@ fi
 # Also process existing dylibs in lib/
 if [[ -d "${BUNDLE_LIB_DIR}" ]]; then
     # Process in a loop until no new libs are added (handles transitive deps)
-    local prev_count=0
-    local curr_count=1
+    prev_count=0
+    curr_count=1
     while [[ $prev_count -ne $curr_count ]]; do
         prev_count=$curr_count
         for dylib in "${BUNDLE_LIB_DIR}/"*.dylib; do
