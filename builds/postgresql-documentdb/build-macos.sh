@@ -388,12 +388,12 @@ make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLAN
 
 log_success "DocumentDB extension built and installed"
 
-# Patch DocumentDB SQL files: ## in identifiers is invalid PostgreSQL syntax
-# Upstream bug: https://github.com/FerretDB/documentdb uses ## in identifiers
-# Replace ALL ## with _ to make identifiers valid
-log_info "Patching DocumentDB SQL files (fixing ## in identifiers)..."
+# Patch DocumentDB SQL files: ## is a token concatenation operator (like C preprocessor)
+# Upstream bug: https://github.com/FerretDB/documentdb uses ## which PostgreSQL doesn't support
+# Need to handle concatenation properly, not just replace with underscore
+log_info "Patching DocumentDB SQL files (fixing ## token concatenation)..."
 find "${BUNDLE_DIR}/share/extension" -name "documentdb*.sql" -exec \
-    sed -i '' 's/##/_/g' {} \;
+    sed -i '' -e 's/## //g' -e 's/##_/_/g' -e 's/_##/_/g' -e 's/##//g' {} \;
 log_success "DocumentDB SQL files patched"
 
 # ============================================================================

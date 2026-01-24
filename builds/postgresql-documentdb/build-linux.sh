@@ -250,9 +250,9 @@ make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="$
 echo "[OK] DocumentDB built and installed"
 
 # Patch DocumentDB SQL files: ## in identifiers is invalid PostgreSQL syntax
-echo "[INFO] Patching DocumentDB SQL files (fixing ## in identifiers)..."
+echo "[INFO] Patching DocumentDB SQL files (fixing ## token concatenation)..."
 find "${BUNDLE_DIR}/share/extension" -name "documentdb*.sql" -exec \
-    sed -i 's/##/_/g' {} \;
+    sed -i -e 's/## //g' -e 's/##_/_/g' -e 's/_##/_/g' -e 's/##//g' {} \;
 echo "[OK] DocumentDB SQL files patched"
 
 # ============================================================================
