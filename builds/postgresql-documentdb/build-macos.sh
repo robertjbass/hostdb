@@ -488,27 +488,28 @@ POSTGIS_EXT_DIR="${BUNDLE_DIR}/share/extension"
 if [[ ! -f "${POSTGIS_EXT_DIR}/postgis.control" ]]; then
     log_warn "PostGIS extension install failed, copying files manually..."
 
-    # Copy control file
-    if [[ -f "${POSTGIS_DIR}/extensions/postgis/postgis.control" ]]; then
-        cp "${POSTGIS_DIR}/extensions/postgis/postgis.control" "${POSTGIS_EXT_DIR}/"
-    fi
-
     # Copy SQL files - find and copy all postgis*.sql files
     find "${POSTGIS_DIR}/extensions/postgis/sql" -name "postgis*.sql" -exec cp {} "${POSTGIS_EXT_DIR}/" \; 2>/dev/null || true
 
-    # If that didn't work, try the generated file directly
-    if [[ ! -f "${POSTGIS_EXT_DIR}/postgis--${POSTGIS_VERSION}.sql" ]]; then
-        if [[ -f "${POSTGIS_DIR}/extensions/postgis/sql/postgis--${POSTGIS_VERSION}.sql" ]]; then
-            cp "${POSTGIS_DIR}/extensions/postgis/sql/postgis--${POSTGIS_VERSION}.sql" "${POSTGIS_EXT_DIR}/"
-        fi
-    fi
+    # Create postgis.control file directly (PostGIS generates this from .control.in)
+    cat > "${POSTGIS_EXT_DIR}/postgis.control" << 'CTRL'
+# postgis extension
+comment = 'PostGIS geometry and geography spatial types and functions'
+default_version = '3.5.2'
+module_pathname = '$libdir/postgis-3'
+relocatable = false
+CTRL
+
+    log_info "Created postgis.control with default_version=${POSTGIS_VERSION}"
 fi
 
 # Verify PostGIS extension files
-if [[ -f "${POSTGIS_EXT_DIR}/postgis.control" ]]; then
+if [[ -f "${POSTGIS_EXT_DIR}/postgis.control" ]] && [[ -f "${POSTGIS_EXT_DIR}/postgis--${POSTGIS_VERSION}.sql" ]]; then
     log_success "PostGIS ${POSTGIS_VERSION} built and installed"
 else
     log_error "PostGIS extension files missing - check build logs"
+    log_info "Expected: postgis.control and postgis--${POSTGIS_VERSION}.sql"
+    ls -la "${POSTGIS_EXT_DIR}/" | grep -i postgis || true
 fi
 
 # ============================================================================
