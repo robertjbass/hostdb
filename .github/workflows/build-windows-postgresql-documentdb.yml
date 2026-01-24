@@ -2,6 +2,14 @@ name: Build Windows PostgreSQL-DocumentDB
 
 # Debug workflow for iterating on Windows builds
 # Does NOT create releases - just builds and uploads artifacts
+#
+# WINDOWS LIMITATIONS:
+# - pg_cron: Not available (uses Unix-specific uid_t/gid_t types)
+# - rum: Not available (type compatibility issues with MSVC)
+# - DocumentDB: Not available (designed for Unix, complex dependencies)
+# - pgvector: WORKS (has official Makefile.win for MSVC)
+#
+# The Windows build produces PostgreSQL + pgvector only.
 
 on:
   workflow_dispatch:
@@ -14,15 +22,12 @@ on:
           - 17-0.107.0
         default: 17-0.107.0
       phase:
-        description: 'Build phase (Windows has limited extensions)'
+        description: 'Build phase (Windows only supports pgvector)'
         required: true
         type: choice
         options:
-          - '1-pgvector-only'
-          - '2-windows-subset'
-          - '3-add-documentdb'
-          - '4-full-bundle'
-        default: '1-pgvector-only'
+          - 'pgvector-only'
+        default: 'pgvector-only'
 
 jobs:
   build:
@@ -75,13 +80,12 @@ jobs:
         with:
           arch: x64
 
-      - name: Build pgvector with MSVC (Phase 1)
+      - name: Build pgvector with MSVC
         shell: cmd
         run: |
           @echo off
           setlocal enabledelayedexpansion
 
-          set VERSION=${{ github.event.inputs.version }}
           set PGVECTOR_VERSION=0.8.0
           set PGROOT=C:\pg-windows\postgresql
 
@@ -173,28 +177,6 @@ jobs:
           echo Extension library:
           dir "%PGROOT%\lib\vector*" 2>nul || echo Not found
 
-      # NOTE: pg_cron is skipped for Windows builds
-      # pg_cron uses Unix-specific types (uid_t, gid_t) that don't exist on Windows
-      # It would require significant patching to port to Windows
-      - name: Skip pg_cron (not available for Windows)
-        if: success() && github.event.inputs.phase != '1-pgvector-only'
-        shell: pwsh
-        run: |
-          Write-Host "=== Skipping pg_cron for Windows build ==="
-          Write-Host "pg_cron uses Unix-specific types (uid_t, gid_t) and requires patching for Windows."
-          Write-Host "This extension is not included in the Windows build."
-
-      # NOTE: rum is skipped for Windows builds
-      # rum uses internal PostgreSQL types that don't compile correctly on Windows
-      # Would require significant patching to port
-      - name: Skip rum (not available for Windows)
-        if: success() && github.event.inputs.phase != '1-pgvector-only'
-        shell: pwsh
-        run: |
-          Write-Host "=== Skipping rum for Windows build ==="
-          Write-Host "rum has type compatibility issues with MSVC and requires patching for Windows."
-          Write-Host "This extension is not included in the Windows build."
-
       - name: Create artifact
         if: success()
         shell: pwsh
@@ -212,20 +194,26 @@ jobs:
           Copy-Item -Recurse -Path $PG_DIR -Destination .\postgresql-documentdb
 
           # Add metadata
+          # Note: Windows build only includes pgvector due to platform limitations
+          # pg_cron (Unix types), rum (type compatibility), and DocumentDB (Unix-only)
+          # are not available on Windows
           $metadata = @{
-            name = "postgresql-documentdb"
+            name = "postgresql-pgvector"
             version = $VERSION
             platform = "win32-x64"
-            phase = $PHASE
-            source = "windows-build-debug"
+            extensions = @("pgvector")
+            extensions_unavailable = @("pg_cron", "rum", "documentdb")
+            source = "windows-build"
             rehosted_by = "hostdb"
             rehosted_at = (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
-          } | ConvertTo-Json
+            note = "Windows build only includes pgvector. Other extensions require Unix-specific features."
+          } | ConvertTo-Json -Depth 3
 
           $metadata | Out-File -FilePath ".\postgresql-documentdb\.hostdb-metadata.json" -Encoding utf8
 
           # Create zip
-          $zipName = "postgresql-documentdb-$VERSION-win32-x64-$PHASE.zip"
+          # Note: Using "postgresql-pgvector" since DocumentDB is not available on Windows
+          $zipName = "postgresql-pgvector-$VERSION-win32-x64.zip"
           Compress-Archive -Path .\postgresql-documentdb -DestinationPath $zipName
 
           Write-Host ""
@@ -241,7 +229,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: postgresql-documentdb-${{ github.event.inputs.version }}-win32-x64-${{ github.event.inputs.phase }}
+          name: postgresql-pgvector-${{ github.event.inputs.version }}-win32-x64
           path: |
             C:/output/*.zip
             C:/output/checksums.txt
