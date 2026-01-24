@@ -14,12 +14,12 @@ on:
           - 17-0.107.0
         default: 17-0.107.0
       phase:
-        description: 'Build phase (incremental development)'
+        description: 'Build phase (Windows has limited extensions)'
         required: true
         type: choice
         options:
           - '1-pgvector-only'
-          - '2-add-pg_cron-rum'
+          - '2-windows-subset'
           - '3-add-documentdb'
           - '4-full-bundle'
         default: '1-pgvector-only'
@@ -184,92 +184,16 @@ jobs:
           Write-Host "pg_cron uses Unix-specific types (uid_t, gid_t) and requires patching for Windows."
           Write-Host "This extension is not included in the Windows build."
 
-      - name: Build rum with MSVC (Phase 2+)
+      # NOTE: rum is skipped for Windows builds
+      # rum uses internal PostgreSQL types that don't compile correctly on Windows
+      # Would require significant patching to port
+      - name: Skip rum (not available for Windows)
         if: success() && github.event.inputs.phase != '1-pgvector-only'
         shell: pwsh
         run: |
-          $ErrorActionPreference = "Stop"
-          $RUM_VERSION = "1.3.14"
-          $env:PGROOT = "C:\pg-windows\postgresql"
-
-          Write-Host "=== Building rum v$RUM_VERSION with MSVC ==="
-
-          Set-Location C:\build
-
-          if (-not (Test-Path "rum")) {
-            git clone --depth 1 --branch $RUM_VERSION https://github.com/postgrespro/rum.git
-          }
-
-          Set-Location C:\build\rum
-
-          Write-Host "`n=== Checking rum source files ==="
-          Get-ChildItem src\*.c
-
-          # Get list of source files
-          $sourceFiles = Get-ChildItem src\*.c | ForEach-Object { "src\$($_.BaseName).obj" }
-          $OBJS = $sourceFiles -join " "
-
-          Write-Host "`n=== Creating Makefile.win for rum ==="
-          Write-Host "OBJS = $OBJS"
-
-          @"
-          EXTENSION = rum
-          EXTVERSION = $RUM_VERSION
-
-          OBJS = $OBJS
-
-          !ifndef PGROOT
-          !error PGROOT is not set
-          !endif
-          BINDIR = `$(PGROOT)\bin
-          INCLUDEDIR = `$(PGROOT)\include
-          INCLUDEDIR_SERVER = `$(PGROOT)\include\server
-          LIBDIR = `$(PGROOT)\lib
-          PKGLIBDIR = `$(PGROOT)\lib
-          SHAREDIR = `$(PGROOT)\share
-
-          CFLAGS = /nologo /I"`$(INCLUDEDIR_SERVER)\port\win32_msvc" /I"`$(INCLUDEDIR_SERVER)\port\win32" /I"`$(INCLUDEDIR_SERVER)" /I"`$(INCLUDEDIR)" /Isrc /DWIN32 /D_WINDOWS
-
-          SHLIB = `$(EXTENSION).dll
-          LIBS = "`$(LIBDIR)\postgres.lib"
-
-          all: `$(SHLIB)
-
-          .c.obj:
-          	`$(CC) `$(CFLAGS) /c `$< /Fo`$@
-
-          `$(SHLIB): `$(OBJS)
-          	`$(CC) `$(CFLAGS) `$(OBJS) `$(LIBS) /link /DLL /OUT:`$(SHLIB)
-
-          install: all
-          	copy `$(SHLIB) "`$(PKGLIBDIR)"
-          	copy `$(EXTENSION).control "`$(SHAREDIR)\extension"
-          	copy `$(EXTENSION)--*.sql "`$(SHAREDIR)\extension"
-
-          clean:
-          	del /f `$(SHLIB) `$(EXTENSION).lib `$(EXTENSION).exp `$(OBJS)
-          "@ | Out-File -FilePath Makefile.win -Encoding ascii
-
-          Write-Host "`n=== Contents of generated Makefile.win ==="
-          Get-Content Makefile.win
-
-          Write-Host "`n=== Building rum ==="
-          nmake /F Makefile.win
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "`n=== rum build failed ==="
-            exit 1
-          }
-
-          Write-Host "`n=== Installing rum ==="
-          nmake /F Makefile.win install
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "Install failed"
-            exit 1
-          }
-
-          Write-Host "`n=== rum build and install succeeded ==="
-          Get-ChildItem "$env:PGROOT\lib\rum*"
-          Get-ChildItem "$env:PGROOT\share\extension\rum*"
+          Write-Host "=== Skipping rum for Windows build ==="
+          Write-Host "rum has type compatibility issues with MSVC and requires patching for Windows."
+          Write-Host "This extension is not included in the Windows build."
 
       - name: Create artifact
         if: success()
