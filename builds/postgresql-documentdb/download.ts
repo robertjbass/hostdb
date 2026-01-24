@@ -2,9 +2,14 @@
 /**
  * Download PostgreSQL + DocumentDB binaries for re-hosting
  *
- * This script:
- * - Extracts PostgreSQL + DocumentDB from official Docker images (Linux)
- * - Builds from source for macOS (via build-macos.sh)
+ * This script builds PostgreSQL FROM SOURCE on all platforms to ensure a standard
+ * directory layout that makes binaries fully relocatable. The old approach of
+ * extracting from Docker images (Linux) or using Homebrew (macOS) created binaries
+ * with hardcoded paths that broke when moved to a different location.
+ *
+ * Build approach:
+ * - Linux: Build from source inside Docker container (build-linux.sh)
+ * - macOS: Build from source using Homebrew for dependencies only (build-macos.sh)
  *
  * Usage:
  *   ./builds/postgresql-documentdb/download.ts [options]
@@ -353,14 +358,26 @@ tar -czf /output/${tarballName} -C /tmp pg
 }
 
 /**
- * Build PostgreSQL + DocumentDB from source on macOS
+ * Build PostgreSQL + DocumentDB from source
+ *
+ * Uses different build scripts depending on platform:
+ * - macOS: build-macos.sh (builds locally using Homebrew for dependencies)
+ * - Linux: build-linux.sh (builds inside Docker container)
  */
 function buildFromSource(
   version: string,
   platform: Platform,
   outputDir: string,
 ): string {
-  const buildScript = resolve(__dirname, 'build-macos.sh')
+  // Select the appropriate build script
+  let buildScript: string
+  if (platform.startsWith('darwin')) {
+    buildScript = resolve(__dirname, 'build-macos.sh')
+  } else if (platform.startsWith('linux')) {
+    buildScript = resolve(__dirname, 'build-linux.sh')
+  } else {
+    throw new Error(`No build script available for platform: ${platform}`)
+  }
 
   if (!existsSync(buildScript)) {
     throw new Error(`Build script not found: ${buildScript}`)
@@ -454,11 +471,15 @@ function parseArgs(): {
         console.log(`
 Usage: ./builds/postgresql-documentdb/download.ts [options]
 
-Downloads/builds PostgreSQL + DocumentDB for hostdb releases.
+Builds PostgreSQL + DocumentDB from source for hostdb releases.
 
-Sources:
-  - Linux: Extract from Docker image (ghcr.io/ferretdb/postgres-documentdb)
-  - macOS: Build from source (requires Homebrew)
+All platforms now build from source to ensure proper relocatability. The old
+approach of extracting from Docker images created binaries with hardcoded paths
+that broke when installed to a different location.
+
+Build approach:
+  - Linux: Build from source inside Docker container (requires Docker)
+  - macOS: Build from source locally (requires Homebrew for dependencies)
   - Windows: Not supported yet
 
 Options:
@@ -532,29 +553,36 @@ async function main() {
     try {
       let outputPath: string
 
-      if (isDockerExtractSource(source)) {
-        // Docker extraction (Linux)
-        if (!verifyCommand('docker')) {
-          logWarn(`${platform} requires Docker, but Docker is not installed`)
-          skipCount++
-          continue
-        }
-        outputPath = extractFromDocker(source, version, platform, outputDir)
-      } else {
-        // Build from source (macOS, Windows)
-        if (platform.startsWith('win32')) {
-          logWarn(`${platform} is not yet supported`)
-          skipCount++
-          continue
-        }
+      // All platforms now use source builds for proper relocatability
+      // - Linux: builds inside Docker container (requires Docker)
+      // - macOS: builds locally (requires macOS + Homebrew)
+      // - Windows: not yet supported
+      if (platform.startsWith('win32')) {
+        logWarn(`${platform} is not yet supported`)
+        skipCount++
+        continue
+      }
 
-        if (platform.startsWith('darwin') && process.platform !== 'darwin') {
+      if (platform.startsWith('linux')) {
+        // Linux builds require Docker
+        if (!verifyCommand('docker')) {
+          logWarn(`${platform} requires Docker for source build, but Docker is not installed`)
+          skipCount++
+          continue
+        }
+        outputPath = buildFromSource(version, platform, outputDir)
+      } else if (platform.startsWith('darwin')) {
+        // macOS builds require running on macOS
+        if (process.platform !== 'darwin') {
           logWarn(`${platform} requires macOS to build, skipping`)
           skipCount++
           continue
         }
-
         outputPath = buildFromSource(version, platform, outputDir)
+      } else {
+        logWarn(`Unknown platform: ${platform}`)
+        skipCount++
+        continue
       }
 
       const outputSha256 = await calculateSha256(outputPath)

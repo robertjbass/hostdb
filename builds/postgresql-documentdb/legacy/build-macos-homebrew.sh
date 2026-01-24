@@ -2,26 +2,20 @@
 #
 # Build PostgreSQL + DocumentDB from source on macOS
 #
-# This script builds PostgreSQL FROM SOURCE to ensure a standard directory layout
-# that makes the binaries fully relocatable. Homebrew uses a non-standard layout
-# where bin/, share/, and lib/ are in different prefix trees, which breaks
-# PostgreSQL's built-in relative path computation.
-#
 # Usage:
 #   ./build-macos.sh <version> <platform> <output_dir>
 #   ./build-macos.sh 17-0.107.0 darwin-arm64 ./dist
 #
 # Requirements:
-#   - Homebrew (for build dependencies only, NOT for PostgreSQL itself)
+#   - Homebrew
 #   - Xcode Command Line Tools
 #
 # This script builds:
-#   - PostgreSQL (from source)
 #   - DocumentDB extension
 #   - pg_cron
 #   - pgvector
 #   - rum
-#   - PostGIS (via Homebrew - too complex to build from source)
+#   - PostGIS (via Homebrew)
 #
 
 set -euo pipefail
@@ -53,22 +47,14 @@ DOCDB_MAJOR_MINOR="${DOCDB_VERSION%.*}"  # "0.107" from "0.107.0"
 DOCDB_PATCH="${DOCDB_VERSION##*.}"       # "0" from "0.107.0"
 DOCDB_GIT_TAG="v${DOCDB_MAJOR_MINOR}-${DOCDB_PATCH}"  # "v0.107-0"
 
-# PostgreSQL source version (latest patch for the major version)
-# This must match what's available at https://ftp.postgresql.org/pub/source/
-case "${PG_MAJOR}" in
-    17) PG_SOURCE_VERSION="17.4" ;;
-    18) PG_SOURCE_VERSION="18.0" ;;
-    *)  PG_SOURCE_VERSION="${PG_MAJOR}.0" ;;
-esac
-
 # Component versions (should match sources.json)
 PG_CRON_VERSION="1.6.4"
 PGVECTOR_VERSION="0.8.0"
 RUM_VERSION="1.3.14"
 
-log_info "PostgreSQL + DocumentDB Build Script (macOS - Source Build)"
+log_info "PostgreSQL + DocumentDB Build Script (macOS)"
 log_info "Version: ${VERSION}"
-log_info "  PostgreSQL: ${PG_MAJOR} (source: ${PG_SOURCE_VERSION})"
+log_info "  PostgreSQL: ${PG_MAJOR}"
 log_info "  DocumentDB: ${DOCDB_VERSION}"
 log_info "Platform: ${PLATFORM}"
 log_info "Output: ${OUTPUT_DIR}"
@@ -91,9 +77,9 @@ if [[ "${PLATFORM}" == "darwin-arm64" && "${CURRENT_ARCH}" != "arm64" ]]; then
     exit 1
 fi
 
-# Verify Homebrew is installed (for build dependencies only)
+# Verify Homebrew is installed
 if ! command -v brew &> /dev/null; then
-    log_error "Homebrew is required for build dependencies. Install from https://brew.sh"
+    log_error "Homebrew is required. Install from https://brew.sh"
     exit 1
 fi
 
@@ -105,119 +91,85 @@ mkdir -p "${BUILD_DIR}"
 BUILD_DIR="$(cd "${BUILD_DIR}" && pwd)"  # Convert to absolute path
 BUNDLE_DIR="${BUILD_DIR}/postgresql-documentdb"
 SOURCES_DIR="${BUILD_DIR}/sources"
-PG_INSTALL_DIR="${BUILD_DIR}/pg_install"
-mkdir -p "${BUNDLE_DIR}" "${SOURCES_DIR}" "${PG_INSTALL_DIR}"
+mkdir -p "${BUNDLE_DIR}" "${SOURCES_DIR}"
 
-# ============================================================================
-# STEP 1: Install build dependencies via Homebrew
-# ============================================================================
-log_info "Installing build dependencies via Homebrew..."
-brew install openssl@3 readline libxml2 icu4c zlib lz4 zstd pkg-config cmake pcre2 mongo-c-driver || true
+# Install base PostgreSQL via Homebrew
+log_info "Installing PostgreSQL ${PG_MAJOR} via Homebrew..."
+brew install "postgresql@${PG_MAJOR}" || log_warn "PostgreSQL may already be installed"
 
-# Get Homebrew prefixes for dependencies
-OPENSSL_PREFIX="$(brew --prefix openssl@3)"
-READLINE_PREFIX="$(brew --prefix readline)"
-LIBXML2_PREFIX="$(brew --prefix libxml2)"
-ICU_PREFIX="$(brew --prefix icu4c)"
-ZLIB_PREFIX="$(brew --prefix zlib)"
-LZ4_PREFIX="$(brew --prefix lz4)"
-ZSTD_PREFIX="$(brew --prefix zstd)"
-MONGO_C_PREFIX="$(brew --prefix mongo-c-driver)"
+PG_PREFIX="$(brew --prefix postgresql@${PG_MAJOR})"
+PG_CONFIG="${PG_PREFIX}/bin/pg_config"
 
-log_success "Build dependencies installed"
-
-# ============================================================================
-# STEP 2: Download and build PostgreSQL from source
-# ============================================================================
-log_info "Downloading PostgreSQL ${PG_SOURCE_VERSION} source..."
-cd "${SOURCES_DIR}"
-PG_TARBALL="postgresql-${PG_SOURCE_VERSION}.tar.gz"
-PG_URL="https://ftp.postgresql.org/pub/source/v${PG_SOURCE_VERSION}/${PG_TARBALL}"
-
-if [[ ! -f "${PG_TARBALL}" ]]; then
-    curl -L -o "${PG_TARBALL}" "${PG_URL}"
-fi
-log_success "Downloaded PostgreSQL source"
-
-log_info "Extracting PostgreSQL source..."
-tar xzf "${PG_TARBALL}"
-cd "postgresql-${PG_SOURCE_VERSION}"
-log_success "Extracted PostgreSQL source"
-
-# Configure PostgreSQL with a standard prefix layout
-# The actual prefix doesn't matter because PostgreSQL computes paths relative
-# to the binary location at runtime - we just need a STANDARD directory structure
-log_info "Configuring PostgreSQL (standard --prefix layout)..."
-
-# Set up environment for configure
-export CPPFLAGS="-I${OPENSSL_PREFIX}/include -I${READLINE_PREFIX}/include -I${LIBXML2_PREFIX}/include -I${ICU_PREFIX}/include -I${ZLIB_PREFIX}/include -I${LZ4_PREFIX}/include -I${ZSTD_PREFIX}/include"
-export LDFLAGS="-L${OPENSSL_PREFIX}/lib -L${READLINE_PREFIX}/lib -L${LIBXML2_PREFIX}/lib -L${ICU_PREFIX}/lib -L${ZLIB_PREFIX}/lib -L${LZ4_PREFIX}/lib -L${ZSTD_PREFIX}/lib"
-export PKG_CONFIG_PATH="${OPENSSL_PREFIX}/lib/pkgconfig:${READLINE_PREFIX}/lib/pkgconfig:${LIBXML2_PREFIX}/lib/pkgconfig:${ICU_PREFIX}/lib/pkgconfig:${ZLIB_PREFIX}/lib/pkgconfig:${LZ4_PREFIX}/lib/pkgconfig:${ZSTD_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-
-./configure \
-    --prefix=/usr/local/pgsql \
-    --with-openssl \
-    --with-libxml \
-    --with-icu \
-    --with-lz4 \
-    --with-zstd \
-    --with-readline
-
-log_success "PostgreSQL configured"
-
-log_info "Building PostgreSQL..."
-make -j"$(sysctl -n hw.ncpu)"
-log_success "PostgreSQL built"
-
-log_info "Installing PostgreSQL to staging directory..."
-make install DESTDIR="${PG_INSTALL_DIR}"
-log_success "PostgreSQL installed to staging"
-
-# Also install contrib modules (pg_stat_statements, etc.)
-log_info "Building and installing PostgreSQL contrib modules..."
-make -C contrib -j"$(sysctl -n hw.ncpu)"
-make -C contrib install DESTDIR="${PG_INSTALL_DIR}"
-log_success "Contrib modules installed"
-
-# Move to bundle directory with standard structure
-log_info "Setting up bundle directory structure..."
-mv "${PG_INSTALL_DIR}/usr/local/pgsql/"* "${BUNDLE_DIR}/"
-log_success "Bundle directory structure ready"
-
-# Set up pg_config for extension builds
-PG_CONFIG="${BUNDLE_DIR}/bin/pg_config"
 if [[ ! -x "${PG_CONFIG}" ]]; then
     log_error "pg_config not found at ${PG_CONFIG}"
     exit 1
 fi
 
-# Verify the directory structure is correct
-log_info "Verifying PostgreSQL directory structure..."
-log_info "  pg_config --bindir: $(${PG_CONFIG} --bindir)"
-log_info "  pg_config --sharedir: $(${PG_CONFIG} --sharedir)"
-log_info "  pg_config --pkglibdir: $(${PG_CONFIG} --pkglibdir)"
-log_success "PostgreSQL from source installed at ${BUNDLE_DIR}"
+# Get actual PGXS paths - these are what DESTDIR installs use
+# On Homebrew these differ from brew --prefix (e.g., /opt/homebrew/share/postgresql@17 vs /opt/homebrew/opt/postgresql@17)
+PG_SHAREDIR="$("${PG_CONFIG}" --sharedir)"
+PG_PKGLIBDIR="$("${PG_CONFIG}" --pkglibdir)"
 
-# Get actual PGXS paths from the source-built PostgreSQL
-PG_SHAREDIR="$(${PG_CONFIG} --sharedir)"
-PG_PKGLIBDIR="$(${PG_CONFIG} --pkglibdir)"
+log_info "  pg_config --sharedir: ${PG_SHAREDIR}"
+log_info "  pg_config --pkglibdir: ${PG_PKGLIBDIR}"
 
-# ============================================================================
-# STEP 3: Build Intel Decimal Math Library (required for DocumentDB)
-# ============================================================================
-log_info "Building Intel Decimal Math Library..."
+log_success "PostgreSQL ${PG_MAJOR} installed at ${PG_PREFIX}"
+
+# Copy base PostgreSQL to bundle
+log_info "Copying base PostgreSQL..."
+cp -R "${PG_PREFIX}/"* "${BUNDLE_DIR}/"
+
+# Helper function to copy extension files from DESTDIR install to bundle
+# PGXS installs to ${DESTDIR}${PG_SHAREDIR} and ${DESTDIR}${PG_PKGLIBDIR}
+# which differ from ${DESTDIR}${PG_PREFIX} on Homebrew
+copy_extension_from_destdir() {
+    local destdir="$1"
+    local name="$2"
+
+    # Copy shared libraries from pkglibdir
+    local src_lib="${destdir}${PG_PKGLIBDIR}"
+    if [[ -d "$src_lib" ]]; then
+        log_info "  Copying ${name} libraries from ${src_lib}"
+        mkdir -p "${BUNDLE_DIR}/lib/postgresql"
+        cp -R "${src_lib}/"* "${BUNDLE_DIR}/lib/postgresql/" 2>/dev/null || true
+    fi
+
+    # Copy extension control files and SQL from sharedir
+    local src_share="${destdir}${PG_SHAREDIR}"
+    if [[ -d "$src_share" ]]; then
+        log_info "  Copying ${name} extension files from ${src_share}"
+        mkdir -p "${BUNDLE_DIR}/share/postgresql"
+        cp -R "${src_share}/"* "${BUNDLE_DIR}/share/postgresql/" 2>/dev/null || true
+    fi
+
+    # Also check the old-style path in case PGXS behavior changes
+    if [[ -d "${destdir}${PG_PREFIX}" ]]; then
+        log_info "  Copying ${name} files from ${destdir}${PG_PREFIX}"
+        cp -R "${destdir}${PG_PREFIX}/"* "${BUNDLE_DIR}/" 2>/dev/null || true
+    fi
+}
+
+# Install build dependencies
+log_info "Installing build dependencies..."
+brew install cmake pkg-config pcre2 mongo-c-driver icu4c || true
+
+# Build Intel Decimal Math Library from source
+# (required for DocumentDB's decimal128 support, not available via Homebrew)
 INTEL_MATH_DIR="${SOURCES_DIR}/intelrdfpmath"
 INTEL_MATH_INSTALL="${BUILD_DIR}/intelmathlib"
 
 if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
+    log_info "Building Intel Decimal Math Library..."
     # Clone the applied/ubuntu/jammy branch (Ubuntu 22.04 LTS version)
     git clone --depth 1 --branch applied/ubuntu/jammy https://git.launchpad.net/ubuntu/+source/intelrdfpmath "${INTEL_MATH_DIR}"
     pushd "${INTEL_MATH_DIR}/LIBRARY" > /dev/null
     # Build with position-independent code
+    # Note: makefile only recognizes cc, gcc, icc, icl, cl - not clang directly
+    # Note: Add -Wno-error flags for macOS clang compatibility (missing signal.h, etc.)
     make -j"$(sysctl -n hw.ncpu)" CC=cc _CFLAGS_OPT="-fPIC -Wno-error=implicit-function-declaration"
     popd > /dev/null
 
-    # Install to local directory
+    # Install to local directory (must be after popd to use correct relative paths)
     mkdir -p "${INTEL_MATH_INSTALL}/lib" "${INTEL_MATH_INSTALL}/include"
     cp "${INTEL_MATH_DIR}/LIBRARY/libbid.a" "${INTEL_MATH_INSTALL}/lib/"
     cp "${INTEL_MATH_DIR}/LIBRARY/src/"*.h "${INTEL_MATH_INSTALL}/include/"
@@ -225,35 +177,44 @@ if [[ ! -d "${INTEL_MATH_DIR}" ]]; then
     log_success "Intel Decimal Math Library built"
 fi
 
-# Convert to absolute path
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
 INTEL_MATH_INSTALL="$(cd "${INTEL_MATH_INSTALL}" && pwd)"
 
-# ============================================================================
-# STEP 4: Set up build environment for extensions
-# ============================================================================
+# Set up environment for dependencies
+# mongo-c-driver provides libbson, icu4c provides unicode headers
+MONGO_C_PREFIX="$(brew --prefix mongo-c-driver)"
+ICU_PREFIX="$(brew --prefix icu4c)"
 
-# Find the actual bson include directory
+# Find the actual bson include directory (varies by mongo-c-driver version)
+# mongo-c-driver 2.x uses bson-X.Y.Z/, older versions use libbson-1.0/
 BSON_INCLUDE=$(find "${MONGO_C_PREFIX}/include" -type d -name "bson*" | head -1)
 if [[ -z "${BSON_INCLUDE}" ]]; then
     BSON_INCLUDE="${MONGO_C_PREFIX}/include/libbson-1.0"
 fi
 
-# Create fake pkgconfig files for dependencies
+# DocumentDB's Makefile uses pkg-config to find libbson-static-1.0, but Homebrew
+# only provides libbson-1.0 (dynamic). Create a fake pkgconfig file for the static version.
 FAKE_PKGCONFIG_DIR="${BUILD_DIR}/pkgconfig"
 mkdir -p "${FAKE_PKGCONFIG_DIR}"
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
 FAKE_PKGCONFIG_DIR="$(cd "${FAKE_PKGCONFIG_DIR}" && pwd)"
 
-# Detect bson library name (mongo-c-driver 2.x uses libbson2, older uses libbson-1.0)
+# Detect the actual bson library name (mongo-c-driver 2.x may use libbson2, older uses libbson-1.0)
+# Look for libbson*.dylib and extract the library name
 BSON_LIB_NAME=""
 for lib in "${MONGO_C_PREFIX}/lib/"libbson*.dylib; do
     if [[ -f "$lib" ]]; then
+        # Extract name like "bson-1.0" from "libbson-1.0.dylib" or "libbson-1.0.123.dylib"
         libname=$(basename "$lib" | sed -E 's/^lib([^.]+)\..*$/\1/')
+        # Skip versioned symlinks, prefer base name
         if [[ ! "$libname" =~ [0-9]+$ ]]; then
             BSON_LIB_NAME="$libname"
             break
         fi
     fi
 done
+
+# Fall back to bson-1.0 if detection fails
 if [[ -z "$BSON_LIB_NAME" ]]; then
     BSON_LIB_NAME="bson-1.0"
     log_warn "Could not detect bson library name, falling back to $BSON_LIB_NAME"
@@ -273,6 +234,7 @@ Cflags: -I\${includedir} -I\${includedir}/bson
 Libs: -L\${libdir} -l${BSON_LIB_NAME}
 EOF
 
+# Create pkgconfig file for Intel math library
 cat > "${FAKE_PKGCONFIG_DIR}/intelmathlib.pc" <<EOF
 prefix=${INTEL_MATH_INSTALL}
 includedir=\${prefix}/include
@@ -290,26 +252,55 @@ export CPPFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/includ
 export CFLAGS="-I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include ${CFLAGS:-}"
 export LDFLAGS="-L${MONGO_C_PREFIX}/lib -L${ICU_PREFIX}/lib -L${INTEL_MATH_INSTALL}/lib ${LDFLAGS:-}"
 
+log_info "PKG_CONFIG_PATH: ${PKG_CONFIG_PATH}"
+log_info "BSON_INCLUDE: ${BSON_INCLUDE}"
+
+# Debug: show what's actually in the mongo-c-driver include directory
+log_info "Contents of mongo-c-driver include directory:"
+find "${MONGO_C_PREFIX}/include" -name "*.h" 2>/dev/null | head -20 || log_warn "Could not list include directory"
+log_info "Looking for bson.h:"
+find "${MONGO_C_PREFIX}" -name "bson.h" 2>/dev/null || log_warn "bson.h not found in mongo-c-driver"
+
+# Debug: show what library files exist in mongo-c-driver
+log_info "Contents of mongo-c-driver lib directory:"
+ls -la "${MONGO_C_PREFIX}/lib/"*.dylib 2>/dev/null || log_warn "No dylib files found"
+ls -la "${MONGO_C_PREFIX}/lib/"*.a 2>/dev/null || log_warn "No .a files found"
+log_info "Looking for bson library:"
+find "${MONGO_C_PREFIX}/lib" -name "*bson*" 2>/dev/null || log_warn "No bson library found"
+
 # Create compatibility symlinks for mongo-c-driver 2.x
+# DocumentDB's Makefile hardcodes -lbson-1.0 but mongo-c-driver 2.x ships libbson2.dylib
+# Create a local lib directory with symlinks to make the linker happy
 COMPAT_LIB_DIR="${BUILD_DIR}/compat-lib"
 mkdir -p "${COMPAT_LIB_DIR}"
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
 COMPAT_LIB_DIR="$(cd "${COMPAT_LIB_DIR}" && pwd)"
 if [[ -f "${MONGO_C_PREFIX}/lib/libbson2.dylib" ]]; then
     log_info "Creating compatibility symlinks for mongo-c-driver 2.x..."
     ln -sf "${MONGO_C_PREFIX}/lib/libbson2.dylib" "${COMPAT_LIB_DIR}/libbson-1.0.dylib"
     ln -sf "${MONGO_C_PREFIX}/lib/libbson2.a" "${COMPAT_LIB_DIR}/libbson-1.0.a" 2>/dev/null || true
-    log_success "Created libbson-1.0 -> libbson2 compatibility symlinks"
+    log_success "Created libbson-1.0 -> libbson2 compatibility symlinks in ${COMPAT_LIB_DIR}"
 fi
 
-# Create a clang wrapper to fix macOS rpath syntax
+# Create a clang wrapper to fix macOS rpath syntax in -Wl flags
+# PostgreSQL's PGXS generates Linux-style "-Wl,-rpath=/path" but macOS ld needs "-Wl,-rpath,/path"
+# The difference is: equals (Linux) vs comma (macOS) to separate -rpath from path
 CLANG_WRAPPER="${BUILD_DIR}/clang-wrapper.sh"
 cat > "${CLANG_WRAPPER}" <<'WRAPPER_EOF'
 #!/bin/bash
-# Clang wrapper to translate Linux-style rpath flags to macOS style and handle other compatibility issues
+# Clang wrapper to:
+# 1. Translate Linux-style rpath flags to macOS style
+#    Linux: -Wl,-rpath=/path (single -Wl arg with =)
+#    macOS: -Wl,-rpath,/path (comma separates -rpath from path)
+# 2. Filter out GCC-specific flags not supported by Apple clang
+# 3. Convert -Werror to -Wno-error for cross-platform compatibility
+# 4. Handle GNU ld -l:filename syntax (not supported by macOS ld)
 args=()
+last_L_path=""
 for arg in "$@"; do
     case "$arg" in
         -Wl,-rpath=*)
+            # Convert -Wl,-rpath=/path to -Wl,-rpath,/path
             path="${arg#-Wl,-rpath=}"
             args+=("-Wl,-rpath,${path}")
             ;;
@@ -317,10 +308,21 @@ for arg in "$@"; do
             # GCC-specific flag, skip on clang
             ;;
         -Werror)
+            # Convert -Werror to -Wno-error for macOS compatibility
             args+=("-Wno-error")
             ;;
+        -L*)
+            # Track the last -L path for resolving -l: references
+            last_L_path="${arg#-L}"
+            args+=("$arg")
+            ;;
         -l:pg_documentdb_core.so)
-            # macOS doesn't support -l:filename syntax, use -undefined dynamic_lookup
+            # GNU ld -l:filename syntax - macOS doesn't support this
+            # On macOS, PostgreSQL extensions are bundles (MH_BUNDLE), not dylibs
+            # Bundles can't be linked against directly, so we need to:
+            # 1. Skip this library reference entirely
+            # 2. Add -undefined dynamic_lookup to defer symbol resolution to runtime
+            # The symbols will be available once PostgreSQL loads both extensions
             args+=("-undefined" "dynamic_lookup")
             ;;
         *)
@@ -331,11 +333,11 @@ done
 exec /usr/bin/clang "${args[@]}"
 WRAPPER_EOF
 chmod +x "${CLANG_WRAPPER}"
+# Convert to absolute path (critical: make runs from documentdb/, relative paths break)
 CLANG_WRAPPER="$(cd "$(dirname "${CLANG_WRAPPER}")" && pwd)/$(basename "${CLANG_WRAPPER}")"
+log_success "Created clang wrapper for macOS rpath compatibility: ${CLANG_WRAPPER}"
 
-# ============================================================================
-# STEP 5: Build DocumentDB extension
-# ============================================================================
+# Build DocumentDB extension
 log_info "Building DocumentDB extension v${DOCDB_VERSION} (tag: ${DOCDB_GIT_TAG})..."
 cd "${SOURCES_DIR}"
 if [[ ! -d "documentdb" ]]; then
@@ -343,7 +345,8 @@ if [[ ! -d "documentdb" ]]; then
 fi
 cd documentdb
 
-# Fix bash compatibility for macOS
+# Fix bash compatibility: macOS ships with bash 3.2, but DocumentDB scripts use bash 4+ features
+# like ${var^^} for uppercase. Patch scripts to use Homebrew's modern bash.
 if [[ -f /opt/homebrew/bin/bash ]]; then
     MODERN_BASH="/opt/homebrew/bin/bash"
 elif [[ -f /usr/local/bin/bash ]]; then
@@ -353,54 +356,82 @@ else
     brew install bash
     MODERN_BASH="$(brew --prefix)/bin/bash"
 fi
-log_info "Using modern bash: ${MODERN_BASH}"
+log_info "Using modern bash: ${MODERN_BASH} (version: $(${MODERN_BASH} --version | head -1))"
+# Patch shell scripts to use modern bash
 find . -name "*.sh" -type f -exec sed -i '' "1s|#!/bin/bash|#!${MODERN_BASH}|" {} \;
 find . -name "*.sh" -type f -exec sed -i '' "1s|#!/usr/bin/env bash|#!${MODERN_BASH}|" {} \;
 
-# Fix type mismatch
+# Fix type mismatch between header and implementation
+# Header uses PostgreSQL's int64, implementation uses C's int64_t
+# These are typedef'd differently on macOS (int64=long, int64_t=long long)
 log_info "Patching type mismatches for macOS compatibility..."
 find . -name "*.c" -type f -exec sed -i '' 's/int64_t \*shardKeyValue/int64 *shardKeyValue/g' {} \;
 
+# DocumentDB uses PostgreSQL PGXS build system (Makefiles, not CMake)
+# Build only the non-distributed components (pg_documentdb_core and pg_documentdb)
+# Note: PostgreSQL's PGXS passes flags that Apple clang doesn't support:
+#   - -fexcess-precision=standard (GCC-specific)
+#   - -Wno-cast-function-type-strict (unknown to older clang)
+#   - typedef redefinition is a C11 feature (-Wtypedef-redefinition)
+# We suppress these errors to allow the build to proceed.
+# Note: We use a custom clang wrapper (CC) to fix rpath syntax for macOS
+#   PGXS generates -Wl,-rpath=/path but macOS needs -Wl,-rpath,/path
+# Note: Use LIBRARY_PATH to add the compat-lib directory for libbson-1.0 -> libbson2 symlink
+# Note: Use LDFLAGS (not SHLIB_LINK) for ICU to avoid overriding bundle_loader flag
+#   SHLIB_LINK on command line replaces default; LDFLAGS is additive
 export LIBRARY_PATH="${COMPAT_LIB_DIR}:${ICU_PREFIX}/lib:${LIBRARY_PATH:-}"
+# Suppress -Werror entirely for macOS compatibility
+# DocumentDB has code patterns that trigger warnings on Apple clang that don't on Linux GCC
+# WERROR= disables the Makefile's -Werror flag
+# COPT provides additional include paths and suppresses remaining warnings
 EXTRA_CFLAGS="-Wno-error -I${BSON_INCLUDE} -I${BSON_INCLUDE}/bson -I${ICU_PREFIX}/include -I${INTEL_MATH_INSTALL}/include"
 ICU_LINK="-L${ICU_PREFIX}/lib -licuuc -licui18n -licudata"
 
-# Build pg_documentdb_core first
+# Build pg_documentdb_core first (it's a dependency of pg_documentdb)
 log_info "Building pg_documentdb_core..."
 make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= -j"$(sysctl -n hw.ncpu)"
 
-# Create .so -> .dylib symlink
+# Create .so -> .dylib symlink for pg_documentdb linking
+# The Makefile uses -l:pg_documentdb_core.so which is Linux syntax
+# On macOS, the library is pg_documentdb_core.dylib
 if [[ -f pg_documentdb_core/pg_documentdb_core.dylib ]]; then
     ln -sf pg_documentdb_core.dylib pg_documentdb_core/pg_documentdb_core.so
+    log_success "Created pg_documentdb_core.so -> pg_documentdb_core.dylib symlink"
 fi
 
-# Build pg_documentdb
+# Now build pg_documentdb
 log_info "Building pg_documentdb..."
 make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= -j"$(sysctl -n hw.ncpu)"
 
-# Install extensions directly to bundle directory (since we're using source-built PostgreSQL with standard layout)
-log_info "Installing DocumentDB extensions..."
-make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= install
-make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= install
+# Install pg_documentdb_core and pg_documentdb extensions (not documentdb_distributed)
+make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= install DESTDIR="${BUILD_DIR}/documentdb_install"
+make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" CC="${CLANG_WRAPPER}" LDFLAGS="${ICU_LINK}" WERROR= install DESTDIR="${BUILD_DIR}/documentdb_install"
 
-log_success "DocumentDB extension built and installed"
+# Copy DocumentDB files to bundle using helper (handles PGXS path differences)
+copy_extension_from_destdir "${BUILD_DIR}/documentdb_install" "DocumentDB"
 
-# ============================================================================
-# STEP 6: Build pg_cron
-# ============================================================================
+log_success "DocumentDB extension built"
+
+# Build pg_cron
 log_info "Building pg_cron v${PG_CRON_VERSION}..."
 cd "${SOURCES_DIR}"
 if [[ ! -d "pg_cron" ]]; then
     git clone --depth 1 --branch "v${PG_CRON_VERSION}" https://github.com/citusdata/pg_cron.git
 fi
 cd pg_cron
+# pg_cron uses ngettext() from libintl (gettext). Rather than overriding SHLIB_LINK
+# (which would lose the bundle_loader flag), we use -undefined dynamic_lookup via
+# PG_LDFLAGS to defer symbol resolution to runtime. PostgreSQL is already linked
+# against libintl so the symbols will be available when the extension loads.
 make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" PG_LDFLAGS="-undefined dynamic_lookup" -j"$(sysctl -n hw.ncpu)"
-make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" PG_LDFLAGS="-undefined dynamic_lookup" install
-log_success "pg_cron built and installed"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" PG_LDFLAGS="-undefined dynamic_lookup" install DESTDIR="${BUILD_DIR}/pg_cron_install"
 
-# ============================================================================
-# STEP 7: Build pgvector
-# ============================================================================
+# Copy pg_cron files to bundle using helper (handles PGXS path differences)
+copy_extension_from_destdir "${BUILD_DIR}/pg_cron_install" "pg_cron"
+
+log_success "pg_cron built"
+
+# Build pgvector
 log_info "Building pgvector v${PGVECTOR_VERSION}..."
 cd "${SOURCES_DIR}"
 if [[ ! -d "pgvector" ]]; then
@@ -408,12 +439,14 @@ if [[ ! -d "pgvector" ]]; then
 fi
 cd pgvector
 make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
-make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install
-log_success "pgvector built and installed"
+make PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install DESTDIR="${BUILD_DIR}/pgvector_install"
 
-# ============================================================================
-# STEP 8: Build rum
-# ============================================================================
+# Copy pgvector files to bundle using helper (handles PGXS path differences)
+copy_extension_from_destdir "${BUILD_DIR}/pgvector_install" "pgvector"
+
+log_success "pgvector built"
+
+# Build rum
 log_info "Building rum v${RUM_VERSION}..."
 cd "${SOURCES_DIR}"
 if [[ ! -d "rum" ]]; then
@@ -421,16 +454,18 @@ if [[ ! -d "rum" ]]; then
 fi
 cd rum
 make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" -j"$(sysctl -n hw.ncpu)"
-make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install
-log_success "rum built and installed"
+make USE_PGXS=1 PG_CONFIG="${PG_CONFIG}" CC="${CLANG_WRAPPER}" install DESTDIR="${BUILD_DIR}/rum_install"
 
-# ============================================================================
-# STEP 9: Install PostGIS via Homebrew (too complex to build from source)
-# ============================================================================
+# Copy rum files to bundle using helper (handles PGXS path differences)
+copy_extension_from_destdir "${BUILD_DIR}/rum_install" "rum"
+
+log_success "rum built"
+
+# Install PostGIS via Homebrew (complex dependencies: GEOS, PROJ, GDAL)
 log_info "Installing PostGIS via Homebrew..."
 brew install postgis || log_warn "PostGIS may already be installed"
 
-# Copy PostGIS extension files from Homebrew
+# Copy PostGIS extension files
 POSTGIS_LIB_DIR="$(brew --prefix postgis)/lib"
 POSTGIS_SHARE_DIR="$(brew --prefix postgis)/share/postgresql@${PG_MAJOR}"
 
@@ -448,20 +483,30 @@ fi
 
 log_success "PostGIS installed"
 
-# ============================================================================
-# STEP 10: Fix library paths to make binaries fully relocatable
-# ============================================================================
+# Fix library paths to make binaries fully relocatable
+# This is a multi-step process:
+# 1. Find ALL Homebrew dependencies (recursively)
+# 2. Copy them into the bundle's lib/ directory
+# 3. Fix all library paths to use @loader_path/@rpath
 log_info "Making binaries relocatable..."
 
 BUNDLE_LIB_DIR="${BUNDLE_DIR}/lib"
 mkdir -p "${BUNDLE_LIB_DIR}"
 
-# Track processed libraries
+# Track which libraries we've already processed to avoid infinite loops
+# Using a file instead of associative array for bash 3.x compatibility (macOS)
 PROCESSED_LIBS_FILE="${BUILD_DIR}/.processed_libs"
-: > "${PROCESSED_LIBS_FILE}"
+: > "${PROCESSED_LIBS_FILE}"  # Create/truncate file
 
-is_lib_processed() { grep -qxF "$1" "${PROCESSED_LIBS_FILE}" 2>/dev/null; }
-mark_lib_processed() { echo "$1" >> "${PROCESSED_LIBS_FILE}"; }
+# Check if a library has been processed
+is_lib_processed() {
+    grep -qxF "$1" "${PROCESSED_LIBS_FILE}" 2>/dev/null
+}
+
+# Mark a library as processed
+mark_lib_processed() {
+    echo "$1" >> "${PROCESSED_LIBS_FILE}"
+}
 
 # Function to copy a library and all its dependencies recursively
 copy_lib_recursive() {
@@ -469,7 +514,10 @@ copy_lib_recursive() {
     local lib_name
     lib_name=$(basename "$lib_path")
 
-    if is_lib_processed "$lib_name"; then return 0; fi
+    # Skip if already processed
+    if is_lib_processed "$lib_name"; then
+        return 0
+    fi
     mark_lib_processed "$lib_name"
 
     # Skip system libraries
@@ -477,9 +525,12 @@ copy_lib_recursive() {
         return 0
     fi
 
-    if [[ ! -f "$lib_path" ]]; then return 0; fi
+    # Skip if not a real file
+    if [[ ! -f "$lib_path" ]]; then
+        return 0
+    fi
 
-    # Copy Homebrew libraries to bundle
+    # Copy to bundle if from Homebrew and not already there
     if [[ "$lib_path" == *"/opt/homebrew/"* ]] || [[ "$lib_path" == *"/usr/local/"* ]] || [[ "$lib_path" == *"/Cellar/"* ]]; then
         if [[ ! -f "${BUNDLE_LIB_DIR}/${lib_name}" ]]; then
             log_info "  Bundling: ${lib_name}"
@@ -487,37 +538,59 @@ copy_lib_recursive() {
         fi
     fi
 
-    # Recursively process dependencies
-    local deps lib_dir
+    # Recursively process this library's dependencies
+    local deps
+    local lib_dir
     lib_dir=$(dirname "$lib_path")
     deps=$(otool -L "$lib_path" 2>/dev/null | tail -n +2 | awk '{print $1}') || return 0
 
     for dep in $deps; do
-        if [[ "$dep" == /usr/lib/* ]] || [[ "$dep" == /System/* ]]; then continue; fi
-        if [[ "$dep" == @loader_path/* ]]; then
-            local resolved_path="${lib_dir}/${dep#@loader_path/}"
-            if [[ -f "$resolved_path" ]]; then copy_lib_recursive "$resolved_path"; fi
+        # Skip system libs
+        if [[ "$dep" == /usr/lib/* ]] || [[ "$dep" == /System/* ]]; then
             continue
         fi
-        if [[ "$dep" == "@"* ]]; then continue; fi
-        if [[ -f "$dep" ]]; then copy_lib_recursive "$dep"; fi
+
+        # Handle @loader_path references - resolve relative to source library's directory
+        if [[ "$dep" == @loader_path/* ]]; then
+            local relative_name="${dep#@loader_path/}"
+            local resolved_path="${lib_dir}/${relative_name}"
+            if [[ -f "$resolved_path" ]]; then
+                copy_lib_recursive "$resolved_path"
+            fi
+            continue
+        fi
+
+        # Skip other @-prefixed paths (@rpath, @executable_path, etc.)
+        if [[ "$dep" == "@"* ]]; then
+            continue
+        fi
+
+        # Resolve the actual path if it exists
+        if [[ -f "$dep" ]]; then
+            copy_lib_recursive "$dep"
+        fi
     done
 }
 
-# Bundle Homebrew dependencies
+# Step 1: Find and copy all Homebrew dependencies
 log_info "Step 1: Bundling Homebrew dependencies..."
 
+# Start with all binaries in bin/
 if [[ -d "${BUNDLE_DIR}/bin" ]]; then
     for binary in "${BUNDLE_DIR}/bin/"*; do
         [[ -f "$binary" ]] || continue
         file "$binary" | grep -q "Mach-O" || continue
+
         deps=$(otool -L "$binary" 2>/dev/null | tail -n +2 | awk '{print $1}') || continue
-        for dep in $deps; do copy_lib_recursive "$dep"; done
+        for dep in $deps; do
+            copy_lib_recursive "$dep"
+        done
     done
 fi
 
-# Process dylibs until no new ones are added
+# Also process existing dylibs in lib/
 if [[ -d "${BUNDLE_LIB_DIR}" ]]; then
+    # Process in a loop until no new libs are added (handles transitive deps)
     prev_count=0
     curr_count=1
     while [[ $prev_count -ne $curr_count ]]; do
@@ -525,7 +598,9 @@ if [[ -d "${BUNDLE_LIB_DIR}" ]]; then
         for dylib in "${BUNDLE_LIB_DIR}/"*.dylib; do
             [[ -f "$dylib" ]] || continue
             deps=$(otool -L "$dylib" 2>/dev/null | tail -n +2 | awk '{print $1}') || continue
-            for dep in $deps; do copy_lib_recursive "$dep"; done
+            for dep in $deps; do
+                copy_lib_recursive "$dep"
+            done
         done
         curr_count=$(ls -1 "${BUNDLE_LIB_DIR}/"*.dylib 2>/dev/null | wc -l)
     done
@@ -534,42 +609,57 @@ fi
 BUNDLED_COUNT=$(wc -l < "${PROCESSED_LIBS_FILE}" | tr -d ' ')
 log_success "Bundled ${BUNDLED_COUNT} libraries"
 
-# Fix install names
+# Step 2: Fix install names (LC_ID_DYLIB) of all bundled dylibs
 log_info "Step 2: Fixing dylib install names..."
-shopt -s nullglob
+shopt -s nullglob  # Handle no matches gracefully
 for dylib in "${BUNDLE_LIB_DIR}/"*.dylib "${BUNDLE_LIB_DIR}/postgresql/"*.dylib; do
     [[ -f "$dylib" ]] || continue
     lib_name=$(basename "$dylib")
-    current_id=$(otool -D "$dylib" 2>/dev/null | tail -1) || continue
-    if [[ "$current_id" == "@"* ]]; then continue; fi
 
+    # Get current install name
+    current_id=$(otool -D "$dylib" 2>/dev/null | tail -1) || continue
+
+    # Skip if already using @rpath or @loader_path
+    if [[ "$current_id" == "@"* ]]; then
+        continue
+    fi
+
+    # Determine new ID based on location
+    new_id=""
     if [[ "$dylib" == *"/lib/postgresql/"* ]]; then
         new_id="@rpath/postgresql/${lib_name}"
     else
         new_id="@rpath/${lib_name}"
     fi
+
     install_name_tool -id "$new_id" "$dylib" 2>/dev/null || true
 done
 shopt -u nullglob
 
-# Fix library references
+# Step 3: Fix library references in all Mach-O files
 log_info "Step 3: Fixing library references..."
 
 fix_references() {
     local file="$1"
-    local is_dylib="$2"
+    local is_dylib="$2"  # "dylib" or "binary"
 
+    # Skip if not Mach-O
     file "$file" | grep -q "Mach-O" || return 0
 
     local deps
     deps=$(otool -L "$file" 2>/dev/null | tail -n +2 | awk '{print $1}') || return 0
 
     for dep in $deps; do
-        if [[ "$dep" == /usr/lib/* ]] || [[ "$dep" == /System/* ]] || [[ "$dep" == "@"* ]]; then continue; fi
+        # Skip system libraries and already-fixed paths
+        if [[ "$dep" == /usr/lib/* ]] || [[ "$dep" == /System/* ]] || [[ "$dep" == "@"* ]]; then
+            continue
+        fi
 
-        local lib_name new_path=""
+        local lib_name
         lib_name=$(basename "$dep")
 
+        # Check if we have this library bundled
+        local new_path=""
         if [[ -f "${BUNDLE_LIB_DIR}/${lib_name}" ]]; then
             if [[ "$is_dylib" == "dylib" ]]; then
                 new_path="@loader_path/${lib_name}"
@@ -589,6 +679,7 @@ fix_references() {
         fi
     done
 
+    # Add rpath to binaries
     if [[ "$is_dylib" != "dylib" ]]; then
         if ! otool -l "$file" 2>/dev/null | grep -A2 "LC_RPATH" | grep -q "@loader_path/../lib"; then
             install_name_tool -add_rpath "@loader_path/../lib" "$file" 2>/dev/null || true
@@ -596,19 +687,21 @@ fix_references() {
     fi
 }
 
+# Fix binaries
 if [[ -d "${BUNDLE_DIR}/bin" ]]; then
     for binary in "${BUNDLE_DIR}/bin/"*; do
         [[ -f "$binary" ]] && fix_references "$binary" "binary"
     done
 fi
 
+# Fix dylibs (they reference each other)
 shopt -s nullglob
 for dylib in "${BUNDLE_LIB_DIR}/"*.dylib "${BUNDLE_LIB_DIR}/postgresql/"*.dylib; do
     [[ -f "$dylib" ]] && fix_references "$dylib" "dylib"
 done
 shopt -u nullglob
 
-# Verify
+# Step 4: Verify the fix
 log_info "Step 4: Verifying relocatable binaries..."
 VERIFY_FAILED=0
 
@@ -618,7 +711,9 @@ for binary in pg_ctl initdb psql postgres; do
         REMAINING=$(otool -L "$BINARY_PATH" 2>/dev/null | grep -E "(Cellar|opt/homebrew|usr/local)" | grep -v "^$" || true)
         if [[ -n "$REMAINING" ]]; then
             log_warn "Non-relocatable paths in ${binary}:"
-            echo "$REMAINING" | while read -r line; do log_warn "    $line"; done
+            echo "$REMAINING" | while read -r line; do
+                log_warn "    $line"
+            done
             VERIFY_FAILED=1
         fi
     fi
@@ -627,23 +722,19 @@ done
 if [[ $VERIFY_FAILED -eq 0 ]]; then
     log_success "All binaries are now relocatable"
 else
-    log_warn "Some binaries still have non-relocatable paths"
+    log_warn "Some binaries still have non-relocatable paths (may work if deps are installed)"
 fi
 
 log_success "Library path fixing complete"
 
-# ============================================================================
-# STEP 11: Copy pre-configured postgresql.conf.sample
-# ============================================================================
+# Copy pre-configured postgresql.conf.sample
 CONF_SAMPLE="${SCRIPT_DIR}/postgresql.conf.sample"
 if [[ -f "${CONF_SAMPLE}" ]]; then
     cp "${CONF_SAMPLE}" "${BUNDLE_DIR}/share/postgresql.conf.sample"
     log_success "Added pre-configured postgresql.conf.sample"
 fi
 
-# ============================================================================
-# STEP 12: Add metadata file and create tarball
-# ============================================================================
+# Add metadata file
 cat > "${BUNDLE_DIR}/.hostdb-metadata.json" <<EOF
 {
   "name": "postgresql-documentdb",
@@ -651,7 +742,7 @@ cat > "${BUNDLE_DIR}/.hostdb-metadata.json" <<EOF
   "platform": "${PLATFORM}",
   "source": "source-build",
   "components": {
-    "postgresql": "${PG_SOURCE_VERSION}",
+    "postgresql": "${PG_MAJOR}",
     "documentdb": "${DOCDB_VERSION}",
     "pg_cron": "${PG_CRON_VERSION}",
     "pgvector": "${PGVECTOR_VERSION}",
@@ -668,13 +759,22 @@ if [[ -d "${BUNDLE_DIR}/bin" ]]; then
     log_info "  bin/: $(ls "${BUNDLE_DIR}/bin" | head -10 | tr '\n' ' ')..."
 fi
 if [[ -d "${BUNDLE_DIR}/lib/postgresql" ]]; then
+    # Use || true to prevent pipefail from exiting on no matches
     SO_FILES=$(ls "${BUNDLE_DIR}/lib/postgresql" 2>/dev/null | grep -E '\.(so|dylib)$' | head -10 | tr '\n' ' ' || true)
     log_info "  lib/postgresql/ (*.so/*.dylib): ${SO_FILES}..."
 fi
-EXTENSION_DIR="${BUNDLE_DIR}/share/extension"
-if [[ -d "$EXTENSION_DIR" ]]; then
+# Check both paths for extensions (Homebrew structure vs standard)
+EXTENSION_DIR=""
+if [[ -d "${BUNDLE_DIR}/share/postgresql/extension" ]]; then
+    EXTENSION_DIR="${BUNDLE_DIR}/share/postgresql/extension"
+elif [[ -d "${BUNDLE_DIR}/share/extension" ]]; then
+    EXTENSION_DIR="${BUNDLE_DIR}/share/extension"
+fi
+if [[ -n "$EXTENSION_DIR" ]]; then
+    # Use || true to prevent pipefail from exiting on no matches
     CTRL_FILES=$(ls "$EXTENSION_DIR" 2>/dev/null | grep '\.control$' | tr '\n' ' ' || true)
     log_info "  extensions (*.control): ${CTRL_FILES}"
+    # Verify DocumentDB extension is present
     if ls "$EXTENSION_DIR" 2>/dev/null | grep -q 'documentdb'; then
         log_success "DocumentDB extension files present"
     else
@@ -693,7 +793,7 @@ tar -czf "${OUTPUT_FILE}" -C "${BUILD_DIR}" "postgresql-documentdb"
 SHA256=$(shasum -a 256 "${OUTPUT_FILE}" | cut -d' ' -f1)
 log_info "SHA256: ${SHA256}"
 
-# Cleanup build directory
+# Cleanup build directory (keep output)
 rm -rf "${BUILD_DIR}"
 
 log_success "Build complete: ${OUTPUT_FILE}"
