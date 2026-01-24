@@ -22,6 +22,7 @@ packages/platform-packages/**/bin/
 # IDE
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 
