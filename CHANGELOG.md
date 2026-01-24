@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.15] - 2026-01-24
+
+### Changed
+
+- **PostgreSQL-DocumentDB: Complete rewrite for relocatable macOS binaries**
+  - Build PostgreSQL 17 from source instead of using Homebrew (fixes hardcoded `/opt/homebrew/` paths)
+  - Build PostGIS from source against the source-built PostgreSQL
+  - Bundle all Homebrew dependencies recursively with dylib path rewriting
+  - Add macOS ad-hoc code signing for all modified binaries
+  - Move old Homebrew-based build to `legacy/` directory for reference
+
+- **PostgreSQL-DocumentDB: Mark as completed**
+  - Update status from `in-progress` to `completed` in databases.json
+  - All 5 platforms now available: darwin-arm64, darwin-x64, linux-x64, linux-arm64, win32-x64
+
+- **FerretDB: Mark as completed**
+  - Update status from `in-progress` to `completed` in databases.json
+
+### Added
+
+- **Linux build script for PostgreSQL-DocumentDB** (`build-linux.sh`)
+  - Docker-based extraction from FerretDB's official image
+  - Applies same SQL patches as macOS build
+
+- **Documentation: macOS source build learnings** (CLAUDE.md)
+  - dylib path rewriting with `@rpath`, `@loader_path`, `install_name_tool`
+  - Recursive dependency bundling process
+  - Code signing requirements after binary modification
+
+- **IN_PROGRESS.md** for persisting work-in-progress between Claude Code sessions
+
+### Fixed
+
+- **DocumentDB SQL patches** (applied in both macOS and Linux builds)
+  - Fix `##` token concatenation operator (PostgreSQL doesn't support C preprocessor-style `##`)
+  - Fix `bson_in`, `bson_out`, `bson_send`, `bson_recv` functions referencing wrong library
+  - Fix `bsonquery_equal`, `bsonquery_lt`, `bsonquery_lte`, `bsonquery_gt`, `bsonquery_gte` functions referencing wrong library
+
+- **macOS dylib bundling**
+  - Resolve `@rpath/*` references by searching Homebrew locations
+  - Remove Homebrew rpaths and add `@loader_path` for bundled libraries
+  - Fix PostGIS `postgis.control` file creation
+
 ## [0.14.14] - 2026-01-23
 
 ### Added
