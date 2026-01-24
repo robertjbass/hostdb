@@ -453,6 +453,117 @@ fi
 
 log_success "PostGIS installed"
 
+# Fix library paths to make binaries relocatable
+# Homebrew PostgreSQL has hardcoded paths like /opt/homebrew/Cellar/postgresql@17/17.7_1/lib/...
+# We need to change these to @loader_path/../lib/ so binaries use bundled libraries
+log_info "Fixing library paths for relocatable binaries..."
+
+# Function to fix a single Mach-O binary
+fix_macho_paths() {
+    local file="$1"
+    local bundle_lib_dir="${BUNDLE_DIR}/lib"
+
+    # Skip if not a Mach-O file
+    if ! file "$file" | grep -q "Mach-O"; then
+        return 0
+    fi
+
+    # Get all library dependencies
+    local deps
+    deps=$(otool -L "$file" 2>/dev/null | tail -n +2 | awk '{print $1}') || return 0
+
+    for dep in $deps; do
+        # Skip system libraries
+        if [[ "$dep" == /usr/lib/* ]] || [[ "$dep" == /System/* ]] || [[ "$dep" == "@"* ]]; then
+            continue
+        fi
+
+        # Check if this is a Homebrew PostgreSQL library
+        if [[ "$dep" == *"/Cellar/postgresql@"* ]] || [[ "$dep" == *"/opt/homebrew/"* ]] || [[ "$dep" == *"/usr/local/"* ]]; then
+            local libname
+            libname=$(basename "$dep")
+
+            # Check if we have this library in our bundle
+            if [[ -f "${bundle_lib_dir}/${libname}" ]] || [[ -f "${bundle_lib_dir}/postgresql/${libname}" ]]; then
+                local new_path
+                # Determine if it's in lib/ or lib/postgresql/
+                if [[ -f "${bundle_lib_dir}/postgresql/${libname}" ]]; then
+                    new_path="@loader_path/../lib/postgresql/${libname}"
+                else
+                    new_path="@loader_path/../lib/${libname}"
+                fi
+
+                install_name_tool -change "$dep" "$new_path" "$file" 2>/dev/null || true
+            fi
+        fi
+    done
+
+    # Add rpath if this is an executable in bin/
+    if [[ "$file" == "${BUNDLE_DIR}/bin/"* ]]; then
+        # Check if rpath already exists
+        if ! otool -l "$file" 2>/dev/null | grep -A2 "LC_RPATH" | grep -q "@loader_path/../lib"; then
+            install_name_tool -add_rpath "@loader_path/../lib" "$file" 2>/dev/null || true
+        fi
+    fi
+}
+
+# Fix install names (IDs) of dylibs in lib/
+log_info "  Fixing dylib install names..."
+if [[ -d "${BUNDLE_DIR}/lib" ]]; then
+    find "${BUNDLE_DIR}/lib" -name "*.dylib" -type f 2>/dev/null | while read -r dylib; do
+        libname=$(basename "$dylib")
+        # Get current install name
+        current_id=$(otool -D "$dylib" 2>/dev/null | tail -1) || continue
+
+        # Skip if already using @rpath or @loader_path
+        if [[ "$current_id" == "@"* ]]; then
+            continue
+        fi
+
+        # Determine relative path from bundle root
+        if [[ "$dylib" == *"/lib/postgresql/"* ]]; then
+            new_id="@rpath/postgresql/${libname}"
+        else
+            new_id="@rpath/${libname}"
+        fi
+
+        install_name_tool -id "$new_id" "$dylib" 2>/dev/null || true
+    done
+fi
+
+# Fix library references in all binaries
+log_info "  Fixing library references in binaries..."
+if [[ -d "${BUNDLE_DIR}/bin" ]]; then
+    for binary in "${BUNDLE_DIR}/bin/"*; do
+        [[ -f "$binary" ]] && fix_macho_paths "$binary"
+    done
+fi
+
+# Fix library references in all dylibs (they reference each other)
+log_info "  Fixing library references in dylibs..."
+if [[ -d "${BUNDLE_DIR}/lib" ]]; then
+    find "${BUNDLE_DIR}/lib" -name "*.dylib" -type f 2>/dev/null | while read -r dylib; do
+        fix_macho_paths "$dylib"
+    done
+fi
+
+# Verify the fix worked
+log_info "  Verifying library paths..."
+INITDB_PATH="${BUNDLE_DIR}/bin/initdb"
+if [[ -f "$INITDB_PATH" ]]; then
+    REMAINING_HOMEBREW=$(otool -L "$INITDB_PATH" 2>/dev/null | grep -E "(Cellar|opt/homebrew|usr/local)" | grep -v "^$" || true)
+    if [[ -n "$REMAINING_HOMEBREW" ]]; then
+        log_warn "Some Homebrew paths remain in initdb:"
+        echo "$REMAINING_HOMEBREW" | while read -r line; do
+            log_warn "    $line"
+        done
+    else
+        log_success "All library paths in initdb are now relocatable"
+    fi
+fi
+
+log_success "Library paths fixed"
+
 # Copy pre-configured postgresql.conf.sample
 CONF_SAMPLE="${SCRIPT_DIR}/postgresql.conf.sample"
 if [[ -f "${CONF_SAMPLE}" ]]; then
