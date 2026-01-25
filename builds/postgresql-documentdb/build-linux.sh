@@ -315,25 +315,158 @@ else
 fi
 
 # ============================================================================
+# Bundle shared libraries for relocatable binaries
+# ============================================================================
+echo "[INFO] Bundling shared libraries..."
+
+BUNDLE_LIB="${BUNDLE_DIR}/lib"
+PROCESSED_LIBS="/tmp/processed_libs.txt"
+: > "${PROCESSED_LIBS}"
+
+# System libraries that should NOT be bundled (glibc, kernel interfaces)
+is_system_lib() {
+    local lib="$1"
+    case "$lib" in
+        linux-vdso.so*|ld-linux*.so*|libc.so*|libm.so*|libdl.so*|libpthread.so*|librt.so*|libresolv.so*|libnss_*.so*|libgcc_s.so*)
+            return 0 ;;
+        *)
+            return 1 ;;
+    esac
+}
+
+# Check if library was already processed
+is_processed() {
+    grep -qxF "$1" "${PROCESSED_LIBS}" 2>/dev/null
+}
+
+# Mark library as processed
+mark_processed() {
+    echo "$1" >> "${PROCESSED_LIBS}"
+}
+
+# Recursively bundle a library and its dependencies
+bundle_lib_recursive() {
+    local lib_path="$1"
+    local lib_name
+    lib_name=$(basename "$lib_path")
+
+    # Skip if already processed or is a system library
+    if is_processed "$lib_name" || is_system_lib "$lib_name"; then
+        return 0
+    fi
+    mark_processed "$lib_name"
+
+    # Skip if not a real file
+    [[ -f "$lib_path" ]] || return 0
+
+    # Skip if it's our own bundled library
+    [[ "$lib_path" == "${BUNDLE_LIB}/"* ]] && return 0
+
+    # Copy the library to bundle
+    if [[ ! -f "${BUNDLE_LIB}/${lib_name}" ]]; then
+        echo "  Bundling: ${lib_name}"
+        cp -L "$lib_path" "${BUNDLE_LIB}/${lib_name}" 2>/dev/null || true
+    fi
+
+    # Get dependencies and recursively bundle them
+    local deps
+    deps=$(ldd "$lib_path" 2>/dev/null | grep "=> /" | awk '{print $3}') || return 0
+
+    for dep in $deps; do
+        bundle_lib_recursive "$dep"
+    done
+}
+
+# First, bundle dependencies from our built binaries
+echo "[INFO] Step 1: Finding dependencies from binaries..."
+for binary in "${BUNDLE_DIR}/bin/"*; do
+    [[ -f "$binary" ]] || continue
+    file "$binary" | grep -q "ELF" || continue
+
+    deps=$(ldd "$binary" 2>/dev/null | grep "=> /" | awk '{print $3}') || continue
+    for dep in $deps; do
+        bundle_lib_recursive "$dep"
+    done
+done
+
+# Bundle dependencies from our built shared libraries
+echo "[INFO] Step 2: Finding dependencies from libraries..."
+find "${BUNDLE_LIB}" -name "*.so*" -type f 2>/dev/null | while read lib; do
+    [[ -f "$lib" ]] || continue
+    file "$lib" | grep -q "ELF" || continue
+
+    deps=$(ldd "$lib" 2>/dev/null | grep "=> /" | awk '{print $3}') || continue
+    for dep in $deps; do
+        bundle_lib_recursive "$dep"
+    done
+done
+
+# Keep iterating until no new libraries are added
+prev_count=0
+curr_count=$(wc -l < "${PROCESSED_LIBS}")
+while [[ $prev_count -ne $curr_count ]]; do
+    prev_count=$curr_count
+    find "${BUNDLE_LIB}" -name "*.so*" -type f 2>/dev/null | while read lib; do
+        [[ -f "$lib" ]] || continue
+        file "$lib" | grep -q "ELF" || continue
+
+        deps=$(ldd "$lib" 2>/dev/null | grep "=> /" | awk '{print $3}') || continue
+        for dep in $deps; do
+            bundle_lib_recursive "$dep"
+        done
+    done
+    curr_count=$(wc -l < "${PROCESSED_LIBS}")
+done
+
+BUNDLED_COUNT=$(wc -l < "${PROCESSED_LIBS}" | tr -d ' ')
+echo "[OK] Bundled ${BUNDLED_COUNT} libraries"
+
+# ============================================================================
 # Fix RPATH for relocatable binaries
 # ============================================================================
 echo "[INFO] Fixing RPATH for relocatable binaries..."
 
-# Fix binaries
+# Fix binaries - they should look in ../lib relative to themselves
 for f in "${BUNDLE_DIR}/bin/"*; do
     if file "$f" | grep -q "ELF"; then
         patchelf --set-rpath '$ORIGIN/../lib' "$f" 2>/dev/null || true
     fi
 done
 
-# Fix shared libraries
+# Fix shared libraries in lib/ - they should look in the same directory
 find "${BUNDLE_DIR}/lib" -name "*.so*" -type f 2>/dev/null | while read f; do
     if file "$f" | grep -q "ELF"; then
         patchelf --set-rpath '$ORIGIN' "$f" 2>/dev/null || true
     fi
 done
 
+# Fix shared libraries in lib/postgresql/ - they should look in parent lib/ and same dir
+find "${BUNDLE_DIR}/lib/postgresql" -name "*.so*" -type f 2>/dev/null | while read f; do
+    if file "$f" | grep -q "ELF"; then
+        patchelf --set-rpath '$ORIGIN:$ORIGIN/..' "$f" 2>/dev/null || true
+    fi
+done
+
 echo "[OK] RPATH fixed"
+
+# Verify no broken library links
+echo "[INFO] Verifying library dependencies..."
+MISSING_DEPS=0
+for binary in postgres pg_ctl initdb psql; do
+    if [[ -f "${BUNDLE_DIR}/bin/${binary}" ]]; then
+        MISSING=$(ldd "${BUNDLE_DIR}/bin/${binary}" 2>/dev/null | grep "not found" || true)
+        if [[ -n "$MISSING" ]]; then
+            echo "[WARN] ${binary} has missing dependencies:"
+            echo "$MISSING"
+            MISSING_DEPS=1
+        fi
+    fi
+done
+if [[ $MISSING_DEPS -eq 0 ]]; then
+    echo "[OK] All dependencies satisfied"
+else
+    echo "[WARN] Some dependencies are missing - binaries may not work on all systems"
+fi
 
 # Copy postgresql.conf.sample if provided
 if [[ -f /input/postgresql.conf.sample ]]; then

@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.16] - 2026-01-24
+
+### Fixed
+
+- **Linux postgresql-documentdb builds: bundle shared libraries**
+  - Linux builds were missing bundled libraries (libpq, ICU, etc.) causing runtime failures
+  - Added recursive library bundling using `ldd`, similar to macOS build's `otool` approach
+  - Fixed RPATH for `lib/postgresql/` extensions to find parent lib directory
+
 ## [0.14.15] - 2026-01-24
 
 ### Changed

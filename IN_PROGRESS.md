@@ -8,29 +8,104 @@
 
 This section tracks the release process for `postgresql-documentdb-17-0.107.0` binaries.
 
-## Current Status (as of 2026-01-24 ~5:30pm CST)
+## Current Status (as of 2026-01-24 ~6:15pm CST)
 
-| Platform | Status | Run ID | Notes |
-|----------|--------|--------|-------|
-| darwin-arm64 | ✅ Released | - | Working in SpinDB |
-| darwin-x64 | 🔄 Queued | **21323200833** | Waiting for linux-arm64 to complete |
-| linux-x64 | ✅ Released | - | Working in SpinDB |
-| linux-arm64 | 🔄 Building | **21323166182** | QEMU build started ~5:14pm CST |
-| win32-x64 | ✅ Released | - | Added to releases.json |
+Only **darwin-arm64** is confirmed working. Linux builds are **broken** (missing bundled libraries).
 
-### Active Build Runs to Monitor
+| Platform | Status | Notes |
+|----------|--------|-------|
+| darwin-arm64 | ✅ Confirmed | Working in SpinDB |
+| darwin-x64 | ⏳ Untested | Binary exists, needs verification |
+| linux-x64 | ❌ Broken | Missing bundled libraries |
+| linux-arm64 | ❌ Broken | Missing bundled libraries |
+| win32-x64 | ⏳ Untested | Binary exists, needs verification |
+
+### Linux Build Problem
+
+The Linux builds are **missing bundled shared libraries**. Unlike the macOS build which bundles all Homebrew dependencies into `lib/`, the Linux build only sets RPATH but doesn't actually copy the libraries.
+
+**Missing libraries:**
+- `libpq.so.5` - PostgreSQL client library (built by us, but not copied to lib/)
+- `libicuuc.so.72` - ICU libraries (system version mismatch: built with 72, Docker has 70)
+
+**Root cause:**
+- macOS `build-macos.sh` has ~200 lines of library bundling code (lines 536-751)
+- Linux `build-linux.sh` only has ~20 lines that set RPATH (lines 320-336)
+- Linux build needs equivalent bundling logic using `ldd` and `patchelf`
+
+**Fix needed in `builds/postgresql-documentdb/build-linux.sh`:**
+1. After building PostgreSQL, copy `libpq.so*` from the install to `lib/`
+2. Use `ldd` to find all non-system dependencies
+3. Bundle ICU, OpenSSL, readline, etc. to `lib/`
+4. Use `patchelf` to set proper RPATH on all bundled libs
+
+### Active Workflow Runs
 
 ```bash
-# Check linux-arm64 build (started first, QEMU - expect 45-90 min)
-gh run view 21323166182 --repo robertjbass/hostdb
-
-# Check darwin-x64 build (queued, will start after linux-arm64)
-gh run view 21323200833 --repo robertjbass/hostdb
-
-# Quick status check for both
-gh run view 21323166182 --repo robertjbass/hostdb --json status,conclusion && \
+# Check current runs
+gh run view 21323166182 --repo robertjbass/hostdb --json status,conclusion
 gh run view 21323200833 --repo robertjbass/hostdb --json status,conclusion
 ```
+
+## Platform Verification Checklist
+
+Each platform needs to be tested in SpinDB to confirm the binaries work.
+
+### darwin-arm64 ✅ VERIFIED
+Already confirmed working in SpinDB.
+
+### darwin-x64 - Needs Testing
+Requires Intel Mac or Rosetta:
+```bash
+# Option 1: On Apple Silicon with Rosetta
+arch -x86_64 zsh -c "cd ~/dev/spindb && pnpm start engines download ferretdb 2"
+
+# Option 2: On Intel Mac directly
+pnpm start engines download ferretdb 2
+pnpm start create test-fdb --engine ferretdb
+pnpm start start test-fdb
+pnpm start info test-fdb
+pnpm start delete test-fdb --force
+```
+
+### linux-x64 - Needs Testing
+Test with Docker:
+```bash
+docker run --rm -it -v ~/.spindb-test:/root/.spindb node:20 bash -c "
+  npm install -g spindb &&
+  spindb engines download ferretdb 2 &&
+  spindb create test-fdb --engine ferretdb &&
+  spindb start test-fdb &&
+  spindb info test-fdb &&
+  spindb delete test-fdb --force
+"
+```
+
+### linux-arm64 - Needs Testing
+Test with Docker on ARM (M1/M2 Mac runs ARM containers natively):
+```bash
+docker run --rm -it --platform linux/arm64 -v ~/.spindb-test-arm:/root/.spindb node:20 bash -c "
+  npm install -g spindb &&
+  spindb engines download ferretdb 2 &&
+  spindb create test-fdb --engine ferretdb &&
+  spindb start test-fdb &&
+  spindb info test-fdb &&
+  spindb delete test-fdb --force
+"
+```
+
+### win32-x64 - Needs Testing
+Requires Windows machine or VM:
+```powershell
+npm install -g spindb
+spindb engines download ferretdb 2
+spindb create test-fdb --engine ferretdb
+spindb start test-fdb
+spindb info test-fdb
+spindb delete test-fdb --force
+```
+
+---
 
 ## How to Trigger Builds
 
