@@ -595,10 +595,10 @@
         "releaseTag": "postgresql-documentdb-17-0.107.0",
         "releasedAt": "2026-01-23T23:05:02Z",
         "platforms": {
-          "linux-x64": {
-            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-linux-x64.tar.gz",
-            "sha256": "7c5c3ba0b589dbc2b0dffb9f78fd1479b337ce15fec6b08bc05e0399a0fc7bd8",
-            "size": 83019446
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-linux-arm64.tar.gz",
+            "sha256": "ab960ac1d5893264299e3ebb5267efe35585a49360da8d51b38d8c8a30893f6d",
+            "size": 78415221
           }
         }
       }
