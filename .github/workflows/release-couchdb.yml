@@ -482,15 +482,3 @@ jobs:
           done
           echo "ERROR: Push failed after 3 attempts"
           exit 1
-
-  # Trigger sync to ensure releases.json is fully up to date
-  trigger-sync:
-    needs: update-manifest
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger sync-releases workflow
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh workflow run sync-releases.yml --repo ${{ github.repository }}
-          echo "Triggered sync-releases workflow"
