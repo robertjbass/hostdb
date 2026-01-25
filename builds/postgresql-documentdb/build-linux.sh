@@ -366,11 +366,19 @@ BUNDLE_LIB="${BUNDLE_DIR}/lib"
 PROCESSED_LIBS="/tmp/processed_libs.txt"
 : > "${PROCESSED_LIBS}"
 
-# System libraries that should NOT be bundled (glibc, kernel interfaces)
+# System libraries that should NOT be bundled (glibc, kernel interfaces, C++ runtime)
+# These are tightly coupled with glibc and should use the system version
 is_system_lib() {
     local lib="$1"
     case "$lib" in
-        linux-vdso.so*|ld-linux*.so*|libc.so*|libm.so*|libdl.so*|libpthread.so*|librt.so*|libresolv.so*|libnss_*.so*|libgcc_s.so*)
+        # Core glibc
+        linux-vdso.so*|ld-linux*.so*|libc.so*|libm.so*|libdl.so*|libpthread.so*|librt.so*|libresolv.so*)
+            return 0 ;;
+        # NSS (name service switch) - always use system
+        libnss_*.so*)
+            return 0 ;;
+        # C/C++ runtime - tightly coupled with glibc
+        libgcc_s.so*|libstdc++.so*|libgfortran.so*|libquadmath.so*)
             return 0 ;;
         *)
             return 1 ;;
