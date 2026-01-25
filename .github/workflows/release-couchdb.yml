@@ -261,45 +261,77 @@ jobs:
           Write-Host "Running: msiexec $args"
           $process = Start-Process msiexec.exe -ArgumentList $args -Wait -NoNewWindow -PassThru
 
-          if ($process.ExitCode -ne 0) {
-            Write-Host "MSI install exit code: $($process.ExitCode)"
-            Write-Host "Install log:"
-            if (Test-Path "install.log") {
-              Get-Content "install.log" | Select-Object -Last 100
-            }
-            # Try to continue anyway - sometimes exit code is non-zero but install succeeded
+          # Always show install log for debugging
+          Write-Host "MSI install exit code: $($process.ExitCode)"
+          if (Test-Path "install.log") {
+            Write-Host "=== Install log (last 50 lines) ==="
+            Get-Content "install.log" | Select-Object -Last 50
+            Write-Host "=== End install log ==="
           }
 
-          # Find CouchDB installation
+          # Find CouchDB installation - search broadly
           Write-Host "Looking for CouchDB installation..."
 
           # Check common installation paths
           $possiblePaths = @(
             $installDir,
             "C:\CouchDB",
+            "C:\Apache CouchDB",
             "C:\Program Files\Apache CouchDB",
+            "C:\Program Files\Apache Software Foundation\CouchDB",
             "C:\Program Files (x86)\Apache CouchDB",
-            "$env:ProgramFiles\Apache CouchDB"
+            "C:\Program Files (x86)\Apache Software Foundation\CouchDB",
+            "$env:ProgramFiles\Apache CouchDB",
+            "$env:ProgramFiles\Apache Software Foundation\CouchDB"
           )
 
           $couchdbDir = $null
           foreach ($path in $possiblePaths) {
-            if (Test-Path "$path\bin\couchdb.cmd") {
-              $couchdbDir = Get-Item $path
-              Write-Host "Found CouchDB at: $path"
-              break
+            Write-Host "Checking: $path"
+            if (Test-Path $path) {
+              Write-Host "  Directory exists, contents:"
+              Get-ChildItem $path | ForEach-Object { Write-Host "    $($_.Name)" }
+              if (Test-Path "$path\bin\couchdb.cmd") {
+                $couchdbDir = Get-Item $path
+                Write-Host "  Found couchdb.cmd!"
+                break
+              }
+            }
+          }
+
+          # If not found, search Program Files for anything CouchDB related
+          if (-not $couchdbDir) {
+            Write-Host "Searching Program Files for CouchDB..."
+            $searchPaths = @("C:\Program Files", "C:\Program Files (x86)", "C:\")
+            foreach ($searchPath in $searchPaths) {
+              if (Test-Path $searchPath) {
+                $found = Get-ChildItem -Path $searchPath -Directory -ErrorAction SilentlyContinue |
+                  Where-Object { $_.Name -like "*CouchDB*" -or $_.Name -like "*Apache*" }
+                foreach ($dir in $found) {
+                  Write-Host "Found potential match: $($dir.FullName)"
+                  if (Test-Path "$($dir.FullName)\bin\couchdb.cmd") {
+                    $couchdbDir = $dir
+                    Write-Host "  Contains couchdb.cmd!"
+                    break
+                  }
+                  # Check subdirectories
+                  $subDirs = Get-ChildItem -Path $dir.FullName -Directory -ErrorAction SilentlyContinue
+                  foreach ($subDir in $subDirs) {
+                    if (Test-Path "$($subDir.FullName)\bin\couchdb.cmd") {
+                      $couchdbDir = $subDir
+                      Write-Host "  Found in subdirectory: $($subDir.FullName)"
+                      break
+                    }
+                  }
+                  if ($couchdbDir) { break }
+                }
+              }
+              if ($couchdbDir) { break }
             }
           }
 
           if (-not $couchdbDir) {
-            Write-Error "Could not find CouchDB installation"
-            Write-Host "Checking common locations:"
-            foreach ($path in $possiblePaths) {
-              Write-Host "  $path exists: $(Test-Path $path)"
-              if (Test-Path $path) {
-                Get-ChildItem $path | ForEach-Object { Write-Host "    $($_.Name)" }
-              }
-            }
+            Write-Error "Could not find CouchDB installation after extensive search"
             exit 1
           }
 
