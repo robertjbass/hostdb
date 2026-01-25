@@ -233,7 +233,7 @@
       "license": "Apache-2.0",
       "commercialUse": true,
       "protocol": "mongodb",
-      "note": "",
+      "note": "Version 2 requires Postgres-DocumentDB (not on windows) but v1 may in theory build on windows",
       "latestLts": "2.7",
       "versions": {
         "2.7.0": true

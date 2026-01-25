@@ -519,6 +519,17 @@ PS> mongosh mongodb://localhost:27017/mydb
 
 ### Phase 1: Fallback 1 (FerretDB v1) - Quick win, no build complexity
 
+- [ ] **hostdb:** Update `databases.json` schema to support per-platform version availability
+  - Current schema: `versions: { "2.7.0": true }` (same versions for all platforms)
+  - Needed: Allow different versions per OS/architecture, e.g.:
+    ```json
+    "versions": {
+      "2.7.0": { "linux-x64": true, "darwin-arm64": true, "win32-x64": false },
+      "1.24.0": { "win32-x64": true }
+    }
+    ```
+  - Or: Add `platformVersions` field for platform-specific overrides
+  - Update `schemas/databases.schema.json` accordingly
 - [ ] **hostdb:** Add `ferretdb-v1` to `databases.json`
 - [ ] **hostdb:** Create `builds/ferretdb-v1/` with download script
 - [ ] **hostdb:** Add FerretDB v1.24.0 to `sources.json` (all platforms)
