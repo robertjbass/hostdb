@@ -62,10 +62,12 @@ All notable changes to this project will be documented in this file.
   - Update status from `in-progress` to `completed` in databases.json
   - All 5 platforms now available: darwin-arm64, darwin-x64, linux-x64, linux-arm64, win32-x64
 
-- **FerretDB: Mark as completed**
-  - Update status from `in-progress` to `completed` in databases.json
-
 ### Added
+
+- **FerretDB support** (first release)
+  - FerretDB binaries now available for all 5 platforms
+  - Uses postgresql-documentdb as backend for MongoDB wire protocol compatibility
+  - Platforms: darwin-arm64, darwin-x64, linux-x64, linux-arm64, win32-x64 (win32 limited to pgvector only)
 
 - **Linux build script for PostgreSQL-DocumentDB** (`build-linux.sh`)
   - Docker-based extraction from FerretDB's official image
