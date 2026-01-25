@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.19] - 2026-01-25
+
+### Fixed
+
+- **Linux build: don't bundle C/C++ runtime libraries**
+  - Exclude libstdc++, libgfortran, libquadmath from bundling
+  - These are tightly coupled with glibc and should use the system version
+  - Fixes glibc version mismatch errors on older systems (Ubuntu 22.04)
+
 ## [0.14.18] - 2026-01-25
 
 ### Fixed
