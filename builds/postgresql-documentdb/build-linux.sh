@@ -136,7 +136,7 @@ apt-get install -y -qq \
     liblz4-dev \
     libzstd-dev \
     libpcre2-dev \
-    libbson-dev \
+    cmake \
     flex \
     bison \
     patchelf \
@@ -227,6 +227,40 @@ export CPPFLAGS="-I/build/intelmathlib/include"
 export LDFLAGS="-L/build/intelmathlib/lib"
 
 # ============================================================================
+# Build mongo-c-driver (libbson) from source
+# Debian's libbson-dev is too old for DocumentDB 0.107.0 (missing BSON_SUBTYPE_SENSITIVE)
+# ============================================================================
+cd "${SOURCES_DIR}"
+echo "[INFO] Building mongo-c-driver (libbson)..."
+MONGO_C_VERSION="1.29.0"
+curl -sL "https://github.com/mongodb/mongo-c-driver/releases/download/${MONGO_C_VERSION}/mongo-c-driver-${MONGO_C_VERSION}.tar.gz" | tar xz
+cd "mongo-c-driver-${MONGO_C_VERSION}"
+
+mkdir -p cmake-build && cd cmake-build
+cmake .. \
+    -DCMAKE_INSTALL_PREFIX=/build/mongo-c-driver \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF \
+    -DENABLE_MONGOC=OFF \
+    -DENABLE_BSON=ON \
+    -DENABLE_STATIC=OFF \
+    -DENABLE_TESTS=OFF \
+    -DENABLE_EXAMPLES=OFF \
+    > /dev/null 2>&1
+make -j"$(nproc)" > /dev/null 2>&1
+make install > /dev/null 2>&1
+echo "[OK] mongo-c-driver (libbson) built"
+
+# Update paths to include libbson
+export PKG_CONFIG_PATH="/build/mongo-c-driver/lib/pkgconfig:/build/pkgconfig:${PKG_CONFIG_PATH:-}"
+export CPPFLAGS="-I/build/mongo-c-driver/include/libbson-1.0 -I/build/intelmathlib/include"
+export LDFLAGS="-L/build/mongo-c-driver/lib -L/build/intelmathlib/lib"
+export LD_LIBRARY_PATH="/build/mongo-c-driver/lib:${LD_LIBRARY_PATH:-}"
+
+# Copy libbson to bundle
+cp -a /build/mongo-c-driver/lib/libbson*.so* "${BUNDLE_DIR}/lib/" 2>/dev/null || true
+
+# ============================================================================
 # Build DocumentDB extension
 # ============================================================================
 cd "${SOURCES_DIR}"
@@ -237,16 +271,25 @@ cd documentdb
 # Fix type mismatch for strict compilers
 find . -name "*.c" -type f -exec sed -i 's/int64_t \*shardKeyValue/int64 *shardKeyValue/g' {} \;
 
-EXTRA_CFLAGS="-Wno-error -I/build/intelmathlib/include"
-ICU_LINK="-licuuc -licui18n -licudata"
+EXTRA_CFLAGS="-Wno-error -I/build/intelmathlib/include -I/build/mongo-c-driver/include/libbson-1.0"
+EXTRA_LDFLAGS="-L/build/mongo-c-driver/lib -L/build/intelmathlib/lib"
+ICU_LINK="-licuuc -licui18n -licudata -lbson-1.0"
 
 echo "[INFO]   Building pg_documentdb_core..."
-make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${ICU_LINK}" WERROR= -j"$(nproc)" > /dev/null 2>&1
-make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${ICU_LINK}" WERROR= install > /dev/null 2>&1
+make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${EXTRA_LDFLAGS} ${ICU_LINK}" WERROR= -j"$(nproc)" > /dev/null 2>&1
+make -C pg_documentdb_core PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${EXTRA_LDFLAGS} ${ICU_LINK}" WERROR= install > /dev/null 2>&1
 
 echo "[INFO]   Building pg_documentdb..."
-make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${ICU_LINK}" WERROR= -j"$(nproc)" > /dev/null 2>&1
-make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${ICU_LINK}" WERROR= install > /dev/null 2>&1
+if ! make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${EXTRA_LDFLAGS} ${ICU_LINK}" WERROR= -j"$(nproc)" > /dev/null 2>&1; then
+    echo "[ERROR] pg_documentdb build failed"
+    make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${EXTRA_LDFLAGS} ${ICU_LINK}" WERROR= -j1 2>&1 | tail -50
+    exit 1
+fi
+if ! make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${EXTRA_LDFLAGS} ${ICU_LINK}" WERROR= install > /dev/null 2>&1; then
+    echo "[ERROR] pg_documentdb install failed"
+    make -C pg_documentdb PG_CONFIG="${PG_CONFIG}" COPT="${EXTRA_CFLAGS}" LDFLAGS="${EXTRA_LDFLAGS} ${ICU_LINK}" WERROR= install 2>&1 | tail -50
+    exit 1
+fi
 echo "[OK] DocumentDB built and installed"
 
 # Patch DocumentDB SQL files: ## in identifiers is invalid PostgreSQL syntax
@@ -434,18 +477,22 @@ for f in "${BUNDLE_DIR}/bin/"*; do
 done
 
 # Fix shared libraries in lib/ - they should look in the same directory
-find "${BUNDLE_DIR}/lib" -name "*.so*" -type f 2>/dev/null | while read f; do
-    if file "$f" | grep -q "ELF"; then
+echo "[INFO]   Fixing lib/*.so..."
+while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    if file "$f" 2>/dev/null | grep -q "ELF"; then
         patchelf --set-rpath '$ORIGIN' "$f" 2>/dev/null || true
     fi
-done
+done < <(find "${BUNDLE_DIR}/lib" -maxdepth 1 -name "*.so*" -type f 2>/dev/null)
 
 # Fix shared libraries in lib/postgresql/ - they should look in parent lib/ and same dir
-find "${BUNDLE_DIR}/lib/postgresql" -name "*.so*" -type f 2>/dev/null | while read f; do
-    if file "$f" | grep -q "ELF"; then
+echo "[INFO]   Fixing lib/postgresql/*.so..."
+while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    if file "$f" 2>/dev/null | grep -q "ELF"; then
         patchelf --set-rpath '$ORIGIN:$ORIGIN/..' "$f" 2>/dev/null || true
     fi
-done
+done < <(find "${BUNDLE_DIR}/lib/postgresql" -name "*.so*" -type f 2>/dev/null)
 
 echo "[OK] RPATH fixed"
 
@@ -508,6 +555,7 @@ docker run --rm \
     -v "${OUTPUT_DIR}:/host-output" \
     debian:bookworm \
     /bin/bash -c "
+        set -e  # Exit on error in inline script too
         mkdir -p /build /output
         cp /input/build-inside-docker.sh /build/
         chmod +x /build/build-inside-docker.sh
