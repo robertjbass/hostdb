@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.17] - 2026-01-24
+
+### Fixed
+
+- **Linux postgresql-documentdb builds: build mongo-c-driver from source**
+  - Debian bookworm's libbson-dev is too old for DocumentDB v0.107.0 (missing `BSON_SUBTYPE_SENSITIVE`)
+  - Build mongo-c-driver 1.29.0 from source to get a compatible libbson
+  - Add error visibility for pg_documentdb build failures
+
+- **Linux build script: fix RPATH loop with pipefail**
+  - Use process substitution instead of pipe to avoid `set -eo pipefail` issues
+
 ## [0.14.16] - 2026-01-24
 
 ### Fixed
