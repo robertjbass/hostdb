@@ -597,8 +597,8 @@
         "platforms": {
           "linux-x64": {
             "url": "https://github.com/robertjbass/hostdb/releases/download/postgresql-documentdb-17-0.107.0/postgresql-documentdb-17-0.107.0-linux-x64.tar.gz",
-            "sha256": "f35ff4e9b46222a94d921fabcc2f7f685c046395ec996c146adea63b75707769",
-            "size": 85023029
+            "sha256": "7c5c3ba0b589dbc2b0dffb9f78fd1479b337ce15fec6b08bc05e0399a0fc7bd8",
+            "size": 83019446
           }
         }
       }
