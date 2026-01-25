@@ -219,8 +219,10 @@ jobs:
           fi
           ls -la ./dist/
 
-      # For Windows: download MSI and extract
-      - name: Download and extract MSI for Windows
+      # For Windows: install MSI, copy files, then uninstall
+      # Using actual install instead of extraction (/a) because extraction breaks
+      # Erlang port communication for os_mon/win32sysinfo.exe
+      - name: Install and capture MSI for Windows
         if: matrix.build_type == 'msi-extract'
         id: build-windows
         timeout-minutes: 30
@@ -246,35 +248,58 @@ jobs:
 
           Write-Host "MSI downloaded: $(Get-Item $msiPath | Select-Object -ExpandProperty Length) bytes"
 
-          # Extract MSI using msiexec
-          $extractDir = ".\extract"
-          New-Item -ItemType Directory -Force -Path $extractDir
+          # Install MSI to a custom directory (not just extract)
+          # Using /i (install) instead of /a (admin extract) because extraction
+          # breaks Erlang port communication for win32sysinfo.exe
+          $installDir = "C:\CouchDB"
 
-          Write-Host "Extracting MSI..."
+          Write-Host "Installing CouchDB to $installDir..."
           $msiFullPath = (Get-Item $msiPath).FullName
-          $extractFullPath = (Get-Item $extractDir).FullName
 
-          Start-Process msiexec.exe -ArgumentList "/a `"$msiFullPath`" /qn TARGETDIR=`"$extractFullPath`"" -Wait -NoNewWindow
+          # Install without starting service, to custom directory
+          $args = "/i `"$msiFullPath`" /qn INSTALLDIR=`"$installDir`" INSTALLFOLDER=`"$installDir`" INSTALLSERVICE=0 /l*v install.log"
+          Write-Host "Running: msiexec $args"
+          $process = Start-Process msiexec.exe -ArgumentList $args -Wait -NoNewWindow -PassThru
+
+          if ($process.ExitCode -ne 0) {
+            Write-Host "MSI install exit code: $($process.ExitCode)"
+            Write-Host "Install log:"
+            if (Test-Path "install.log") {
+              Get-Content "install.log" | Select-Object -Last 100
+            }
+            # Try to continue anyway - sometimes exit code is non-zero but install succeeded
+          }
 
           # Find CouchDB installation
           Write-Host "Looking for CouchDB installation..."
-          Get-ChildItem -Path $extractDir -Recurse -Directory | Select-Object -First 20 | ForEach-Object { Write-Host $_.FullName }
 
-          # CouchDB typically extracts to Apache CouchDB folder
-          $couchdbDir = Get-ChildItem -Path $extractDir -Recurse -Directory | Where-Object { $_.Name -like "*CouchDB*" } | Select-Object -First 1
+          # Check common installation paths
+          $possiblePaths = @(
+            $installDir,
+            "C:\CouchDB",
+            "C:\Program Files\Apache CouchDB",
+            "C:\Program Files (x86)\Apache CouchDB",
+            "$env:ProgramFiles\Apache CouchDB"
+          )
 
-          if (-not $couchdbDir) {
-            # Try finding by bin/couchdb.cmd
-            $binDir = Get-ChildItem -Path $extractDir -Recurse -Directory | Where-Object { $_.Name -eq "bin" } | Select-Object -First 1
-            if ($binDir) {
-              $couchdbDir = $binDir.Parent
+          $couchdbDir = $null
+          foreach ($path in $possiblePaths) {
+            if (Test-Path "$path\bin\couchdb.cmd") {
+              $couchdbDir = Get-Item $path
+              Write-Host "Found CouchDB at: $path"
+              break
             }
           }
 
           if (-not $couchdbDir) {
             Write-Error "Could not find CouchDB installation"
-            Write-Host "Contents of extract directory:"
-            Get-ChildItem -Path $extractDir -Recurse | Select-Object -First 50 | ForEach-Object { Write-Host $_.FullName }
+            Write-Host "Checking common locations:"
+            foreach ($path in $possiblePaths) {
+              Write-Host "  $path exists: $(Test-Path $path)"
+              if (Test-Path $path) {
+                Get-ChildItem $path | ForEach-Object { Write-Host "    $($_.Name)" }
+              }
+            }
             exit 1
           }
 
@@ -311,6 +336,11 @@ jobs:
           $zipPath = ".\dist\couchdb-$VERSION-$PLATFORM.zip"
 
           Compress-Archive -Path ".\final\couchdb" -DestinationPath $zipPath -Force
+
+          # Uninstall CouchDB to clean up
+          Write-Host "Uninstalling CouchDB..."
+          $uninstallArgs = "/x `"$msiFullPath`" /qn"
+          Start-Process msiexec.exe -ArgumentList $uninstallArgs -Wait -NoNewWindow
 
           Write-Host "Build complete:"
           Get-ChildItem -Path ".\dist"
