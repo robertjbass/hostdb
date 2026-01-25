@@ -8,14 +8,14 @@
 
 This section tracks the release process for `postgresql-documentdb-17-0.107.0` binaries.
 
-## Current Status (as of 2026-01-25 ~5:00am UTC)
+## Current Status (as of 2026-01-25 ~6:00am UTC)
 
 | Platform | Status | Notes |
 |----------|--------|-------|
 | darwin-arm64 | ✅ Verified | Working in SpinDB |
 | darwin-x64 | ⏳ Untested | Binary exists, needs verification |
 | linux-x64 | ✅ Working | Libraries bundle correctly, binaries run |
-| linux-arm64 | ⏳ Building | GitHub Actions triggered, 45-90 min build |
+| linux-arm64 | ⏳ Rebuilding | Previous build timed out at PostGIS (60min limit); increased to 150min |
 | win32-x64 | ⏳ Untested | Binary exists, needs verification |
 
 ### Key Fixes Applied (v0.14.19)
