@@ -1,0 +1,41 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "couchdb",
+  "versions": {
+    "3.5.1": {
+      "linux-x64": {
+        "sourceType": "docker-extract"
+      },
+      "linux-arm64": {
+        "sourceType": "docker-extract"
+      },
+      "darwin-x64": {
+        "url": "https://couchdb.neighbourhood.ie/downloads/3.5.1/mac/x86_64/Apache-CouchDB.zip",
+        "format": "zip",
+        "sourceType": "neighbourhoodie",
+        "sha256": "528f6e2b6cf4352d4012ed5db29ab64861c187e0154c5a62649a1d7a41ad3ad7"
+      },
+      "darwin-arm64": {
+        "url": "https://couchdb.neighbourhood.ie/downloads/3.5.1/mac/arm64/Apache-CouchDB.zip",
+        "format": "zip",
+        "sourceType": "neighbourhoodie",
+        "sha256": "0adddf00aabc686f6f471546345712c86f9eb573fd364eff87e0768d0a96f11e"
+      },
+      "win32-x64": {
+        "url": "https://couchdb.neighbourhood.ie/downloads/3.5.1/win/apache-couchdb-3.5.1.msi",
+        "format": "msi",
+        "sourceType": "neighbourhoodie",
+        "sha256": "7062a90ef24f2603dc7bc75357b2418c62b5ba3d1599ce96bddd22d1fe6ac467"
+      }
+    }
+  },
+  "notes": {
+    "neighbourhoodie": "Official binaries hosted by Neighbourhoodie (https://neighbourhood.ie/couchdb-support/download-binaries)",
+    "docker-extract": "Extracted from official Apache CouchDB Docker image (couchdb:VERSION)",
+    "linux-x64": "Extracted from official Docker image couchdb:VERSION on linux/amd64",
+    "linux-arm64": "Extracted from official Docker image couchdb:VERSION on linux/arm64",
+    "darwin-x64": "Downloaded from Neighbourhoodie (macOS x86_64)",
+    "darwin-arm64": "Downloaded from Neighbourhoodie (macOS Apple Silicon)",
+    "win32-x64": "MSI installer downloaded from Neighbourhoodie, extracted for portable use"
+  }
+}
