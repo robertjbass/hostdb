@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.18] - 2026-01-25
+
+### Fixed
+
+- **Linux build: fix DocumentDB extension check**
+  - Use direct file existence check instead of `ls | grep` for reliability
+
 ## [0.14.17] - 2026-01-24
 
 ### Fixed

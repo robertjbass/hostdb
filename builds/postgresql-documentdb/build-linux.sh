@@ -531,10 +531,13 @@ fi
 if [[ -d "${BUNDLE_DIR}/share/extension" ]]; then
     CTRL_FILES=$(ls "${BUNDLE_DIR}/share/extension" 2>/dev/null | grep '\.control$' | tr '\n' ' ' || true)
     echo "  extensions (*.control): ${CTRL_FILES}"
-    if ls "${BUNDLE_DIR}/share/extension" 2>/dev/null | grep -q 'documentdb'; then
+    # Check for DocumentDB files directly
+    if [[ -f "${BUNDLE_DIR}/share/extension/documentdb.control" ]] && \
+       [[ -f "${BUNDLE_DIR}/share/extension/documentdb_core.control" ]]; then
         echo "[OK] DocumentDB extension files present"
     else
         echo "[ERROR] DocumentDB extension files MISSING!"
+        ls -la "${BUNDLE_DIR}/share/extension/" 2>/dev/null | head -20 || true
         exit 1
     fi
 fi
