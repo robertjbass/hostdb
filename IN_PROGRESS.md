@@ -8,15 +8,15 @@
 
 This section tracks the release process for `postgresql-documentdb-17-0.107.0` binaries.
 
-## Current Status (as of 2026-01-25 ~6:00am UTC)
+## Current Status (as of 2026-01-25 ~7:00am UTC)
 
 | Platform | Status | Notes |
 |----------|--------|-------|
 | darwin-arm64 | ✅ Verified | Working in SpinDB |
-| darwin-x64 | ⏳ Untested | Binary exists, needs verification |
-| linux-x64 | ✅ Working | Libraries bundle correctly, binaries run |
-| linux-arm64 | ⏳ Rebuilding | Previous build timed out at PostGIS (60min limit); increased to 150min |
-| win32-x64 | ⏳ Untested | Binary exists, needs verification |
+| darwin-x64 | ✅ Built | Binary exists (42MB) |
+| linux-x64 | ✅ Working | Libraries bundle correctly, binaries run (79MB) |
+| linux-arm64 | ✅ Built | Build succeeded with 150min timeout (74MB) |
+| win32-x64 | ✅ Built | Binary exists (319MB, pgvector only) |
 
 ### Key Fixes Applied (v0.14.19)
 
@@ -55,12 +55,16 @@ Successfully tested in Docker (ubuntu:22.04 with linux/amd64):
    - Added `locales` package and `locale-gen en_US.UTF-8`
    - PostgreSQL no longer fails with missing locale error
 
-## Next Steps
+## Completed! 🎉
 
-1. ✅ linux-x64 build is complete and verified
-2. ⏳ Wait for linux-arm64 build (run 21328096530) to complete (~90-120 min with QEMU)
-3. Merge hostdb dev → main when ARM64 build succeeds
-4. Test darwin-x64 and win32-x64 platforms
+All 5 platforms built successfully:
+- ✅ darwin-arm64 (35MB)
+- ✅ darwin-x64 (42MB)
+- ✅ linux-x64 (79MB)
+- ✅ linux-arm64 (74MB) - Build run 21328096530 succeeded
+- ✅ win32-x64 (319MB)
+
+Release: https://github.com/robertjbass/hostdb/releases/tag/postgresql-documentdb-17-0.107.0
 
 ## Monitoring Commands
 
