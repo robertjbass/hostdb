@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.14.20] - 2026-01-25
+
+### Fixed
+
+- **GitHub Actions: increase linux-arm64 build timeout to 150 minutes**
+  - PostGIS compilation under QEMU takes 30-40 minutes alone
+  - Previous 60-minute timeout was insufficient for full build
+
 ## [0.14.19] - 2026-01-25
 
 ### Fixed
