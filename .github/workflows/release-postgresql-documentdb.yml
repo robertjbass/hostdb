@@ -158,10 +158,12 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       # For Linux: Docker extraction
+      # ARM64 builds use QEMU emulation which is 5-10x slower than native
+      # PostGIS alone takes 30-40 min to compile on QEMU
       - name: Build for Linux (Docker extraction)
         if: matrix.build_type == 'docker'
         id: build-linux
-        timeout-minutes: 60
+        timeout-minutes: 150
         run: |
           VERSION="${{ github.event.inputs.version }}"
           PLATFORM="${{ matrix.platform }}"

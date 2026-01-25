@@ -4,239 +4,73 @@
 
 ---
 
-## FerretDB Release Plan
+## FerretDB/postgresql-documentdb Release Progress
 
 This section tracks the release process for `postgresql-documentdb-17-0.107.0` binaries.
 
-## Current Status (as of 2026-01-24 ~6:15pm CST)
-
-Only **darwin-arm64** is confirmed working. Linux builds are **broken** (missing bundled libraries).
+## Current Status (as of 2026-01-25 ~6:00am UTC)
 
 | Platform | Status | Notes |
 |----------|--------|-------|
-| darwin-arm64 | ✅ Confirmed | Working in SpinDB |
+| darwin-arm64 | ✅ Verified | Working in SpinDB |
 | darwin-x64 | ⏳ Untested | Binary exists, needs verification |
-| linux-x64 | ❌ Broken | Missing bundled libraries |
-| linux-arm64 | ❌ Broken | Missing bundled libraries |
+| linux-x64 | ✅ Working | Libraries bundle correctly, binaries run |
+| linux-arm64 | ⏳ Rebuilding | Previous build timed out at PostGIS (60min limit); increased to 150min |
 | win32-x64 | ⏳ Untested | Binary exists, needs verification |
 
-### Linux Build Problem
+### Key Fixes Applied (v0.14.19)
 
-The Linux builds are **missing bundled shared libraries**. Unlike the macOS build which bundles all Homebrew dependencies into `lib/`, the Linux build only sets RPATH but doesn't actually copy the libraries.
+1. **Build mongo-c-driver from source** (v0.14.17)
+   - Debian bookworm's libbson-dev was too old for DocumentDB v0.107.0
+   - Now builds mongo-c-driver 1.29.0 for compatible libbson
 
-**Missing libraries:**
-- `libpq.so.5` - PostgreSQL client library (built by us, but not copied to lib/)
-- `libicuuc.so.72` - ICU libraries (system version mismatch: built with 72, Docker has 70)
+2. **Fix DocumentDB extension check** (v0.14.18)
+   - Use direct file existence check instead of `ls | grep`
 
-**Root cause:**
-- macOS `build-macos.sh` has ~200 lines of library bundling code (lines 536-751)
-- Linux `build-linux.sh` only has ~20 lines that set RPATH (lines 320-336)
-- Linux build needs equivalent bundling logic using `ldd` and `patchelf`
+3. **Don't bundle C/C++ runtime libraries** (v0.14.19)
+   - Exclude libstdc++, libgfortran, libquadmath from bundling
+   - These are tightly coupled with glibc and should use system version
+   - Fixes glibc version mismatch on Ubuntu 22.04
 
-**Fix needed in `builds/postgresql-documentdb/build-linux.sh`:**
-1. After building PostgreSQL, copy `libpq.so*` from the install to `lib/`
-2. Use `ldd` to find all non-system dependencies
-3. Bundle ICU, OpenSSL, readline, etc. to `lib/`
-4. Use `patchelf` to set proper RPATH on all bundled libs
+### Verification Results (linux-x64)
 
-### Active Workflow Runs
+Successfully tested in Docker (ubuntu:22.04 with linux/amd64):
+- ✅ initdb --version works
+- ✅ postgres --version works
+- ✅ ldd shows all dependencies resolved
+- ✅ Libraries correctly load from bundle (`lib/`) or system as appropriate
+- ✅ No "not found" errors in ldd output
 
-```bash
-# Check current runs
-gh run view 21323166182 --repo robertjbass/hostdb --json status,conclusion
-gh run view 21323200833 --repo robertjbass/hostdb --json status,conclusion
-```
+### Fixes Applied This Session
 
-## Platform Verification Checklist
+1. **Extended linux-arm64 build timeout** (commit 12652b3)
+   - Previous build timed out at 60 min during PostGIS compilation
+   - Extended timeout to 150 minutes for QEMU emulated builds
 
-Each platform needs to be tested in SpinDB to confirm the binaries work.
+2. **Fixed SpinDB non-interactive mode** (spindb cli/commands/create.ts)
+   - Docker E2E test was failing with "Cannot prompt in non-interactive mode"
+   - Added TTY check: if no TTY and no explicit --start/--no-start, default to not starting
 
-### darwin-arm64 ✅ VERIFIED
-Already confirmed working in SpinDB.
+3. **Fixed locale issue** (spindb tests/docker/Dockerfile)
+   - Added `locales` package and `locale-gen en_US.UTF-8`
+   - PostgreSQL no longer fails with missing locale error
 
-### darwin-x64 - Needs Testing
-Requires Intel Mac or Rosetta:
-```bash
-# Option 1: On Apple Silicon with Rosetta
-arch -x86_64 zsh -c "cd ~/dev/spindb && pnpm start engines download ferretdb 2"
+## Next Steps
 
-# Option 2: On Intel Mac directly
-pnpm start engines download ferretdb 2
-pnpm start create test-fdb --engine ferretdb
-pnpm start start test-fdb
-pnpm start info test-fdb
-pnpm start delete test-fdb --force
-```
+1. ✅ linux-x64 build is complete and verified
+2. ⏳ Wait for linux-arm64 build (run 21328096530) to complete (~90-120 min with QEMU)
+3. Merge hostdb dev → main when ARM64 build succeeds
+4. Test darwin-x64 and win32-x64 platforms
 
-### linux-x64 - Needs Testing
-Test with Docker:
-```bash
-docker run --rm -it -v ~/.spindb-test:/root/.spindb node:20 bash -c "
-  npm install -g spindb &&
-  spindb engines download ferretdb 2 &&
-  spindb create test-fdb --engine ferretdb &&
-  spindb start test-fdb &&
-  spindb info test-fdb &&
-  spindb delete test-fdb --force
-"
-```
-
-### linux-arm64 - Needs Testing
-Test with Docker on ARM (M1/M2 Mac runs ARM containers natively):
-```bash
-docker run --rm -it --platform linux/arm64 -v ~/.spindb-test-arm:/root/.spindb node:20 bash -c "
-  npm install -g spindb &&
-  spindb engines download ferretdb 2 &&
-  spindb create test-fdb --engine ferretdb &&
-  spindb start test-fdb &&
-  spindb info test-fdb &&
-  spindb delete test-fdb --force
-"
-```
-
-### win32-x64 - Needs Testing
-Requires Windows machine or VM:
-```powershell
-npm install -g spindb
-spindb engines download ferretdb 2
-spindb create test-fdb --engine ferretdb
-spindb start test-fdb
-spindb info test-fdb
-spindb delete test-fdb --force
-```
-
----
-
-## How to Trigger Builds
+## Monitoring Commands
 
 ```bash
-# Trigger a single platform build
-gh workflow run release-postgresql-documentdb.yml \
-  --repo robertjbass/hostdb \
-  --ref main \
-  -f version=17-0.107.0 \
-  -f platforms=<platform>
+# Check linux-arm64 build status
+gh run list --repo robertjbass/hostdb --workflow=release-postgresql-documentdb.yml --limit 3
 
-# Platform options: darwin-arm64, darwin-x64, linux-x64, linux-arm64, win32-x64
-# Can also use: all (builds all platforms)
-```
-
-**Examples:**
-```bash
-# Rebuild linux-arm64
-gh workflow run release-postgresql-documentdb.yml --repo robertjbass/hostdb --ref main -f version=17-0.107.0 -f platforms=linux-arm64
-
-# Rebuild darwin-x64
-gh workflow run release-postgresql-documentdb.yml --repo robertjbass/hostdb --ref main -f version=17-0.107.0 -f platforms=darwin-x64
-
-# Rebuild all platforms
-gh workflow run release-postgresql-documentdb.yml --repo robertjbass/hostdb --ref main -f version=17-0.107.0 -f platforms=all
-```
-
-## How to Monitor Builds
-
-```bash
-# List recent workflow runs
-gh run list --repo robertjbass/hostdb --workflow=release-postgresql-documentdb.yml --limit 5
-
-# Check specific run status
+# View specific run
 gh run view <RUN_ID> --repo robertjbass/hostdb --json status,conclusion,jobs
 
-# Watch a run in real-time
-gh run watch <RUN_ID> --repo robertjbass/hostdb
-
-# Get failed job logs
-gh run view <RUN_ID> --repo robertjbass/hostdb --log-failed
-```
-
-## Workflow Concurrency
-
-The workflow has a concurrency setting that **queues** builds instead of running them in parallel:
-```yaml
-concurrency:
-  group: release-postgresql-documentdb
-  cancel-in-progress: false
-```
-
-This means if you trigger darwin-x64 while linux-arm64 is building, darwin-x64 will wait in the queue.
-
-## Build Times
-
-| Platform | Method | Typical Duration |
-|----------|--------|------------------|
-| darwin-arm64 | Native (macos-14) | 30-45 min |
-| darwin-x64 | Native (macos-15-intel) | 30-45 min |
-| linux-x64 | Docker | 5-10 min |
-| linux-arm64 | Docker + QEMU | 45-90 min |
-| win32-x64 | Docker | 5-10 min |
-
-## After Build Completes
-
-### 1. Verify Release Assets
-```bash
-gh release view postgresql-documentdb-17-0.107.0 --repo robertjbass/hostdb --json assets --jq '.assets[].name'
-```
-
-Should show all 5 platforms:
-- postgresql-documentdb-17-0.107.0-darwin-arm64.tar.gz
-- postgresql-documentdb-17-0.107.0-darwin-x64.tar.gz
-- postgresql-documentdb-17-0.107.0-linux-arm64.tar.gz
-- postgresql-documentdb-17-0.107.0-linux-x64.tar.gz
-- postgresql-documentdb-17-0.107.0-win32-x64.zip
-
-### 2. Update releases.json (if needed)
-```bash
-pnpm update:releases -- --database postgresql-documentdb --version 17-0.107.0 --tag postgresql-documentdb-17-0.107.0
-```
-
-### 3. Verify in SpinDB
-```bash
-cd ~/dev/spindb
-pnpm start engines download ferretdb 2
-pnpm start create test-fdb --engine ferretdb
-pnpm start start test-fdb
-pnpm start info test-fdb
-pnpm start delete test-fdb --force
-```
-
-## Common Issues
-
-### Build Frozen (linux-arm64)
-QEMU ARM64 builds can appear frozen during long compilation steps. If no progress after 60+ minutes:
-```bash
-# Cancel the run
-gh run cancel <RUN_ID> --repo robertjbass/hostdb
-
-# Retrigger
+# Trigger a rebuild if needed
 gh workflow run release-postgresql-documentdb.yml --repo robertjbass/hostdb --ref main -f version=17-0.107.0 -f platforms=linux-arm64
 ```
-
-### darwin-x64 SDK Issues
-If darwin-x64 fails with `strchrnul` or SDK errors, the build script may need `MACOSX_DEPLOYMENT_TARGET` adjustment. Check `builds/postgresql-documentdb/build-macos.sh`.
-
-### Release Asset Not Updated
-If the workflow completes but the release still has old binaries:
-```bash
-# Delete old asset
-gh release delete-asset postgresql-documentdb-17-0.107.0 postgresql-documentdb-17-0.107.0-<platform>.tar.gz --repo robertjbass/hostdb --yes
-
-# Upload new asset (from workflow artifacts or local build)
-gh release upload postgresql-documentdb-17-0.107.0 /path/to/artifact.tar.gz --repo robertjbass/hostdb
-```
-
-## Key Files
-
-- `builds/postgresql-documentdb/build-macos.sh` - macOS build script (source build)
-- `builds/postgresql-documentdb/build-linux.sh` - Linux build script (Docker)
-- `.github/workflows/release-postgresql-documentdb.yml` - GitHub Actions workflow
-- `databases.json` - Database status and platform support
-- `releases.json` - Release manifest with download URLs
-
-## Patches Applied in Build Scripts
-
-Both build scripts apply these patches to fix upstream DocumentDB bugs:
-
-1. **Token concatenation (`##`)** - PostgreSQL doesn't support C preprocessor-style `##`
-2. **Wrong library references** - Functions like `bson_in`, `bsonquery_*` reference wrong library
-
-See `builds/postgresql-documentdb/build-macos.sh` lines ~391-411 for the patch implementation.
