@@ -251,7 +251,8 @@ jobs:
           # Install MSI to a custom directory (not just extract)
           # Using /i (install) instead of /a (admin extract) because extraction
           # breaks Erlang port communication for win32sysinfo.exe
-          $installDir = "C:\CouchDB"
+          # Use D:\ since GitHub Actions runners use D: as ROOTDRIVE
+          $installDir = "D:\CouchDB"
 
           Write-Host "Installing CouchDB to $installDir..."
           $msiFullPath = (Get-Item $msiPath).FullName
@@ -272,15 +273,19 @@ jobs:
           # Find CouchDB installation - search broadly
           Write-Host "Looking for CouchDB installation..."
 
-          # Check common installation paths
+          # Check common installation paths (including D: drive used by GitHub Actions)
           $possiblePaths = @(
             $installDir,
             "C:\CouchDB",
+            "D:\CouchDB",
             "C:\Apache CouchDB",
+            "D:\Apache CouchDB",
             "C:\Program Files\Apache CouchDB",
+            "D:\Program Files\Apache CouchDB",
             "C:\Program Files\Apache Software Foundation\CouchDB",
+            "D:\Program Files\Apache Software Foundation\CouchDB",
             "C:\Program Files (x86)\Apache CouchDB",
-            "C:\Program Files (x86)\Apache Software Foundation\CouchDB",
+            "D:\Program Files (x86)\Apache CouchDB",
             "$env:ProgramFiles\Apache CouchDB",
             "$env:ProgramFiles\Apache Software Foundation\CouchDB"
           )
@@ -302,7 +307,7 @@ jobs:
           # If not found, search Program Files for anything CouchDB related
           if (-not $couchdbDir) {
             Write-Host "Searching Program Files for CouchDB..."
-            $searchPaths = @("C:\Program Files", "C:\Program Files (x86)", "C:\")
+            $searchPaths = @("C:\Program Files", "C:\Program Files (x86)", "C:\", "D:\Program Files", "D:\Program Files (x86)", "D:\")
             foreach ($searchPath in $searchPaths) {
               if (Test-Path $searchPath) {
                 $found = Get-ChildItem -Path $searchPath -Directory -ErrorAction SilentlyContinue |
