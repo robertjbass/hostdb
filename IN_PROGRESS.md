@@ -41,21 +41,25 @@ Successfully tested in Docker (ubuntu:22.04 with linux/amd64):
 - ✅ Libraries correctly load from bundle (`lib/`) or system as appropriate
 - ✅ No "not found" errors in ldd output
 
-### Remaining Issue (SpinDB, not hostdb)
+### Fixes Applied This Session
 
-SpinDB Docker E2E test shows PostgreSQL startup failure due to missing locale:
-```
-LOG: invalid value for parameter "lc_messages": "en_US.UTF-8"
-FATAL: configuration file contains errors
-```
+1. **Extended linux-arm64 build timeout** (commit 12652b3)
+   - Previous build timed out at 60 min during PostGIS compilation
+   - Extended timeout to 150 minutes for QEMU emulated builds
 
-This is a SpinDB/Docker configuration issue (locale not installed), not a hostdb binary issue. The binaries themselves work correctly.
+2. **Fixed SpinDB non-interactive mode** (spindb cli/commands/create.ts)
+   - Docker E2E test was failing with "Cannot prompt in non-interactive mode"
+   - Added TTY check: if no TTY and no explicit --start/--no-start, default to not starting
+
+3. **Fixed locale issue** (spindb tests/docker/Dockerfile)
+   - Added `locales` package and `locale-gen en_US.UTF-8`
+   - PostgreSQL no longer fails with missing locale error
 
 ## Next Steps
 
 1. ✅ linux-x64 build is complete and verified
-2. ⏳ Wait for linux-arm64 build to complete (~45-90 min)
-3. Fix SpinDB Docker test to install locale or use C locale
+2. ⏳ Wait for linux-arm64 build (run 21328096530) to complete (~90-120 min with QEMU)
+3. Merge hostdb dev → main when ARM64 build succeeds
 4. Test darwin-x64 and win32-x64 platforms
 
 ## Monitoring Commands
