@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.17.0] - 2026-01-25
+
+### Added
+
+- **CouchDB support** (new database engine)
+  - Apache CouchDB document database with HTTP API and offline-first sync
+  - All 5 platforms supported: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+  - Linux: Extracted from official CouchDB Docker image
+  - macOS: Official binaries from Neighbourhoodie
+  - Windows: MSI installer from Neighbourhoodie, extracted for portable use
+  - License: Apache-2.0
+
 ## [0.14.20] - 2026-01-25
 
 ### Fixed
