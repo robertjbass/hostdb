@@ -33,38 +33,6 @@
         "sha256": "2967dfd0598ee3b5162ad60a0513099272e31f3a080d5d864ffd455abc7c86f5",
         "sourceType": "official"
       }
-    },
-    "25.2.10": {
-      "linux-x64": {
-        "url": "https://binaries.cockroachdb.com/cockroach-v25.2.10.linux-amd64.tgz",
-        "format": "tar.gz",
-        "sha256": "da495e178f28c0f2ace7c8ba92ccb503cd8d30204a59711447a1c78525a2110c",
-        "sourceType": "official"
-      },
-      "linux-arm64": {
-        "url": "https://binaries.cockroachdb.com/cockroach-v25.2.10.linux-arm64.tgz",
-        "format": "tar.gz",
-        "sha256": "68812578e95a991d34ce1c1d68b2701f062b805a21607c5122ecdef2e0962275",
-        "sourceType": "official"
-      },
-      "darwin-x64": {
-        "url": "https://binaries.cockroachdb.com/cockroach-v25.2.10.darwin-10.9-amd64.tgz",
-        "format": "tar.gz",
-        "sha256": "44c76fa37fe0e585d3fa62c1d4d44dcc862dde247d30e69b16a21c869b67b716",
-        "sourceType": "official"
-      },
-      "darwin-arm64": {
-        "url": "https://binaries.cockroachdb.com/cockroach-v25.2.10.darwin-11.0-arm64.tgz",
-        "format": "tar.gz",
-        "sha256": "8d5ea69b05c8f132aa760eb2b15498b49dc8293e5daec45e95ac3d4cdac405a0",
-        "sourceType": "official"
-      },
-      "win32-x64": {
-        "url": "https://binaries.cockroachdb.com/cockroach-v25.2.10.windows-6.2-amd64.zip",
-        "format": "zip",
-        "sha256": "b24a5ab6d3e55fd6abdadd528f6060345fd8a1e55463b8ab715213fb4b9380f4",
-        "sourceType": "official"
-      }
     }
   },
   "notes": {

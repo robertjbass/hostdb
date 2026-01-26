@@ -160,10 +160,9 @@
       "commercialUse": true,
       "protocol": "postgresql",
       "note": "CockroachDB Software License restricts competing cloud services; fine for local dev",
-      "latestLts": "25.2",
+      "latestLts": "25.4",
       "versions": {
-        "25.4.2": true,
-        "25.2.10": true
+        "25.4.2": true
       },
       "platforms": {
         "linux-x64": true,

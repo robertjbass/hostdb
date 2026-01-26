@@ -9,7 +9,6 @@ on:
         type: choice
         options:
           - 25.4.2
-          - 25.2.10
         default: 25.4.2
       platforms:
         description: 'Platforms'
