@@ -30,6 +30,7 @@
     "checksums:populate": "tsx scripts/populate-checksums.ts",
     "dbs": "tsx scripts/list-databases.ts",
     "download:clickhouse": "tsx builds/clickhouse/download.ts",
+    "download:cockroachdb": "tsx builds/cockroachdb/download.ts",
     "download:couchdb": "tsx builds/couchdb/download.ts",
     "download:duckdb": "tsx builds/duckdb/download.ts",
     "download:ferretdb": "tsx builds/ferretdb/download.ts",

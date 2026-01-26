@@ -1,0 +1,76 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "cockroachdb",
+  "versions": {
+    "25.4.2": {
+      "linux-x64": {
+        "url": "https://binaries.cockroachdb.com/cockroach-v25.4.2.linux-amd64.tgz",
+        "format": "tar.gz",
+        "sha256": "a3bb6b1c17226062198bda601f42f0ea1e76669dd3bf16c8c0968bb1701bd2e2",
+        "sourceType": "official"
+      },
+      "linux-arm64": {
+        "url": "https://binaries.cockroachdb.com/cockroach-v25.4.2.linux-arm64.tgz",
+        "format": "tar.gz",
+        "sha256": "1f154c49e4c5e449a0191c3abdccab7795876baf0908ffa5e899c943f26b87d7",
+        "sourceType": "official"
+      },
+      "darwin-x64": {
+        "url": "https://binaries.cockroachdb.com/cockroach-v25.4.2.darwin-10.9-amd64.tgz",
+        "format": "tar.gz",
+        "sha256": "22a50979889dd4a89a1444a2493ee6b3d8e0dbc14fe6ba62a95d27254bc9a908",
+        "sourceType": "official"
+      },
+      "darwin-arm64": {
+        "url": "https://binaries.cockroachdb.com/cockroach-v25.4.2.darwin-11.0-arm64.tgz",
+        "format": "tar.gz",
+        "sha256": "c2b2e525aa103bd29514a0382f6483eb85e1c4156ad21c3372dfe3352e8e402c",
+        "sourceType": "official"
+      },
+      "win32-x64": {
+        "url": "https://binaries.cockroachdb.com/cockroach-v25.4.2.windows-6.2-amd64.zip",
+        "format": "zip",
+        "sha256": "2967dfd0598ee3b5162ad60a0513099272e31f3a080d5d864ffd455abc7c86f5",
+        "sourceType": "official"
+      }
+    },
+    "25.2.10": {
+      "linux-x64": {
+        "url": "https://binaries.cockroachdb.com/cockroach-v25.2.10.linux-amd64.tgz",
+        "format": "tar.gz",
+        "sha256": "da495e178f28c0f2ace7c8ba92ccb503cd8d30204a59711447a1c78525a2110c",
+        "sourceType": "official"
+      },
+      "linux-arm64": {
+        "url": "https://binaries.cockroachdb.com/cockroach-v25.2.10.linux-arm64.tgz",
+        "format": "tar.gz",
+        "sha256": "68812578e95a991d34ce1c1d68b2701f062b805a21607c5122ecdef2e0962275",
+        "sourceType": "official"
+      },
+      "darwin-x64": {
+        "url": "https://binaries.cockroachdb.com/cockroach-v25.2.10.darwin-10.9-amd64.tgz",
+        "format": "tar.gz",
+        "sha256": "44c76fa37fe0e585d3fa62c1d4d44dcc862dde247d30e69b16a21c869b67b716",
+        "sourceType": "official"
+      },
+      "darwin-arm64": {
+        "url": "https://binaries.cockroachdb.com/cockroach-v25.2.10.darwin-11.0-arm64.tgz",
+        "format": "tar.gz",
+        "sha256": "8d5ea69b05c8f132aa760eb2b15498b49dc8293e5daec45e95ac3d4cdac405a0",
+        "sourceType": "official"
+      },
+      "win32-x64": {
+        "url": "https://binaries.cockroachdb.com/cockroach-v25.2.10.windows-6.2-amd64.zip",
+        "format": "zip",
+        "sha256": "b24a5ab6d3e55fd6abdadd528f6060345fd8a1e55463b8ab715213fb4b9380f4",
+        "sourceType": "official"
+      }
+    }
+  },
+  "notes": {
+    "source": "Official CockroachDB binaries from binaries.cockroachdb.com",
+    "darwin-x64": "Uses darwin-10.9-amd64 naming (macOS 10.9+ Intel)",
+    "darwin-arm64": "Uses darwin-11.0-arm64 naming (macOS 11+ Apple Silicon)",
+    "win32-x64": "Uses windows-6.2-amd64 naming (Windows 8+)"
+  }
+}
