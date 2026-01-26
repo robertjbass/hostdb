@@ -114,6 +114,43 @@
       },
       "status": "completed"
     },
+    "chroma": {
+      "displayName": "Chroma",
+      "description": "AI-native embedding database for LLM applications, lightweight and easy to deploy",
+      "type": "Vector",
+      "sourceRepo": "https://github.com/chroma-core/chroma",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "LLM-focused vector database; simpler than Milvus",
+      "latestLts": "1.0",
+      "versions": {
+        "1.0.12": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "chroma",
+        "client": null,
+        "utilities": [],
+        "enhanced": [],
+        "note": "HTTP/gRPC API; use official SDKs"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 8000,
+        "scheme": "http",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "HTTP"
+      },
+      "status": "pending"
+    },
     "cockroachdb": {
       "displayName": "CockroachDB",
       "description": "Distributed SQL database with PostgreSQL compatibility, designed for high availability and horizontal scale",
@@ -150,7 +187,7 @@
         "defaultUser": "root",
         "queryLanguage": "SQL"
       },
-      "status": "pending"
+      "status": "in-progress"
     },
     "couchdb": {
       "displayName": "CouchDB",
@@ -187,7 +224,7 @@
         "defaultUser": "admin",
         "queryLanguage": "HTTP"
       },
-      "status": "in-progress"
+      "status": "completed"
     },
     "duckdb": {
       "displayName": "DuckDB",
@@ -225,6 +262,43 @@
       },
       "status": "completed"
     },
+    "dgraph": {
+      "displayName": "Dgraph",
+      "description": "Native GraphQL database with horizontal scaling and distributed ACID transactions",
+      "type": "Multi-model",
+      "sourceRepo": "https://github.com/dgraph-io/dgraph",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "Native GraphQL support; single Go binary",
+      "latestLts": "24.1",
+      "versions": {
+        "24.1.3": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "dgraph",
+        "client": null,
+        "utilities": ["dgraph-ratel"],
+        "enhanced": [],
+        "note": "GraphQL/HTTP API; use Ratel UI or curl"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 8080,
+        "scheme": "http",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "HTTP"
+      },
+      "status": "pending"
+    },
     "ferretdb": {
       "displayName": "FerretDB",
       "description": "Open-source MongoDB alternative using PostgreSQL as the backend, wire-protocol compatible",
@@ -261,18 +335,18 @@
       },
       "status": "completed"
     },
-    "foundationdb": {
-      "displayName": "FoundationDB",
-      "description": "Distributed, transactional key-value store with ACID guarantees, backed by Apple",
-      "type": "Key-Value",
-      "sourceRepo": "https://github.com/apple/foundationdb",
+    "gel": {
+      "displayName": "Gel",
+      "description": "Graph-relational database built on PostgreSQL, formerly EdgeDB, with strict typing and declarative schema",
+      "type": "Multi-model",
+      "sourceRepo": "https://github.com/geldata/gel",
       "license": "Apache-2.0",
       "commercialUse": true,
-      "protocol": null,
-      "note": "Niche use case; primarily used within Apple ecosystem",
-      "latestLts": "7.3",
+      "protocol": "postgresql",
+      "note": "Formerly EdgeDB; PostgreSQL-based with graph capabilities",
+      "latestLts": "7.0",
       "versions": {
-        "7.3.69": true
+        "7.0.0": true
       },
       "platforms": {
         "linux-x64": true,
@@ -282,128 +356,21 @@
         "win32-x64": true
       },
       "cliTools": {
-        "server": "fdbserver",
-        "client": "fdbcli",
-        "utilities": ["fdbbackup", "fdbrestore", "fdbdr"],
-        "enhanced": []
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 4500,
-        "scheme": "fdb",
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "API"
-      },
-      "status": "unsupported"
-    },
-    "influxdb": {
-      "displayName": "InfluxDB",
-      "description": "Purpose-built time-series database for metrics, events, and real-time analytics",
-      "type": "Time-series",
-      "sourceRepo": "https://github.com/influxdata/influxdb",
-      "license": "MIT",
-      "commercialUse": true,
-      "protocol": null,
-      "note": "QuestDB + TimescaleDB cover time-series with better SQL support",
-      "latestLts": "3.4",
-      "versions": {
-        "3.4.0": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": "influxd",
-        "client": "influx",
+        "server": "gel-server",
+        "client": "gel",
         "utilities": [],
-        "enhanced": []
+        "enhanced": [],
+        "note": "EdgeQL query language; native CLI"
       },
       "connection": {
         "runtime": "server",
-        "defaultPort": 8086,
-        "scheme": "http",
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "InfluxQL"
-      },
-      "status": "unsupported"
-    },
-    "keydb": {
-      "displayName": "KeyDB",
-      "description": "Multithreaded fork of Redis with high performance and BSD license",
-      "type": "Key-Value",
-      "sourceRepo": "https://github.com/Snapchat/KeyDB",
-      "license": "BSD-3-Clause",
-      "commercialUse": true,
-      "protocol": "redis",
-      "note": "Less popular than Valkey (7K vs 20K GitHub stars); Valkey has broader industry support",
-      "latestLts": "6.3",
-      "versions": {
-        "6.3.4": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": "keydb-server",
-        "client": "keydb-cli",
-        "utilities": ["keydb-benchmark"],
-        "enhanced": ["iredis"]
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 6379,
-        "scheme": "redis",
-        "defaultDatabase": "0",
-        "defaultUser": null,
-        "queryLanguage": "Redis"
-      },
-      "status": "unsupported"
-    },
-    "libsql": {
-      "displayName": "libSQL",
-      "description": "Fork of SQLite with native replication, async I/O, and enhanced features by Turso",
-      "type": "Embedded SQL",
-      "sourceRepo": "https://github.com/tursodatabase/libsql",
-      "license": "MIT",
-      "commercialUse": true,
-      "protocol": "sqlite",
-      "note": "Development stalled; last release Feb 2025 (10+ months ago)",
-      "latestLts": "0.24",
-      "versions": {
-        "0.24.32": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": "sqld",
-        "client": "libsql",
-        "utilities": [],
-        "enhanced": ["litecli", "usql"]
-      },
-      "connection": {
-        "runtime": "embedded",
-        "defaultPort": null,
-        "scheme": "sqlite",
-        "defaultDatabase": null,
-        "defaultUser": null,
+        "defaultPort": 5656,
+        "scheme": "edgedb",
+        "defaultDatabase": "edgedb",
+        "defaultUser": "edgedb",
         "queryLanguage": "SQL"
       },
-      "status": "unsupported"
+      "status": "pending"
     },
     "mariadb": {
       "displayName": "MariaDB",
@@ -478,7 +445,44 @@
         "defaultUser": null,
         "queryLanguage": "HTTP"
       },
-      "status": "in-progress"
+      "status": "completed"
+    },
+    "milvus": {
+      "displayName": "Milvus",
+      "description": "Cloud-native vector database for scalable similarity search and AI applications",
+      "type": "Vector",
+      "sourceRepo": "https://github.com/milvus-io/milvus",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "Largest vector DB by GitHub stars; enterprise-grade",
+      "latestLts": "2.5",
+      "versions": {
+        "2.5.4": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "milvus",
+        "client": null,
+        "utilities": ["birdwatcher"],
+        "enhanced": [],
+        "note": "gRPC/HTTP API; use official SDKs"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 19530,
+        "scheme": "http",
+        "defaultDatabase": "default",
+        "defaultUser": null,
+        "queryLanguage": "HTTP"
+      },
+      "status": "pending"
     },
     "mongodb": {
       "displayName": "MongoDB",
@@ -642,7 +646,7 @@
         "defaultUser": "postgres",
         "queryLanguage": "SQL"
       },
-      "status": "in-progress"
+      "status": "completed"
     },
     "postgresql-documentdb": {
       "displayName": "PostgreSQL + DocumentDB",
@@ -791,44 +795,7 @@
       },
       "status": "completed"
     },
-    "rocksdb": {
-      "displayName": "RocksDB",
-      "description": "Embeddable persistent key-value store optimized for fast storage, developed by Meta",
-      "type": "Embedded KV",
-      "sourceRepo": "https://github.com/facebook/rocksdb",
-      "license": "Apache-2.0/GPL-2.0",
-      "commercialUse": true,
-      "protocol": null,
-      "note": "Embedded library, not a standalone database service; used as storage engine by other DBs",
-      "latestLts": "10.7",
-      "versions": {
-        "10.7.5": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": null,
-        "client": null,
-        "utilities": [],
-        "enhanced": [],
-        "note": "Embedded library; use language bindings"
-      },
-      "connection": {
-        "runtime": "embedded",
-        "defaultPort": null,
-        "scheme": null,
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "API"
-      },
-      "status": "unsupported"
-    },
-    "sqlite": {
+"sqlite": {
       "displayName": "SQLite",
       "description": "Self-contained, serverless, zero-configuration SQL database engine",
       "type": "Embedded SQL",
@@ -862,7 +829,44 @@
         "defaultUser": null,
         "queryLanguage": "SQL"
       },
-      "status": "in-progress"
+      "status": "completed"
+    },
+    "surrealdb": {
+      "displayName": "SurrealDB",
+      "description": "Multi-model database combining graph, document, key-value, and time-series with SQL-like syntax",
+      "type": "Multi-model",
+      "sourceRepo": "https://github.com/surrealdb/surrealdb",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "Rust-based; single binary; fills graph database gap",
+      "latestLts": "2.3",
+      "versions": {
+        "2.3.2": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "surreal",
+        "client": "surreal",
+        "utilities": [],
+        "enhanced": [],
+        "note": "Single binary for server and CLI"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 8000,
+        "scheme": "http",
+        "defaultDatabase": "test",
+        "defaultUser": "root",
+        "queryLanguage": "SQL"
+      },
+      "status": "pending"
     },
     "tidb": {
       "displayName": "TiDB",
@@ -973,7 +977,44 @@
         "defaultUser": null,
         "queryLanguage": "Redis"
       },
-      "status": "in-progress"
+      "status": "completed"
+    },
+    "weaviate": {
+      "displayName": "Weaviate",
+      "description": "AI-native vector database with built-in vectorization modules and hybrid search",
+      "type": "Vector",
+      "sourceRepo": "https://github.com/weaviate/weaviate",
+      "license": "BSD-3-Clause",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "Popular AI/vector alternative; Go-based single binary",
+      "latestLts": "1.29",
+      "versions": {
+        "1.29.0": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "weaviate",
+        "client": null,
+        "utilities": [],
+        "enhanced": [],
+        "note": "REST/GraphQL API; use official SDKs"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 8080,
+        "scheme": "http",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "HTTP"
+      },
+      "status": "pending"
     }
   }
 }
