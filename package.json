@@ -43,6 +43,7 @@
     "download:qdrant": "tsx builds/qdrant/download.ts",
     "download:redis": "tsx builds/redis/download.ts",
     "download:sqlite": "tsx builds/sqlite/download.ts",
+    "download:surrealdb": "tsx builds/surrealdb/download.ts",
     "download:valkey": "tsx builds/valkey/download.ts",
     "edb:fileids": "tsx scripts/fetch-edb-fileids.ts",
     "format": "prettier --write .",

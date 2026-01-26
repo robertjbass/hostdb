@@ -865,7 +865,7 @@
         "defaultUser": "root",
         "queryLanguage": "SQL"
       },
-      "status": "pending"
+      "status": "in-progress"
     },
     "tidb": {
       "displayName": "TiDB",

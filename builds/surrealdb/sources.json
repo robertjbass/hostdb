@@ -1,0 +1,42 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "surrealdb",
+  "versions": {
+    "2.3.2": {
+      "linux-x64": {
+        "url": "https://github.com/surrealdb/surrealdb/releases/download/v2.3.2/surreal-v2.3.2.linux-amd64.tgz",
+        "format": "tar.gz",
+        "sha256": "2437af4219d465801ac357d58d8edc469c33b2bbd4106e9826a3ad7585ca88a1",
+        "sourceType": "official"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/surrealdb/surrealdb/releases/download/v2.3.2/surreal-v2.3.2.linux-arm64.tgz",
+        "format": "tar.gz",
+        "sha256": "8e6c702c2612656b00dc30caf14db9294d463e71f1fcc26b873793c9ae088439",
+        "sourceType": "official"
+      },
+      "darwin-x64": {
+        "url": "https://github.com/surrealdb/surrealdb/releases/download/v2.3.2/surreal-v2.3.2.darwin-amd64.tgz",
+        "format": "tar.gz",
+        "sha256": "015080ea99e0118cfd4735a0d95c0e02532955da2169e7a9ff9cfe4d8f2f6895",
+        "sourceType": "official"
+      },
+      "darwin-arm64": {
+        "url": "https://github.com/surrealdb/surrealdb/releases/download/v2.3.2/surreal-v2.3.2.darwin-arm64.tgz",
+        "format": "tar.gz",
+        "sha256": "14a3c787b3891eb9ca99118aa1df47ed777b385340bc6d8ee6599a44199364d3",
+        "sourceType": "official"
+      },
+      "win32-x64": {
+        "url": "https://github.com/surrealdb/surrealdb/releases/download/v2.3.2/surreal-v2.3.2.windows-amd64.exe",
+        "format": "binary",
+        "sha256": "4e59fc9377f9139c1a56e10a10a2219bac08c8a957605f3a0c88b2cc6ddd1675",
+        "sourceType": "official"
+      }
+    }
+  },
+  "notes": {
+    "source": "Official SurrealDB GitHub releases: https://github.com/surrealdb/surrealdb/releases",
+    "win32-x64": "Windows distributed as raw .exe binary, not archive"
+  }
+}
