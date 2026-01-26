@@ -785,6 +785,40 @@
         }
       }
     },
+    "surrealdb": {
+      "2.3.2": {
+        "version": "2.3.2",
+        "releaseTag": "surrealdb-2.3.2",
+        "releasedAt": "2026-01-26T05:30:31Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/surrealdb-2.3.2/surrealdb-2.3.2-darwin-arm64.tar.gz",
+            "sha256": "bbb7b8113cf43f56e14a58a4badbafea646e2180e404eddcfc705201957dbac8",
+            "size": 21224049
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/surrealdb-2.3.2/surrealdb-2.3.2-darwin-x64.tar.gz",
+            "sha256": "2edf13d034c5948b8b9943a4cd939cbe92756d4c01d1c0f78ed73e60e1079857",
+            "size": 24006267
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/surrealdb-2.3.2/surrealdb-2.3.2-linux-arm64.tar.gz",
+            "sha256": "8798fcbe6c325ea096c96310138f0d098fc0a9b2338991de8a6d65e08347742d",
+            "size": 22998726
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/surrealdb-2.3.2/surrealdb-2.3.2-linux-x64.tar.gz",
+            "sha256": "821381caadbcb7cb2f081598a754399490abefc1be4633af9eb7633ecd47b4d4",
+            "size": 24914131
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/surrealdb-2.3.2/surrealdb-2.3.2-win32-x64.zip",
+            "sha256": "7383a4b8e29e4ee7c84c2686a5d2c959ebd3f4ecd275e2890e5e1578865b69ce",
+            "size": 23174407
+          }
+        }
+      }
+    },
     "valkey": {
       "9.0.1": {
         "version": "9.0.1",
