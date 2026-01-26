@@ -31,6 +31,20 @@
         }
       }
     },
+    "couchdb": {
+      "3.5.1": {
+        "version": "3.5.1",
+        "releaseTag": "couchdb-3.5.1",
+        "releasedAt": "2026-01-25T18:54:37Z",
+        "platforms": {
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/couchdb-3.5.1/couchdb-3.5.1-win32-x64.zip",
+            "sha256": "a64726782c4c321b3bf62ccc46e38aa97ad3c3ecbb78288c68a050722acf8a9a",
+            "size": 113555608
+          }
+        }
+      }
+    },
     "duckdb": {
       "1.4.3": {
         "version": "1.4.3",
