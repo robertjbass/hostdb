@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.18.0] - 2026-01-25
+
+### Added
+
+- **CockroachDB support** (new database engine)
+  - Distributed SQL database with PostgreSQL compatibility
+  - All 5 platforms supported: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+  - Official binaries from binaries.cockroachdb.com
+  - Single binary architecture (`cockroach start-single-node` for server, `cockroach sql` for client)
+  - License: Cockroach Community License (free for most use cases)
+
+- **SurrealDB support** (new database engine)
+  - Multi-model database (documents, graphs, key-value, time-series)
+  - All 5 platforms supported: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+  - Official binaries from GitHub releases
+  - Single binary architecture (`surreal start` for server, `surreal sql` for client)
+  - Windows distributed as raw .exe binary (not archive)
+  - License: Business Source License 1.1
+
 ## [0.17.0] - 2026-01-25
 
 ### Added
