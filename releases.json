@@ -31,6 +31,40 @@
         }
       }
     },
+    "cockroachdb": {
+      "25.4.2": {
+        "version": "25.4.2",
+        "releaseTag": "cockroachdb-25.4.2",
+        "releasedAt": "2026-01-26T05:09:51Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/cockroachdb-25.4.2/cockroachdb-25.4.2-darwin-arm64.tar.gz",
+            "sha256": "15f2c932ff792b359b27ed321644b449b48d0e2bb3215b511e00c25edb84ba23",
+            "size": 137398248
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/cockroachdb-25.4.2/cockroachdb-25.4.2-darwin-x64.tar.gz",
+            "sha256": "8b1d5963bc020954d9cedfa71dc53d954797c626c1e0f92cf17658c69c5203cf",
+            "size": 147156878
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/cockroachdb-25.4.2/cockroachdb-25.4.2-linux-arm64.tar.gz",
+            "sha256": "efb4a24629c268f50f36810ae276325e8a1247cd038913382956f8ac8c61f435",
+            "size": 124262628
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/cockroachdb-25.4.2/cockroachdb-25.4.2-linux-x64.tar.gz",
+            "sha256": "6d37250a80dc691ffc54917e4f7e40058402da714f4a749a03a44d54dfa42e62",
+            "size": 134209648
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/cockroachdb-25.4.2/cockroachdb-25.4.2-win32-x64.zip",
+            "sha256": "f15a243bc04af98b16a7ab635a08d1f97387732defbd42d0dfc7b6692a388f8b",
+            "size": 153955029
+          }
+        }
+      }
+    },
     "couchdb": {
       "3.5.1": {
         "version": "3.5.1",
