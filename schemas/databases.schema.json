@@ -92,6 +92,26 @@
           "type": "string",
           "description": "Additional notes (e.g., why disabled)"
         },
+        "dependency": {
+          "type": "object",
+          "description": "Runtime dependency on another database engine",
+          "properties": {
+            "database": {
+              "type": "string",
+              "description": "Database ID this engine depends on"
+            },
+            "cascadeDelete": {
+              "type": "boolean",
+              "description": "If true, deleting this engine also removes the dependency (e.g., ferretdb removes postgresql-documentdb). If false, the dependency remains as a standalone engine (e.g., questdb leaves postgresql intact)."
+            },
+            "note": {
+              "type": "string",
+              "description": "Explanation of the dependency relationship"
+            }
+          },
+          "required": ["database", "cascadeDelete"],
+          "additionalProperties": false
+        },
         "latestLts": {
           "type": "string",
           "description": "Latest LTS version series"

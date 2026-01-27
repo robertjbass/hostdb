@@ -307,6 +307,11 @@
       "commercialUse": true,
       "protocol": "mongodb",
       "note": "Version 2 requires Postgres-DocumentDB (not on windows) but v1 may in theory build on windows",
+      "dependency": {
+        "database": "postgresql-documentdb",
+        "cascadeDelete": true,
+        "note": "FerretDB uses postgresql-documentdb as its backend; removing FerretDB also removes postgresql-documentdb since it has no standalone use"
+      },
       "latestLts": "2.7",
       "versions": {
         "2.7.0": true
@@ -729,6 +734,11 @@
       "commercialUse": true,
       "protocol": null,
       "note": "",
+      "dependency": {
+        "database": "postgresql",
+        "cascadeDelete": false,
+        "note": "QuestDB uses PostgreSQL client tools (psql, pgcli) for its wire protocol; PostgreSQL remains installed as a standalone database when QuestDB is removed"
+      },
       "latestLts": "9.2",
       "versions": {
         "9.2.3": true

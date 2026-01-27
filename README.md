@@ -155,6 +155,19 @@ Some databases have restrictive licenses that limit commercial and closed-source
 
 If you need MongoDB or Redis compatibility for commercial/closed-source projects, use FerretDB or Valkey instead.
 
+### Database Dependencies
+
+Some databases depend on other database engines for client tools or as backends:
+
+| Database | Depends On | Cascade Delete | Notes |
+|----------|------------|----------------|-------|
+| FerretDB | postgresql-documentdb | Yes | postgresql-documentdb is removed when FerretDB is removed (no standalone use) |
+| QuestDB | postgresql | No | PostgreSQL client tools (psql) used for wire protocol; PostgreSQL remains as standalone |
+
+**Cascade Delete** indicates whether removing a database also removes its dependency:
+- **Yes**: The dependency exists solely to support this database and is removed together
+- **No**: The dependency is a standalone database that remains installed
+
 ## GitHub Actions
 
 Each database has a release workflow triggered via `workflow_dispatch`:

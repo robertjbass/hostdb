@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.2] - 2026-01-27
+
+### Added
+
+- **Database dependency field** in schema and databases.json
+  - FerretDB depends on postgresql-documentdb (cascade delete - removed together)
+  - QuestDB depends on postgresql (no cascade delete - PostgreSQL remains as standalone)
+  - README updated with dependency documentation table
+
 ## [0.19.1] - 2026-01-26
 
 ### Changed
