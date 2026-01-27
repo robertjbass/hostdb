@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.0] - 2026-01-26
+
+### Added
+
+- **QuestDB support** (new database engine)
+  - High-performance time-series database with SQL support and fast ingestion
+  - All 5 platforms supported: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+  - Linux x64 and Windows x64 use official `-rt-` packages (JRE included by QuestDB)
+  - Linux ARM64 and macOS use no-JRE package bundled with Adoptium Temurin JRE 21 LTS
+  - PostgreSQL wire protocol (compatible with psql, pgcli, usql)
+  - First time-series database in hostdb
+  - License: Apache-2.0
+
 ## [0.18.0] - 2026-01-25
 
 ### Added
