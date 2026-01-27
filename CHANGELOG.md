@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.1] - 2026-01-26
+
+### Changed
+
+- **QuestDB marked as completed** - All platforms fully tested and integrated with SpinDB
+
 ## [0.19.0] - 2026-01-26
 
 ### Added
