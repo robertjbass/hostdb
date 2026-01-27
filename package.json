@@ -41,6 +41,7 @@
     "download:postgresql": "tsx builds/postgresql/download.ts",
     "download:postgresql-documentdb": "tsx builds/postgresql-documentdb/download.ts",
     "download:qdrant": "tsx builds/qdrant/download.ts",
+    "download:questdb": "tsx builds/questdb/download.ts",
     "download:redis": "tsx builds/redis/download.ts",
     "download:sqlite": "tsx builds/sqlite/download.ts",
     "download:surrealdb": "tsx builds/surrealdb/download.ts",

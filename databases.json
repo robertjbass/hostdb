@@ -755,7 +755,7 @@
         "defaultUser": "admin",
         "queryLanguage": "SQL"
       },
-      "status": "pending"
+      "status": "in-progress"
     },
     "redis": {
       "displayName": "Redis",
