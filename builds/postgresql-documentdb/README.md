@@ -45,6 +45,8 @@ pnpm download:postgresql-documentdb -- --version 17-0.107.0 --platform linux-arm
 
 ## Archive Structure
 
+Extension and library file extensions vary by platform: `.so` on Linux, `.dylib` on macOS.
+
 ```
 postgresql-documentdb/
 ├── bin/
@@ -55,12 +57,19 @@ postgresql-documentdb/
 │   ├── pg_dump
 │   └── pg_restore
 ├── lib/
-│   ├── pg_documentdb.so
-│   ├── pg_documentdb_core.so
-│   ├── pg_cron.so
-│   ├── vector.so
-│   ├── postgis-3.so
-│   └── rum.so
+│   ├── postgresql/           # PostgreSQL extension modules
+│   │   ├── pg_documentdb.{so,dylib}
+│   │   ├── pg_documentdb_core.{so,dylib}
+│   │   ├── pg_cron.{so,dylib}
+│   │   ├── vector.{so,dylib}
+│   │   ├── postgis-3.{so,dylib}
+│   │   ├── dict_snowball.{so,dylib}
+│   │   └── ...
+│   ├── libpq.5.dylib         # Bundled shared libraries (macOS)
+│   ├── libicuuc.78.dylib
+│   ├── libbson2.2.dylib      # From mongo-c-driver (DocumentDB dep)
+│   ├── libpcre2-8.0.dylib    # From pcre2 (DocumentDB dep)
+│   └── ...
 ├── share/
 │   ├── extension/
 │   │   ├── documentdb.control
@@ -93,6 +102,16 @@ For macOS, the build script compiles all extensions from source:
 # Or via the workflow on GitHub Actions
 # Uses macos-14 (arm64) and macos-15-intel (x64) runners
 ```
+
+### Relocatability & Dylib Bundling
+
+macOS binaries must be fully relocatable — no hardcoded Homebrew paths. The build script handles this in Step 10:
+
+1. **Dependency bundling**: Recursively scans all Mach-O binaries and dylibs for Homebrew dependencies, copies them into the bundle's `lib/` directory.
+2. **Path rewriting**: Rewrites all absolute Homebrew paths to `@loader_path/` relative references using `install_name_tool`.
+3. **Code signing**: Re-signs all modified binaries (macOS requires this after `install_name_tool` changes).
+
+**Important**: The bundling step must scan both `lib/*.dylib` and `lib/postgresql/*.dylib`. Extension dylibs in `lib/postgresql/` (like `pg_documentdb_core.dylib`) may reference Homebrew libraries (e.g. `libbson2.2.dylib` from `mongo-c-driver`, `libpcre2-8.0.dylib` from `pcre2`) that are not dependencies of any `bin/` binary. If the `lib/postgresql/` subdirectory is not included in the scan, these transitive dependencies will be missing from the bundle, causing `dlopen` failures at runtime.
 
 ## Docker Extraction (Linux)
 
