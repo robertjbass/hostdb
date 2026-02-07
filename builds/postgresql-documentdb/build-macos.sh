@@ -489,7 +489,8 @@ log_info "Configuring PostGIS..."
     --without-sfcgal \
     --without-gui \
     --without-phony-revision \
-    --without-interrupt-tests
+    --without-interrupt-tests \
+    --without-gettext
 
 # Build only the core PostGIS library and extension (not raster/topology which have build issues)
 log_info "Building PostGIS core library..."
