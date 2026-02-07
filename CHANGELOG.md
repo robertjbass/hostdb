@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.5] - 2026-02-07
+
+### Fixed
+
+- **macOS build: disable NLS to fix PostGIS compilation on x64 runner**
+  - PostgreSQL's configure detected gettext on the x64 runner, enabling NLS
+  - This baked `#include <libintl.h>` into server headers (`c.h`)
+  - PostGIS build failed with `'libintl.h' file not found` since gettext include path wasn't propagated
+  - Fix: `--disable-nls` in PostgreSQL configure (translated error messages not needed)
+
 ## [0.19.4] - 2026-02-07
 
 ### Fixed

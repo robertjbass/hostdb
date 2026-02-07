@@ -171,7 +171,8 @@ export PKG_CONFIG_PATH="${OPENSSL_PREFIX}/lib/pkgconfig:${READLINE_PREFIX}/lib/p
     --with-icu \
     --with-lz4 \
     --with-zstd \
-    --with-readline
+    --with-readline \
+    --disable-nls
 
 log_success "PostgreSQL configured"
 
