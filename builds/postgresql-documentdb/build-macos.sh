@@ -489,7 +489,8 @@ log_info "Configuring PostGIS..."
     --without-sfcgal \
     --without-gui \
     --without-phony-revision \
-    --without-interrupt-tests
+    --without-interrupt-tests \
+    --without-gettext
 
 # Build only the core PostGIS library and extension (not raster/topology which have build issues)
 log_info "Building PostGIS core library..."
@@ -634,7 +635,7 @@ if [[ -d "${BUNDLE_LIB_DIR}" ]]; then
             deps=$(otool -L "$dylib" 2>/dev/null | tail -n +2 | awk '{print $1}') || continue
             for dep in $deps; do copy_lib_recursive "$dep"; done
         done
-        curr_count=$(ls -1 "${BUNDLE_LIB_DIR}/"*.dylib "${BUNDLE_LIB_DIR}/postgresql/"*.dylib 2>/dev/null | wc -l)
+        curr_count=$(find "${BUNDLE_LIB_DIR}" -maxdepth 2 -name '*.dylib' 2>/dev/null | wc -l)
     done
 fi
 

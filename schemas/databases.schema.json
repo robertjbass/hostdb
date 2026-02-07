@@ -48,6 +48,7 @@
             "Document",
             "Embedded KV",
             "Embedded SQL",
+            "Graph",
             "Key-Value",
             "Multi-model",
             "Relational",
@@ -186,9 +187,12 @@
             "CQL",
             "MQL",
             "Redis",
+            "Cypher",
             "HTTP",
             "InfluxQL",
             "PromQL",
+            "SPARQL",
+            "TypeQL",
             "API"
           ],
           "description": "Primary query language or API (API = native language bindings)"
