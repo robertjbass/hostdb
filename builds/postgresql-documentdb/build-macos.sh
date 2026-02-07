@@ -614,17 +614,19 @@ if [[ -d "${BUNDLE_DIR}/bin" ]]; then
 fi
 
 # Process dylibs until no new ones are added
+# Must also scan lib/postgresql/ for extension dylibs (e.g. pg_documentdb_core.dylib)
+# which may reference Homebrew libraries not yet bundled
 if [[ -d "${BUNDLE_LIB_DIR}" ]]; then
     prev_count=0
     curr_count=1
     while [[ $prev_count -ne $curr_count ]]; do
         prev_count=$curr_count
-        for dylib in "${BUNDLE_LIB_DIR}/"*.dylib; do
+        for dylib in "${BUNDLE_LIB_DIR}/"*.dylib "${BUNDLE_LIB_DIR}/postgresql/"*.dylib; do
             [[ -f "$dylib" ]] || continue
             deps=$(otool -L "$dylib" 2>/dev/null | tail -n +2 | awk '{print $1}') || continue
             for dep in $deps; do copy_lib_recursive "$dep"; done
         done
-        curr_count=$(ls -1 "${BUNDLE_LIB_DIR}/"*.dylib 2>/dev/null | wc -l)
+        curr_count=$(ls -1 "${BUNDLE_LIB_DIR}/"*.dylib "${BUNDLE_LIB_DIR}/postgresql/"*.dylib 2>/dev/null | wc -l)
     done
 fi
 
@@ -741,6 +743,20 @@ for binary in pg_ctl initdb psql postgres; do
     fi
 done
 
+# Also verify extension dylibs in lib/postgresql/
+shopt -s nullglob
+for dylib in "${BUNDLE_LIB_DIR}/postgresql/"*.dylib; do
+    [[ -f "$dylib" ]] || continue
+    lib_name=$(basename "$dylib")
+    REMAINING=$(otool -L "$dylib" 2>/dev/null | grep -E "(Cellar|opt/homebrew|usr/local)" | grep -v "^$" || true)
+    if [[ -n "$REMAINING" ]]; then
+        log_warn "Non-relocatable paths in lib/postgresql/${lib_name}:"
+        echo "$REMAINING" | while read -r line; do log_warn "    $line"; done
+        VERIFY_FAILED=1
+    fi
+done
+shopt -u nullglob
+
 if [[ $VERIFY_FAILED -eq 0 ]]; then
     log_success "All binaries are now relocatable"
 else
@@ -811,7 +827,7 @@ for f in "${BUNDLE_DIR}/bin/"*; do
         codesign -s - --force "$f" 2>/dev/null && ((SIGNED_COUNT++)) || true
     fi
 done
-for f in "${BUNDLE_DIR}/lib/"*.dylib; do
+for f in "${BUNDLE_DIR}/lib/"*.dylib "${BUNDLE_DIR}/lib/postgresql/"*.dylib; do
     if [[ -f "$f" ]]; then
         codesign -s - --force "$f" 2>/dev/null && ((SIGNED_COUNT++)) || true
     fi

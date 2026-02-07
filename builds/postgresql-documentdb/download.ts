@@ -28,13 +28,9 @@ import {
   mkdirSync,
   existsSync,
   readFileSync,
-  writeFileSync,
-  rmSync,
-  cpSync,
-  readdirSync,
 } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { resolve, dirname, basename, join } from 'node:path'
+import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFileSync, spawnSync } from 'node:child_process'
 
@@ -86,12 +82,6 @@ type Sources = {
   components: Record<string, { version: string; sourceRepo?: string }>
   config: Record<string, string>
   notes: Record<string, string>
-}
-
-function isDockerExtractSource(
-  source: SourceEntry,
-): source is DockerExtractSource {
-  return source.sourceType === 'docker-extract'
 }
 
 const colors = {
@@ -163,197 +153,6 @@ function verifyCommand(command: string): boolean {
     return true
   } catch {
     return false
-  }
-}
-
-/**
- * Extract PostgreSQL + DocumentDB from Docker image
- *
- * Uses tar inside the container to handle symlinks properly,
- * since `docker cp` fails on symlinks pointing outside the copied directory.
- *
- * Also fixes library RPATH to make binaries relocatable using $ORIGIN.
- */
-function extractFromDocker(
-  source: DockerExtractSource,
-  version: string,
-  platform: Platform,
-  outputDir: string,
-): string {
-  if (!verifyCommand('docker')) {
-    throw new Error('Docker is required for extraction. Install Docker.')
-  }
-
-  const pgVersion = version.split('-')[0] // e.g., "17" from "17-0.107.0"
-  const containerName = `hostdb-pg-extract-${Date.now()}`
-  const extractDir = join(outputDir, 'temp-docker-extract')
-  const bundleDir = join(extractDir, 'postgresql-documentdb')
-  const tarballName = 'pg-extract.tar.gz'
-
-  rmSync(extractDir, { recursive: true, force: true })
-  mkdirSync(extractDir, { recursive: true })
-
-  try {
-    // Pull the Docker image for the specific platform
-    logInfo(`Pulling Docker image: ${source.image} (${source.platform})`)
-    execFileSync(
-      'docker',
-      ['pull', '--platform', source.platform, source.image],
-      { stdio: 'inherit' },
-    )
-
-    // Run container with a shell command that creates the proper directory structure,
-    // fixes RPATH for relocatable binaries, and packages it as a tarball.
-    logInfo('Creating container and extracting PostgreSQL files...')
-
-    const pgLibPath = `/usr/lib/postgresql/${pgVersion}`
-    const pgSharePath = `/usr/share/postgresql/${pgVersion}`
-
-    // Shell script to:
-    // 1. Create temp directory with proper structure
-    // 2. Copy lib files (bin/, lib/) to root
-    // 3. Copy share files (extension/, etc.) to share/
-    // 4. Install patchelf and fix RPATH for relocatable binaries
-    // 5. Create tarball
-    //
-    // Note: We use single quotes around $ORIGIN in patchelf so the shell
-    // passes it literally (no variable expansion). In JS template literals,
-    // $ only needs escaping when followed by {, so $ORIGIN is fine.
-    const extractScript = `
-set -e
-
-# Create directory structure
-mkdir -p /tmp/pg/share
-cp -rL ${pgLibPath}/* /tmp/pg/
-cp -rL ${pgSharePath}/* /tmp/pg/share/
-
-# Install patchelf for RPATH fixing (suppress output)
-apt-get update -qq && apt-get install -y -qq patchelf > /dev/null 2>&1 || true
-
-# Fix RPATH on binaries to use $ORIGIN/../lib
-echo "Fixing RPATH on binaries..."
-for f in /tmp/pg/bin/*; do
-  if file "$f" | grep -q "ELF"; then
-    patchelf --set-rpath '$ORIGIN/../lib' "$f" 2>/dev/null || true
-  fi
-done
-
-# Fix RPATH on shared libraries to use $ORIGIN
-echo "Fixing RPATH on shared libraries..."
-find /tmp/pg/lib -name "*.so*" -type f 2>/dev/null | while read f; do
-  if file "$f" | grep -q "ELF"; then
-    patchelf --set-rpath '$ORIGIN' "$f" 2>/dev/null || true
-  fi
-done
-
-# Create tarball
-tar -czf /output/${tarballName} -C /tmp pg
-`
-
-    execFileSync(
-      'docker',
-      [
-        'run',
-        '--rm',
-        '--name', containerName,
-        '--platform', source.platform,
-        '-v', `${resolve(extractDir)}:/output`,
-        source.image,
-        '/bin/sh', '-c', extractScript,
-      ],
-      { stdio: 'inherit' },
-    )
-
-    // Extract the tarball on the host
-    // It contains pg/ with the proper structure: bin/, lib/, share/
-    logInfo('Extracting tarball...')
-    execFileSync(
-      'tar',
-      ['-xzf', join(extractDir, tarballName), '-C', extractDir],
-      { stdio: 'inherit' },
-    )
-
-    // Rename pg/ to postgresql-documentdb/
-    const pgDir = join(extractDir, 'pg')
-    if (existsSync(pgDir)) {
-      cpSync(pgDir, bundleDir, { recursive: true })
-      rmSync(pgDir, { recursive: true, force: true })
-    }
-
-    // Copy our pre-configured postgresql.conf.sample (overwrite any existing)
-    const shareDir = join(bundleDir, 'share')
-    mkdirSync(shareDir, { recursive: true })
-    const confSamplePath = resolve(__dirname, 'postgresql.conf.sample')
-    if (existsSync(confSamplePath)) {
-      cpSync(confSamplePath, join(shareDir, 'postgresql.conf.sample'))
-      logSuccess('Added pre-configured postgresql.conf.sample')
-    }
-
-    // List what we extracted
-    logInfo('Extracted files:')
-    const binDir = join(bundleDir, 'bin')
-    if (existsSync(binDir)) {
-      const binFiles = readdirSync(binDir)
-      logInfo(`  bin/: ${binFiles.slice(0, 10).join(', ')}${binFiles.length > 10 ? '...' : ''}`)
-    }
-
-    const libDir = join(bundleDir, 'lib')
-    if (existsSync(libDir)) {
-      const libFiles = readdirSync(libDir).filter((f) => f.endsWith('.so'))
-      logInfo(`  lib/ (*.so): ${libFiles.slice(0, 10).join(', ')}${libFiles.length > 10 ? '...' : ''}`)
-    }
-
-    const extDir = join(shareDir, 'extension')
-    if (existsSync(extDir)) {
-      const extFiles = readdirSync(extDir).filter((f) =>
-        f.endsWith('.control'),
-      )
-      logInfo(`  share/extension/ (*.control): ${extFiles.join(', ')}`)
-    }
-
-    // Add metadata file
-    const metadata = {
-      name: 'postgresql-documentdb',
-      version,
-      platform,
-      source: 'docker-extract',
-      sourceImage: source.image,
-      postgresql_version: pgVersion,
-      rehosted_by: 'hostdb',
-      rehosted_at: new Date().toISOString(),
-    }
-    writeFileSync(
-      join(bundleDir, '.hostdb-metadata.json'),
-      JSON.stringify(metadata, null, 2),
-    )
-
-    // Clean up intermediate tarball
-    rmSync(join(extractDir, tarballName), { force: true })
-
-    // Create output archive
-    const ext = 'tar.gz'
-    const outputPath = join(outputDir, `postgresql-documentdb-${version}-${platform}.${ext}`)
-    mkdirSync(dirname(outputPath), { recursive: true })
-
-    logInfo(`Creating: ${basename(outputPath)}`)
-    execFileSync(
-      'tar',
-      ['-czf', outputPath, '-C', extractDir, 'postgresql-documentdb'],
-      { stdio: 'inherit' },
-    )
-
-    logSuccess(`Created: ${outputPath}`)
-    return outputPath
-  } finally {
-    // Cleanup container
-    try {
-      execFileSync('docker', ['rm', '-f', containerName], { stdio: 'pipe' })
-    } catch {
-      // Ignore cleanup errors
-    }
-
-    // Cleanup temp directory
-    rmSync(extractDir, { recursive: true, force: true })
   }
 }
 

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.3] - 2026-02-07
+
+### Fixed
+
+- **macOS build: bundle Homebrew deps from lib/postgresql/ extension dylibs**
+  - DocumentDB extension dylibs in `lib/postgresql/` had hardcoded Homebrew paths for libbson and libpcre2 that were never bundled or rewritten
+  - Root cause: dependency bundling loop only scanned `lib/*.dylib`, not `lib/postgresql/*.dylib`
+  - On arm64 extensions landed in `lib/` (caught), on x64 they landed in `lib/postgresql/` (skipped)
+  - Added `lib/postgresql/*.dylib` scanning to bundling loop, verification, and code signing steps
+
 ## [0.19.2] - 2026-01-27
 
 ### Added
