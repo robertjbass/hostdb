@@ -152,6 +152,13 @@ log_success "Extracted PostgreSQL source"
 # to the binary location at runtime - we just need a STANDARD directory structure
 log_info "Configuring PostgreSQL (standard --prefix layout)..."
 
+# Set deployment target to current OS version.
+# macOS 15.5 SDK declares strchrnul (available since 15.4), and PostgreSQL's
+# configure adds -Werror=unguarded-availability-new which errors if the
+# deployment target is lower than 15.4. Setting it to the running OS version
+# avoids this on x64 (macOS 15) and is a no-op on arm64 (macOS 14, no strchrnul).
+export MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
+
 # Set up environment for configure
 export CPPFLAGS="-I${OPENSSL_PREFIX}/include -I${READLINE_PREFIX}/include -I${LIBXML2_PREFIX}/include -I${ICU_PREFIX}/include -I${ZLIB_PREFIX}/include -I${LZ4_PREFIX}/include -I${ZSTD_PREFIX}/include"
 export LDFLAGS="-L${OPENSSL_PREFIX}/lib -L${READLINE_PREFIX}/lib -L${LIBXML2_PREFIX}/lib -L${ICU_PREFIX}/lib -L${ZLIB_PREFIX}/lib -L${LZ4_PREFIX}/lib -L${ZSTD_PREFIX}/lib"
