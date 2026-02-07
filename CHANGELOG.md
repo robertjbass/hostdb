@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.19.4] - 2026-02-07
+
+### Fixed
+
+- **macOS build: fix PostgreSQL compilation on macOS 15.5 SDK**
+  - `strchrnul` declared available since macOS 15.4, but deployment target defaulted to 15.0
+  - PostgreSQL's `-Werror=unguarded-availability-new` turned this into a build error
+  - Set `MACOSX_DEPLOYMENT_TARGET` to current OS version dynamically
+  - Safe for arm64 (macOS 14 SDK doesn't declare `strchrnul` at all)
+
 ## [0.19.3] - 2026-02-07
 
 ### Fixed
