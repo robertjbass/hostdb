@@ -1086,7 +1086,7 @@
         "defaultUser": null,
         "queryLanguage": "TypeQL"
       },
-      "status": "in-progress"
+      "status": "completed"
     },
     "timescaledb": {
       "displayName": "TimescaleDB",
