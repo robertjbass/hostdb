@@ -413,7 +413,10 @@ async function main() {
       'downloads',
       `postgresql-${version}-${platform}.jar`,
     )
-    const outputPath = resolve(outputDir, `postgresql-${version}-${platform}.${ext}`)
+    const outputPath = resolve(
+      outputDir,
+      `postgresql-${version}-${platform}.${ext}`,
+    )
 
     // Download
     if (existsSync(downloadPath)) {

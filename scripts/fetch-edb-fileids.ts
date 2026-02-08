@@ -13,7 +13,8 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-const EDB_BINARIES_URL = 'https://www.enterprisedb.com/download-postgresql-binaries'
+const EDB_BINARIES_URL =
+  'https://www.enterprisedb.com/download-postgresql-binaries'
 
 type VersionFileIds = Record<
   string,
@@ -32,7 +33,9 @@ async function fetchEdbPage(): Promise<string> {
   console.log(`Fetching ${EDB_BINARIES_URL}...`)
   const response = await fetch(EDB_BINARIES_URL)
   if (!response.ok) {
-    throw new Error(`Failed to fetch EDB page: ${response.status} ${response.statusText}`)
+    throw new Error(
+      `Failed to fetch EDB page: ${response.status} ${response.statusText}`,
+    )
   }
   return response.text()
 }
@@ -75,7 +78,13 @@ function parseFileIds(html: string): VersionFileIds {
 }
 
 function updateSourcesJson(fileIds: VersionFileIds): boolean {
-  const sourcesPath = join(import.meta.dirname, '..', 'builds', 'postgresql', 'sources.json')
+  const sourcesPath = join(
+    import.meta.dirname,
+    '..',
+    'builds',
+    'postgresql',
+    'sources.json',
+  )
   const sources = JSON.parse(readFileSync(sourcesPath, 'utf-8'))
 
   let updated = false
@@ -95,7 +104,9 @@ function updateSourcesJson(fileIds: VersionFileIds): boolean {
       const newUrl = `https://sbp.enterprisedb.com/getfile.jsp?fileid=${ids.windows}`
 
       if (currentUrl !== newUrl) {
-        console.log(`  Updating ${version3Part}/win32-x64: fileid=${ids.windows}`)
+        console.log(
+          `  Updating ${version3Part}/win32-x64: fileid=${ids.windows}`,
+        )
         sources.versions[version3Part]['win32-x64'] = {
           url: newUrl,
           format: 'zip',
@@ -136,10 +147,14 @@ async function main() {
       const ids = fileIds[version]
       console.log(`  ${version}:`)
       if (ids.windows) {
-        console.log(`    Windows x64: https://sbp.enterprisedb.com/getfile.jsp?fileid=${ids.windows}`)
+        console.log(
+          `    Windows x64: https://sbp.enterprisedb.com/getfile.jsp?fileid=${ids.windows}`,
+        )
       }
       if (ids.macos) {
-        console.log(`    macOS:       https://sbp.enterprisedb.com/getfile.jsp?fileid=${ids.macos}`)
+        console.log(
+          `    macOS:       https://sbp.enterprisedb.com/getfile.jsp?fileid=${ids.macos}`,
+        )
       }
     }
 

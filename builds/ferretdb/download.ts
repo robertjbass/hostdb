@@ -342,7 +342,11 @@ function crossCompileFerretDB(
 
   const repoDir = join(outputDir, 'ferretdb-source')
   const binaryName = platform.startsWith('win32') ? 'ferretdb.exe' : 'ferretdb'
-  const outputPath = join(outputDir, `ferretdb-${version}-${platform}`, binaryName)
+  const outputPath = join(
+    outputDir,
+    `ferretdb-${version}-${platform}`,
+    binaryName,
+  )
 
   // Map platform to GOOS/GOARCH
   const goEnv: Record<Platform, { GOOS: string; GOARCH: string }> = {
@@ -360,7 +364,15 @@ function crossCompileFerretDB(
     logInfo('Cloning FerretDB repository...')
     execFileSync(
       'git',
-      ['clone', '--depth', '1', '--branch', `v${version}`, 'https://github.com/FerretDB/FerretDB.git', repoDir],
+      [
+        'clone',
+        '--depth',
+        '1',
+        '--branch',
+        `v${version}`,
+        'https://github.com/FerretDB/FerretDB.git',
+        repoDir,
+      ],
       { stdio: 'inherit' },
     )
   }
@@ -493,7 +505,11 @@ async function repackage(
       logSuccess('FerretDB binary ready')
     } else {
       // Cross-compile from source
-      const builtBinaryPath = crossCompileFerretDB(version, platform, downloadDir)
+      const builtBinaryPath = crossCompileFerretDB(
+        version,
+        platform,
+        downloadDir,
+      )
       cpSync(builtBinaryPath, join(binDir, binaryName))
       if (!platform.startsWith('win32')) {
         chmodSync(join(binDir, binaryName), 0o755)
@@ -731,7 +747,9 @@ async function main() {
 
     // Check if Go is available for build-required platforms
     if (!isDownloadableSource(source) && !verifyCommand('go')) {
-      logWarn(`${platform} requires Go for cross-compilation, but Go is not installed`)
+      logWarn(
+        `${platform} requires Go for cross-compilation, but Go is not installed`,
+      )
       logInfo('Install Go 1.22+ to build for this platform')
       skipCount++
       continue

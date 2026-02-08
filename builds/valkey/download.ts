@@ -17,11 +17,7 @@
  *   --help               Show help
  */
 
-import {
-  mkdirSync,
-  existsSync,
-  readFileSync,
-} from 'node:fs'
+import { mkdirSync, existsSync, readFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
@@ -271,7 +267,9 @@ Examples:
         break
       default:
         if (args[i].startsWith('-')) {
-          logWarn(`Unknown option: ${args[i]} (use --help to see available options)`)
+          logWarn(
+            `Unknown option: ${args[i]} (use --help to see available options)`,
+          )
         }
     }
   }
@@ -344,17 +342,19 @@ function main() {
           `${platform} requires building from source but source builds only support Linux via this script`,
         )
         if (platform.startsWith('darwin')) {
-          logWarn('Darwin platforms need to be built on macOS directly via GitHub Actions')
+          logWarn(
+            'Darwin platforms need to be built on macOS directly via GitHub Actions',
+          )
         } else if (platform === 'win32-x64') {
-          logWarn('Windows needs to be built on Windows directly via GitHub Actions')
+          logWarn(
+            'Windows needs to be built on Windows directly via GitHub Actions',
+          )
         }
         skippedCount++
         continue
       }
     } else {
-      logWarn(
-        `${platform} requires building from source (no binary available)`,
-      )
+      logWarn(`${platform} requires building from source (no binary available)`)
       logInfo(
         'Use --build-fallback to build from source (Linux only), or use GitHub Actions for all platforms',
       )

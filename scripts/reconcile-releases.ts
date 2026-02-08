@@ -94,7 +94,9 @@ Options:
 
 // Parse release tag to extract database and version
 // Format: {database}-{version} e.g., "clickhouse-25.12.3.21", "mysql-8.4.3"
-function parseReleaseTag(tag: string): { database: string; version: string } | null {
+function parseReleaseTag(
+  tag: string,
+): { database: string; version: string } | null {
   // Find the first hyphen followed by a digit (start of version)
   const match = tag.match(/^(.+?)-(\d.*)$/)
   if (!match) {
@@ -162,7 +164,9 @@ function sortReleasesManifest(releases: ReleasesManifest): ReleasesManifest {
 }
 
 // Fetch all releases from GitHub API (handles pagination)
-async function fetchAllReleases(repo: string): Promise<Map<string, GitHubRelease>> {
+async function fetchAllReleases(
+  repo: string,
+): Promise<Map<string, GitHubRelease>> {
   const releases = new Map<string, GitHubRelease>()
   let page = 1
   const perPage = 100
@@ -255,10 +259,16 @@ async function main() {
   }
 
   // Track additions (releases on GitHub but not in releases.json)
-  const additions: Array<{ database: string; version: string; tag: string }> = []
+  const additions: Array<{ database: string; version: string; tag: string }> =
+    []
 
   // Track updates (releases that exist but are missing platforms)
-  const updates: Array<{ database: string; version: string; tag: string; missingPlatforms: Platform[] }> = []
+  const updates: Array<{
+    database: string
+    version: string
+    tag: string
+    missingPlatforms: Platform[]
+  }> = []
 
   for (const [tag, ghRelease] of githubReleases) {
     const parsed = parseReleaseTag(tag)
@@ -277,7 +287,8 @@ async function main() {
     }
 
     // Check if existing release is missing platforms
-    const existingRelease = releases.databases[parsed.database]?.[parsed.version]
+    const existingRelease =
+      releases.databases[parsed.database]?.[parsed.version]
     if (!existingRelease) continue
 
     const existingPlatforms = new Set(Object.keys(existingRelease.platforms))
@@ -322,9 +333,13 @@ async function main() {
 
   if (updates.length > 0) {
     hasChanges = true
-    console.log(`\nFound ${updates.length} releases with missing platforms to update:\n`)
+    console.log(
+      `\nFound ${updates.length} releases with missing platforms to update:\n`,
+    )
     for (const { database, version, tag, missingPlatforms } of updates) {
-      console.log(`  ~ ${database}/${version} (${tag}) - missing: ${missingPlatforms.join(', ')}`)
+      console.log(
+        `  ~ ${database}/${version} (${tag}) - missing: ${missingPlatforms.join(', ')}`,
+      )
     }
   }
 
@@ -406,7 +421,9 @@ async function main() {
     }
 
     if (platformCount === 0) {
-      console.warn(`  Warning: No valid platform assets found for ${tag}, skipping`)
+      console.warn(
+        `  Warning: No valid platform assets found for ${tag}, skipping`,
+      )
       continue
     }
 
@@ -416,7 +433,9 @@ async function main() {
     }
     releases.databases[database][version] = versionRelease
 
-    console.log(`  Added ${platformCount} platforms: ${Object.keys(versionRelease.platforms).join(', ')}`)
+    console.log(
+      `  Added ${platformCount} platforms: ${Object.keys(versionRelease.platforms).join(', ')}`,
+    )
   }
 
   // Update existing releases with missing platforms
@@ -459,7 +478,9 @@ async function main() {
       addedCount++
     }
 
-    console.log(`  Added ${addedCount} missing platforms: ${missingPlatforms.join(', ')}`)
+    console.log(
+      `  Added ${addedCount} missing platforms: ${missingPlatforms.join(', ')}`,
+    )
   }
 
   // Sort for deterministic output and write

@@ -217,7 +217,10 @@ function verifyCommand(command: string): void {
   }
 }
 
-async function extractGzip(sourcePath: string, destPath: string): Promise<void> {
+async function extractGzip(
+  sourcePath: string,
+  destPath: string,
+): Promise<void> {
   logInfo('Extracting gzip archive...')
   const source = createReadStream(sourcePath)
   const gunzip = createGunzip()
@@ -435,7 +438,10 @@ async function main() {
       'downloads',
       `duckdb-${version}-${platform}-original.${downloadExt}`,
     )
-    const outputPath = resolve(outputDir, `duckdb-${version}-${platform}.${ext}`)
+    const outputPath = resolve(
+      outputDir,
+      `duckdb-${version}-${platform}.${ext}`,
+    )
 
     // Download
     if (existsSync(downloadPath)) {

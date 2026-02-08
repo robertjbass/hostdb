@@ -138,7 +138,10 @@ async function downloadFile(
 
   let response: Response
   try {
-    response = await fetch(url, { redirect: 'follow', signal: controller.signal })
+    response = await fetch(url, {
+      redirect: 'follow',
+      signal: controller.signal,
+    })
   } catch (error) {
     clearTimeout(timeoutId)
     if (error instanceof Error && error.name === 'AbortError') {
@@ -471,7 +474,10 @@ async function main() {
       'downloads',
       `sqlite-${version}-${platform}-original.zip`,
     )
-    const outputPath = resolve(outputDir, `sqlite-${version}-${platform}.${ext}`)
+    const outputPath = resolve(
+      outputDir,
+      `sqlite-${version}-${platform}.${ext}`,
+    )
 
     // Download
     if (existsSync(downloadPath)) {
