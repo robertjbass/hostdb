@@ -74,13 +74,25 @@ cd influxdb
 
 ## Source Build (darwin-x64)
 
-The macOS Intel build is done from source since InfluxData doesn't publish an official binary for this platform.
+The macOS Intel build is done from source since InfluxData has never published official `x86_64-apple-darwin` binaries for InfluxDB 3. The build script replicates their CircleCI build process natively on macOS.
+
+### How It Works
+
+1. Downloads [python-build-standalone](https://github.com/astral-sh/python-build-standalone) (PBS) for `x86_64-apple-darwin` — the same portable Python runtime InfluxData uses in official builds
+2. Generates a `PYO3_CONFIG_FILE` pointing at the PBS Python (this is how InfluxDB's build tells PyO3 where to find the Python library)
+3. Builds with `cargo build --release --package influxdb3` (repo's `rust-toolchain.toml` selects the correct Rust version)
+4. Rewrites the Python dylib path from an absolute path to `@executable_path/python/lib/libpython3.13.dylib` using `install_name_tool`
+5. Re-signs the binary with ad-hoc `codesign`
+6. Packages the binary + PBS `python/` directory + license files into a tar.gz
 
 ### Build Dependencies
-- Rust toolchain (stable)
-- Python 3.12+ (for PYO3 plugin system)
+- Rust toolchain (auto-selected from repo's `rust-toolchain.toml`, currently 1.91)
 - protobuf (for gRPC code generation)
 - cmake
+- pkg-config
+
+### Build Time
+Expect 30-60 minutes due to Fat LTO (`lto = "fat"` in the release profile).
 
 ### Manual Build
 ```bash
