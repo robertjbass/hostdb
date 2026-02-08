@@ -423,6 +423,43 @@
       },
       "status": "pending"
     },
+    "influxdb": {
+      "displayName": "InfluxDB",
+      "description": "Purpose-built time-series database with SQL support, rewritten in Rust for InfluxDB 3.0",
+      "type": "Time-series",
+      "sourceRepo": "https://github.com/influxdata/influxdb",
+      "license": "Apache-2.0 AND MIT",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "v3.0 is a Rust rewrite using Apache Arrow/DataFusion. Single binary. Most popular time-series database by adoption.",
+      "latestLts": "3.0",
+      "versions": {
+        "3.0.7": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "influxdb3",
+        "client": null,
+        "utilities": [],
+        "enhanced": [],
+        "note": "HTTP API; use official SDKs or SQL via CLI"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 8086,
+        "scheme": "http",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "SQL"
+      },
+      "status": "pending"
+    },
     "kuzu": {
       "displayName": "Kuzu",
       "description": "Embedded graph database with Cypher query language, designed as the DuckDB/SQLite of graph databases",
