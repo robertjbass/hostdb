@@ -281,8 +281,10 @@ function extractZip(sourcePath: string, destDir: string): void {
   }
 }
 
-function findInfluxdbDir(extractDir: string): string {
+function findInfluxdbDir(extractDir: string): string | null {
   const entries = readdirSync(extractDir, { withFileTypes: true })
+
+  // Case 1: tar.gz archives have a top-level influxdb3-core-* directory
   const dirs = entries.filter(
     (e) => e.isDirectory() && e.name.startsWith('influxdb3-core-'),
   )
@@ -291,7 +293,7 @@ function findInfluxdbDir(extractDir: string): string {
     return resolve(extractDir, dirs[0].name)
   }
 
-  // Fallback: look for any directory containing an influxdb3 binary
+  // Case 2: look for any directory containing an influxdb3 binary
   for (const entry of entries) {
     if (entry.isDirectory()) {
       const binaryPath = resolve(extractDir, entry.name, 'influxdb3')
@@ -300,6 +302,15 @@ function findInfluxdbDir(extractDir: string): string {
         return resolve(extractDir, entry.name)
       }
     }
+  }
+
+  // Case 3: Windows zip extracts flat (no top-level directory)
+  // Files are directly in extractDir: influxdb3.exe, python/, LICENSE-*, etc.
+  const hasBinary = entries.some(
+    (e) => e.name === 'influxdb3' || e.name === 'influxdb3.exe',
+  )
+  if (hasBinary) {
+    return null // signals flat extraction
   }
 
   throw new Error(
@@ -319,13 +330,26 @@ function repackage(
     verifyCommand('tar')
   }
 
-  // Find the extracted influxdb3-core-* directory
   const influxdbSrcDir = findInfluxdbDir(extractDir)
-  logInfo(`Found InfluxDB directory: ${basename(influxdbSrcDir)}`)
-
-  // Rename to "influxdb"
   const influxdbDir = resolve(extractDir, 'influxdb')
-  renameSync(influxdbSrcDir, influxdbDir)
+
+  if (influxdbSrcDir === null) {
+    // Flat extraction (Windows): move all files into an "influxdb" subdirectory
+    logInfo('Flat archive detected, reorganizing into influxdb/ directory')
+    mkdirSync(influxdbDir, { recursive: true })
+    const entries = readdirSync(extractDir, { withFileTypes: true })
+    for (const entry of entries) {
+      if (entry.name === 'influxdb') continue
+      renameSync(
+        resolve(extractDir, entry.name),
+        resolve(influxdbDir, entry.name),
+      )
+    }
+  } else {
+    // Normal extraction: rename top-level directory to "influxdb"
+    logInfo(`Found InfluxDB directory: ${basename(influxdbSrcDir)}`)
+    renameSync(influxdbSrcDir, influxdbDir)
+  }
 
   // Inject metadata file
   const metadata = {
