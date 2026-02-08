@@ -139,6 +139,7 @@ Auto-generated manifest updated after each GitHub Release. Structure:
 | ClickHouse | Analytical | Completed | 25.12.3.21 | Official binaries (no Windows) |
 | Qdrant | Vector | Completed | 1.16.3 | Official binaries |
 | Meilisearch | Search | In Progress | 1.33.1 | Official binaries |
+| TypeDB | Graph | In Progress | 3.8.0 | Official binaries (Cloudsmith) |
 
 See `pnpm dbs` for the full list.
 

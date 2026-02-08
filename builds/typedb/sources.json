@@ -1,0 +1,44 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "typedb",
+  "versions": {
+    "3.8.0": {
+      "linux-x64": {
+        "url": "https://repo.typedb.com/public/public-release/raw/names/typedb-all-linux-x86_64/versions/3.8.0/typedb-all-linux-x86_64-3.8.0.tar.gz",
+        "format": "tar.gz",
+        "sha256": "4e1dbb003b65e79ed772023c573489028af79433b82287e76b31fbdc10abbd64",
+        "sourceType": "official"
+      },
+      "linux-arm64": {
+        "url": "https://repo.typedb.com/public/public-release/raw/names/typedb-all-linux-arm64/versions/3.8.0/typedb-all-linux-arm64-3.8.0.tar.gz",
+        "format": "tar.gz",
+        "sha256": "cba5652fc2a2d20bfe7881aa86b77facde0ac423c271309a902440c63dc5ab71",
+        "sourceType": "official"
+      },
+      "darwin-x64": {
+        "url": "https://repo.typedb.com/public/public-release/raw/names/typedb-all-mac-x86_64/versions/3.8.0/typedb-all-mac-x86_64-3.8.0.zip",
+        "format": "zip",
+        "sha256": "1503e518bdde7db3ba324ad56dd32d8cbdeefa1929fe86f83d9903ebaa23c9f7",
+        "sourceType": "official"
+      },
+      "darwin-arm64": {
+        "url": "https://repo.typedb.com/public/public-release/raw/names/typedb-all-mac-arm64/versions/3.8.0/typedb-all-mac-arm64-3.8.0.zip",
+        "format": "zip",
+        "sha256": "640d3923e3b131b07024a054c42f3e7703e20551c49ff2a1b1b07d0a250164dc",
+        "sourceType": "official"
+      },
+      "win32-x64": {
+        "url": "https://repo.typedb.com/public/public-release/raw/names/typedb-all-windows-x86_64/versions/3.8.0/typedb-all-windows-x86_64-3.8.0.zip",
+        "format": "zip",
+        "sha256": "90ee30688eb28a576a940c1a527f18e6dddf8f763fdbd66802ca07c4bfe343d5",
+        "sourceType": "official"
+      }
+    }
+  },
+  "notes": {
+    "source": "Official Cloudsmith repository: https://repo.typedb.com/public/public-release/raw/names/",
+    "naming": "TypeDB uses platform naming: linux-x86_64, linux-arm64, mac-x86_64, mac-arm64, windows-x86_64",
+    "archive": "typedb-all archive includes server, console, launcher script, config, and LICENSE",
+    "format": "tar.gz for Linux, zip for macOS and Windows"
+  }
+}
