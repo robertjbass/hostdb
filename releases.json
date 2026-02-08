@@ -853,6 +853,40 @@
         }
       }
     },
+    "typedb": {
+      "3.8.0": {
+        "version": "3.8.0",
+        "releaseTag": "typedb-3.8.0",
+        "releasedAt": "2026-02-08T18:21:49Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/typedb-3.8.0/typedb-3.8.0-darwin-arm64.tar.gz",
+            "sha256": "faff22f18304a28ae02ad2a7db1981dfabc23041ec2061597bc0d60db0efac51",
+            "size": 25309984
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/typedb-3.8.0/typedb-3.8.0-darwin-x64.tar.gz",
+            "sha256": "be456e44eea2721e8134934586e6f8d91cf6aea46d5f445e03719b188d6b0cb1",
+            "size": 26717845
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/typedb-3.8.0/typedb-3.8.0-linux-arm64.tar.gz",
+            "sha256": "69668be944fde20bddf8932192d1387fa02cf2d55cbfb39daa4e6a312f59a342",
+            "size": 29852879
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/typedb-3.8.0/typedb-3.8.0-linux-x64.tar.gz",
+            "sha256": "b524826c72008cad7bea27dfc5c10bec8692b39636e937887eca4b7a380f6acb",
+            "size": 30190104
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/typedb-3.8.0/typedb-3.8.0-win32-x64.zip",
+            "sha256": "a34ef0180278bef570c7bd4b9e64423c49c3d81977b0eb6d5d897e5f8af9aaeb",
+            "size": 24220045
+          }
+        }
+      }
+    },
     "valkey": {
       "9.0.1": {
         "version": "9.0.1",
