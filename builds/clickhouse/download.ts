@@ -251,7 +251,9 @@ function repackageLinuxTarball(
   logInfo('Extracting tarball...')
 
   // Extract the tarball
-  execFileSync('tar', ['-xzf', tarballPath, '-C', tempDir], { stdio: 'inherit' })
+  execFileSync('tar', ['-xzf', tarballPath, '-C', tempDir], {
+    stdio: 'inherit',
+  })
 
   // Find extracted directory (clickhouse-common-static-VERSION/)
   const extractedDirs = readdirSync(tempDir)
@@ -300,7 +302,9 @@ function repackageLinuxTarball(
   // Find and move the clickhouse binary
   const binaryPath = resolve(extractedPath, 'usr', 'bin', 'clickhouse')
   if (!existsSync(binaryPath)) {
-    throw new Error(`ClickHouse binary not found at expected path: ${binaryPath}`)
+    throw new Error(
+      `ClickHouse binary not found at expected path: ${binaryPath}`,
+    )
   }
 
   execFileSync('mv', [binaryPath, resolve(finalDir, 'bin', 'clickhouse')])
@@ -557,7 +561,10 @@ async function main() {
       continue
     }
 
-    const outputPath = resolve(outputDir, `clickhouse-${version}-${platform}.tar.gz`)
+    const outputPath = resolve(
+      outputDir,
+      `clickhouse-${version}-${platform}.tar.gz`,
+    )
     const isMacOS = platform.startsWith('darwin')
 
     // For macOS, the URL points to a raw binary, not a tarball

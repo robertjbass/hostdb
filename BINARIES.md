@@ -17,6 +17,7 @@ Archive structure for each database distributed by hostdb.
 | ClickHouse | `clickhouse/` | `bin/` `.hostdb-metadata.json` | `bin/clickhouse` | `bin/clickhouse` |
 | Qdrant | `qdrant/` | `qdrant` `.hostdb-metadata.json` | `qdrant` | — (HTTP) |
 | Meilisearch | `meilisearch/` | `meilisearch` `.hostdb-metadata.json` | `meilisearch` | — (HTTP) |
+| InfluxDB | `influxdb/` | `influxdb3` `python/` `LICENSE-APACHE` `LICENSE-MIT` `.hostdb-metadata.json` | `influxdb3` | — (HTTP/SQL) |
 | TypeDB | `typedb/` | `server/` `console/` `typedb` `LICENSE` `.hostdb-metadata.json` | `server/typedb_server_bin` | `console/typedb_console_bin` |
 
 ## Detailed Structure
@@ -93,6 +94,20 @@ clickhouse/
 └── .hostdb-metadata.json
 ```
 
+### Custom structure (binary + bundled Python runtime)
+
+```
+influxdb/
+├── influxdb3               # or influxdb3.exe on Windows
+├── LICENSE-APACHE
+├── LICENSE-MIT
+├── python/                 # bundled Python 3.13 runtime (PYO3 plugin system)
+│   ├── bin/
+│   ├── lib/
+│   └── ...
+└── .hostdb-metadata.json
+```
+
 ### Custom structure (server/ + console/ subdirectories)
 
 ```
@@ -166,4 +181,5 @@ Every archive includes `.hostdb-metadata.json`:
 | ClickHouse | Yes | 1 + symlinks | CLI (`clickhouse client`) |
 | Qdrant | No | 1 | HTTP API only |
 | Meilisearch | No | 1 | HTTP API only |
+| InfluxDB | Custom (`python/`) | 1 + runtime | HTTP API / SQL |
 | TypeDB | Custom (`server/`, `console/`) | 2 + launcher | CLI (`typedb_console_bin`) |

@@ -454,7 +454,10 @@ async function main() {
       'downloads',
       `qdrant-${version}-${platform}-original.${downloadExt}`,
     )
-    const outputPath = resolve(outputDir, `qdrant-${version}-${platform}.${ext}`)
+    const outputPath = resolve(
+      outputDir,
+      `qdrant-${version}-${platform}.${ext}`,
+    )
 
     // Download
     if (existsSync(downloadPath)) {

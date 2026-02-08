@@ -90,7 +90,13 @@ type SourcesJson = {
 }
 
 type Discrepancy = {
-  type: 'missing-release' | 'orphaned-release' | 'missing-version' | 'orphaned-version' | 'missing-platform' | 'orphaned-platform'
+  type:
+    | 'missing-release'
+    | 'orphaned-release'
+    | 'missing-version'
+    | 'orphaned-version'
+    | 'missing-platform'
+    | 'orphaned-platform'
   database: string
   version?: string
   platform?: string
@@ -107,12 +113,17 @@ function findDiscrepancies(): Discrepancy[] {
     return discrepancies
   }
 
-  const databases: DatabasesJson = JSON.parse(readFileSync(databasesPath, 'utf-8'))
+  const databases: DatabasesJson = JSON.parse(
+    readFileSync(databasesPath, 'utf-8'),
+  )
   const releases: ReleasesJson = JSON.parse(readFileSync(releasesPath, 'utf-8'))
 
   // Get databases that are in-progress or completed (have enabled versions)
   const activeDatabases = Object.entries(databases.databases)
-    .filter(([_, entry]) => entry.status === 'in-progress' || entry.status === 'completed')
+    .filter(
+      ([_, entry]) =>
+        entry.status === 'in-progress' || entry.status === 'completed',
+    )
     .map(([id]) => id)
 
   // Check for databases in databases.json but not in releases.json
@@ -149,7 +160,9 @@ function findDiscrepancies(): Discrepancy[] {
       }
 
       // Check for platforms enabled but not released
-      const releasedPlatforms = Object.keys(releases.databases[dbId][version].platforms)
+      const releasedPlatforms = Object.keys(
+        releases.databases[dbId][version].platforms,
+      )
       for (const platform of enabledPlatforms) {
         if (!releasedPlatforms.includes(platform)) {
           discrepancies.push({
@@ -206,8 +219,16 @@ function findDiscrepancies(): Discrepancy[] {
   return discrepancies
 }
 
-function findMissingChecksums(): Array<{ database: string; version: string; platform: string }> {
-  const missing: Array<{ database: string; version: string; platform: string }> = []
+function findMissingChecksums(): Array<{
+  database: string
+  version: string
+  platform: string
+}> {
+  const missing: Array<{
+    database: string
+    version: string
+    platform: string
+  }> = []
   const buildsDir = join(ROOT, 'builds')
 
   if (!existsSync(buildsDir)) {
@@ -223,7 +244,9 @@ function findMissingChecksums(): Array<{ database: string; version: string; plat
     const enabledVersions = getEnabledVersions(database)
 
     try {
-      const sources: SourcesJson = JSON.parse(readFileSync(sourcesPath, 'utf-8'))
+      const sources: SourcesJson = JSON.parse(
+        readFileSync(sourcesPath, 'utf-8'),
+      )
 
       for (const [version, platforms] of Object.entries(sources.versions)) {
         // Only check versions enabled in databases.json
@@ -296,7 +319,9 @@ ${colors.yellow}Checks:${colors.reset}
   }
 
   // 4. Sync workflow versions
-  const syncCmd = checkOnly ? 'pnpm sync:versions --check' : 'pnpm sync:versions'
+  const syncCmd = checkOnly
+    ? 'pnpm sync:versions --check'
+    : 'pnpm sync:versions'
   if (!runCommand(syncCmd, 'Workflow version sync')) {
     allPassed = false
   }
@@ -313,13 +338,17 @@ ${colors.yellow}Checks:${colors.reset}
     log('')
 
     if (checkOnly) {
-      logError('Missing checksums found. Run: pnpm checksums:populate <database>')
+      logError(
+        'Missing checksums found. Run: pnpm checksums:populate <database>',
+      )
       allPassed = false
     } else {
       // Group by database and populate
       const databases = [...new Set(missing.map((m) => m.database))]
       for (const database of databases) {
-        log(`${colors.dim}Populating checksums for ${database}...${colors.reset}`)
+        log(
+          `${colors.dim}Populating checksums for ${database}...${colors.reset}`,
+        )
         const result = spawnSync('pnpm', ['checksums:populate', database], {
           cwd: ROOT,
           stdio: 'inherit',

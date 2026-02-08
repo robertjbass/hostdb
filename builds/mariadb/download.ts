@@ -374,8 +374,7 @@ function repackageMariadb4j(
     version,
     platform,
     source: 'mariadb4j',
-    sourceUrl:
-      'https://repo.maven.apache.org/maven2/ch/vorburger/mariaDB4j/',
+    sourceUrl: 'https://repo.maven.apache.org/maven2/ch/vorburger/mariaDB4j/',
     rehosted_by: 'hostdb',
     rehosted_at: new Date().toISOString(),
   }
@@ -439,7 +438,15 @@ function buildFromSource(
 
   const result = spawnSync(
     buildScript,
-    ['--version', version, '--platform', platform, '--output', outputDir, '--cleanup'],
+    [
+      '--version',
+      version,
+      '--platform',
+      platform,
+      '--output',
+      outputDir,
+      '--cleanup',
+    ],
     {
       stdio: 'inherit',
       cwd: resolve(__dirname, '../..'),
@@ -562,7 +569,9 @@ async function main() {
   logInfo(`Platforms: ${platforms.join(', ')}`)
   logInfo(`Output: ${outputDir}`)
   if (buildFallback) {
-    logInfo(`Build fallback: enabled (will build from source for Linux platforms)`)
+    logInfo(
+      `Build fallback: enabled (will build from source for Linux platforms)`,
+    )
   }
   console.log()
 
@@ -594,7 +603,9 @@ async function main() {
         // Try to build from source
         const canBuild = platform === 'linux-x64' || platform === 'linux-arm64'
         if (canBuild) {
-          logInfo(`No binary available for ${platform}, building from source...`)
+          logInfo(
+            `No binary available for ${platform}, building from source...`,
+          )
           const success = buildFromSource(version, platform, outputDir)
           if (success) {
             builtCount++
@@ -615,7 +626,9 @@ async function main() {
         logWarn(
           `${platform} requires building from source (no binary available)`,
         )
-        logInfo('Use --build-fallback to build from source, or builds/mariadb/build-local.sh')
+        logInfo(
+          'Use --build-fallback to build from source, or builds/mariadb/build-local.sh',
+        )
         skippedCount++
         continue
       }
@@ -628,7 +641,10 @@ async function main() {
       'downloads',
       `mariadb-${version}-${platform}-original.${downloadExt}`,
     )
-    const outputPath = resolve(outputDir, `mariadb-${version}-${platform}.${ext}`)
+    const outputPath = resolve(
+      outputDir,
+      `mariadb-${version}-${platform}.${ext}`,
+    )
 
     // Download
     if (existsSync(downloadPath)) {

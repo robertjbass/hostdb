@@ -430,11 +430,12 @@
       "sourceRepo": "https://github.com/influxdata/influxdb",
       "license": "Apache-2.0 AND MIT",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
-      "note": "v3.0 is a Rust rewrite using Apache Arrow/DataFusion. Single binary. Most popular time-series database by adoption.",
+      "note": "v3.0 is a Rust rewrite using Apache Arrow/DataFusion. Single binary with bundled Python runtime for plugin system. Most popular time-series database by adoption.",
       "latestLts": "3.0",
       "versions": {
-        "3.0.7": true
+        "3.8.0": true
       },
       "platforms": {
         "linux-x64": true,
@@ -458,7 +459,7 @@
         "defaultUser": null,
         "queryLanguage": "SQL"
       },
-      "status": "pending"
+      "status": "in-progress"
     },
     "kuzu": {
       "displayName": "Kuzu",

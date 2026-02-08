@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.21.0] - 2026-02-08
+
+### Added
+
+- **InfluxDB support** (new database engine)
+  - Purpose-built time-series database rewritten in Rust (v3.x) using Apache Arrow/DataFusion
+  - 4 of 5 platforms via official binaries: linux-x64, linux-arm64, darwin-arm64, win32-x64
+  - darwin-x64 (macOS Intel) built from source via cargo
+  - Official binaries from dl.influxdata.com CDN
+  - Archives include bundled Python 3.13 runtime for PYO3 plugin system
+  - Version 3.8.0
+  - Most popular time-series database by adoption
+  - License: Apache-2.0 AND MIT (dual-licensed)
+
 ## [0.20.0] - 2026-02-07
 
 ### Added

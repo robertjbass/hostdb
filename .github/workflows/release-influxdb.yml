@@ -1,0 +1,318 @@
+name: Release InfluxDB
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'InfluxDB version'
+        required: true
+        type: choice
+        options:
+          - 3.8.0
+        default: 3.8.0
+      platforms:
+        description: 'Platforms'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'linux-x64'
+          - 'linux-arm64'
+          - 'darwin-x64'
+          - 'darwin-arm64'
+          - 'win32-x64'
+
+# Prevent concurrent runs that could conflict when updating releases.json
+concurrency:
+  group: release-influxdb
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version against databases.json
+        run: |
+          DB="influxdb"
+
+          echo "Validating InfluxDB version: $VERSION"
+
+          # Check if version exists and is enabled in databases.json
+          ENABLED=$(jq -r ".databases.$DB.versions[\"$VERSION\"] // false" databases.json)
+          if [ "$ENABLED" != "true" ]; then
+            echo "::error::Version '$VERSION' is not enabled in databases.json"
+            echo ""
+            echo "Available versions:"
+            jq -r ".databases.$DB.versions | to_entries | map(select(.value == true)) | .[].key" databases.json
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION is enabled in databases.json"
+
+      - name: Validate sources.json exists
+        run: |
+          DB="influxdb"
+          if [ ! -f "builds/$DB/sources.json" ]; then
+            echo "::error::Missing builds/$DB/sources.json"
+            exit 1
+          fi
+          echo "✓ builds/$DB/sources.json exists"
+
+      - name: Validate version in sources.json
+        run: |
+          DB="influxdb"
+
+          HAS_VERSION=$(jq -r ".versions[\"$VERSION\"] // empty" "builds/$DB/sources.json")
+          if [ -z "$HAS_VERSION" ]; then
+            echo "::error::Version '$VERSION' not found in builds/$DB/sources.json"
+            echo ""
+            echo "Available versions in sources.json:"
+            jq -r ".versions | keys[]" "builds/$DB/sources.json"
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION found in sources.json"
+
+  # Download official binaries for linux-x64, linux-arm64, darwin-arm64, win32-x64
+  build-download:
+    needs: validate
+    if: github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'linux-x64' || github.event.inputs.platforms == 'linux-arm64' || github.event.inputs.platforms == 'darwin-arm64' || github.event.inputs.platforms == 'win32-x64'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+      PLATFORMS: ${{ github.event.inputs.platforms }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download and repackage InfluxDB
+        run: |
+          if [ "$PLATFORMS" = "all" ]; then
+            # Download all platforms except darwin-x64 (build-required)
+            for platform in linux-x64 linux-arm64 darwin-arm64 win32-x64; do
+              pnpm download:influxdb -- --version "$VERSION" --platform "$platform" --output ./dist
+            done
+          else
+            # Skip darwin-x64 in download job (handled by build-source)
+            if [ "$PLATFORMS" != "darwin-x64" ]; then
+              pnpm download:influxdb -- --version "$VERSION" --platform "$PLATFORMS" --output ./dist
+            fi
+          fi
+
+          ls -la ./dist/ 2>/dev/null || echo "No artifacts (platform may be darwin-x64)"
+
+      - name: Upload download artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: influxdb-downloads-${{ github.event.inputs.version }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+          retention-days: 1
+          if-no-files-found: warn
+
+  # Build from source for darwin-x64 (macOS Intel) - no official binary
+  build-source:
+    needs: validate
+    if: github.event.inputs.platforms == 'all' || github.event.inputs.platforms == 'darwin-x64'
+    runs-on: macos-13
+    timeout-minutes: 120
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build InfluxDB for darwin-x64
+        run: |
+          chmod +x builds/influxdb/build-macos.sh
+          ./builds/influxdb/build-macos.sh --version "$VERSION" --output ./dist
+
+          ls -la ./dist/
+
+      - name: Upload darwin-x64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: influxdb-darwin-x64-${{ github.event.inputs.version }}
+          path: dist/*.tar.gz
+          retention-days: 1
+
+  release:
+    needs: [build-download, build-source]
+    if: always() && (needs.build-download.result == 'success' || needs.build-download.result == 'skipped') && (needs.build-source.result == 'success' || needs.build-source.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download official binary artifacts
+        if: needs.build-download.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: influxdb-downloads-${{ github.event.inputs.version }}
+          path: ./release-assets
+
+      - name: Download darwin-x64 source build artifacts
+        if: needs.build-source.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: influxdb-darwin-x64-${{ github.event.inputs.version }}
+          path: ./release-assets
+
+      - name: Generate checksums
+        run: |
+          cd release-assets
+          shopt -s nullglob
+          files=(*.tar.gz *.zip)
+          if [ ${#files[@]} -gt 0 ]; then
+            sha256sum "${files[@]}" > checksums.txt
+            echo "Generated checksums for ${#files[@]} file(s):"
+            cat checksums.txt
+          else
+            echo "No .tar.gz or .zip files found - skipping checksum generation"
+          fi
+
+      - name: List release assets
+        run: ls -la ./release-assets/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: influxdb-${{ github.event.inputs.version }}
+          name: InfluxDB ${{ github.event.inputs.version }}
+          body: |
+            ## InfluxDB ${{ github.event.inputs.version }}
+
+            InfluxDB 3 binaries repackaged for hostdb. Each archive contains the influxdb3 binary, license files, and bundled Python runtime for the plugin system.
+
+            InfluxDB 3 is a purpose-built time-series database rewritten in Rust, using Apache Arrow/DataFusion.
+
+            ### License
+
+            Dual-licensed: **Apache-2.0** AND **MIT**
+
+            ### Platforms
+            - `linux-x64` - Linux x86_64 (official binary)
+            - `linux-arm64` - Linux ARM64 (official binary)
+            - `darwin-x64` - macOS Intel (source build)
+            - `darwin-arm64` - macOS Apple Silicon (official binary)
+            - `win32-x64` - Windows x64 (official binary)
+
+            ### Archive Contents
+            ```
+            influxdb/
+              .hostdb-metadata.json
+              influxdb3
+              LICENSE-APACHE
+              LICENSE-MIT
+              python/           (bundled Python runtime)
+            ```
+
+            ### Usage
+            ```bash
+            # Download URL pattern
+            https://github.com/${{ github.repository }}/releases/download/influxdb-${{ github.event.inputs.version }}/influxdb-${{ github.event.inputs.version }}-<platform>.tar.gz
+            ```
+
+            ### Checksums
+            See `checksums.txt` for SHA256 checksums.
+
+            ### Source
+            Official binaries from [dl.influxdata.com](https://dl.influxdata.com/influxdb/releases/) for Linux, macOS ARM64, and Windows.
+            macOS Intel (darwin-x64) built from source.
+          files: |
+            release-assets/*.tar.gz
+            release-assets/*.zip
+            release-assets/checksums.txt
+          fail_on_unmatched_files: false
+
+  update-manifest:
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update releases.json
+        run: |
+          pnpm tsx scripts/update-releases.ts \
+            --database influxdb \
+            --version "$VERSION" \
+            --tag "influxdb-$VERSION"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add releases.json
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+
+          git commit -m "chore: update releases.json for influxdb-$VERSION"
+
+          # Retry push with rebase if remote has changed
+          for i in 1 2 3; do
+            if git push; then
+              echo "Push succeeded"
+              exit 0
+            fi
+            echo "Push failed, attempting rebase (attempt $i/3)..."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "ERROR: Rebase failed due to conflicts. Manual intervention required."
+              git rebase --abort
+              exit 1
+            fi
+            sleep $((2**i))
+          done
+          echo "ERROR: Push failed after 3 attempts"
+          exit 1
+
+  # Trigger sync to ensure releases.json is fully up to date
+  trigger-sync:
+    needs: update-manifest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger sync-releases workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run sync-releases.yml --repo ${{ github.repository }}
+          echo "Triggered sync-releases workflow"

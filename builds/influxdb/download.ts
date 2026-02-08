@@ -1,15 +1,25 @@
 #!/usr/bin/env tsx
 /**
- * Download official DuckDB binaries for re-hosting
+ * Download official InfluxDB 3 binaries for re-hosting
  *
  * Usage:
- *   pnpm download:duckdb
- *   pnpm download:duckdb -- --version 1.4.3
- *   pnpm download:duckdb -- --all-platforms
+ *   pnpm download:influxdb
+ *   pnpm download:influxdb -- --version 3.8.0
+ *   pnpm download:influxdb -- --all-platforms
  *
- * DuckDB distributes:
- * - Linux: gzip-compressed single binary (.gz)
- * - macOS/Windows: zip archive containing single binary
+ * InfluxDB distributes archives via dl.influxdata.com:
+ * - Linux/macOS: tar.gz containing influxdb3-core-{version}/
+ * - Windows: zip containing influxdb3-core-{version}/
+ *
+ * Each archive contains:
+ *   influxdb3-core-{version}/
+ *     influxdb3 (or .exe on Windows)
+ *     LICENSE-APACHE
+ *     LICENSE-MIT
+ *     python/           (bundled Python 3.13 runtime for PYO3 plugin system)
+ *
+ * The repackage step renames the top-level directory to "influxdb" and
+ * injects .hostdb-metadata.json, preserving the original structure.
  */
 
 import {
@@ -19,17 +29,15 @@ import {
   existsSync,
   readFileSync,
   writeFileSync,
-  copyFileSync,
   readdirSync,
   rmSync,
-  chmodSync,
+  renameSync,
+  unlinkSync,
 } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { createGunzip } from 'node:zlib'
 import { resolve, dirname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execFileSync } from 'node:child_process'
-import { pipeline } from 'node:stream/promises'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -58,12 +66,19 @@ function isValidVersion(value: string): boolean {
   return VERSION_REGEX.test(value)
 }
 
-type SourceEntry = {
+type SourceEntryDownload = {
   url: string
-  format: 'gz' | 'zip'
+  format: 'tar.gz' | 'zip'
   sha256: string | null
   sourceType: 'official'
 }
+
+type SourceEntryBuildRequired = {
+  sourceType: 'build-required'
+  note?: string
+}
+
+type SourceEntry = SourceEntryDownload | SourceEntryBuildRequired
 
 type Sources = {
   database: string
@@ -138,7 +153,8 @@ async function downloadFile(url: string, destPath: string): Promise<void> {
 
   mkdirSync(dirname(destPath), { recursive: true })
 
-  const fileStream = createWriteStream(destPath)
+  const tempPath = destPath + '.partial'
+  const fileStream = createWriteStream(tempPath)
   const reader = response.body?.getReader()
 
   if (!reader) {
@@ -148,53 +164,75 @@ async function downloadFile(url: string, destPath: string): Promise<void> {
   let downloadedBytes = 0
   const startTime = Date.now()
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
 
-    const canContinue = fileStream.write(value)
-    downloadedBytes += value.length
+      const canContinue = fileStream.write(value)
+      downloadedBytes += value.length
 
-    if (!canContinue) {
-      await new Promise<void>((resolve, reject) => {
-        const onDrain = () => {
-          fileStream.removeListener('error', onError)
-          resolve()
-        }
-        const onError = (err: Error) => {
-          fileStream.removeListener('drain', onDrain)
-          reject(err)
-        }
-        fileStream.once('drain', onDrain)
-        fileStream.once('error', onError)
-      })
+      if (!canContinue) {
+        await new Promise<void>((resolve, reject) => {
+          const onDrain = () => {
+            fileStream.removeListener('error', onError)
+            resolve()
+          }
+          const onError = (err: Error) => {
+            fileStream.removeListener('drain', onDrain)
+            reject(err)
+          }
+          fileStream.once('drain', onDrain)
+          fileStream.once('error', onError)
+        })
+      }
+
+      if (totalBytes > 0) {
+        const percent = ((downloadedBytes / totalBytes) * 100).toFixed(1)
+        const mbDownloaded = (downloadedBytes / 1024 / 1024).toFixed(1)
+        const mbTotal = (totalBytes / 1024 / 1024).toFixed(1)
+        process.stdout.write(
+          `\r  ${mbDownloaded}MB / ${mbTotal}MB (${percent}%)    `,
+        )
+      } else {
+        const mbDownloaded = (downloadedBytes / 1024 / 1024).toFixed(1)
+        process.stdout.write(`\r  ${mbDownloaded}MB downloaded...    `)
+      }
     }
 
-    if (totalBytes > 0) {
-      const percent = ((downloadedBytes / totalBytes) * 100).toFixed(1)
-      const mbDownloaded = (downloadedBytes / 1024 / 1024).toFixed(1)
-      const mbTotal = (totalBytes / 1024 / 1024).toFixed(1)
-      process.stdout.write(
-        `\r  ${mbDownloaded}MB / ${mbTotal}MB (${percent}%)    `,
-      )
-    } else {
-      const mbDownloaded = (downloadedBytes / 1024 / 1024).toFixed(1)
-      process.stdout.write(`\r  ${mbDownloaded}MB downloaded...    `)
+    await new Promise<void>((resolve, reject) => {
+      fileStream.end()
+      fileStream.on('finish', resolve)
+      fileStream.on('error', reject)
+    })
+
+    // Rename temp file to final destination
+    renameSync(tempPath, destPath)
+
+    console.log()
+
+    const duration = ((Date.now() - startTime) / 1000).toFixed(1)
+    logSuccess(
+      `Downloaded ${(downloadedBytes / 1024 / 1024).toFixed(1)}MB in ${duration}s`,
+    )
+  } catch (error) {
+    // Clean up partial file on error
+    fileStream.destroy()
+    try {
+      reader.cancel()
+    } catch {
+      // Ignore cancel errors
     }
+    try {
+      if (existsSync(tempPath)) {
+        unlinkSync(tempPath)
+      }
+    } catch {
+      // Ignore cleanup errors
+    }
+    console.log()
+    throw error
   }
-
-  await new Promise<void>((resolve, reject) => {
-    fileStream.end()
-    fileStream.on('finish', resolve)
-    fileStream.on('error', reject)
-  })
-
-  console.log()
-
-  const duration = ((Date.now() - startTime) / 1000).toFixed(1)
-  logSuccess(
-    `Downloaded ${(downloadedBytes / 1024 / 1024).toFixed(1)}MB in ${duration}s`,
-  )
 }
 
 async function calculateSha256(filePath: string): Promise<string> {
@@ -217,16 +255,13 @@ function verifyCommand(command: string): void {
   }
 }
 
-async function extractGzip(
-  sourcePath: string,
-  destPath: string,
-): Promise<void> {
-  logInfo('Extracting gzip archive...')
-  const source = createReadStream(sourcePath)
-  const gunzip = createGunzip()
-  const dest = createWriteStream(destPath)
-  await pipeline(source, gunzip, dest)
-  chmodSync(destPath, 0o755)
+function extractTarGz(sourcePath: string, destDir: string): void {
+  logInfo('Extracting tar.gz archive...')
+  mkdirSync(destDir, { recursive: true })
+  verifyCommand('tar')
+  execFileSync('tar', ['-xzf', sourcePath, '-C', destDir], {
+    stdio: 'inherit',
+  })
 }
 
 function extractZip(sourcePath: string, destDir: string): void {
@@ -234,13 +269,11 @@ function extractZip(sourcePath: string, destDir: string): void {
   mkdirSync(destDir, { recursive: true })
 
   if (process.platform === 'win32') {
-    // Use PowerShell Expand-Archive on Windows
     const psCommand = `Expand-Archive -Path '${sourcePath}' -DestinationPath '${destDir}' -Force`
     execFileSync('powershell', ['-NoProfile', '-Command', psCommand], {
       stdio: 'inherit',
     })
   } else {
-    // Use unzip on Unix
     verifyCommand('unzip')
     execFileSync('unzip', ['-q', '-o', sourcePath, '-d', destDir], {
       stdio: 'inherit',
@@ -248,8 +281,34 @@ function extractZip(sourcePath: string, destDir: string): void {
   }
 }
 
+function findInfluxdbDir(extractDir: string): string {
+  const entries = readdirSync(extractDir, { withFileTypes: true })
+  const dirs = entries.filter(
+    (e) => e.isDirectory() && e.name.startsWith('influxdb3-core-'),
+  )
+
+  if (dirs.length === 1) {
+    return resolve(extractDir, dirs[0].name)
+  }
+
+  // Fallback: look for any directory containing an influxdb3 binary
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const binaryPath = resolve(extractDir, entry.name, 'influxdb3')
+      const binaryPathExe = resolve(extractDir, entry.name, 'influxdb3.exe')
+      if (existsSync(binaryPath) || existsSync(binaryPathExe)) {
+        return resolve(extractDir, entry.name)
+      }
+    }
+  }
+
+  throw new Error(
+    `Could not find InfluxDB directory in ${extractDir}. Contents: ${entries.map((e) => e.name).join(', ')}`,
+  )
+}
+
 function repackage(
-  binaryPath: string,
+  extractDir: string,
   outputPath: string,
   version: string,
   platform: Platform,
@@ -260,23 +319,17 @@ function repackage(
     verifyCommand('tar')
   }
 
-  const tempDir = resolve(dirname(binaryPath), 'temp-package')
-  const duckdbDir = resolve(tempDir, 'duckdb')
+  // Find the extracted influxdb3-core-* directory
+  const influxdbSrcDir = findInfluxdbDir(extractDir)
+  logInfo(`Found InfluxDB directory: ${basename(influxdbSrcDir)}`)
 
-  mkdirSync(duckdbDir, { recursive: true })
+  // Rename to "influxdb"
+  const influxdbDir = resolve(extractDir, 'influxdb')
+  renameSync(influxdbSrcDir, influxdbDir)
 
-  // Copy binary to package directory
-  const binaryName = platform.startsWith('win32') ? 'duckdb.exe' : 'duckdb'
-  const destBinary = resolve(duckdbDir, binaryName)
-
-  copyFileSync(binaryPath, destBinary)
-  if (!platform.startsWith('win32')) {
-    chmodSync(destBinary, 0o755)
-  }
-
-  // Add metadata file
+  // Inject metadata file
   const metadata = {
-    name: 'duckdb',
+    name: 'influxdb',
     version,
     platform,
     source: 'official',
@@ -284,7 +337,7 @@ function repackage(
     rehosted_at: new Date().toISOString(),
   }
   writeFileSync(
-    resolve(duckdbDir, '.hostdb-metadata.json'),
+    resolve(influxdbDir, '.hostdb-metadata.json'),
     JSON.stringify(metadata, null, 2),
   )
 
@@ -293,18 +346,15 @@ function repackage(
   logInfo(`Creating: ${basename(outputPath)}`)
 
   if (platform.startsWith('win32')) {
-    execFileSync('zip', ['-rq', outputPath, 'duckdb'], {
+    execFileSync('zip', ['-rq', outputPath, 'influxdb'], {
       stdio: 'inherit',
-      cwd: tempDir,
+      cwd: extractDir,
     })
   } else {
-    execFileSync('tar', ['-czf', outputPath, '-C', tempDir, 'duckdb'], {
+    execFileSync('tar', ['-czf', outputPath, '-C', extractDir, 'influxdb'], {
       stdio: 'inherit',
     })
   }
-
-  // Cleanup
-  rmSync(tempDir, { recursive: true, force: true })
 
   logSuccess(`Created: ${outputPath}`)
 }
@@ -315,7 +365,7 @@ function parseArgs(): {
   outputDir: string
 } {
   const args = process.argv.slice(2)
-  let version = '1.4.3'
+  let version = '3.8.0'
   let platforms: Platform[] = []
   let outputDir = './dist'
   let allPlatforms = false
@@ -334,7 +384,7 @@ function parseArgs(): {
         const versionValue = args[++i]
         if (!isValidVersion(versionValue)) {
           logError(`Invalid version format: ${versionValue}`)
-          logError('Version must be in format: X.Y.Z (e.g., 1.4.3)')
+          logError('Version must be in format: X.Y.Z (e.g., 3.8.0)')
           process.exit(1)
           break
         }
@@ -371,10 +421,10 @@ function parseArgs(): {
       case '--help':
       case '-h':
         console.log(`
-Usage: pnpm download:duckdb [options]
+Usage: pnpm download:influxdb [options]
 
 Options:
-  --version VERSION    DuckDB version (default: 1.4.3)
+  --version VERSION    InfluxDB version (default: 3.8.0)
   --platform PLATFORM  Target platform (default: current)
   --output DIR         Output directory (default: ./dist)
   --all-platforms      Download for all platforms
@@ -382,10 +432,13 @@ Options:
 
 Platforms: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
 
+Note: darwin-x64 requires a source build and cannot be downloaded.
+      Use the GitHub Actions workflow for darwin-x64 builds.
+
 Examples:
-  pnpm download:duckdb
-  pnpm download:duckdb -- --version 1.4.3 --platform linux-x64
-  pnpm download:duckdb -- --all-platforms
+  pnpm download:influxdb
+  pnpm download:influxdb -- --version 3.8.0 --platform linux-x64
+  pnpm download:influxdb -- --all-platforms
 `)
         process.exit(0)
         break
@@ -406,7 +459,7 @@ async function main() {
   const sources = loadSources()
 
   console.log()
-  logInfo(`DuckDB Download Script`)
+  logInfo(`InfluxDB Download Script`)
   logInfo(`Version: ${version}`)
   logInfo(`Platforms: ${platforms.join(', ')}`)
   logInfo(`Output: ${outputDir}`)
@@ -420,6 +473,7 @@ async function main() {
   }
 
   let successCount = 0
+  let skipCount = 0
 
   for (const platform of platforms) {
     console.log()
@@ -431,69 +485,90 @@ async function main() {
       continue
     }
 
+    if (source.sourceType === 'build-required') {
+      logWarn(
+        `${platform} requires a source build (no official binary available)`,
+      )
+      logInfo('Use the GitHub Actions workflow to build for this platform.')
+      skipCount++
+      continue
+    }
+
     const ext = platform.startsWith('win32') ? 'zip' : 'tar.gz'
-    const downloadExt = source.format === 'gz' ? 'gz' : 'zip'
     const downloadPath = resolve(
       outputDir,
       'downloads',
-      `duckdb-${version}-${platform}-original.${downloadExt}`,
+      `influxdb-${version}-${platform}-original.${source.format === 'tar.gz' ? 'tar.gz' : 'zip'}`,
     )
     const outputPath = resolve(
       outputDir,
-      `duckdb-${version}-${platform}.${ext}`,
+      `influxdb-${version}-${platform}.${ext}`,
     )
 
-    // Download
-    if (existsSync(downloadPath)) {
-      logInfo(`Using cached download: ${downloadPath}`)
-    } else {
+    // Download or use cache (with checksum verification)
+    let needsDownload = !existsSync(downloadPath)
+
+    if (!needsDownload) {
+      // Verify cached file integrity
+      const cachedSha256 = await calculateSha256(downloadPath)
+      if (source.sha256) {
+        if (cachedSha256 === source.sha256) {
+          logInfo(`Using cached download: ${downloadPath}`)
+          logSuccess('Cached file checksum verified')
+        } else {
+          logWarn(
+            `Cached file checksum mismatch (got ${cachedSha256.slice(0, 16)}..., expected ${source.sha256.slice(0, 16)}...)`,
+          )
+          logInfo('Re-downloading...')
+          rmSync(downloadPath, { force: true })
+          needsDownload = true
+        }
+      } else {
+        logWarn(
+          `No checksum in sources.json to verify cached file (SHA256: ${cachedSha256})`,
+        )
+        logInfo('Re-downloading to ensure integrity...')
+        rmSync(downloadPath, { force: true })
+        needsDownload = true
+      }
+    }
+
+    if (needsDownload) {
       await downloadFile(source.url, downloadPath)
     }
 
-    // Verify checksum
+    // Verify checksum after download
     const actualSha256 = await calculateSha256(downloadPath)
-    logInfo(`SHA256: ${actualSha256}`)
+    if (needsDownload) {
+      logInfo(`SHA256: ${actualSha256}`)
+    }
 
     if (source.sha256) {
       if (actualSha256 === source.sha256) {
-        logSuccess('Checksum verified')
+        if (needsDownload) {
+          logSuccess('Checksum verified')
+        }
       } else {
         logError(`Checksum mismatch! Expected: ${source.sha256}`)
         process.exit(1)
       }
-    } else {
+    } else if (needsDownload) {
       logWarn('No checksum in sources.json - update it with the SHA256 above')
     }
 
-    // Extract binary
+    // Extract archive
     const extractDir = resolve(outputDir, 'extract', platform)
+    rmSync(extractDir, { recursive: true, force: true })
     mkdirSync(extractDir, { recursive: true })
 
-    let binaryPath: string
-
-    if (source.format === 'gz') {
-      // Linux: gzip-compressed single binary
-      binaryPath = resolve(extractDir, 'duckdb')
-      await extractGzip(downloadPath, binaryPath)
+    if (source.format === 'tar.gz') {
+      extractTarGz(downloadPath, extractDir)
     } else {
-      // macOS/Windows: zip containing binary
       extractZip(downloadPath, extractDir)
-      // Find the binary in extracted files
-      const files = readdirSync(extractDir)
-      const binaryName = platform.startsWith('win32') ? 'duckdb.exe' : 'duckdb'
-      const foundBinary = files.find(
-        (f) => f === binaryName || f.toLowerCase() === binaryName.toLowerCase(),
-      )
-      if (!foundBinary) {
-        throw new Error(
-          `Could not find ${binaryName} in extracted files: ${files.join(', ')}`,
-        )
-      }
-      binaryPath = resolve(extractDir, foundBinary)
     }
 
-    // Repackage with metadata
-    repackage(binaryPath, outputPath, version, platform)
+    // Repackage with metadata (preserves directory structure)
+    repackage(extractDir, outputPath, version, platform)
 
     // Cleanup extract directory
     rmSync(extractDir, { recursive: true, force: true })
@@ -506,7 +581,12 @@ async function main() {
   }
 
   console.log()
-  logSuccess(`Done! ${successCount}/${platforms.length} platforms completed`)
+  const total = platforms.length
+  const parts = [`${successCount}/${total} platforms completed`]
+  if (skipCount > 0) {
+    parts.push(`${skipCount} skipped (build-required)`)
+  }
+  logSuccess(`Done! ${parts.join(', ')}`)
   logInfo(`Output files in: ${resolve(outputDir)}`)
 }
 

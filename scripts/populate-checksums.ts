@@ -72,7 +72,6 @@ const SKIP_DATABASES = new Set([
   'sqlite', // Uses SHA3-256, checksums provided by vendor
 ])
 
-
 const FETCH_TIMEOUT_MS = 10 * 60 * 1000 // 10 minutes for large files
 
 async function computeSha256(url: string): Promise<string> {
@@ -87,7 +86,9 @@ async function computeSha256(url: string): Promise<string> {
     })
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`)
+      throw new Error(
+        `Failed to fetch ${url}: ${response.status} ${response.statusText}`,
+      )
     }
 
     reader = response.body?.getReader()
@@ -106,7 +107,9 @@ async function computeSha256(url: string): Promise<string> {
     return hash.digest('hex')
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error(`Fetch timed out after ${FETCH_TIMEOUT_MS / 1000}s: ${url}`)
+      throw new Error(
+        `Fetch timed out after ${FETCH_TIMEOUT_MS / 1000}s: ${url}`,
+      )
     }
     throw error
   } finally {
@@ -148,8 +151,12 @@ ${colors.yellow}Examples:${colors.reset}
   // Check if database uses a different checksum algorithm
   if (SKIP_DATABASES.has(database)) {
     logError(`${database} uses a non-SHA256 checksum algorithm.`)
-    logInfo(`Checksums must be copied manually from the vendor's download page.`)
-    logInfo(`See builds/${database}/sources.json for the correct field name (e.g., sha3_256).`)
+    logInfo(
+      `Checksums must be copied manually from the vendor's download page.`,
+    )
+    logInfo(
+      `See builds/${database}/sources.json for the correct field name (e.g., sha3_256).`,
+    )
     process.exit(1)
   }
 
@@ -167,12 +174,18 @@ ${colors.yellow}Examples:${colors.reset}
   }
 
   log('')
-  log(`${colors.cyan}${verify ? 'Verifying' : 'Populating'} checksums for ${database}${colors.reset}`)
+  log(
+    `${colors.cyan}${verify ? 'Verifying' : 'Populating'} checksums for ${database}${colors.reset}`,
+  )
   log('='.repeat(50))
 
   if (!processAll && enabledVersions.size > 0) {
-    log(`${colors.dim}Only processing enabled versions: ${[...enabledVersions].join(', ')}${colors.reset}`)
-    log(`${colors.dim}Use --all to process all versions in sources.json${colors.reset}`)
+    log(
+      `${colors.dim}Only processing enabled versions: ${[...enabledVersions].join(', ')}${colors.reset}`,
+    )
+    log(
+      `${colors.dim}Use --all to process all versions in sources.json${colors.reset}`,
+    )
   }
   log('')
 
@@ -183,7 +196,11 @@ ${colors.yellow}Examples:${colors.reset}
 
   for (const [version, platforms] of Object.entries(sources.versions)) {
     // Skip versions not enabled in databases.json (unless --all)
-    if (!processAll && enabledVersions.size > 0 && !enabledVersions.has(version)) {
+    if (
+      !processAll &&
+      enabledVersions.size > 0 &&
+      !enabledVersions.has(version)
+    ) {
       continue
     }
 
@@ -231,7 +248,9 @@ ${colors.yellow}Examples:${colors.reset}
           }
         }
       } catch (error) {
-        logError(`${label}: ${error instanceof Error ? error.message : String(error)}`)
+        logError(
+          `${label}: ${error instanceof Error ? error.message : String(error)}`,
+        )
         failed++
       }
     }
@@ -248,7 +267,9 @@ ${colors.yellow}Examples:${colors.reset}
   } else {
     if (updated > 0) {
       writeFileSync(sourcesPath, JSON.stringify(sources, null, 2) + '\n')
-      logSuccess(`Updated ${updated} checksums in builds/${database}/sources.json`)
+      logSuccess(
+        `Updated ${updated} checksums in builds/${database}/sources.json`,
+      )
       log('')
       log(`${colors.yellow}Don't forget to commit the changes:${colors.reset}`)
       log(`  git add builds/${database}/sources.json`)

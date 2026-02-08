@@ -120,7 +120,16 @@
     "database-tools": {
       "version": "100.14.0",
       "description": "MongoDB Database Tools - mongodump, mongorestore, etc.",
-      "binaries": ["mongodump", "mongorestore", "mongoexport", "mongoimport", "mongostat", "mongotop", "bsondump", "mongofiles"],
+      "binaries": [
+        "mongodump",
+        "mongorestore",
+        "mongoexport",
+        "mongoimport",
+        "mongostat",
+        "mongotop",
+        "bsondump",
+        "mongofiles"
+      ],
       "platforms": {
         "linux-x64": {
           "url": "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.14.0.tgz",

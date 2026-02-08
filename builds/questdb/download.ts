@@ -516,7 +516,10 @@ async function main() {
 
     const ext = platform.startsWith('win32') ? 'zip' : 'tar.gz'
     const downloadDir = resolve(outputDir, 'downloads')
-    const outputPath = resolve(outputDir, `questdb-${version}-${platform}.${ext}`)
+    const outputPath = resolve(
+      outputDir,
+      `questdb-${version}-${platform}.${ext}`,
+    )
 
     mkdirSync(downloadDir, { recursive: true })
 
