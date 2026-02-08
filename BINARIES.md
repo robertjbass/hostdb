@@ -17,6 +17,7 @@ Archive structure for each database distributed by hostdb.
 | ClickHouse | `clickhouse/` | `bin/` `.hostdb-metadata.json` | `bin/clickhouse` | `bin/clickhouse` |
 | Qdrant | `qdrant/` | `qdrant` `.hostdb-metadata.json` | `qdrant` | — (HTTP) |
 | Meilisearch | `meilisearch/` | `meilisearch` `.hostdb-metadata.json` | `meilisearch` | — (HTTP) |
+| TypeDB | `typedb/` | `server/` `console/` `typedb` `LICENSE` `.hostdb-metadata.json` | `server/typedb_server_bin` | `console/typedb_console_bin` |
 
 ## Detailed Structure
 
@@ -92,6 +93,21 @@ clickhouse/
 └── .hostdb-metadata.json
 ```
 
+### Custom structure (server/ + console/ subdirectories)
+
+```
+typedb/
+├── typedb                   # launcher script (typedb.bat on Windows)
+├── server/
+│   ├── typedb_server_bin    # or .exe on Windows
+│   ├── config.yml
+│   └── data/
+├── console/
+│   └── typedb_console_bin   # or .exe on Windows
+├── LICENSE
+└── .hostdb-metadata.json
+```
+
 ### Single binary (no bin/ subdirectory)
 
 ```
@@ -150,3 +166,4 @@ Every archive includes `.hostdb-metadata.json`:
 | ClickHouse | Yes | 1 + symlinks | CLI (`clickhouse client`) |
 | Qdrant | No | 1 | HTTP API only |
 | Meilisearch | No | 1 | HTTP API only |
+| TypeDB | Custom (`server/`, `console/`) | 2 + launcher | CLI (`typedb_console_bin`) |
