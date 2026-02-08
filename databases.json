@@ -339,6 +339,42 @@
       },
       "status": "completed"
     },
+    "firebird": {
+      "displayName": "Firebird",
+      "description": "Relational database with embedded and client/server modes, full SQL support with stored procedures and triggers",
+      "type": "Relational",
+      "sourceRepo": "https://github.com/FirebirdSQL/firebird",
+      "license": "IDPL-1.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "Single-file database. Supports both embedded (no server process, single-file like SQLite) and client/server modes. Official pre-built binaries available for all platforms.",
+      "latestLts": "5.0",
+      "versions": {
+        "5.0.3": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "firebird",
+        "client": "isql",
+        "utilities": ["gbak", "gfix", "gstat", "nbackup", "gsec"],
+        "enhanced": []
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 3050,
+        "scheme": null,
+        "defaultDatabase": null,
+        "defaultUser": "SYSDBA",
+        "queryLanguage": "SQL"
+      },
+      "status": "pending"
+    },
     "gel": {
       "displayName": "Gel",
       "description": "Graph-relational database built on PostgreSQL, formerly EdgeDB, with strict typing and declarative schema",
@@ -841,7 +877,43 @@
       },
       "status": "completed"
     },
-"sqlite": {
+    "rocksdb": {
+      "displayName": "RocksDB",
+      "description": "High-performance embedded key-value store based on LSM trees, developed by Meta",
+      "type": "Embedded KV",
+      "sourceRepo": "https://github.com/facebook/rocksdb",
+      "license": "GPL-2.0 OR Apache-2.0",
+      "commercialUse": true,
+      "protocol": null,
+      "note": "Single-file database. Library-first with ldb and sst_dump CLI tools. No official pre-built binaries - build from source required for all platforms. Widely used as storage engine by CockroachDB, TiKV, MySQL/MyRocks.",
+      "latestLts": "10.10",
+      "versions": {
+        "10.10.1": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": null,
+        "client": "ldb",
+        "utilities": ["sst_dump"],
+        "enhanced": []
+      },
+      "connection": {
+        "runtime": "embedded",
+        "defaultPort": null,
+        "scheme": null,
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "API"
+      },
+      "status": "pending"
+    },
+    "sqlite": {
       "displayName": "SQLite",
       "description": "Self-contained, serverless, zero-configuration SQL database engine",
       "type": "Embedded SQL",
@@ -986,7 +1058,7 @@
         "defaultUser": null,
         "queryLanguage": "TypeQL"
       },
-      "status": "pending"
+      "status": "in-progress"
     },
     "timescaledb": {
       "displayName": "TimescaleDB",

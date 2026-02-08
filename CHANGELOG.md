@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.20.0] - 2026-02-07
+
+### Added
+
+- **TypeDB support** (new database engine)
+  - Strongly-typed graph database with TypeQL query language, built for knowledge representation and reasoning
+  - All 5 platforms supported: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+  - Official binaries from Cloudsmith (repo.typedb.com)
+  - Version 3.8.0 (Rust rewrite, v3.x)
+  - Archive preserves TypeDB's multi-component structure: server, console, launcher script, config
+  - First graph database in hostdb
+  - License: MPL-2.0
+
 ## [0.19.5] - 2026-02-07
 
 ### Fixed
