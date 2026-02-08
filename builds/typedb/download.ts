@@ -484,7 +484,10 @@ async function main() {
       'downloads',
       `typedb-${version}-${platform}-original.${source.format === 'tar.gz' ? 'tar.gz' : 'zip'}`,
     )
-    const outputPath = resolve(outputDir, `typedb-${version}-${platform}.${ext}`)
+    const outputPath = resolve(
+      outputDir,
+      `typedb-${version}-${platform}.${ext}`,
+    )
 
     // Download or use cache (with checksum verification)
     let needsDownload = !existsSync(downloadPath)

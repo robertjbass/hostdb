@@ -250,8 +250,12 @@ function getEnabledVersionsSorted(db: DatabaseConfig): string[] {
     .map(([version]) => version)
     .sort((a, b) => {
       // Sort by semantic version, newest first
-      const aParts = a.split('.').map((p) => parseInt(p.replace(/\D/g, ''), 10) || 0)
-      const bParts = b.split('.').map((p) => parseInt(p.replace(/\D/g, ''), 10) || 0)
+      const aParts = a
+        .split('.')
+        .map((p) => parseInt(p.replace(/\D/g, ''), 10) || 0)
+      const bParts = b
+        .split('.')
+        .map((p) => parseInt(p.replace(/\D/g, ''), 10) || 0)
       for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
         const aVal = aParts[i] || 0
         const bVal = bParts[i] || 0
@@ -612,7 +616,9 @@ ${colors.yellow}Available databases:${colors.reset}
 `)
     const databases = loadDatabases()
     const sortedDbs = Object.entries(databases.databases)
-      .filter(([, db]) => db.status === 'in-progress' || db.status === 'pending')
+      .filter(
+        ([, db]) => db.status === 'in-progress' || db.status === 'pending',
+      )
       .sort(([, a], [, b]) => {
         if (a.status === 'in-progress' && b.status !== 'in-progress') return -1
         if (b.status === 'in-progress' && a.status !== 'in-progress') return 1
@@ -620,7 +626,8 @@ ${colors.yellow}Available databases:${colors.reset}
       })
 
     for (const [key, db] of sortedDbs) {
-      const statusColor = db.status === 'in-progress' ? colors.green : colors.dim
+      const statusColor =
+        db.status === 'in-progress' ? colors.green : colors.dim
       const hasBuilds = existsSync(join(ROOT, 'builds', key))
       const marker = hasBuilds ? `${colors.dim}(exists)${colors.reset}` : ''
       log(`  ${statusColor}${key}${colors.reset} - ${db.displayName} ${marker}`)
@@ -691,7 +698,9 @@ ${colors.yellow}Available databases:${colors.reset}
   const workflowDir = join(ROOT, '.github', 'workflows')
   const workflowPath = join(workflowDir, `release-${dbKey}.yml`)
   if (existsSync(workflowPath)) {
-    logWarning(`.github/workflows/release-${dbKey}.yml already exists (skipping)`)
+    logWarning(
+      `.github/workflows/release-${dbKey}.yml already exists (skipping)`,
+    )
   } else {
     mkdirSync(workflowDir, { recursive: true })
     writeFileSync(workflowPath, generateWorkflow(dbKey, db))
@@ -719,7 +728,9 @@ ${colors.yellow}Available databases:${colors.reset}
   log('='.repeat(50))
   log(`${colors.cyan}Next Steps for Claude Code:${colors.reset}`)
   log('')
-  log(`${colors.yellow}1. Research binary sources for ${db.displayName}:${colors.reset}`)
+  log(
+    `${colors.yellow}1. Research binary sources for ${db.displayName}:${colors.reset}`,
+  )
   log(`   - Official download page/CDN`)
   log(`   - Third-party builds (like zonky.io for PostgreSQL)`)
   log(`   - Whether source builds are needed for any platforms`)
@@ -728,10 +739,14 @@ ${colors.yellow}Available databases:${colors.reset}
   log(`   - Add URLs for each version/platform combination`)
   log(`   - Set sourceType: "official", "third-party", or "build-required"`)
   log('')
-  log(`${colors.yellow}3. Implement builds/${dbKey}/download.ts:${colors.reset}`)
+  log(
+    `${colors.yellow}3. Implement builds/${dbKey}/download.ts:${colors.reset}`,
+  )
   log(`   - Handle specific archive formats (tar.gz, zip, etc.)`)
   log(`   - Extract and repackage with .hostdb-metadata.json`)
-  log(`   - Reference builds/mysql/download.ts or builds/postgresql/download.ts`)
+  log(
+    `   - Reference builds/mysql/download.ts or builds/postgresql/download.ts`,
+  )
   log('')
   log(`${colors.yellow}4. If source builds needed:${colors.reset}`)
   log(`   - Create builds/${dbKey}/Dockerfile`)

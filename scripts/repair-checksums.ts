@@ -59,12 +59,16 @@ function parseArgs(): { dryRun: boolean; releaseTag: string | null } {
       case '--release': {
         const nextArg = args[i + 1]
         if (!nextArg || nextArg.startsWith('-')) {
-          console.error('Error: --release requires a tag argument (e.g., --release valkey-9.0.1)')
+          console.error(
+            'Error: --release requires a tag argument (e.g., --release valkey-9.0.1)',
+          )
           process.exit(1)
         }
         if (!VALID_TAG_PATTERN.test(nextArg)) {
           console.error(`Error: Invalid release tag format: ${nextArg}`)
-          console.error('Tags must contain only alphanumeric characters, dots, hyphens, and underscores')
+          console.error(
+            'Tags must contain only alphanumeric characters, dots, hyphens, and underscores',
+          )
           process.exit(1)
         }
         releaseTag = nextArg
@@ -179,9 +183,21 @@ function uploadChecksums(tag: string, checksums: Map<string, string>): void {
 
   // Delete existing checksums.txt if present
   try {
-    execFileSync('gh', ['release', 'delete-asset', tag, 'checksums.txt', '--repo', REPO, '--yes'], {
-      stdio: 'pipe',
-    })
+    execFileSync(
+      'gh',
+      [
+        'release',
+        'delete-asset',
+        tag,
+        'checksums.txt',
+        '--repo',
+        REPO,
+        '--yes',
+      ],
+      {
+        stdio: 'pipe',
+      },
+    )
     console.log(`    Deleted old checksums.txt`)
   } catch {
     // Asset might not exist
@@ -189,9 +205,21 @@ function uploadChecksums(tag: string, checksums: Map<string, string>): void {
 
   // Also delete any incorrectly named checksum files from previous runs
   try {
-    execFileSync('gh', ['release', 'delete-asset', tag, `checksums-${tag}.txt`, '--repo', REPO, '--yes'], {
-      stdio: 'pipe',
-    })
+    execFileSync(
+      'gh',
+      [
+        'release',
+        'delete-asset',
+        tag,
+        `checksums-${tag}.txt`,
+        '--repo',
+        REPO,
+        '--yes',
+      ],
+      {
+        stdio: 'pipe',
+      },
+    )
     console.log(`    Deleted incorrectly named checksums-${tag}.txt`)
   } catch {
     // Asset might not exist
@@ -235,7 +263,7 @@ async function main() {
 
     // Get binary assets (exclude checksums.txt)
     const binaryAssets = release.assets.filter(
-      (a) => a.name !== 'checksums.txt' && extractPlatform(a.name) !== null
+      (a) => a.name !== 'checksums.txt' && extractPlatform(a.name) !== null,
     )
 
     if (binaryAssets.length === 0) {
@@ -247,7 +275,9 @@ async function main() {
     const existingChecksums = new Map(Object.entries(existingChecksumsRecord))
 
     // Find missing checksums
-    const missingAssets = binaryAssets.filter((a) => !existingChecksums.has(a.name))
+    const missingAssets = binaryAssets.filter(
+      (a) => !existingChecksums.has(a.name),
+    )
 
     if (missingAssets.length === 0) {
       continue // All checksums present
@@ -281,7 +311,9 @@ async function main() {
 
     // Abort upload if any checksum computation failed
     if (failedAssets.length > 0) {
-      console.error(`  Skipping upload due to ${failedAssets.length} failed checksum(s):`)
+      console.error(
+        `  Skipping upload due to ${failedAssets.length} failed checksum(s):`,
+      )
       for (const name of failedAssets) {
         console.error(`    - ${name}`)
       }
@@ -306,7 +338,9 @@ async function main() {
   }
 
   if (hasErrors) {
-    console.error('\nSome releases had checksum computation failures and were skipped.')
+    console.error(
+      '\nSome releases had checksum computation failures and were skipped.',
+    )
     process.exit(1)
   }
 }

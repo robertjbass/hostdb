@@ -1,0 +1,42 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "influxdb",
+  "versions": {
+    "3.8.0": {
+      "linux-x64": {
+        "url": "https://dl.influxdata.com/influxdb/releases/influxdb3-core-3.8.0_linux_amd64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "f8a5100196392be9269178414429c512ff737a7c0b5b762ccbf5ee318650c1a5",
+        "sourceType": "official"
+      },
+      "linux-arm64": {
+        "url": "https://dl.influxdata.com/influxdb/releases/influxdb3-core-3.8.0_linux_arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "249005caaca9c9dac6f6a01f8cc970902807e66c10b543df275b7fdcaf461b0c",
+        "sourceType": "official"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required",
+        "note": "No official macOS Intel binary. Build from source using cargo (Rust project)."
+      },
+      "darwin-arm64": {
+        "url": "https://dl.influxdata.com/influxdb/releases/influxdb3-core-3.8.0_darwin_arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "a57f7e70b06758ef2ef6285b567e57c8f81117337d11f51003dcc776c90c515b",
+        "sourceType": "official"
+      },
+      "win32-x64": {
+        "url": "https://dl.influxdata.com/influxdb/releases/influxdb3-core-3.8.0-windows_amd64.zip",
+        "format": "zip",
+        "sha256": "42c5e7de579fd1a6d52bfd202318d684c7bbfce1bf185d89b27c56e91b5e88db",
+        "sourceType": "official"
+      }
+    }
+  },
+  "notes": {
+    "source": "Official InfluxData CDN: https://dl.influxdata.com/influxdb/releases/",
+    "naming": "Linux/macOS use underscore: influxdb3-core-{VERSION}_{PLATFORM}. Windows uses dash: influxdb3-core-{VERSION}-windows_amd64",
+    "archive": "Archives contain influxdb3-core-{VERSION}/ directory with influxdb3 binary, LICENSE files, and python/ runtime",
+    "darwin-x64": "No official macOS Intel binary available; requires source build from Rust"
+  }
+}

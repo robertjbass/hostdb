@@ -33,10 +33,10 @@ const PLATFORM_ALIASES: Record<string, Platform[]> = {
   // macOS specific
   'mac-arm': ['darwin-arm64'],
   'mac-intel': ['darwin-x64'],
-  'm1': ['darwin-arm64'],
-  'm2': ['darwin-arm64'],
-  'm3': ['darwin-arm64'],
-  'm4': ['darwin-arm64'],
+  m1: ['darwin-arm64'],
+  m2: ['darwin-arm64'],
+  m3: ['darwin-arm64'],
+  m4: ['darwin-arm64'],
   // Windows
   win: ['win32-x64'],
   windows: ['win32-x64'],
@@ -109,7 +109,9 @@ function resolveTargetPlatform(
     const target = platforms[0]
     if (!availablePlatforms[target]) {
       console.error(`Error: Platform '${platformInput}' not found`)
-      console.error(`\nAvailable: ${Object.keys(availablePlatforms).join(', ')}`)
+      console.error(
+        `\nAvailable: ${Object.keys(availablePlatforms).join(', ')}`,
+      )
       process.exit(1)
     }
     return target
@@ -120,7 +122,9 @@ function resolveTargetPlatform(
     const target = platforms.find((p) => availablePlatforms[p])
     if (!target) {
       console.error(`Error: No matching platform for '${platformInput}'`)
-      console.error(`\nAvailable: ${Object.keys(availablePlatforms).join(', ')}`)
+      console.error(
+        `\nAvailable: ${Object.keys(availablePlatforms).join(', ')}`,
+      )
       process.exit(1)
     }
     return target
@@ -210,7 +214,9 @@ function cmdList(filters: string[], jsonOutput: boolean): void {
       dbFilter = resolved
     } else if (resolved) {
       console.error(`Error: Database '${filter}' not found`)
-      console.error(`\nAvailable: ${Object.keys(releases.databases).join(', ')}`)
+      console.error(
+        `\nAvailable: ${Object.keys(releases.databases).join(', ')}`,
+      )
       process.exit(1)
     }
   }
@@ -218,23 +224,27 @@ function cmdList(filters: string[], jsonOutput: boolean): void {
   // Determine what to show based on filters
   if (!dbFilter && !versionFilter && !platformFilter) {
     // No filters: show all databases
-    const result = Object.keys(releases.databases).sort().map((db) => {
-      const versions = Object.keys(releases.databases[db])
-      const info = databases.databases[db]
-      return {
-        database: db,
-        displayName: info?.displayName || db,
-        type: info?.type || '',
-        versions: versions.length,
-      }
-    })
+    const result = Object.keys(releases.databases)
+      .sort()
+      .map((db) => {
+        const versions = Object.keys(releases.databases[db])
+        const info = databases.databases[db]
+        return {
+          database: db,
+          displayName: info?.displayName || db,
+          type: info?.type || '',
+          versions: versions.length,
+        }
+      })
 
     if (jsonOutput) {
       console.log(JSON.stringify(result, null, 2))
     } else {
       console.log('Available databases:\n')
       for (const r of result) {
-        console.log(`  ${r.database.padEnd(15)} ${r.displayName.padEnd(15)} ${r.type.padEnd(20)} (${r.versions} versions)`)
+        console.log(
+          `  ${r.database.padEnd(15)} ${r.displayName.padEnd(15)} ${r.type.padEnd(20)} (${r.versions} versions)`,
+        )
       }
     }
     return
@@ -267,9 +277,13 @@ function cmdList(filters: string[], jsonOutput: boolean): void {
     })
 
     if (jsonOutput) {
-      console.log(JSON.stringify({ database: dbFilter, versions: result }, null, 2))
+      console.log(
+        JSON.stringify({ database: dbFilter, versions: result }, null, 2),
+      )
     } else {
-      const platformLabel = platformFilter ? ` (${platformFilter.join(', ')})` : ''
+      const platformLabel = platformFilter
+        ? ` (${platformFilter.join(', ')})`
+        : ''
       console.log(`Versions for ${dbFilter}${platformLabel}:\n`)
       for (const r of result) {
         console.log(`  ${r.version.padEnd(15)} (${r.platforms.join(', ')})`)
@@ -282,31 +296,43 @@ function cmdList(filters: string[], jsonOutput: boolean): void {
     // Database and version: show platforms
     const dbReleases = releases.databases[dbFilter]
     if (!dbReleases[versionFilter]) {
-      console.error(`Error: Version '${versionFilter}' not found for ${dbFilter}`)
-      console.error(`\nAvailable: ${sortVersionsDesc(Object.keys(dbReleases)).join(', ')}`)
+      console.error(
+        `Error: Version '${versionFilter}' not found for ${dbFilter}`,
+      )
+      console.error(
+        `\nAvailable: ${sortVersionsDesc(Object.keys(dbReleases)).join(', ')}`,
+      )
       process.exit(1)
     }
 
     const release = dbReleases[versionFilter]
-    const result = (Object.keys(release.platforms) as Platform[]).sort().map((p) => {
-      const asset = release.platforms[p]!
-      return {
-        platform: p,
-        url: asset.url,
-        sha256: asset.sha256,
-        size: asset.size,
-        sizeMB: (asset.size / 1024 / 1024).toFixed(1),
-      }
-    })
+    const result = (Object.keys(release.platforms) as Platform[])
+      .sort()
+      .map((p) => {
+        const asset = release.platforms[p]!
+        return {
+          platform: p,
+          url: asset.url,
+          sha256: asset.sha256,
+          size: asset.size,
+          sizeMB: (asset.size / 1024 / 1024).toFixed(1),
+        }
+      })
 
     if (jsonOutput) {
-      console.log(JSON.stringify({
-        database: dbFilter,
-        version: versionFilter,
-        releaseTag: release.releaseTag,
-        releasedAt: release.releasedAt,
-        platforms: result,
-      }, null, 2))
+      console.log(
+        JSON.stringify(
+          {
+            database: dbFilter,
+            version: versionFilter,
+            releaseTag: release.releaseTag,
+            releasedAt: release.releasedAt,
+            platforms: result,
+          },
+          null,
+          2,
+        ),
+      )
     } else {
       console.log(`Platforms for ${dbFilter} ${versionFilter}:\n`)
       for (const r of result) {
@@ -320,8 +346,12 @@ function cmdList(filters: string[], jsonOutput: boolean): void {
     // All three: show specific assets
     const dbReleases = releases.databases[dbFilter]
     if (!dbReleases[versionFilter]) {
-      console.error(`Error: Version '${versionFilter}' not found for ${dbFilter}`)
-      console.error(`\nAvailable: ${sortVersionsDesc(Object.keys(dbReleases)).join(', ')}`)
+      console.error(
+        `Error: Version '${versionFilter}' not found for ${dbFilter}`,
+      )
+      console.error(
+        `\nAvailable: ${sortVersionsDesc(Object.keys(dbReleases)).join(', ')}`,
+      )
       process.exit(1)
     }
 
@@ -329,7 +359,9 @@ function cmdList(filters: string[], jsonOutput: boolean): void {
     const matchingPlatforms = platformFilter.filter((p) => release.platforms[p])
 
     if (matchingPlatforms.length === 0) {
-      console.error(`Error: No matching platforms for ${dbFilter} ${versionFilter}`)
+      console.error(
+        `Error: No matching platforms for ${dbFilter} ${versionFilter}`,
+      )
       console.error(`\nAvailable: ${Object.keys(release.platforms).join(', ')}`)
       console.error(`Requested: ${platformFilter.join(', ')}`)
       process.exit(1)
@@ -350,7 +382,9 @@ function cmdList(filters: string[], jsonOutput: boolean): void {
     })
 
     if (jsonOutput) {
-      console.log(JSON.stringify(result.length === 1 ? result[0] : result, null, 2))
+      console.log(
+        JSON.stringify(result.length === 1 ? result[0] : result, null, 2),
+      )
     } else {
       for (const r of result) {
         const sizeMB = (r.size / 1024 / 1024).toFixed(1)
@@ -366,13 +400,19 @@ function cmdList(filters: string[], jsonOutput: boolean): void {
 
   if (!dbFilter && platformFilter) {
     // Platform only: show all databases/versions for that platform
-    const result: Array<{ database: string; version: string; platforms: string[] }> = []
+    const result: Array<{
+      database: string
+      version: string
+      platforms: string[]
+    }> = []
 
     for (const db of Object.keys(releases.databases).sort()) {
       const dbReleases = releases.databases[db]
       for (const version of sortVersionsDesc(Object.keys(dbReleases))) {
         const release = dbReleases[version]
-        const matchingPlatforms = platformFilter.filter((p) => release.platforms[p])
+        const matchingPlatforms = platformFilter.filter(
+          (p) => release.platforms[p],
+        )
         if (matchingPlatforms.length > 0) {
           result.push({
             database: db,
@@ -411,13 +451,17 @@ function cmdUrl(database: string, version: string, platform: string) {
   const db = resolveDatabase(database)
   if (!db || !releases.databases[db]) {
     console.error(`Error: Database '${database}' not found`)
-    console.error(`\nAvailable: ${Object.keys(releases.databases).sort().join(', ')}`)
+    console.error(
+      `\nAvailable: ${Object.keys(releases.databases).sort().join(', ')}`,
+    )
     process.exit(1)
   }
 
   if (!releases.databases[db][version]) {
     console.error(`Error: Version '${version}' not found for ${db}`)
-    console.error(`\nAvailable: ${sortVersionsDesc(Object.keys(releases.databases[db])).join(', ')}`)
+    console.error(
+      `\nAvailable: ${sortVersionsDesc(Object.keys(releases.databases[db])).join(', ')}`,
+    )
     process.exit(1)
   }
 
@@ -434,13 +478,17 @@ function cmdInfo(database: string, version: string, platform: string) {
   const db = resolveDatabase(database)
   if (!db || !releases.databases[db]) {
     console.error(`Error: Database '${database}' not found`)
-    console.error(`\nAvailable: ${Object.keys(releases.databases).sort().join(', ')}`)
+    console.error(
+      `\nAvailable: ${Object.keys(releases.databases).sort().join(', ')}`,
+    )
     process.exit(1)
   }
 
   if (!releases.databases[db][version]) {
     console.error(`Error: Version '${version}' not found for ${db}`)
-    console.error(`\nAvailable: ${sortVersionsDesc(Object.keys(releases.databases[db])).join(', ')}`)
+    console.error(
+      `\nAvailable: ${sortVersionsDesc(Object.keys(releases.databases[db])).join(', ')}`,
+    )
     process.exit(1)
   }
 
@@ -448,16 +496,22 @@ function cmdInfo(database: string, version: string, platform: string) {
   const targetPlatform = resolveTargetPlatform(platform, release.platforms)
   const asset = release.platforms[targetPlatform]!
 
-  console.log(JSON.stringify({
-    database: db,
-    version,
-    platform: targetPlatform,
-    url: asset.url,
-    sha256: asset.sha256,
-    size: asset.size,
-    releaseTag: release.releaseTag,
-    releasedAt: release.releasedAt,
-  }, null, 2))
+  console.log(
+    JSON.stringify(
+      {
+        database: db,
+        version,
+        platform: targetPlatform,
+        url: asset.url,
+        sha256: asset.sha256,
+        size: asset.size,
+        releaseTag: release.releaseTag,
+        releasedAt: release.releasedAt,
+      },
+      null,
+      2,
+    ),
+  )
 }
 
 function main() {
@@ -516,7 +570,10 @@ function main() {
         process.exit(1)
       }
       const db = resolveDatabase(filteredArgs[1])
-      cmdList(db ? [db, filteredArgs[2]] : [filteredArgs[1], filteredArgs[2]], jsonOutput)
+      cmdList(
+        db ? [db, filteredArgs[2]] : [filteredArgs[1], filteredArgs[2]],
+        jsonOutput,
+      )
       break
     }
 

@@ -329,11 +329,9 @@ function repackageWindowsMSI(
   if (process.platform === 'win32') {
     // On Windows, use msiexec
     try {
-      execFileSync(
-        'msiexec',
-        ['/a', msiPath, '/qn', `TARGETDIR=${tempDir}`],
-        { stdio: 'inherit' },
-      )
+      execFileSync('msiexec', ['/a', msiPath, '/qn', `TARGETDIR=${tempDir}`], {
+        stdio: 'inherit',
+      })
       extracted = true
     } catch {
       logWarn('msiexec extraction failed')
@@ -492,14 +490,10 @@ function repackageWindowsMSI(
   mkdirSync(dirname(outputPath), { recursive: true })
   logInfo(`Creating: ${basename(outputPath)}`)
 
-  execFileSync(
-    'zip',
-    ['-rq', outputPath, 'couchdb'],
-    {
-      cwd: resolve(tempDir, 'couchdb-final'),
-      stdio: 'inherit',
-    },
-  )
+  execFileSync('zip', ['-rq', outputPath, 'couchdb'], {
+    cwd: resolve(tempDir, 'couchdb-final'),
+    stdio: 'inherit',
+  })
 
   // Cleanup
   rmSync(tempDir, { recursive: true, force: true })
@@ -711,9 +705,7 @@ async function main() {
           continue
         }
       } else {
-        logWarn(
-          `${platform} requires Docker extraction (no binary available)`,
-        )
+        logWarn(`${platform} requires Docker extraction (no binary available)`)
         logInfo(
           'Use --build-fallback to extract from Docker, or use builds/couchdb/build-local.sh',
         )

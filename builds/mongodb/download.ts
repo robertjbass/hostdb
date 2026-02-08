@@ -146,7 +146,10 @@ async function downloadFile(
 
   let response: Response
   try {
-    response = await fetch(url, { redirect: 'follow', signal: controller.signal })
+    response = await fetch(url, {
+      redirect: 'follow',
+      signal: controller.signal,
+    })
   } catch (error) {
     clearTimeout(timeoutId)
     if (error instanceof Error && error.name === 'AbortError') {
@@ -660,7 +663,10 @@ async function main() {
 
     const ext = platform.startsWith('win32') ? 'zip' : 'tar.gz'
     const downloadDir = resolve(outputDir, 'downloads')
-    const outputPath = resolve(outputDir, `mongodb-${version}-${platform}.${ext}`)
+    const outputPath = resolve(
+      outputDir,
+      `mongodb-${version}-${platform}.${ext}`,
+    )
 
     mkdirSync(downloadDir, { recursive: true })
 

@@ -31,9 +31,7 @@
     "mongosh": {
       "version": "2.5.10",
       "description": "MongoDB Shell - interactive JavaScript interface",
-      "binaries": [
-        "mongosh"
-      ],
+      "binaries": ["mongosh"],
       "platforms": {
         "linux-x64": {
           "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-linux-x64.tgz",

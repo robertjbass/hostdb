@@ -64,7 +64,9 @@ child.on('exit', (code, signal) => {
 
   // Exit with same code or signal-based exit code
   if (signal) {
-    process.exit(128 + (signal === 'SIGINT' ? 2 : signal === 'SIGTERM' ? 15 : 1))
+    process.exit(
+      128 + (signal === 'SIGINT' ? 2 : signal === 'SIGTERM' ? 15 : 1),
+    )
   }
   process.exit(code ?? 0)
 })

@@ -23,12 +23,7 @@
  *   --help               Show help
  */
 
-import {
-  createReadStream,
-  mkdirSync,
-  existsSync,
-  readFileSync,
-} from 'node:fs'
+import { createReadStream, mkdirSync, existsSync, readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -190,18 +185,25 @@ function buildFromSource(
   logInfo(`Building ${platform} from source...`)
   logInfo(`Running: ${buildScript} ${version}`)
 
-  const result = spawnSync('bash', [buildScript, version, platform, absoluteOutputDir], {
-    stdio: 'inherit',
-    cwd: resolve(__dirname, '../..'),
-    env: { ...process.env },
-  })
+  const result = spawnSync(
+    'bash',
+    [buildScript, version, platform, absoluteOutputDir],
+    {
+      stdio: 'inherit',
+      cwd: resolve(__dirname, '../..'),
+      env: { ...process.env },
+    },
+  )
 
   if (result.status !== 0) {
     throw new Error(`Source build failed with exit code: ${result.status}`)
   }
 
   const ext = 'tar.gz'
-  const outputPath = join(absoluteOutputDir, `postgresql-documentdb-${version}-${platform}.${ext}`)
+  const outputPath = join(
+    absoluteOutputDir,
+    `postgresql-documentdb-${version}-${platform}.${ext}`,
+  )
 
   if (!existsSync(outputPath)) {
     throw new Error(`Expected output not found: ${outputPath}`)
@@ -235,7 +237,9 @@ function parseArgs(): {
         const versionValue = args[++i]
         if (!isValidVersion(versionValue)) {
           logError(`Invalid version format: ${versionValue}`)
-          logError('Version must be in format: {pg_major}-{documentdb_version} (e.g., 17-0.107.0)')
+          logError(
+            'Version must be in format: {pg_major}-{documentdb_version} (e.g., 17-0.107.0)',
+          )
           process.exit(1)
         }
         version = versionValue
@@ -365,7 +369,9 @@ async function main() {
       if (platform.startsWith('linux')) {
         // Linux builds require Docker
         if (!verifyCommand('docker')) {
-          logWarn(`${platform} requires Docker for source build, but Docker is not installed`)
+          logWarn(
+            `${platform} requires Docker for source build, but Docker is not installed`,
+          )
           skipCount++
           continue
         }

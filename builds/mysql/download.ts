@@ -244,11 +244,17 @@ function repackage(
 
   // Extract based on format (using execFileSync with array args for safety)
   if (format === 'tar.xz') {
-    execFileSync('tar', ['-xJf', sourcePath, '-C', tempDir], { stdio: 'inherit' })
+    execFileSync('tar', ['-xJf', sourcePath, '-C', tempDir], {
+      stdio: 'inherit',
+    })
   } else if (format === 'tar.gz') {
-    execFileSync('tar', ['-xzf', sourcePath, '-C', tempDir], { stdio: 'inherit' })
+    execFileSync('tar', ['-xzf', sourcePath, '-C', tempDir], {
+      stdio: 'inherit',
+    })
   } else if (format === 'zip') {
-    execFileSync('unzip', ['-q', sourcePath, '-d', tempDir], { stdio: 'inherit' })
+    execFileSync('unzip', ['-q', sourcePath, '-d', tempDir], {
+      stdio: 'inherit',
+    })
   }
 
   // Find extracted directory (MySQL extracts to mysql-VERSION-PLATFORM/)

@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "Source and download pre-built database binaries for multiple platforms, distributed via GitHub Releases",
   "private": false,
   "type": "module",
@@ -34,6 +34,7 @@
     "download:couchdb": "tsx builds/couchdb/download.ts",
     "download:duckdb": "tsx builds/duckdb/download.ts",
     "download:ferretdb": "tsx builds/ferretdb/download.ts",
+    "download:influxdb": "tsx builds/influxdb/download.ts",
     "download:mariadb": "tsx builds/mariadb/download.ts",
     "download:meilisearch": "tsx builds/meilisearch/download.ts",
     "download:mongodb": "tsx builds/mongodb/download.ts",

@@ -72,8 +72,12 @@ function getEnabledVersions(db: DatabaseConfig): string[] {
     .map(([version]) => version)
     .sort((a, b) => {
       // Sort by semantic version, newest first
-      const aParts = a.split('.').map((p) => parseInt(p.replace(/\D/g, ''), 10) || 0)
-      const bParts = b.split('.').map((p) => parseInt(p.replace(/\D/g, ''), 10) || 0)
+      const aParts = a
+        .split('.')
+        .map((p) => parseInt(p.replace(/\D/g, ''), 10) || 0)
+      const bParts = b
+        .split('.')
+        .map((p) => parseInt(p.replace(/\D/g, ''), 10) || 0)
       for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
         const aVal = aParts[i] || 0
         const bVal = bParts[i] || 0
@@ -88,7 +92,12 @@ function updateWorkflowVersions(
   versions: string[],
   checkOnly: boolean,
 ): { updated: boolean; reason?: string } {
-  const workflowPath = join(ROOT, '.github', 'workflows', `release-${dbKey}.yml`)
+  const workflowPath = join(
+    ROOT,
+    '.github',
+    'workflows',
+    `release-${dbKey}.yml`,
+  )
 
   if (!existsSync(workflowPath)) {
     return { updated: false, reason: 'workflow file not found' }
@@ -105,7 +114,8 @@ function updateWorkflowVersions(
   if (!on) return { updated: false, reason: 'no "on" key found' }
 
   const workflowDispatch = on.get('workflow_dispatch')
-  if (!workflowDispatch) return { updated: false, reason: 'no workflow_dispatch trigger' }
+  if (!workflowDispatch)
+    return { updated: false, reason: 'no workflow_dispatch trigger' }
 
   const inputs = workflowDispatch.get('inputs')
   if (!inputs) return { updated: false, reason: 'no inputs defined' }
