@@ -24,6 +24,7 @@
         "license",
         "status",
         "commercialUse",
+        "hostedServiceAllowed",
         "protocol",
         "versions",
         "platforms",
@@ -74,7 +75,11 @@
         },
         "commercialUse": {
           "type": "boolean",
-          "description": "Whether the license permits commercial use"
+          "description": "Whether the license permits commercial use in applications, local dev, and internal use"
+        },
+        "hostedServiceAllowed": {
+          "type": "boolean",
+          "description": "Whether the license permits offering this database as a hosted/managed service (DBaaS). False for SSPL, RSALv2, BSL-1.1, CSL, and similar source-available licenses that restrict competing cloud services."
         },
         "protocol": {
           "type": ["string", "null"],

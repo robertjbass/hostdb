@@ -8,6 +8,7 @@
       "sourceRepo": "https://github.com/apache/cassandra",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Java-based; requires JVM bundled or installed",
       "latestLts": "5.0",
@@ -43,20 +44,21 @@
       "description": "Multi-model database supporting graphs, documents, and key-value with unified query language",
       "type": "Multi-model",
       "sourceRepo": "https://github.com/arangodb/arangodb",
-      "license": "Apache-2.0",
-      "commercialUse": true,
+      "license": "BSL-1.1 / ArangoDB Community License",
+      "commercialUse": false,
+      "hostedServiceAllowed": false,
       "protocol": null,
-      "note": "",
+      "note": "Unsupported: License changed to BSL-1.1 (source) + ArangoDB Community License (binaries) in v3.12. Community binaries have 100GB dataset limit. Dropped native macOS and Windows binaries in v3.12 (Docker only). linux-arm64 is evaluation-only, not production-recommended.",
       "latestLts": "3.12",
       "versions": {
-        "3.12.6": true
+        "3.12.6": false
       },
       "platforms": {
         "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
+        "linux-arm64": false,
+        "darwin-x64": false,
+        "darwin-arm64": false,
+        "win32-x64": false
       },
       "cliTools": {
         "server": "arangod",
@@ -77,7 +79,7 @@
         "defaultUser": "root",
         "queryLanguage": "AQL"
       },
-      "status": "pending"
+      "status": "unsupported"
     },
     "clickhouse": {
       "displayName": "ClickHouse",
@@ -86,6 +88,7 @@
       "sourceRepo": "https://github.com/ClickHouse/ClickHouse",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Windows binaries unavailable. Require WSL.",
       "latestLts": "25.12",
@@ -121,18 +124,19 @@
       "sourceRepo": "https://github.com/chroma-core/chroma",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
-      "note": "LLM-focused vector database; simpler than Milvus",
+      "note": "Unsupported: Python-only distribution via pip. No standalone native binaries for any platform. Rust core is compiled as Python extension, not standalone executable.",
       "latestLts": "1.0",
       "versions": {
-        "1.0.12": true
+        "1.0.12": false
       },
       "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
+        "linux-x64": false,
+        "linux-arm64": false,
+        "darwin-x64": false,
+        "darwin-arm64": false,
+        "win32-x64": false
       },
       "cliTools": {
         "server": "chroma",
@@ -149,7 +153,7 @@
         "defaultUser": null,
         "queryLanguage": "HTTP"
       },
-      "status": "pending"
+      "status": "unsupported"
     },
     "cockroachdb": {
       "displayName": "CockroachDB",
@@ -158,6 +162,7 @@
       "sourceRepo": "https://github.com/cockroachdb/cockroach",
       "license": "CSL (v24.3+), BSL (older)",
       "commercialUse": true,
+      "hostedServiceAllowed": false,
       "protocol": "postgresql",
       "note": "CockroachDB Software License restricts competing cloud services; fine for local dev",
       "latestLts": "25.4",
@@ -195,6 +200,7 @@
       "sourceRepo": "https://github.com/apache/couchdb",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
       "latestLts": "3.5",
@@ -232,6 +238,7 @@
       "sourceRepo": "https://github.com/duckdb/duckdb",
       "license": "MIT",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
       "latestLts": "1.4",
@@ -268,6 +275,7 @@
       "sourceRepo": "https://github.com/dgraph-io/dgraph",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Unsupported: Official binaries are Linux-only since v21.03.0 (macOS/Windows dropped Feb 2021). Requires two processes (dgraph zero + dgraph alpha) with no single-process mode. Dynamically links jemalloc which blocks Windows builds. Ratel UI removed from binary, now separate project. Acquired twice (Dgraph Labs → Hypermode → Istari Digital Oct 2025).",
       "latestLts": "25.2",
@@ -305,6 +313,7 @@
       "sourceRepo": "https://github.com/FerretDB/FerretDB",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": "mongodb",
       "note": "Version 2 requires Postgres-DocumentDB (not on windows) but v1 may in theory build on windows",
       "dependency": {
@@ -346,6 +355,7 @@
       "sourceRepo": "https://github.com/FirebirdSQL/firebird",
       "license": "IDPL-1.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Single-file database. Supports both embedded (no server process, single-file like SQLite) and client/server modes. Official pre-built binaries available for all platforms.",
       "latestLts": "5.0",
@@ -382,18 +392,19 @@
       "sourceRepo": "https://github.com/geldata/gel",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": "postgresql",
-      "note": "Formerly EdgeDB; PostgreSQL-based with graph capabilities",
+      "note": "Formerly EdgeDB; PostgreSQL-based with graph capabilities. No Windows binary (Docker only). No GitHub Release assets; distributed via custom install script. linux-arm64 support uncertain.",
       "latestLts": "7.0",
       "versions": {
         "7.0.0": true
       },
       "platforms": {
         "linux-x64": true,
-        "linux-arm64": true,
+        "linux-arm64": false,
         "darwin-x64": true,
         "darwin-arm64": true,
-        "win32-x64": true
+        "win32-x64": false
       },
       "cliTools": {
         "server": "gel-server",
@@ -419,8 +430,9 @@
       "sourceRepo": "https://github.com/kuzudb/kuzu",
       "license": "MIT",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
-      "note": "INVESTIGATE: Kuzu Inc. reportedly archived the repo in Oct 2025. Community forks exist (Bighorn, RyuGraph). Verify current status before proceeding. If alive, this is the ideal graph DB: MIT license, Cypher query language, embedded, all 5 platforms.",
+      "note": "Unsupported: Repo archived Oct 2025 ('Kuzu is working on something new'). Community forks: Ladybug (ex-Facebook/Google lead), Bighorn (Kineviz), RyuGraph (Predictable Labs). No clear successor yet. Last release v0.11.3 binaries still downloadable but unmaintained.",
       "latestLts": "0.11",
       "versions": {
         "0.11.3": false
@@ -447,7 +459,7 @@
         "defaultUser": null,
         "queryLanguage": "Cypher"
       },
-      "status": "pending"
+      "status": "unsupported"
     },
     "mariadb": {
       "displayName": "MariaDB",
@@ -456,6 +468,7 @@
       "sourceRepo": "https://github.com/MariaDB/server",
       "license": "GPL-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
       "latestLts": "11.8",
@@ -494,6 +507,7 @@
       "sourceRepo": "https://github.com/meilisearch/meilisearch",
       "license": "MIT",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
       "latestLts": "1.33",
@@ -531,18 +545,19 @@
       "sourceRepo": "https://github.com/milvus-io/milvus",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
-      "note": "Largest vector DB by GitHub stars; enterprise-grade",
+      "note": "Unsupported: Docker-only distribution. No native binaries for any platform. Complex multi-component architecture requiring etcd + MinIO. GitHub releases contain only Docker Compose files.",
       "latestLts": "2.5",
       "versions": {
-        "2.5.4": true
+        "2.5.4": false
       },
       "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
+        "linux-x64": false,
+        "linux-arm64": false,
+        "darwin-x64": false,
+        "darwin-arm64": false,
+        "win32-x64": false
       },
       "cliTools": {
         "server": "milvus",
@@ -559,7 +574,7 @@
         "defaultUser": null,
         "queryLanguage": "HTTP"
       },
-      "status": "pending"
+      "status": "unsupported"
     },
     "mongodb": {
       "displayName": "MongoDB",
@@ -567,9 +582,10 @@
       "type": "Document",
       "sourceRepo": "https://github.com/mongodb/mongo",
       "license": "SSPL-1.0",
-      "commercialUse": false,
+      "commercialUse": true,
+      "hostedServiceAllowed": false,
       "protocol": null,
-      "note": "TODO - disable if used commercially; use FerretDB as alternative",
+      "note": "SSPL restricts offering MongoDB as a competing managed database service (i.e., MongoDB Atlas competitors). Commercial use in applications, local dev, and internal use is fine. FerretDB available as fully open-source alternative.",
       "latestLts": "8.0",
       "versions": {
         "8.2.3": true,
@@ -611,6 +627,7 @@
       "sourceRepo": "https://github.com/mysql/mysql-server",
       "license": "GPL-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
       "latestLts": "8.4",
@@ -650,6 +667,7 @@
       "sourceRepo": "https://github.com/opensearch-project/OpenSearch",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": "elasticsearch",
       "note": "",
       "latestLts": "3.4",
@@ -687,6 +705,7 @@
       "sourceRepo": "https://github.com/postgres/postgres",
       "license": "PostgreSQL",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
       "latestLts": "18",
@@ -732,6 +751,7 @@
       "sourceRepo": "https://github.com/FerretDB/documentdb",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": "postgresql",
       "note": "Backend for FerretDB; includes pg_cron, pgvector, PostGIS, rum extensions",
       "latestLts": "17",
@@ -768,6 +788,7 @@
       "sourceRepo": "https://github.com/qdrant/qdrant",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
       "latestLts": "1.16",
@@ -805,6 +826,7 @@
       "sourceRepo": "https://github.com/questdb/questdb",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
       "dependency": {
@@ -846,9 +868,10 @@
       "type": "Key-Value",
       "sourceRepo": "https://github.com/redis/redis",
       "license": "RSALv2/SSPLv1 (7.4+), AGPL-3.0 (8.0+)",
-      "commercialUse": false,
+      "commercialUse": true,
+      "hostedServiceAllowed": false,
       "protocol": null,
-      "note": "TODO - disable if used commercially; use Valkey as drop-in replacement",
+      "note": "RSALv2 restricts building competing products to Redis itself. AGPL-3.0 (8.0+) requires source disclosure if you modify Redis and offer it as a network service. Commercial use in applications, local dev, and internal use is fine. Valkey available as BSD-licensed drop-in alternative.",
       "latestLts": "8.4",
       "versions": {
         "8.4.0": true,
@@ -884,6 +907,7 @@
       "sourceRepo": "https://github.com/facebook/rocksdb",
       "license": "GPL-2.0 OR Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Single-file database. Library-first with ldb and sst_dump CLI tools. No official pre-built binaries - build from source required for all platforms. Widely used as storage engine by CockroachDB, TiKV, MySQL/MyRocks.",
       "latestLts": "10.10",
@@ -920,6 +944,7 @@
       "sourceRepo": "https://github.com/sqlite/sqlite",
       "license": "Public Domain",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
       "latestLts": "3.51",
@@ -954,10 +979,11 @@
       "description": "Multi-model database combining graph, document, key-value, and time-series with SQL-like syntax",
       "type": "Multi-model",
       "sourceRepo": "https://github.com/surrealdb/surrealdb",
-      "license": "Apache-2.0",
+      "license": "BSL-1.1",
       "commercialUse": true,
+      "hostedServiceAllowed": false,
       "protocol": null,
-      "note": "Rust-based; single binary; fills graph database gap",
+      "note": "Rust-based; single binary. License is BSL-1.1 (not Apache-2.0); prohibits competing DBaaS offerings. Converts to Apache-2.0 after 4 years per release. Fine for local dev and internal use.",
       "latestLts": "2.3",
       "versions": {
         "2.3.2": true
@@ -993,8 +1019,9 @@
       "sourceRepo": "https://github.com/pingcap/tidb",
       "license": "Apache-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": "mysql",
-      "note": "",
+      "note": "No native Windows binary. macOS binaries only available via TiUP package manager, not direct download. Can run standalone with UniStore (without TiKV/PD).",
       "latestLts": "8.5",
       "versions": {
         "8.5.4": true
@@ -1004,7 +1031,7 @@
         "linux-arm64": true,
         "darwin-x64": true,
         "darwin-arm64": true,
-        "win32-x64": true
+        "win32-x64": false
       },
       "cliTools": {
         "server": "tidb-server",
@@ -1030,6 +1057,7 @@
       "sourceRepo": "https://github.com/typedb/typedb",
       "license": "MPL-2.0",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Rewritten from Java to Rust in v3.0 (Dec 2024). Binaries distributed via Cloudsmith and GitHub Releases.",
       "latestLts": "3.8",
@@ -1065,10 +1093,11 @@
       "description": "Time-series database built on PostgreSQL for fast analytics and scalability",
       "type": "Time-series",
       "sourceRepo": "https://github.com/timescale/timescaledb",
-      "license": "Apache-2.0",
+      "license": "Apache-2.0 / TSL",
       "commercialUse": true,
+      "hostedServiceAllowed": false,
       "protocol": "postgresql",
-      "note": "",
+      "note": "Dual-licensed: core is Apache-2.0, advanced features under Timescale License (TSL) which restricts competing DBaaS. PostgreSQL extension, not standalone.",
       "latestLts": "2.24",
       "versions": {
         "2.24.0": true
@@ -1104,6 +1133,7 @@
       "sourceRepo": "https://github.com/valkey-io/valkey",
       "license": "BSD-3-Clause",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": "redis",
       "note": "",
       "latestLts": "9.0",
@@ -1141,8 +1171,9 @@
       "sourceRepo": "https://github.com/weaviate/weaviate",
       "license": "BSD-3-Clause",
       "commercialUse": true,
+      "hostedServiceAllowed": true,
       "protocol": null,
-      "note": "Popular AI/vector alternative; Go-based single binary",
+      "note": "Go-based single binary. No official Windows binary; macOS distributed as universal binary (x64+arm64).",
       "latestLts": "1.29",
       "versions": {
         "1.29.0": true
@@ -1152,7 +1183,7 @@
         "linux-arm64": true,
         "darwin-x64": true,
         "darwin-arm64": true,
-        "win32-x64": true
+        "win32-x64": false
       },
       "cliTools": {
         "server": "weaviate",
