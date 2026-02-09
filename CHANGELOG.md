@@ -10,6 +10,14 @@ All notable changes to this project will be documented in this file.
 - **DuckDB VSS** added to databases.json as `unsupported` — DuckDB's vector similarity search extension. Marked unsupported because it's experimental (WAL recovery not implemented), has no formal releases, and is distributed through DuckDB's built-in extension hub rather than as a standalone binary.
 - **IN_PROGRESS.md** updated with current work items: sqlite-vec support, TypeDB/InfluxDB integration status, FerretDB Windows/v1 considerations
 
+### Changed
+
+- **sync-releases.yml** — Changed from push-on-main to `workflow_dispatch` only. Was running unnecessarily on every push to main; release workflows already trigger it explicitly via their `trigger-sync` job.
+
+### Removed
+
+- **redis-valkey-win.yml** — Deleted temporary workflow (was marked `TODO - DELETE`)
+
 ## [0.21.1] - 2026-02-08
 
 ### Fixed
