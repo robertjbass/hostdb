@@ -144,15 +144,15 @@ jobs:
       - name: Build InfluxDB for darwin-x64
         run: |
           chmod +x builds/influxdb/build-macos.sh
-          ./builds/influxdb/build-macos.sh --version "$VERSION" --output ./dist
+          ./builds/influxdb/build-macos.sh --version "$VERSION" --output "$GITHUB_WORKSPACE/dist"
 
-          ls -la ./dist/
+          ls -la "$GITHUB_WORKSPACE/dist/"
 
       - name: Upload darwin-x64 artifact
         uses: actions/upload-artifact@v4
         with:
           name: influxdb-darwin-x64-${{ github.event.inputs.version }}
-          path: dist/*.tar.gz
+          path: ${{ github.workspace }}/dist/*.tar.gz
           retention-days: 1
 
   release:
