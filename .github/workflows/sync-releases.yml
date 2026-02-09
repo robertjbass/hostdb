@@ -1,9 +1,7 @@
 name: Sync Releases
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch: # Triggered manually or by release workflows via trigger-sync job
 
 # Prevent concurrent runs that could conflict when updating releases.json
 concurrency:

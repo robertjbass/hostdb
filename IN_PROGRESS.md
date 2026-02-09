@@ -16,6 +16,8 @@ TypeDB has been integrated into SpinDB but not LayerBase Desktop.
 
 InfluxDB has not yet been added to SpinDB. The hostdb build infrastructure is in place (download script, workflow, darwin-x64 source build) but SpinDB integration is still pending.
 
+**Action needed:** Re-run the full InfluxDB release workflow overnight (all platforms). The previous run built the executables successfully but was an incomplete run that didn't update the releases.json manifest. The darwin-x64 source build takes ~2 hours so plan to kick it off before bed.
+
 ## FerretDB Windows Support
 
 Need to add DocumentDB extension support for Windows to get FerretDB working on Windows. Currently postgresql-documentdb win32-x64 builds with pgvector only (319MB) — DocumentDB extension itself does not compile on Windows yet.
