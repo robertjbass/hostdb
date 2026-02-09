@@ -4,77 +4,24 @@
 
 ---
 
-## FerretDB/postgresql-documentdb Release Progress
+## sqlite-vec
 
-This section tracks the release process for `postgresql-documentdb-17-0.107.0` binaries.
+Add support for sqlite-vec to have an embeddable file-based vector database offering. sqlite-vec is a SQLite loadable extension (.so/.dylib/.dll) that adds vec0 virtual tables for vector indexing with KNN queries. Pure C, zero dependencies, pre-built for all 5 hostdb platforms. Added to `databases.json` as `pending` with version `0.1.6`.
 
-## Current Status (as of 2026-01-25 ~7:00am UTC)
+## TypeDB
 
-| Platform | Status | Notes |
-|----------|--------|-------|
-| darwin-arm64 | ✅ Verified | Working in SpinDB |
-| darwin-x64 | ✅ Built | Binary exists (42MB) |
-| linux-x64 | ✅ Working | Libraries bundle correctly, binaries run (79MB) |
-| linux-arm64 | ✅ Built | Build succeeded with 150min timeout (74MB) |
-| win32-x64 | ✅ Built | Binary exists (319MB, pgvector only) |
+TypeDB has been integrated into SpinDB but not LayerBase Desktop.
 
-### Key Fixes Applied (v0.14.19)
+## InfluxDB
 
-1. **Build mongo-c-driver from source** (v0.14.17)
-   - Debian bookworm's libbson-dev was too old for DocumentDB v0.107.0
-   - Now builds mongo-c-driver 1.29.0 for compatible libbson
+InfluxDB has not yet been added to SpinDB. The hostdb build infrastructure is in place (download script, workflow, darwin-x64 source build) but SpinDB integration is still pending.
 
-2. **Fix DocumentDB extension check** (v0.14.18)
-   - Use direct file existence check instead of `ls | grep`
+**Action needed:** Re-run the full InfluxDB release workflow overnight (all platforms). The previous run built the executables successfully but was an incomplete run that didn't update the releases.json manifest. The darwin-x64 source build takes ~2 hours so plan to kick it off before bed.
 
-3. **Don't bundle C/C++ runtime libraries** (v0.14.19)
-   - Exclude libstdc++, libgfortran, libquadmath from bundling
-   - These are tightly coupled with glibc and should use system version
-   - Fixes glibc version mismatch on Ubuntu 22.04
+## FerretDB Windows Support
 
-### Verification Results (linux-x64)
+Need to add DocumentDB extension support for Windows to get FerretDB working on Windows. Currently postgresql-documentdb win32-x64 builds with pgvector only (319MB) — DocumentDB extension itself does not compile on Windows yet.
 
-Successfully tested in Docker (ubuntu:22.04 with linux/amd64):
-- ✅ initdb --version works
-- ✅ postgres --version works
-- ✅ ldd shows all dependencies resolved
-- ✅ Libraries correctly load from bundle (`lib/`) or system as appropriate
-- ✅ No "not found" errors in ldd output
+## FerretDB v1
 
-### Fixes Applied This Session
-
-1. **Extended linux-arm64 build timeout** (commit 12652b3)
-   - Previous build timed out at 60 min during PostGIS compilation
-   - Extended timeout to 150 minutes for QEMU emulated builds
-
-2. **Fixed SpinDB non-interactive mode** (spindb cli/commands/create.ts)
-   - Docker E2E test was failing with "Cannot prompt in non-interactive mode"
-   - Added TTY check: if no TTY and no explicit --start/--no-start, default to not starting
-
-3. **Fixed locale issue** (spindb tests/docker/Dockerfile)
-   - Added `locales` package and `locale-gen en_US.UTF-8`
-   - PostgreSQL no longer fails with missing locale error
-
-## Completed! 🎉
-
-All 5 platforms built successfully:
-- ✅ darwin-arm64 (35MB)
-- ✅ darwin-x64 (42MB)
-- ✅ linux-x64 (79MB)
-- ✅ linux-arm64 (74MB) - Build run 21328096530 succeeded
-- ✅ win32-x64 (319MB)
-
-Release: https://github.com/robertjbass/hostdb/releases/tag/postgresql-documentdb-17-0.107.0
-
-## Monitoring Commands
-
-```bash
-# Check linux-arm64 build status
-gh run list --repo robertjbass/hostdb --workflow=release-postgresql-documentdb.yml --limit 3
-
-# View specific run
-gh run view <RUN_ID> --repo robertjbass/hostdb --json status,conclusion,jobs
-
-# Trigger a rebuild if needed
-gh workflow run release-postgresql-documentdb.yml --repo robertjbass/hostdb --ref main -f version=17-0.107.0 -f platforms=linux-arm64
-```
+Consider adding support for FerretDB v1, which does not require postgresql-documentdb as a backend. This would provide a simpler MongoDB-compatible option that avoids the DocumentDB extension build complexity, especially relevant for Windows where DocumentDB is not yet supported.
