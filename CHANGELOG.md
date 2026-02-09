@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.21.1] - 2026-02-08
+
+### Fixed
+
+- **Workflow permission for trigger-sync job** - Added `actions: write` permission to 9 release workflows missing it (clickhouse, influxdb, mariadb, mongodb, mysql, postgresql, redis, sqlite, valkey), fixing HTTP 403 when triggering sync-releases
+
 ## [0.21.0] - 2026-02-08
 
 ### Added
