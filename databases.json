@@ -268,6 +268,47 @@
       },
       "status": "completed"
     },
+    "duckdb-vss": {
+      "displayName": "DuckDB VSS",
+      "description": "Vector similarity search extension for DuckDB using HNSW indexing",
+      "type": "Vector",
+      "sourceRepo": "https://github.com/duckdb/duckdb_vss",
+      "license": "MIT",
+      "commercialUse": true,
+      "hostedServiceAllowed": true,
+      "protocol": null,
+      "note": "Unsupported: DuckDB extension, not a standalone database. Auto-installs within DuckDB via 'INSTALL vss; LOAD vss;'. Explicitly marked experimental and not production-ready by the DuckDB team — WAL recovery is not implemented for custom HNSW indexes, risking data loss on crash. No separate GitHub releases; distributed through DuckDB's built-in extension hub. Since DuckDB is already in hostdb, this would not be a separate entry — could potentially be pre-bundled with DuckDB releases if it reaches production status. Vectors must be FLOAT[n] type only. Index is in-memory (persisted on checkpoint). Supports L2sq, cosine, and inner product distance metrics.",
+      "dependency": {
+        "database": "duckdb",
+        "cascadeDelete": false,
+        "note": "DuckDB extension; requires DuckDB v0.10.0+ as host. Loaded via SQL: INSTALL vss; LOAD vss;"
+      },
+      "latestLts": "0.0",
+      "versions": {},
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": null,
+        "client": "duckdb",
+        "utilities": [],
+        "enhanced": [],
+        "note": "Loaded as extension within DuckDB CLI; no separate binary. No formal versioned releases — distributed via DuckDB extension hub only."
+      },
+      "connection": {
+        "runtime": "embedded",
+        "defaultPort": null,
+        "scheme": "duckdb",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "SQL"
+      },
+      "status": "unsupported"
+    },
     "dgraph": {
       "displayName": "Dgraph",
       "description": "Native GraphQL database with horizontal scaling and distributed ACID transactions",
@@ -1011,6 +1052,49 @@
         "queryLanguage": "SQL"
       },
       "status": "completed"
+    },
+    "sqlite-vec": {
+      "displayName": "sqlite-vec",
+      "description": "Vector search SQLite extension for similarity search and KNN queries, pure C with zero dependencies",
+      "type": "Vector",
+      "sourceRepo": "https://github.com/asg017/sqlite-vec",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "hostedServiceAllowed": true,
+      "protocol": null,
+      "note": "SQLite loadable extension (.so/.dylib/.dll), not a standalone database. Adds vec0 virtual table for vector indexing with k-nearest-neighbor (KNN) queries. Pure C, zero dependencies — runs anywhere SQLite runs. Pre-built loadable extensions available for all 5 hostdb platforms on GitHub Releases. Loaded in sqlite3 CLI via '.load vec0'. Mozilla Builders backed. Last stable release v0.1.6 (Nov 2024), alpha v0.1.7 (Jan 2025) — development pace is slow but project is not abandoned. Successor to the deprecated sqlite-vss (which used FAISS). Natural fit for hostdb since SQLite is already distributed; could bundle the extension with SQLite releases or distribute as a separate entry. Supports metadata columns, partition keys, and auxiliary columns as of v0.1.6.",
+      "dependency": {
+        "database": "sqlite",
+        "cascadeDelete": false,
+        "note": "SQLite loadable extension; requires SQLite 3.41+ as host. Loaded via '.load vec0' in sqlite3 CLI. Removing sqlite-vec does not remove SQLite (standalone database)."
+      },
+      "latestLts": "0.1",
+      "versions": {
+        "0.1.6": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": null,
+        "client": "sqlite3",
+        "utilities": [],
+        "enhanced": ["litecli"],
+        "note": "Loaded as extension within sqlite3 CLI via '.load vec0'; no separate binary"
+      },
+      "connection": {
+        "runtime": "embedded",
+        "defaultPort": null,
+        "scheme": "sqlite",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "SQL"
+      },
+      "status": "pending"
     },
     "surrealdb": {
       "displayName": "SurrealDB",
