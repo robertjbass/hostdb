@@ -573,7 +573,7 @@ async function repackage(
     }
 
     // 4. Add metadata file
-    const metadata = {
+    const metadata: Record<string, unknown> = {
       name: 'ferretdb',
       version,
       platform,
@@ -586,6 +586,20 @@ async function repackage(
       rehosted_by: 'hostdb',
       rehosted_at: new Date().toISOString(),
     }
+
+    if (platform === 'win32-x64') {
+      metadata.warnings = [
+        'FerretDB v2 requires PostgreSQL with the DocumentDB extension, which is not available on Windows. The postgresql-documentdb Windows package only includes plain PostgreSQL + pgvector. Use FerretDB v1 (ferretdb-v1) on Windows instead, which works with plain PostgreSQL.',
+      ]
+      logWarn(
+        'FerretDB v2 requires the DocumentDB extension, which is not available on Windows.',
+      )
+      logWarn(
+        'The win32-x64 package will compile but will NOT work without a DocumentDB-enabled PostgreSQL backend.',
+      )
+      logWarn('Use FerretDB v1 (ferretdb-v1) on Windows instead.')
+    }
+
     writeFileSync(
       join(bundleDir, '.hostdb-metadata.json'),
       JSON.stringify(metadata, null, 2),
