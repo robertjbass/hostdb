@@ -147,6 +147,40 @@
         }
       }
     },
+    "influxdb": {
+      "3.8.0": {
+        "version": "3.8.0",
+        "releaseTag": "influxdb-3.8.0",
+        "releasedAt": "2026-02-09T03:31:54Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/influxdb-3.8.0/influxdb-3.8.0-darwin-arm64.tar.gz",
+            "sha256": "c5d0e6bc8cfbd4f71d7ced053e7449b818578bd6b68ef21adc6a16fe5d10d55f",
+            "size": 58768862
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/influxdb-3.8.0/influxdb-3.8.0-darwin-x64.tar.gz",
+            "sha256": "8c8d4143253529eb7aac4aaf4e92a2ea416840d285c7d5e6e6134e112b3ce162",
+            "size": 64047518
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/influxdb-3.8.0/influxdb-3.8.0-linux-arm64.tar.gz",
+            "sha256": "a91ee3030ce5f3afe00af1fe495b2e8f2f69a9440ae4e704aa3ecbb95284dd1d",
+            "size": 72030503
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/influxdb-3.8.0/influxdb-3.8.0-linux-x64.tar.gz",
+            "sha256": "0855d06bc3bb6522df091ece6873327cb852cb796107a0f9453da3f7a8d3b7ff",
+            "size": 81202742
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/influxdb-3.8.0/influxdb-3.8.0-win32-x64.zip",
+            "sha256": "c3c8d51ea8fced3e24f25eec263a125363385a4dcb92519481f1a5b6bbb06c6a",
+            "size": 70251913
+          }
+        }
+      }
+    },
     "mariadb": {
       "11.8.5": {
         "version": "11.8.5",
