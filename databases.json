@@ -389,6 +389,48 @@
       },
       "status": "completed"
     },
+    "ferretdb-v1": {
+      "displayName": "FerretDB (v1)",
+      "description": "Open-source MongoDB alternative using plain PostgreSQL as the backend, wire-protocol compatible (v1.x line)",
+      "type": "Document",
+      "sourceRepo": "https://github.com/FerretDB/FerretDB",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "hostedServiceAllowed": true,
+      "protocol": "mongodb",
+      "note": "FerretDB v1.x uses plain PostgreSQL (no DocumentDB extension). Lighter weight than v2 but fewer MongoDB features. Linux binaries from official releases; macOS/Windows cross-compiled from source with Go.",
+      "dependency": {
+        "database": "postgresql",
+        "cascadeDelete": false,
+        "note": "FerretDB v1 uses plain PostgreSQL as its backend; PostgreSQL remains installed as a standalone database when FerretDB is removed"
+      },
+      "latestLts": "1.24",
+      "versions": {
+        "1.24.2": true
+      },
+      "platforms": {
+        "linux-x64": true,
+        "linux-arm64": true,
+        "darwin-x64": true,
+        "darwin-arm64": true,
+        "win32-x64": true
+      },
+      "cliTools": {
+        "server": "ferretdb",
+        "client": "mongosh",
+        "utilities": ["mongodump", "mongorestore"],
+        "enhanced": []
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 27017,
+        "scheme": "mongodb",
+        "defaultDatabase": "test",
+        "defaultUser": null,
+        "queryLanguage": "MQL"
+      },
+      "status": "in-progress"
+    },
     "firebird": {
       "displayName": "Firebird",
       "description": "Relational database with embedded and client/server modes, full SQL support with stored procedures and triggers",

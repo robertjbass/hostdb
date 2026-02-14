@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.22.0] - 2026-02-13
+
+### Added
+
+- **FerretDB v1 support** (new database engine variant)
+  - FerretDB v1.x line using plain PostgreSQL as backend (no DocumentDB extension)
+  - Separate `ferretdb-v1` database ID since v1.x and v2.x have different backend dependencies
+  - v1 depends on `postgresql` (no cascade delete); v2 depends on `postgresql-documentdb` (cascade delete)
+  - Lighter weight than v2 but fewer MongoDB features
+  - Same binary strategy as v2: Linux from official releases, macOS/Windows cross-compiled with Go
+  - Bundles mongosh and MongoDB database-tools for complete MongoDB-compatible experience
+  - Version 1.24.2 (latest v1.x release)
+  - All 5 platforms: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+  - License: Apache-2.0
+
 ## [0.21.2] - 2026-02-08
 
 ### Added
