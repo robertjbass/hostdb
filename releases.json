@@ -147,6 +147,40 @@
         }
       }
     },
+    "ferretdb-v1": {
+      "1.24.2": {
+        "version": "1.24.2",
+        "releaseTag": "ferretdb-v1-1.24.2",
+        "releasedAt": "2026-02-14T09:39:04Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/ferretdb-v1-1.24.2/ferretdb-v1-1.24.2-darwin-arm64.tar.gz",
+            "sha256": "f9ad9f835e89beded3e5190f4e9cd4dc480b2cfb5de8eb30ff823efb395385b9",
+            "size": 166673908
+          },
+          "darwin-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/ferretdb-v1-1.24.2/ferretdb-v1-1.24.2-darwin-x64.tar.gz",
+            "sha256": "675ab30ed20aef3ae554a8de7f5332936d2b055aec0f37aa8f54c314191cb81c",
+            "size": 178016566
+          },
+          "linux-arm64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/ferretdb-v1-1.24.2/ferretdb-v1-1.24.2-linux-arm64.tar.gz",
+            "sha256": "8c305584deb421940dc7b2584d63e054b59ef340ba3cb713576d1461c5c6fa8f",
+            "size": 171773930
+          },
+          "linux-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/ferretdb-v1-1.24.2/ferretdb-v1-1.24.2-linux-x64.tar.gz",
+            "sha256": "c4d691bc459f7b6133446ddc8b411e4ba6db724afb415115587a7bcc6b15c639",
+            "size": 180528902
+          },
+          "win32-x64": {
+            "url": "https://github.com/robertjbass/hostdb/releases/download/ferretdb-v1-1.24.2/ferretdb-v1-1.24.2-win32-x64.zip",
+            "sha256": "309c6ea19aab03c8362c388d12e3ff7b3b7376b9cbd032b8095cd32e9ed4f9f0",
+            "size": 147877432
+          }
+        }
+      }
+    },
     "influxdb": {
       "3.8.0": {
         "version": "3.8.0",
