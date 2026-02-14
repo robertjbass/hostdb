@@ -141,6 +141,9 @@ Auto-generated manifest updated after each GitHub Release. Structure:
 | Meilisearch | Search | In Progress | 1.33.1 | Official binaries |
 | InfluxDB | Time-series | In Progress | 3.8.0 | Official + source build (darwin-x64) |
 | TypeDB | Graph | In Progress | 3.8.0 | Official binaries (Cloudsmith) |
+| FerretDB | Document | Completed | 2.7.0 | MongoDB alternative (PostgreSQL+DocumentDB backend) |
+| FerretDB (v1) | Document | In Progress | 1.24.2 | MongoDB alternative (plain PostgreSQL backend) |
+| PostgreSQL+DocumentDB | Document | Completed | 17-0.107.0 | PostgreSQL with DocumentDB extension for FerretDB |
 
 See `pnpm dbs` for the full list.
 
@@ -164,6 +167,7 @@ Some databases depend on other database engines for client tools or as backends:
 | Database | Depends On | Cascade Delete | Notes |
 |----------|------------|----------------|-------|
 | FerretDB | postgresql-documentdb | Yes | postgresql-documentdb is removed when FerretDB is removed (no standalone use) |
+| FerretDB (v1) | postgresql | No | Uses plain PostgreSQL as backend; PostgreSQL remains as standalone |
 | QuestDB | postgresql | No | PostgreSQL client tools (psql) used for wire protocol; PostgreSQL remains as standalone |
 
 **Cascade Delete** indicates whether removing a database also removes its dependency:
