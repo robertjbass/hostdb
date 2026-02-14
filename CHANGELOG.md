@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.22.1] - 2026-02-14
+
+### Fixed
+
+- **FerretDB v1 binary panic on startup** — Cross-compiled binaries were missing `build/version/version.txt`, which FerretDB embeds via `//go:embed` at compile time. Without it, the `init()` function panics with "Invalid build/version/version.txt file content". Now generates the file with the correct version string before `go build`.
+
 ## [0.22.0] - 2026-02-13
 
 ### Added
