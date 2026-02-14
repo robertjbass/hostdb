@@ -200,6 +200,8 @@ jobs:
             - `darwin-arm64` - macOS Apple Silicon
             - `win32-x64` - Windows x64
 
+            > **Windows note:** FerretDB v2 requires PostgreSQL with the DocumentDB extension, which is not available on Windows. The Windows binary compiles and runs but cannot function without a DocumentDB-enabled backend. Use [FerretDB v1](https://github.com/robertjbass/hostdb/releases?q=ferretdb-v1) on Windows instead, which works with plain PostgreSQL.
+
             ### Usage
             ```bash
             # Download URL pattern
