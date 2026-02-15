@@ -377,6 +377,15 @@ function crossCompileFerretDB(
     )
   }
 
+  // FerretDB v1.x requires build/version/version.txt (embedded via go:embed).
+  // Without it, the binary panics on startup with "Invalid build/version/version.txt file content".
+  const versionTxtPath = join(repoDir, 'build', 'version', 'version.txt')
+  if (!existsSync(versionTxtPath)) {
+    mkdirSync(dirname(versionTxtPath), { recursive: true })
+    writeFileSync(versionTxtPath, `v${version}`)
+    logInfo(`Generated build/version/version.txt with v${version}`)
+  }
+
   // Build
   logInfo(`Cross-compiling for ${platform} (GOOS=${GOOS}, GOARCH=${GOARCH})...`)
 
@@ -707,7 +716,7 @@ Sources:
 Examples:
   ./builds/ferretdb/download.ts
   ./builds/ferretdb/download.ts --version 2.7.0 --platform linux-x64
-  ./builds/ferretdb/download.ts --all-platforms
+  ./builds/ferretdb/download.ts --version 1.24.2 --all-platforms
 `)
         process.exit(0)
         break

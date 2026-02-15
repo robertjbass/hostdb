@@ -25,6 +25,30 @@
         "sourceType": "build-required",
         "note": "Cross-compile with Go: GOOS=windows GOARCH=amd64"
       }
+    },
+    "1.24.2": {
+      "linux-x64": {
+        "url": "https://github.com/FerretDB/FerretDB/releases/download/v1.24.2/ferretdb-linux-amd64",
+        "format": "binary",
+        "sha256": "db71b19493bcbe3bba577e24151a63f61318239de55885a47e6fe8756d3fa544"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/FerretDB/FerretDB/releases/download/v1.24.2/ferretdb-linux-arm64",
+        "format": "binary",
+        "sha256": "09177f93a653f3e8236af0c1a5acb3a7d4bdf803b861968ed3e7eab51af985fa"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required",
+        "note": "Cross-compile with Go: GOOS=darwin GOARCH=amd64"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required",
+        "note": "Cross-compile with Go: GOOS=darwin GOARCH=arm64"
+      },
+      "win32-x64": {
+        "sourceType": "build-required",
+        "note": "Cross-compile with Go: GOOS=windows GOARCH=amd64"
+      }
     }
   },
   "components": {
@@ -105,7 +129,9 @@
   "notes": {
     "license": "Apache-2.0 - Fully permissive for commercial use",
     "binary-format": "Linux releases are raw executables, not archives",
+    "binary-naming": "v1.x uses ferretdb-linux-amd64 naming; v2.x uses ferretdb-amd64-linux",
     "cross-compile": "macOS and Windows are cross-compiled from source using Go",
+    "backend": "v1.x uses plain PostgreSQL; v2.x requires PostgreSQL-DocumentDB",
     "bundling": "Releases bundle FerretDB server, mongosh, and database-tools for complete MongoDB-compatible installations"
   }
 }

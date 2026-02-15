@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [0.23.1] - 2026-02-15
 
+### Changed
+
+- **Consolidated FerretDB v1 into the ferretdb engine** — Removed the separate `ferretdb-v1` engine, workflow, and build directory. Both v1.x and v2.x are now managed under `ferretdb` with a single workflow, sources.json, and download script. The download script handles version-specific differences automatically (binary naming, v1's `version.txt` requirement).
+
 ### Fixed
 
-- **Workflow validation rejects object-form versions** — The `validate` job in all release workflows only accepted `true` for version entries, rejecting versions with per-version config (platforms, dependencies, releasePrefix). Now treats both `true` and config objects (without explicit `"enabled": false`) as enabled.
+- **Workflow validation rejects object-form versions** — The `validate` job in all release workflows only accepted `true` for version entries, rejecting versions with per-version config (platforms, dependencies). Now treats both `true` and config objects (without explicit `"enabled": false`) as enabled.
 
 ### Added
 
