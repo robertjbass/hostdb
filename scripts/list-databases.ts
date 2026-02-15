@@ -35,19 +35,20 @@ type CliTools = {
   note?: string
 }
 
+type VersionEntry = boolean | { enabled?: boolean; [key: string]: unknown }
+
 type Database = {
   displayName: string
   description: string
   type: string
   sourceRepo: string
   license: string
-  status: 'completed' | 'in-progress' | 'pending' | 'unsupported'
+  spindbStatus: 'completed' | 'in-progress'
   commercialUse: boolean
   protocol: string | null
   note: string
-  latestLts: string
-  versions: Record<string, boolean>
-  platforms: Record<string, boolean>
+  versions: Record<string, VersionEntry>
+  platforms: string[]
   cliTools: CliTools
 }
 
@@ -121,12 +122,17 @@ function getCliTools(downloads: DownloadsJson): Record<string, DownloadItem> {
   return tools
 }
 
-function getEnabledVersionCount(versions: Record<string, boolean>): number {
-  return Object.values(versions).filter(Boolean).length
+function isVersionEnabled(entry: VersionEntry): boolean {
+  if (typeof entry === 'boolean') return entry
+  return entry.enabled !== false
 }
 
-function getEnabledPlatformCount(platforms: Record<string, boolean>): number {
-  return Object.values(platforms).filter(Boolean).length
+function getEnabledVersionCount(versions: Record<string, VersionEntry>): number {
+  return Object.values(versions).filter(isVersionEnabled).length
+}
+
+function getEnabledPlatformCount(platforms: string[]): number {
+  return platforms.length
 }
 
 function getReleasedVersionCount(
@@ -153,9 +159,6 @@ async function main() {
   const cliToolsData = getCliTools(downloadsData)
   const releases = await loadReleases()
 
-  const showAll = process.argv.includes('--all')
-  const showPending = process.argv.includes('--pending')
-  const showUnsupported = process.argv.includes('--unsupported')
   const showTools = process.argv.includes('--tools')
   const showHelp =
     process.argv.includes('--help') || process.argv.includes('-h')
@@ -165,33 +168,23 @@ async function main() {
 ${chalk.bold('Usage:')} pnpm dbs [options]
 
 ${chalk.bold('Options:')}
-  ${chalk.yellow('--all')}          Show all databases
-  ${chalk.yellow('--pending')}      Show only pending databases
-  ${chalk.yellow('--unsupported')}  Show only unsupported databases
   ${chalk.yellow('--tools')}        Show CLI tools summary
   ${chalk.yellow('--help, -h')}     Show this help message
 
 ${chalk.bold('Status:')}
   ${chalk.blue('completed')}    - Fully built and released
   ${chalk.green('in-progress')}  - Actively being built
-  ${chalk.yellow('pending')}      - Planned, not yet started
-  ${chalk.gray('unsupported')}  - Not planned for support
 
 ${chalk.bold('Released column:')}
   Shows versions released on GitHub vs versions configured in databases.json
   ${chalk.green('3/3')} = all versions released, ${chalk.yellow('2/3')} = partial, ${chalk.red('0/3')} = none
+
+${chalk.dim('See PROSPECTS.md for planned and unsupported databases.')}
 `)
     return
   }
 
   const entries = Object.entries(databases)
-    .filter(([, db]) => {
-      if (showAll) return true
-      if (showPending) return db.status === 'pending'
-      if (showUnsupported) return db.status === 'unsupported'
-      // Default: show completed and in-progress
-      return db.status === 'completed' || db.status === 'in-progress'
-    })
     .map(([key, db]) => ({
       key,
       ...db,
@@ -224,13 +217,9 @@ ${chalk.bold('Released column:')}
 
   for (const entry of entries) {
     const statusCell =
-      entry.status === 'completed'
+      entry.spindbStatus === 'completed'
         ? chalk.blue('completed')
-        : entry.status === 'in-progress'
-          ? chalk.green('in-progress')
-          : entry.status === 'pending'
-            ? chalk.yellow('pending')
-            : chalk.gray('unsupported')
+        : chalk.green('in-progress')
 
     const enabledVersions = getEnabledVersionCount(entry.versions)
     const releasedVersions = getReleasedVersionCount(entry.key, releases)
@@ -444,34 +433,6 @@ ${chalk.bold('Released column:')}
     `  ${chalk.bold('CLI Tools:')}     ${chalk.green(totalTools)} unique`,
   )
   console.log()
-
-  // Show status counts if not showing all
-  if (!showAll) {
-    const statusCounts: Record<string, number> = {
-      completed: 0,
-      'in-progress': 0,
-      pending: 0,
-      unsupported: 0,
-    }
-    for (const db of Object.values(databases)) {
-      statusCounts[db.status]++
-    }
-
-    const hiddenInfo: string[] = []
-    if (!showPending && statusCounts.pending > 0) {
-      hiddenInfo.push(`${statusCounts.pending} pending`)
-    }
-    if (!showUnsupported && statusCounts.unsupported > 0) {
-      hiddenInfo.push(`${statusCounts.unsupported} unsupported`)
-    }
-
-    if (hiddenInfo.length > 0) {
-      console.log(
-        chalk.gray(`  (${hiddenInfo.join(', ')} hidden, use --all to show)`),
-      )
-      console.log()
-    }
-  }
 
   if (!showTools) {
     console.log(chalk.gray('  Use --tools to see CLI tools summary'))

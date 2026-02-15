@@ -3,6 +3,7 @@
  * Pre-commit preparation script
  *
  * Runs all checks and updates required before committing:
+ * - Generate databases.json from databases.yml
  * - Type checking (tsc --noEmit)
  * - Linting (eslint)
  * - Sync workflow version dropdowns
@@ -19,7 +20,10 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
+  generateDatabasesJson,
   getEnabledVersions,
+  isVersionEnabled,
+  getVersionPlatforms,
   type Platform,
   type DatabasesJson,
   type ReleasesJson,
@@ -103,6 +107,7 @@ type Discrepancy = {
   message: string
 }
 
+
 function findDiscrepancies(): Discrepancy[] {
   const discrepancies: Discrepancy[] = []
 
@@ -122,7 +127,7 @@ function findDiscrepancies(): Discrepancy[] {
   const activeDatabases = Object.entries(databases.databases)
     .filter(
       ([_, entry]) =>
-        entry.status === 'in-progress' || entry.status === 'completed',
+        entry.spindbStatus === 'in-progress' || entry.spindbStatus === 'completed',
     )
     .map(([id]) => id)
 
@@ -130,11 +135,8 @@ function findDiscrepancies(): Discrepancy[] {
   for (const dbId of activeDatabases) {
     const dbEntry = databases.databases[dbId]
     const enabledVersions = Object.entries(dbEntry.versions)
-      .filter(([_, enabled]) => enabled === true)
+      .filter(([_, entry]) => isVersionEnabled(entry))
       .map(([version]) => version)
-    const enabledPlatforms = Object.entries(dbEntry.platforms ?? {})
-      .filter(([_, enabled]) => enabled === true)
-      .map(([platform]) => platform) as Platform[]
 
     if (!releases.databases[dbId]) {
       if (enabledVersions.length > 0) {
@@ -158,6 +160,9 @@ function findDiscrepancies(): Discrepancy[] {
         })
         continue
       }
+
+      // Get effective platforms for this version
+      const enabledPlatforms = getVersionPlatforms(dbEntry, version)
 
       // Check for platforms enabled but not released
       const releasedPlatforms = Object.keys(
@@ -201,9 +206,12 @@ function findDiscrepancies(): Discrepancy[] {
         continue
       }
 
+      // Get effective platforms for orphan check
+      const enabledPlatforms = getVersionPlatforms(dbEntry, version)
+
       // Check for orphaned platforms
       for (const platform of Object.keys(release.platforms)) {
-        if (!dbEntry.platforms?.[platform]) {
+        if (!enabledPlatforms.includes(platform as Platform)) {
           discrepancies.push({
             type: 'orphaned-platform',
             database: dbId,
@@ -286,12 +294,13 @@ ${colors.yellow}Usage:${colors.reset}
   pnpm prep --check      # Check only, don't modify files (for CI)
 
 ${colors.yellow}Checks:${colors.reset}
-  1. Type checking (tsc --noEmit)
-  2. Linting (eslint)
-  3. Workflow version sync (sync:versions --check)
-  4. Missing checksums detection
-  5. Reconcile releases.json with GitHub releases
-  6. Check for discrepancies between databases.json and releases.json
+  1. Generate databases.json from databases.yml
+  2. Type checking (tsc --noEmit)
+  3. Linting (eslint)
+  4. Workflow version sync (sync:versions --check)
+  5. Missing checksums detection
+  6. Build releases.json from GitHub releases
+  7. Check for discrepancies between databases.json and releases.json
 `)
     process.exit(0)
   }
@@ -302,23 +311,37 @@ ${colors.yellow}Checks:${colors.reset}
 
   let allPassed = true
 
-  // 1. Type checking
+  // 1. Generate databases.json from databases.yml
+  logStep('Generating databases.json from databases.yml')
+  const jsonChanged = generateDatabasesJson({ checkOnly })
+  if (checkOnly && jsonChanged) {
+    logError(
+      'databases.json is out of date with databases.yml. Run: pnpm prep',
+    )
+    allPassed = false
+  } else if (jsonChanged) {
+    logSuccess('Generated databases.json from databases.yml')
+  } else {
+    logSuccess('databases.json is up to date')
+  }
+
+  // 2. Type checking
   if (!runCommand('pnpm tsc --noEmit', 'Type checking')) {
     allPassed = false
   }
 
-  // 2. Linting (with optional fix)
+  // 3. Linting (with optional fix)
   const lintCmd = fix ? 'pnpm eslint . --fix' : 'pnpm eslint .'
   if (!runCommand(lintCmd, fix ? 'Linting (with fixes)' : 'Linting')) {
     allPassed = false
   }
 
-  // 3. Format (if --fix)
+  // 4. Format (if --fix)
   if (fix) {
     runCommand('pnpm prettier --write .', 'Formatting', { allowFailure: true })
   }
 
-  // 4. Sync workflow versions
+  // 5. Sync workflow versions
   const syncCmd = checkOnly
     ? 'pnpm sync:versions --check'
     : 'pnpm sync:versions'
@@ -326,7 +349,7 @@ ${colors.yellow}Checks:${colors.reset}
     allPassed = false
   }
 
-  // 5. Check for missing checksums
+  // 6. Check for missing checksums
   logStep('Checking for missing checksums')
   const missing = findMissingChecksums()
 
@@ -362,25 +385,25 @@ ${colors.yellow}Checks:${colors.reset}
     logSuccess('All checksums populated')
   }
 
-  // 6. Reconcile releases.json with GitHub releases
-  const reconcileCmd = checkOnly
-    ? 'pnpm tsx scripts/reconcile-releases.ts --dry-run'
-    : 'pnpm tsx scripts/reconcile-releases.ts'
-  if (!runCommand(reconcileCmd, 'Reconcile releases.json')) {
+  // 7. Rebuild releases.json from GitHub releases
+  const buildReleasesCmd = checkOnly
+    ? 'pnpm tsx scripts/build-releases-json.ts --check'
+    : 'pnpm tsx scripts/build-releases-json.ts'
+  if (!runCommand(buildReleasesCmd, 'Build releases.json')) {
     allPassed = false
   }
 
-  // 7. Check for discrepancies between databases.json and releases.json
+  // 8. Check for discrepancies between databases.json and releases.json
   logStep('Checking for discrepancies')
   const discrepancies = findDiscrepancies()
 
   if (discrepancies.length > 0) {
-    const missing = discrepancies.filter((d) => d.type.startsWith('missing-'))
+    const missingD = discrepancies.filter((d) => d.type.startsWith('missing-'))
     const orphaned = discrepancies.filter((d) => d.type.startsWith('orphaned-'))
 
-    if (missing.length > 0) {
-      logWarning(`Found ${missing.length} missing release(s):`)
-      for (const d of missing) {
+    if (missingD.length > 0) {
+      logWarning(`Found ${missingD.length} missing release(s):`)
+      for (const d of missingD) {
         log(`  ${colors.dim}- ${d.message}${colors.reset}`)
       }
     }
@@ -394,7 +417,7 @@ ${colors.yellow}Checks:${colors.reset}
 
     log('')
     log(`${colors.yellow}To resolve:${colors.reset}`)
-    if (missing.length > 0) {
+    if (missingD.length > 0) {
       log(`  - Run GitHub Actions to create missing releases`)
       log(`  - Or disable the version/platform in databases.json`)
     }

@@ -1,0 +1,672 @@
+# DO NOT EDIT databases.json directly. Edit this file and run: pnpm prep
+# Keys are snake_case here; prep.ts converts to camelCase for databases.json
+
+databases:
+  clickhouse:
+    display_name: ClickHouse
+    description: Column-oriented database for real-time analytics and big data processing.
+    type: Analytical
+    source_repo: https://github.com/ClickHouse/ClickHouse
+    license: Apache-2.0
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: Windows binaries unavailable. Require WSL.
+    versions:
+      25.12.3.21: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+    cli_tools:
+      server: clickhouse-server
+      client: clickhouse-client
+      utilities:
+        - clickhouse-local
+        - clickhouse-benchmark
+      enhanced: []
+    connection:
+      runtime: server
+      default_port: 9000
+      scheme: clickhouse
+      default_database: default
+      default_user: default
+      query_language: SQL
+    spindb_status: completed
+  cockroachdb:
+    display_name: CockroachDB
+    description: Distributed SQL database with PostgreSQL compatibility, designed for high availability and horizontal scale
+    type: Distributed SQL
+    source_repo: https://github.com/cockroachdb/cockroach
+    license: CSL (v24.3+), BSL (older)
+    commercial_use: true
+    hosted_service_allowed: false
+    protocol: postgresql
+    note: CockroachDB Software License restricts competing cloud services; fine for local dev
+    versions:
+      25.4.2: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: cockroach
+      client: cockroach
+      utilities: []
+      enhanced:
+        - pgcli
+        - usql
+      note: Single binary; use 'cockroach start-single-node' for server, 'cockroach sql' for client
+    connection:
+      runtime: server
+      default_port: 26257
+      scheme: postgresql
+      default_database: defaultdb
+      default_user: root
+      query_language: SQL
+    spindb_status: completed
+  couchdb:
+    display_name: CouchDB
+    description: Document-oriented NoSQL database with HTTP API, multi-version concurrency, and offline-first sync
+    type: Document
+    source_repo: https://github.com/apache/couchdb
+    license: Apache-2.0
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: ''
+    versions:
+      3.5.1: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: couchdb
+      client: null
+      utilities: []
+      enhanced: []
+      note: HTTP API only; use curl or Fauxton web UI
+    connection:
+      runtime: server
+      default_port: 5984
+      scheme: http
+      default_database: null
+      default_user: admin
+      query_language: HTTP
+    spindb_status: completed
+  duckdb:
+    display_name: DuckDB
+    description: Fast in-process analytical database with rich SQL support, optimized for OLAP workloads
+    type: Analytical
+    source_repo: https://github.com/duckdb/duckdb
+    license: MIT
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: ''
+    versions:
+      1.4.3: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: null
+      client: duckdb
+      utilities: []
+      enhanced:
+        - usql
+    connection:
+      runtime: embedded
+      default_port: null
+      scheme: duckdb
+      default_database: null
+      default_user: null
+      query_language: SQL
+    spindb_status: completed
+  ferretdb:
+    display_name: FerretDB
+    description: Open-source MongoDB alternative using PostgreSQL as the backend, wire-protocol compatible
+    type: Document
+    source_repo: https://github.com/FerretDB/FerretDB
+    license: Apache-2.0
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: mongodb
+    note: FerretDB v2 requires PostgreSQL-DocumentDB; v1 uses plain PostgreSQL
+    versions:
+      '2.7.0':
+        platforms:
+          - linux-x64
+          - linux-arm64
+          - darwin-x64
+          - darwin-arm64
+        dependencies:
+          - database: postgresql-documentdb
+            cascade_delete: true
+            note: FerretDB v2 uses postgresql-documentdb as its backend; removing FerretDB also removes postgresql-documentdb
+      '1.24.2':
+        dependencies:
+          - database: postgresql
+            cascade_delete: false
+            note: FerretDB v1 uses plain PostgreSQL; PostgreSQL remains installed when FerretDB is removed
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: ferretdb
+      client: mongosh
+      utilities:
+        - mongodump
+        - mongorestore
+      enhanced: []
+    connection:
+      runtime: server
+      default_port: 27017
+      scheme: mongodb
+      default_database: test
+      default_user: null
+      query_language: MQL
+    spindb_status: completed
+  influxdb:
+    display_name: InfluxDB
+    description: Purpose-built time-series database with SQL support, rewritten in Rust for InfluxDB 3.0
+    type: Time-series
+    source_repo: https://github.com/influxdata/influxdb
+    license: Apache-2.0 AND MIT
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: v3.0 is a Rust rewrite using Apache Arrow/DataFusion. Single binary with bundled Python runtime for plugin system. Most popular time-series database by adoption.
+    versions:
+      3.8.0: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: influxdb3
+      client: null
+      utilities: []
+      enhanced: []
+      note: HTTP API; use official SDKs or SQL via CLI
+    connection:
+      runtime: server
+      default_port: 8086
+      scheme: http
+      default_database: null
+      default_user: null
+      query_language: SQL
+    spindb_status: completed
+  mariadb:
+    display_name: MariaDB
+    description: Community-developed fork of MySQL with enhanced performance, storage engines, and features
+    type: Relational
+    source_repo: https://github.com/MariaDB/server
+    license: GPL-2.0
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: ''
+    versions:
+      11.8.5: true
+      11.4.5: true
+      10.11.15: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: mariadbd
+      client: mariadb
+      utilities:
+        - mariadb-dump
+        - mariadb-import
+        - mariadb-admin
+      enhanced:
+        - mycli
+        - usql
+    connection:
+      runtime: server
+      default_port: 3306
+      scheme: mysql
+      default_database: mysql
+      default_user: root
+      query_language: SQL
+    spindb_status: completed
+  meilisearch:
+    display_name: Meilisearch
+    description: Lightning-fast, typo-tolerant search engine with instant results
+    type: Search
+    source_repo: https://github.com/meilisearch/meilisearch
+    license: MIT
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: ''
+    versions:
+      1.33.1: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: meilisearch
+      client: null
+      utilities: []
+      enhanced: []
+      note: HTTP API only; use curl or official SDKs
+    connection:
+      runtime: server
+      default_port: 7700
+      scheme: http
+      default_database: null
+      default_user: null
+      query_language: HTTP
+    spindb_status: completed
+  mongodb:
+    display_name: MongoDB
+    description: Document-oriented NoSQL database for flexible, JSON-like data storage
+    type: Document
+    source_repo: https://github.com/mongodb/mongo
+    license: SSPL-1.0
+    commercial_use: true
+    hosted_service_allowed: false
+    protocol: null
+    note: SSPL restricts offering MongoDB as a competing managed database service (i.e., MongoDB Atlas competitors). Commercial use in applications, local dev, and internal use is fine. FerretDB available as fully open-source alternative.
+    versions:
+      8.2.3: true
+      8.0.17: true
+      7.0.28: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: mongod
+      client: mongosh
+      utilities:
+        - mongodump
+        - mongorestore
+        - mongoexport
+        - mongoimport
+      enhanced: []
+    connection:
+      runtime: server
+      default_port: 27017
+      scheme: mongodb
+      default_database: test
+      default_user: null
+      query_language: MQL
+    spindb_status: completed
+  mysql:
+    display_name: MySQL
+    description: The world's most popular open-source relational database, owned by Oracle
+    type: Relational
+    source_repo: https://github.com/mysql/mysql-server
+    license: GPL-2.0
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: ''
+    versions:
+      9.5.0: true
+      9.1.0: true
+      8.4.3: true
+      8.0.40: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: mysqld
+      client: mysql
+      utilities:
+        - mysqldump
+        - mysqlpump
+        - mysqladmin
+      enhanced:
+        - mycli
+        - usql
+    connection:
+      runtime: server
+      default_port: 3306
+      scheme: mysql
+      default_database: mysql
+      default_user: root
+      query_language: SQL
+    spindb_status: completed
+  postgresql:
+    display_name: PostgreSQL
+    description: Advanced open-source relational database with strong standards compliance and extensibility
+    type: Relational
+    source_repo: https://github.com/postgres/postgres
+    license: PostgreSQL
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: ''
+    versions:
+      18.1.0: true
+      17.7.0: true
+      16.11.0: true
+      15.15.0: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: postgres
+      client: psql
+      utilities:
+        - pg_dump
+        - pg_restore
+        - pg_basebackup
+        - createdb
+        - dropdb
+      enhanced:
+        - pgcli
+        - usql
+    connection:
+      runtime: server
+      default_port: 5432
+      scheme: postgresql
+      default_database: postgres
+      default_user: postgres
+      query_language: SQL
+    spindb_status: completed
+  postgresql-documentdb:
+    display_name: PostgreSQL + DocumentDB
+    description: PostgreSQL with DocumentDB extension for FerretDB backend
+    type: Document
+    source_repo: https://github.com/FerretDB/documentdb
+    license: Apache-2.0
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: postgresql
+    note: Backend for FerretDB v2 only; includes pg_cron, pgvector, PostGIS, rum extensions. Not available on Windows.
+    versions:
+      17-0.107.0: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+    cli_tools:
+      server: postgres
+      client: psql
+      utilities:
+        - pg_dump
+        - pg_restore
+        - initdb
+        - pg_ctl
+      enhanced:
+        - pgcli
+    connection:
+      runtime: server
+      default_port: 5432
+      scheme: postgresql
+      default_database: postgres
+      default_user: postgres
+      query_language: SQL
+    spindb_status: completed
+  qdrant:
+    display_name: Qdrant
+    description: High-performance vector database for AI applications, semantic search, and similarity matching
+    type: Vector
+    source_repo: https://github.com/qdrant/qdrant
+    license: Apache-2.0
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: ''
+    versions:
+      1.16.3: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: qdrant
+      client: null
+      utilities: []
+      enhanced: []
+      note: REST/gRPC API only; use curl or official SDKs
+    connection:
+      runtime: server
+      default_port: 6333
+      scheme: http
+      default_database: null
+      default_user: null
+      query_language: HTTP
+    spindb_status: completed
+  questdb:
+    display_name: QuestDB
+    description: High-performance time-series database with SQL support and fast ingestion
+    type: Time-series
+    source_repo: https://github.com/questdb/questdb
+    license: Apache-2.0
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: ''
+    dependencies:
+      - database: postgresql
+        cascade_delete: false
+        note: QuestDB uses PostgreSQL client tools (psql, pgcli) for its wire protocol; PostgreSQL remains installed as a standalone database when QuestDB is removed
+    versions:
+      9.2.3: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: questdb
+      client: psql
+      utilities: []
+      enhanced:
+        - pgcli
+        - usql
+      note: PostgreSQL wire protocol; use psql or pgcli
+    connection:
+      runtime: server
+      default_port: 8812
+      scheme: postgresql
+      default_database: qdb
+      default_user: admin
+      query_language: SQL
+    spindb_status: completed
+  redis:
+    display_name: Redis
+    description: In-memory data store used as database, cache, and message broker
+    type: Key-Value
+    source_repo: https://github.com/redis/redis
+    license: RSALv2/SSPLv1 (7.4+), AGPL-3.0 (8.0+)
+    commercial_use: true
+    hosted_service_allowed: false
+    protocol: null
+    note: RSALv2 restricts building competing products to Redis itself. AGPL-3.0 (8.0+) requires source disclosure if you modify Redis and offer it as a network service. Commercial use in applications, local dev, and internal use is fine. Valkey available as BSD-licensed drop-in alternative.
+    versions:
+      8.4.0: true
+      7.4.7: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: redis-server
+      client: redis-cli
+      utilities:
+        - redis-benchmark
+        - redis-check-aof
+        - redis-check-rdb
+      enhanced:
+        - iredis
+    connection:
+      runtime: server
+      default_port: 6379
+      scheme: redis
+      default_database: '0'
+      default_user: null
+      query_language: Redis
+    spindb_status: completed
+  sqlite:
+    display_name: SQLite
+    description: Self-contained, serverless, zero-configuration SQL database engine
+    type: Embedded SQL
+    source_repo: https://github.com/sqlite/sqlite
+    license: Public Domain
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: ''
+    versions:
+      3.51.2: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: null
+      client: sqlite3
+      utilities: []
+      enhanced:
+        - litecli
+        - usql
+    connection:
+      runtime: embedded
+      default_port: null
+      scheme: sqlite
+      default_database: null
+      default_user: null
+      query_language: SQL
+    spindb_status: completed
+  surrealdb:
+    display_name: SurrealDB
+    description: Multi-model database combining graph, document, key-value, and time-series with SQL-like syntax
+    type: Multi-model
+    source_repo: https://github.com/surrealdb/surrealdb
+    license: BSL-1.1
+    commercial_use: true
+    hosted_service_allowed: false
+    protocol: null
+    note: Rust-based; single binary. License is BSL-1.1 (not Apache-2.0); prohibits competing DBaaS offerings. Converts to Apache-2.0 after 4 years per release. Fine for local dev and internal use.
+    versions:
+      2.3.2: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: surreal
+      client: surreal
+      utilities: []
+      enhanced: []
+      note: Single binary for server and CLI
+    connection:
+      runtime: server
+      default_port: 8000
+      scheme: http
+      default_database: test
+      default_user: root
+      query_language: SQL
+    spindb_status: completed
+  typedb:
+    display_name: TypeDB
+    description: Strongly-typed graph database with TypeQL query language, built for knowledge representation and reasoning
+    type: Graph
+    source_repo: https://github.com/typedb/typedb
+    license: MPL-2.0
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: Rewritten from Java to Rust in v3.0 (Dec 2024). Binaries distributed via Cloudsmith and GitHub Releases.
+    versions:
+      3.8.0: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: typedb
+      client: typedb-console
+      utilities: []
+      enhanced: []
+      note: Single binary for server ('typedb server'); separate console binary for queries
+    connection:
+      runtime: server
+      default_port: 1729
+      scheme: http
+      default_database: null
+      default_user: null
+      query_language: TypeQL
+    spindb_status: completed
+  valkey:
+    display_name: Valkey
+    description: Linux Foundation-backed fork of Redis with BSD license, drop-in Redis replacement
+    type: Key-Value
+    source_repo: https://github.com/valkey-io/valkey
+    license: BSD-3-Clause
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: redis
+    note: ''
+    versions:
+      9.0.1: true
+      8.0.6: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: valkey-server
+      client: valkey-cli
+      utilities:
+        - valkey-benchmark
+      enhanced:
+        - iredis
+    connection:
+      runtime: server
+      default_port: 6379
+      scheme: redis
+      default_database: '0'
+      default_user: null
+      query_language: Redis
+    spindb_status: completed

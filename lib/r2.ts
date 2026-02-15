@@ -8,7 +8,11 @@ import {
   S3Client,
   PutObjectCommand,
   HeadObjectCommand,
+  DeleteObjectCommand,
+  ListObjectsV2Command,
 } from '@aws-sdk/client-s3'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 export type R2Config = {
   accountId: string
@@ -91,4 +95,66 @@ export async function objectExists(options: {
     }
     throw error
   }
+}
+
+export async function deleteFromR2(options: {
+  client: S3Client
+  bucket: string
+  key: string
+}): Promise<void> {
+  const { client, bucket, key } = options
+
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    }),
+  )
+}
+
+export async function listR2Objects(options: {
+  client: S3Client
+  bucket: string
+  prefix: string
+}): Promise<string[]> {
+  const { client, bucket, prefix } = options
+
+  const result = await client.send(
+    new ListObjectsV2Command({
+      Bucket: bucket,
+      Prefix: prefix,
+    }),
+  )
+
+  return (result.Contents ?? [])
+    .map((obj) => obj.Key)
+    .filter((key): key is string => key !== undefined)
+}
+
+export async function publishJsonToR2(options: {
+  client: S3Client
+  bucket: string
+  rootDir: string
+  filename: string
+  cacheControl?: string
+}): Promise<void> {
+  const { client, bucket, rootDir, filename, cacheControl } = options
+  const body = readFileSync(resolve(rootDir, filename))
+
+  await uploadToR2({
+    client,
+    bucket,
+    key: filename,
+    body,
+    contentType: 'application/json',
+    cacheControl: cacheControl ?? 'public, max-age=60',
+  })
+}
+
+export async function publishReleasesJson(options: {
+  client: S3Client
+  bucket: string
+  rootDir: string
+}): Promise<void> {
+  await publishJsonToR2({ ...options, filename: 'releases.json' })
 }

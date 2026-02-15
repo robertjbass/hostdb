@@ -36,7 +36,6 @@ Before starting, research and document:
     "license": "...",
     "commercialUse": true,
     "status": "in-progress",
-    "latestLts": "1.0",
     "versions": { "1.0.0": true },
     "platforms": {
       "linux-x64": true,

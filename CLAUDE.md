@@ -81,7 +81,7 @@ Binaries are hosted on Cloudflare R2 behind `registry.layerbase.host`. GitHub Re
 - `R2_SECRET_ACCESS_KEY` — R2 API token secret key
 - `R2_BUCKET_NAME` — R2 bucket name (e.g., `hostdb-registry`)
 
-**Workflow:** Each `release-*.yml` workflow has an `upload-to-r2` job between `release` and `update-manifest` that mirrors assets from GitHub Releases to R2.
+**Workflow:** Each `release-*.yml` workflow has an `upload-to-r2` job that mirrors assets from GitHub Releases to R2, followed by `update-releases` which rebuilds `releases.json` from all GitHub releases and publishes it to R2.
 
 **Migration:** To migrate existing releases: `pnpm migrate:r2 [--dry-run] [--database mysql] [--concurrency 3]`
 
@@ -89,7 +89,8 @@ Binaries are hosted on Cloudflare R2 behind `registry.layerbase.host`. GitHub Re
 
 ```
 hostdb/
-├── databases.json          # Source of truth for all databases
+├── databases.yml           # Source of truth (edit this, generates databases.json)
+├── databases.json          # Generated from databases.yml by pnpm prep
 ├── releases.json           # Queryable manifest of GitHub Releases (auto-updated)
 ├── downloads.json          # CLI tools, prerequisites, fallback downloads
 ├── schemas/
@@ -111,7 +112,7 @@ hostdb/
 │   ├── fetch-edb-fileids.ts  # pnpm edb:fileids - fetch PostgreSQL Windows file IDs
 │   ├── list-databases.ts     # pnpm dbs
 │   ├── sync-versions.ts      # pnpm sync:versions - sync workflow dropdowns
-│   └── update-releases.ts    # Updates releases.json after GH Release
+│   └── build-releases-json.ts # pnpm build:releases - rebuild releases.json from GitHub
 └── .github/workflows/
     ├── release-mysql.yml
     ├── release-postgresql.yml
@@ -144,18 +145,19 @@ Each database entry includes:
   "type": "Relational",
   "license": "GPL-2.0",
   "commercialUse": true,
-  "status": "in-progress",
-  "latestLts": "8.4",
+  "spindbStatus": "completed",
   "versions": { "8.4.7": true, "8.0.40": true },
-  "platforms": { "linux-x64": true, "darwin-arm64": true, ... }
+  "platforms": ["linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64", "win32-x64"]
 }
 ```
 
-**Status values:**
+**Note:** `databases.yml` uses snake_case keys (`display_name`, `spindb_status`, etc.). The `pnpm prep` script converts them to camelCase for `databases.json`.
+
+**spindbStatus values:**
 - `completed` - Fully built and released
 - `in-progress` - Currently being implemented
-- `pending` - Planned, not yet started
-- `unsupported` - Not planned (licensing, niche, etc.)
+
+See `PROSPECTS.md` for planned and unsupported databases.
 
 ### sources.json (per database)
 
@@ -194,7 +196,7 @@ Each database has a release workflow that **validates against databases.json**:
 4. Matrix builds all platforms in parallel
 5. Downloads official binaries OR builds from source
 6. Creates GitHub Release with artifacts
-7. `update-manifest` job updates `releases.json`
+7. `update-releases` job rebuilds `releases.json` from all GitHub releases and publishes to R2
 
 **Validation flow:**
 ```
@@ -355,9 +357,7 @@ pnpm prep --fix        # Same as above + auto-fix lint/format issues
 pnpm prep --check      # Check only, don't modify files (for CI)
 
 # List databases
-pnpm dbs              # Show in-progress
-pnpm dbs --all        # Show all
-pnpm dbs --pending    # Show pending only
+pnpm dbs              # Show all databases
 
 # Download binaries locally
 pnpm download:mysql -- --version 8.4.7

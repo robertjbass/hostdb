@@ -5,6 +5,13 @@
   "type": "object",
   "required": ["databases"],
   "properties": {
+    "_generated": {
+      "type": "string",
+      "description": "Marker indicating this file is generated from databases.yml"
+    },
+    "$schema": {
+      "type": "string"
+    },
     "databases": {
       "type": "object",
       "description": "Map of database IDs to their configuration",
@@ -22,7 +29,7 @@
         "type",
         "sourceRepo",
         "license",
-        "status",
+        "spindbStatus",
         "commercialUse",
         "hostedServiceAllowed",
         "protocol",
@@ -68,10 +75,10 @@
           "type": "string",
           "description": "License identifier (e.g., MIT, Apache-2.0)"
         },
-        "status": {
+        "spindbStatus": {
           "type": "string",
-          "enum": ["completed", "in-progress", "pending", "unsupported"],
-          "description": "Build status: completed (released on GitHub), in-progress (actively building), pending (planned), unsupported (not planned)"
+          "enum": ["completed", "in-progress"],
+          "description": "SpinDB build status: completed (released on GitHub), in-progress (actively building)"
         },
         "commercialUse": {
           "type": "boolean",
@@ -98,54 +105,140 @@
           "type": "string",
           "description": "Additional notes (e.g., why disabled)"
         },
-        "dependency": {
-          "type": "object",
-          "description": "Runtime dependency on another database engine",
-          "properties": {
-            "database": {
-              "type": "string",
-              "description": "Database ID this engine depends on"
-            },
-            "cascadeDelete": {
-              "type": "boolean",
-              "description": "If true, deleting this engine also removes the dependency (e.g., ferretdb removes postgresql-documentdb). If false, the dependency remains as a standalone engine (e.g., questdb leaves postgresql intact)."
-            },
-            "note": {
-              "type": "string",
-              "description": "Explanation of the dependency relationship"
-            }
-          },
-          "required": ["database", "cascadeDelete"],
-          "additionalProperties": false
-        },
-        "latestLts": {
-          "type": "string",
-          "description": "Latest LTS version series"
+        "dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Dependency" },
+          "description": "Runtime dependencies on other database engines"
         },
         "versions": {
           "type": "object",
-          "description": "Map of version strings to enabled status",
+          "description": "Map of version strings to enabled status (boolean) or version config (object with overrides)",
           "additionalProperties": {
-            "type": "boolean"
+            "$ref": "#/definitions/VersionEntry"
           }
         },
         "platforms": {
-          "type": "object",
-          "description": "Map of platform IDs to supported status",
-          "properties": {
-            "linux-x64": { "type": "boolean" },
-            "linux-arm64": { "type": "boolean" },
-            "darwin-x64": { "type": "boolean" },
-            "darwin-arm64": { "type": "boolean" },
-            "win32-x64": { "type": "boolean" }
-          },
-          "additionalProperties": false
+          "$ref": "#/definitions/PlatformList",
+          "description": "Platforms supported by this engine. Versions inherit this unless they specify their own platforms list."
         },
         "cliTools": {
           "$ref": "#/definitions/CliTools"
         },
         "connection": {
           "$ref": "#/definitions/Connection"
+        }
+      },
+      "additionalProperties": false
+    },
+    "VersionEntry": {
+      "description": "Either a boolean (enabled/disabled) or a VersionConfig object with overrides",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/definitions/VersionConfig"
+        }
+      ]
+    },
+    "VersionConfig": {
+      "type": "object",
+      "description": "Version configuration with optional overrides for engine-level defaults. Object entries are enabled by default (set enabled: false to disable).",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether this version is enabled for building/releasing. Defaults to true for object entries."
+        },
+        "note": {
+          "type": "string",
+          "description": "Version-specific notes"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Dependency" },
+          "description": "Override engine-level dependencies (full replacement)"
+        },
+        "platforms": {
+          "oneOf": [
+            { "$ref": "#/definitions/PlatformList" },
+            { "$ref": "#/definitions/PlatformMap" }
+          ],
+          "description": "Override engine-level platforms. Array form: simple list of supported platforms. Object form: per-platform config where each key is a platform and value is true (inherit defaults) or an object with dependencies/cliTools overrides."
+        },
+        "cliTools": {
+          "$ref": "#/definitions/CliTools",
+          "description": "Override engine-level CLI tools (full replacement)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Dependency": {
+      "type": "object",
+      "description": "Runtime dependency on another database engine",
+      "properties": {
+        "database": {
+          "type": "string",
+          "description": "Database ID this engine depends on"
+        },
+        "cascadeDelete": {
+          "type": "boolean",
+          "description": "If true, deleting this engine also removes the dependency (e.g., ferretdb removes postgresql-documentdb). If false, the dependency remains as a standalone engine (e.g., questdb leaves postgresql intact)."
+        },
+        "note": {
+          "type": "string",
+          "description": "Explanation of the dependency relationship"
+        }
+      },
+      "required": ["database", "cascadeDelete"],
+      "additionalProperties": false
+    },
+    "PlatformList": {
+      "type": "array",
+      "description": "List of supported platform IDs. Presence in the array means supported.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "linux-x64",
+          "linux-arm64",
+          "darwin-x64",
+          "darwin-arm64",
+          "win32-x64"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "PlatformMap": {
+      "type": "object",
+      "description": "Map of platform IDs to their config. Keys are platforms, values are true (supported, inherits defaults) or a PlatformConfig object with overrides.",
+      "propertyNames": {
+        "enum": [
+          "linux-x64",
+          "linux-arm64",
+          "darwin-x64",
+          "darwin-arm64",
+          "win32-x64"
+        ]
+      },
+      "additionalProperties": {
+        "oneOf": [
+          { "const": true },
+          { "$ref": "#/definitions/PlatformConfig" }
+        ]
+      }
+    },
+    "PlatformConfig": {
+      "type": "object",
+      "description": "Per-platform overrides for a version. Each field fully replaces the version-level or engine-level default.",
+      "properties": {
+        "dependencies": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Dependency" },
+          "description": "Override dependencies for this platform"
+        },
+        "cliTools": {
+          "$ref": "#/definitions/CliTools",
+          "description": "Override CLI tools for this platform"
         }
       },
       "additionalProperties": false

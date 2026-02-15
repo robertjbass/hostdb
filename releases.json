@@ -167,40 +167,6 @@
         }
       }
     },
-    "ferretdb-v1": {
-      "1.24.2": {
-        "version": "1.24.2",
-        "releaseTag": "ferretdb-v1-1.24.2",
-        "releasedAt": "2026-02-14T09:39:04Z",
-        "platforms": {
-          "darwin-arm64": {
-            "url": "https://registry.layerbase.host/ferretdb-v1-1.24.2/ferretdb-v1-1.24.2-darwin-arm64.tar.gz",
-            "sha256": "fe193c177a3cce1551ca2e8a6a6aa8396d7c9ad8588e87e472220af9ec9814f5",
-            "size": 166672285
-          },
-          "darwin-x64": {
-            "url": "https://registry.layerbase.host/ferretdb-v1-1.24.2/ferretdb-v1-1.24.2-darwin-x64.tar.gz",
-            "sha256": "b1cf7f93f2a31c7876e7bb9d00e3eb9d8f342bd4d022027b80b965d46c03915e",
-            "size": 178013108
-          },
-          "linux-arm64": {
-            "url": "https://registry.layerbase.host/ferretdb-v1-1.24.2/ferretdb-v1-1.24.2-linux-arm64.tar.gz",
-            "sha256": "c7895d3b9fe68983ab3750a8d1942fe45c2cd1f457f82792cd72e523658ef16b",
-            "size": 171772634
-          },
-          "linux-x64": {
-            "url": "https://registry.layerbase.host/ferretdb-v1-1.24.2/ferretdb-v1-1.24.2-linux-x64.tar.gz",
-            "sha256": "7736c958739e6dc30c116f7c26ada36ba403a8ac61e83ce9df42083d235b3fd9",
-            "size": 180529786
-          },
-          "win32-x64": {
-            "url": "https://registry.layerbase.host/ferretdb-v1-1.24.2/ferretdb-v1-1.24.2-win32-x64.zip",
-            "sha256": "79ffaf9e6835aaf108f9d835c67d75f86fb0a70114f9e6a11d08eeb06071c447",
-            "size": 147877591
-          }
-        }
-      }
-    },
     "influxdb": {
       "3.8.0": {
         "version": "3.8.0",
@@ -636,12 +602,12 @@
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/postgresql-17.7.0/postgresql-17.7.0-darwin-arm64.tar.gz",
             "sha256": "0ecbca90a47638f88599b29c232a826085c86bee06f1de5118d3d939eac73f70",
-            "size": 11178637
+            "size": 28797739
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/postgresql-17.7.0/postgresql-17.7.0-darwin-x64.tar.gz",
             "sha256": "659865a0de855e5472404188ea58ac26237427a547b271319e99e98dc267017b",
-            "size": 10864350
+            "size": 28566989
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/postgresql-17.7.0/postgresql-17.7.0-linux-arm64.tar.gz",
@@ -668,12 +634,12 @@
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/postgresql-16.11.0/postgresql-16.11.0-darwin-arm64.tar.gz",
             "sha256": "14263aa593747300d1b11c766810a3949e2d5f14e79c6bed4ed4224072ebac2e",
-            "size": 28101046
+            "size": 28119952
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/postgresql-16.11.0/postgresql-16.11.0-darwin-x64.tar.gz",
             "sha256": "83ea273c6cc8f40ebd53bfce819d80f8437724344053f4920201a00f70a13ac0",
-            "size": 27299374
+            "size": 27880406
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/postgresql-16.11.0/postgresql-16.11.0-linux-arm64.tar.gz",
@@ -700,12 +666,12 @@
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/postgresql-15.15.0/postgresql-15.15.0-darwin-arm64.tar.gz",
             "sha256": "4f0908b45fa87c22e5926504944b69cb7ed51676f7532d9f6de706c6e490e046",
-            "size": 10131037
+            "size": 27732505
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/postgresql-15.15.0/postgresql-15.15.0-darwin-x64.tar.gz",
             "sha256": "d707692702067fd0ce5fa84a313e5dc391901fb2c908ebf715445fa531481436",
-            "size": 9840766
+            "size": 27444850
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/postgresql-15.15.0/postgresql-15.15.0-linux-arm64.tar.gz",

@@ -50,10 +50,12 @@ function logWarning(message: string) {
   console.log(`${colors.yellow}⚠${colors.reset} ${message}`)
 }
 
+type VersionEntry = boolean | { enabled?: boolean; [key: string]: unknown }
+
 type DatabaseConfig = {
   displayName: string
-  versions: Record<string, boolean>
-  status: string
+  versions: Record<string, VersionEntry>
+  spindbStatus: string
 }
 
 type DatabasesJson = {
@@ -66,9 +68,14 @@ function loadDatabases(): DatabasesJson {
   return JSON.parse(content) as DatabasesJson
 }
 
+function isVersionEnabled(entry: VersionEntry): boolean {
+  if (typeof entry === 'boolean') return entry
+  return entry.enabled !== false
+}
+
 function getEnabledVersions(db: DatabaseConfig): string[] {
   return Object.entries(db.versions)
-    .filter(([, enabled]) => enabled)
+    .filter(([, entry]) => isVersionEnabled(entry))
     .map(([version]) => version)
     .sort((a, b) => {
       // Sort by semantic version, newest first
@@ -206,7 +213,7 @@ ${colors.yellow}What it does:${colors.reset}
   const dbsToProcess = specificDb
     ? [[specificDb, databases.databases[specificDb]] as const]
     : Object.entries(databases.databases).filter(
-        ([, db]) => db.status === 'in-progress' || db.status === 'completed',
+        ([, db]) => db.spindbStatus === 'in-progress' || db.spindbStatus === 'completed',
       )
 
   for (const [dbKey, db] of dbsToProcess) {
@@ -230,7 +237,9 @@ ${colors.yellow}What it does:${colors.reset}
       if (checkOnly) {
         logWarning(`${dbKey}: ${result.reason} (${versions.join(', ')})`)
       } else {
-        logSuccess(`${dbKey}: updated versions (${versions.join(', ')})`)
+        logSuccess(
+          `${dbKey}: updated versions (${versions.join(', ')})`,
+        )
       }
     } else {
       logInfo(`${dbKey}: ${result.reason}`)
