@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.1] - 2026-02-15
+
+### Fixed
+
+- **Workflow validation rejects object-form versions** — The `validate` job in all release workflows only accepted `true` for version entries, rejecting versions with per-version config (platforms, dependencies, releasePrefix). Now treats both `true` and config objects (without explicit `"enabled": false`) as enabled.
+
+### Added
+
+- **Publish databases.json and downloads.json to R2** — The `--upload-r2` flag in `build-releases-json.ts` now uploads all three manifest files (`releases.json`, `databases.json`, `downloads.json`) to R2, ensuring the registry always has up-to-date metadata. `databases.json` is regenerated from `databases.yml` before upload.
+
 ## [0.23.0] - 2026-02-14
 
 ### Added
