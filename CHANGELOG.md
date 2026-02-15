@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.24.0] - 2026-02-15
+
+### Changed
+
+- **All binary downloads now served from `registry.layerbase.host`** — Binaries are hosted on Cloudflare R2 behind `registry.layerbase.host`, replacing direct GitHub Releases download URLs. GitHub Releases are still created as the build artifact source, but all public download URLs in `releases.json` point to the R2 registry.
+
+### Removed
+
+- **One-off debug/rebuild workflows** — Removed `build-windows-postgresql-documentdb.yml`, `build-macos-postgresql-documentdb.yml`, and `rebuild-macos-postgresql.yml`. These were created for iterating on specific builds and are no longer needed now that the release workflows handle everything.
+- **Legacy Homebrew-based macOS build script** — Removed `builds/postgresql-documentdb/legacy/` directory containing the deprecated Homebrew-based build approach, which was replaced by the current source build for relocatable binaries.
+
 ## [0.23.1] - 2026-02-15
 
 ### Changed
