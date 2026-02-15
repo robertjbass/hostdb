@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.22.1",
+  "version": "0.23.0",
   "description": "Source and download pre-built database binaries for multiple platforms, distributed via GitHub Releases",
   "private": false,
   "type": "module",
@@ -52,17 +52,20 @@
     "edb:fileids": "tsx scripts/fetch-edb-fileids.ts",
     "format": "prettier --write .",
     "lint": "tsc --noEmit && eslint .",
+    "migrate:r2": "tsx scripts/migrate-to-r2.ts",
     "prep": "tsx scripts/prep.ts",
     "reconcile:releases": "tsx scripts/reconcile-releases.ts",
     "repair:checksums": "tsx scripts/repair-checksums.ts",
     "start": "tsx cli/bin.ts",
     "sync:versions": "tsx scripts/sync-versions.ts",
-    "update:releases": "tsx scripts/update-releases.ts"
+    "update:releases": "tsx scripts/update-releases.ts",
+    "upload:r2": "tsx scripts/upload-to-r2.ts"
   },
   "dependencies": {
     "tsx": "^4.19.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.990.0",
     "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.0",
     "chalk": "^5.6.2",

@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.23.0] - 2026-02-14
+
+### Added
+
+- **Cloudflare R2 binary hosting** — Binaries are now mirrored to Cloudflare R2 behind `registry.layerbase.host`
+  - New `upload-to-r2` job added to all 20 release workflows, running between `release` and `update-manifest`
+  - `lib/r2.ts` — Shared R2 client utilities (S3-compatible)
+  - `lib/registry.ts` — Single source of truth for `REGISTRY_BASE_URL`
+  - `scripts/upload-to-r2.ts` — Per-release upload script (called by CI after each release)
+  - `scripts/migrate-to-r2.ts` — One-time bulk migration of existing GitHub Releases to R2
+  - `.env.example` — Documents required R2 environment variables
+  - Download URLs in `releases.json` now point to R2 (`registry.layerbase.host/{tag}/{filename}`) instead of GitHub Releases
+  - GitHub Releases still created as the build artifact source; R2 serves all public downloads
+
+### Changed
+
+- **Checksums module refactored** (`lib/checksums.ts`) — Now prefers GitHub API asset download over browser download URL, with proper token handling
+- **`update-releases.ts`** — Uses shared `fetchChecksums()` from `lib/checksums.ts` instead of inline implementation; URLs generated via `getDownloadUrl()` helper
+- **`reconcile-releases.ts`** — URLs generated via `getDownloadUrl()` helper instead of `browser_download_url`
+- **Releases schema** — Descriptions updated to be provider-agnostic (no longer GitHub-specific)
+
 ## [0.22.1] - 2026-02-14
 
 ### Fixed

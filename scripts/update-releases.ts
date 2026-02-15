@@ -12,6 +12,8 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execSync } from 'node:child_process'
+import { fetchChecksums } from '../lib/checksums.js'
+import { getDownloadUrl } from '../lib/registry.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT_DIR = resolve(__dirname, '..')
@@ -128,32 +130,6 @@ async function fetchReleaseInfo(
   }>
 }
 
-// Parse checksums.txt content
-async function fetchChecksums(
-  repo: string,
-  tag: string,
-): Promise<Record<string, string>> {
-  const url = `https://github.com/${repo}/releases/download/${tag}/checksums.txt`
-  const response = await fetch(url)
-
-  if (!response.ok) {
-    console.warn('Warning: Could not fetch checksums.txt')
-    return {}
-  }
-
-  const content = await response.text()
-  const checksums: Record<string, string> = {}
-
-  for (const line of content.split('\n')) {
-    const match = line.match(/^([a-f0-9]{64})\s+(.+)$/)
-    if (match) {
-      checksums[match[2]] = match[1]
-    }
-  }
-
-  return checksums
-}
-
 // Extract platform from filename
 function extractPlatform(filename: string): Platform | null {
   const platforms: Platform[] = [
@@ -224,7 +200,7 @@ async function main() {
     }
 
     versionRelease.platforms[platform] = {
-      url: asset.browser_download_url,
+      url: getDownloadUrl(tag, asset.name),
       sha256,
       size: asset.size,
     }
@@ -259,7 +235,7 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error('Error:', err.message)
+main().catch((error) => {
+  console.error('Error:', error instanceof Error ? error.message : error)
   process.exit(1)
 })

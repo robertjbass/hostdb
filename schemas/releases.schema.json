@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Hosted Database Releases",
-  "description": "Manifest of all available database binaries hosted on GitHub Releases",
+  "description": "Manifest of all available database binaries",
   "type": "object",
   "required": ["$schema", "repository", "databases"],
   "properties": {
@@ -67,7 +67,7 @@
         "url": {
           "type": "string",
           "format": "uri",
-          "description": "Direct download URL from GitHub Releases"
+          "description": "Direct download URL for the binary asset"
         },
         "sha256": {
           "type": "string",

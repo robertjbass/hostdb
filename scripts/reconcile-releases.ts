@@ -14,6 +14,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { fetchChecksums } from '../lib/checksums.js'
+import { getDownloadUrl } from '../lib/registry.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT_DIR = resolve(__dirname, '..')
@@ -413,7 +414,7 @@ async function main() {
       }
 
       versionRelease.platforms[platform] = {
-        url: asset.browser_download_url,
+        url: getDownloadUrl(tag, asset.name),
         sha256,
         size: asset.size,
       }
@@ -471,7 +472,7 @@ async function main() {
       }
 
       existingRelease.platforms[platform] = {
-        url: asset.browser_download_url,
+        url: getDownloadUrl(tag, asset.name),
         sha256,
         size: asset.size,
       }
@@ -499,7 +500,7 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error('Error:', err.message)
+main().catch((error) => {
+  console.error('Error:', error instanceof Error ? error.message : error)
   process.exit(1)
 })

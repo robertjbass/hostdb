@@ -1,6 +1,6 @@
 # hostdb
 
-Pre-built database binaries for all major platforms, distributed via GitHub Releases.
+Pre-built database binaries for all major platforms, hosted on Cloudflare R2 via `registry.layerbase.host`.
 
 **Primary consumer:** [spindb](https://github.com/robertjbass/spindb) - a CLI tool for spinning up local database instances
 
@@ -59,9 +59,31 @@ This philosophy ensures SpinDB and other consumers can embed database binaries w
 
 1. **databases.json** defines which databases, versions, and platforms are supported
 2. **Build scripts** download official binaries or build from source
-3. **GitHub Actions** run builds in parallel and upload to GitHub Releases
-4. **releases.json** is auto-updated with download URLs for each release
+3. **GitHub Actions** run builds in parallel, upload to GitHub Releases, then mirror to Cloudflare R2
+4. **releases.json** is auto-updated with R2 download URLs (`registry.layerbase.host`) for each release
 5. **SpinDB** (or any consumer) queries releases.json to find and download binaries
+
+## Binary Hosting (Cloudflare R2)
+
+Binaries are hosted on Cloudflare R2 behind `registry.layerbase.host`. GitHub Releases are still created (as the build artifact source), but all public download URLs point to R2.
+
+**URL pattern:** `https://registry.layerbase.host/{tag}/{filename}`
+
+**Configuration:**
+- `lib/registry.ts` — single source of truth for `REGISTRY_BASE_URL`
+- `lib/r2.ts` — shared R2 client utilities (S3-compatible)
+- `scripts/upload-to-r2.ts` — per-release upload (called by CI after each release)
+- `scripts/migrate-to-r2.ts` — one-time bulk migration of existing releases
+
+**Required GitHub Actions secrets:**
+- `R2_ACCOUNT_ID` — Cloudflare account ID
+- `R2_ACCESS_KEY_ID` — R2 API token access key
+- `R2_SECRET_ACCESS_KEY` — R2 API token secret key
+- `R2_BUCKET_NAME` — R2 bucket name (e.g., `hostdb-registry`)
+
+**Workflow:** Each `release-*.yml` workflow has an `upload-to-r2` job between `release` and `update-manifest` that mirrors assets from GitHub Releases to R2.
+
+**Migration:** To migrate existing releases: `pnpm migrate:r2 [--dry-run] [--database mysql] [--concurrency 3]`
 
 ## Project Structure
 
@@ -353,6 +375,12 @@ pnpm checksums:populate <database> # Populate missing SHA256 checksums
 # PostgreSQL: Fetch EDB Windows file IDs
 pnpm edb:fileids                   # Show available file IDs from EDB
 pnpm edb:fileids -- --update       # Update sources.json with latest IDs
+
+# R2 binary hosting
+pnpm upload:r2 -- --tag mysql-8.4.3            # Upload single release to R2
+pnpm migrate:r2                                 # Migrate all releases to R2
+pnpm migrate:r2 -- --dry-run                    # Preview migration
+pnpm migrate:r2 -- --database mysql             # Migrate one database only
 ```
 
 ## Querying Available Binaries
@@ -364,21 +392,20 @@ https://raw.githubusercontent.com/robertjbass/hostdb/main/releases.json
 
 **Download URL pattern:**
 ```
-https://github.com/robertjbass/hostdb/releases/download/{tag}/{filename}
+https://registry.layerbase.host/{tag}/{filename}
 ```
 
 **releases.json structure:**
 ```json
 {
   "repository": "robertjbass/hostdb",
-  "lastUpdated": "2024-01-15T10:30:00Z",
   "databases": {
     "mysql": {
       "8.4.3": {
         "releaseTag": "mysql-8.4.3",
         "platforms": {
           "darwin-arm64": {
-            "url": "https://github.com/.../mysql-8.4.3-darwin-arm64.tar.gz",
+            "url": "https://registry.layerbase.host/mysql-8.4.3/mysql-8.4.3-darwin-arm64.tar.gz",
             "sha256": "abc123...",
             "size": 165000000
           }
