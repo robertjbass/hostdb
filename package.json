@@ -35,7 +35,6 @@
     "download:couchdb": "tsx builds/couchdb/download.ts",
     "download:duckdb": "tsx builds/duckdb/download.ts",
     "download:ferretdb": "tsx builds/ferretdb/download.ts",
-    "download:ferretdb-v1": "tsx builds/ferretdb-v1/download.ts",
     "download:influxdb": "tsx builds/influxdb/download.ts",
     "download:mariadb": "tsx builds/mariadb/download.ts",
     "download:meilisearch": "tsx builds/meilisearch/download.ts",
