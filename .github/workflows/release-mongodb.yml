@@ -45,13 +45,23 @@ jobs:
 
           echo "Validating MongoDB version: $VERSION"
 
-          # Check if version exists and is enabled in databases.json
-          ENABLED=$(jq -r ".databases.$DB.versions[\"$VERSION\"] // false" databases.json)
+          # A version is enabled if its value is `true` or an object without `"enabled": false`
+          ENABLED=$(jq -r "
+            .databases.$DB.versions[\"$VERSION\"] // null
+            | if . == null or . == false then \"false\"
+              elif type == \"object\" and .enabled == false then \"false\"
+              else \"true\"
+            end
+          " databases.json)
           if [ "$ENABLED" != "true" ]; then
             echo "::error::Version '$VERSION' is not enabled in databases.json"
             echo ""
             echo "Available versions:"
-            jq -r ".databases.$DB.versions | to_entries | map(select(.value == true)) | .[].key" databases.json
+            jq -r "
+              .databases.$DB.versions | to_entries
+              | map(select(.value == true or ((.value | type) == \"object\" and (.value.enabled // true) == true)))
+              | .[].key
+            " databases.json
             exit 1
           fi
 
