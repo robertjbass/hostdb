@@ -66,20 +66,35 @@ jobs:
           for DB in $DATABASES; do
             # Skip databases that aren't in-progress or completed
             # Use bracket notation for keys with hyphens (e.g., apache-cassandra)
-            STATUS=$(jq -r ".databases[\"$DB\"].status // \"pending\"" databases.json)
+            STATUS=$(jq -r ".databases[\"$DB\"].spindbStatus // \"unknown\"" databases.json)
             if [ "$STATUS" != "in-progress" ] && [ "$STATUS" != "completed" ]; then
               continue
             fi
 
             echo "Checking $DB..."
 
-            # Get enabled versions
-            VERSIONS=$(jq -r ".databases[\"$DB\"].versions | to_entries | map(select(.value == true)) | .[].key" databases.json)
+            # Get enabled versions (boolean true OR object without enabled:false)
+            VERSIONS=$(jq -r '.databases["'"$DB"'"].versions | to_entries | map(select(.value == true or (.value | type == "object" and (.enabled // true)))) | .[].key' databases.json)
 
-            # Get enabled platforms
-            PLATFORMS=$(jq -r ".databases[\"$DB\"].platforms | to_entries | map(select(.value == true)) | .[].key" databases.json)
+            # Platforms are resolved per-version in the loop below
+            # (version can override platforms)
 
             for VERSION in $VERSIONS; do
+              # Resolve platforms for this version (version-level overrides or engine defaults)
+              VERSION_PLATFORMS=$(jq -r '
+                .databases["'"$DB"'"] as $db |
+                $db.versions["'"$VERSION"'"] as $ver |
+                (if ($ver | type) == "object" and $ver.platforms then
+                  if ($ver.platforms | type) == "array" then
+                    $ver.platforms
+                  else
+                    $ver.platforms | keys
+                  end
+                else
+                  $db.platforms
+                end) | .[]
+              ' databases.json)
+
               # Check if this version exists in releases.json
               RELEASE_EXISTS=$(jq -r ".databases[\"$DB\"][\"$VERSION\"] // empty" releases.json)
 
@@ -90,7 +105,7 @@ jobs:
               else
                 # Version exists, check individual platforms
                 MISSING_PLATFORMS=""
-                for PLATFORM in $PLATFORMS; do
+                for PLATFORM in $VERSION_PLATFORMS; do
                   PLATFORM_EXISTS=$(jq -r ".databases[\"$DB\"][\"$VERSION\"].platforms[\"$PLATFORM\"] // empty" releases.json)
                   if [ -z "$PLATFORM_EXISTS" ]; then
                     if [ -z "$MISSING_PLATFORMS" ]; then
@@ -292,20 +307,21 @@ jobs:
             echo "✅ All releases have complete checksums" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Reconcile releases.json
-        id: reconcile
+      - name: Rebuild releases.json
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
         run: |
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Reconciling releases.json" >> $GITHUB_STEP_SUMMARY
+          echo "## Rebuilding releases.json" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          echo "Reconciling releases.json with GitHub releases..."
-
-          OUTPUT=$(pnpm tsx scripts/reconcile-releases.ts 2>&1) || {
-            echo "::error::Failed to reconcile releases"
-            echo "❌ **Failed to reconcile releases.json:**" >> $GITHUB_STEP_SUMMARY
+          OUTPUT=$(pnpm tsx scripts/build-releases-json.ts --upload-r2 2>&1) || {
+            echo "::error::Failed to rebuild releases.json"
+            echo "❌ **Failed to rebuild releases.json:**" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "$OUTPUT" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
@@ -313,54 +329,16 @@ jobs:
           }
 
           echo "$OUTPUT"
-
-          if echo "$OUTPUT" | grep -q "Added .* missing"; then
-            echo "✅ Updated releases.json with new releases" >> $GITHUB_STEP_SUMMARY
-          elif echo "$OUTPUT" | grep -q "in sync"; then
-            echo "✅ releases.json is already in sync" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "✅ releases.json reconciled" >> $GITHUB_STEP_SUMMARY
-          fi
-
-      - name: Check for changes
-        id: check-changes
-        run: |
-          if git diff --quiet releases.json; then
-            echo "has-changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has-changes=true" >> $GITHUB_OUTPUT
-            echo ""
-            echo "Changes to releases.json:"
-            git diff --stat releases.json
-          fi
+          echo "✅ releases.json rebuilt and published to R2" >> $GITHUB_STEP_SUMMARY
 
       - name: Commit and push releases.json
-        if: steps.check-changes.outputs.has-changes == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add releases.json
-          git commit -m "chore: update releases.json after building missing releases"
-
-          # Retry push with rebase if remote has changed
-          for i in 1 2 3; do
-            if git push; then
-              echo "✓ Pushed releases.json update"
-              exit 0
-            fi
-            echo "Push failed, attempting rebase (attempt $i/3)..."
-            git fetch origin main
-            if ! git rebase origin/main; then
-              echo "::error::Rebase failed due to conflicts"
-              git rebase --abort
-              exit 1
-            fi
-            sleep $((2**i))
-          done
-
-          echo "::error::Push failed after 3 attempts"
-          exit 1
+          git add releases.json databases.json
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update releases.json"
+          git push
 
   # Final summary
   summary:

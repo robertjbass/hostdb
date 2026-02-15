@@ -298,74 +298,58 @@ jobs:
           fail_on_unmatched_files: false
 
   # Update the releases manifest
-  update-manifest:
+  upload-to-r2:
     needs: release
-    if: needs.release.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Upload to R2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: pnpm tsx scripts/upload-to-r2.ts --tag "clickhouse-${{ github.event.inputs.version }}"
+
+  update-releases:
+    needs: upload-to-r2
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: main
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Update releases.json
-        run: |
-          pnpm tsx scripts/update-releases.ts \
-            --database clickhouse \
-            --version "${{ github.event.inputs.version }}" \
-            --tag "clickhouse-${{ github.event.inputs.version }}"
+      - name: Rebuild releases.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: pnpm tsx scripts/build-releases-json.ts --upload-r2
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add releases.json
-          git diff --staged --quiet && echo "No changes to commit" && exit 0
-
-          git commit -m "chore: update releases.json for clickhouse-${{ github.event.inputs.version }}"
-
-          # Retry push with rebase if remote has changed
-          for i in 1 2 3; do
-            if git push; then
-              echo "Push succeeded"
-              exit 0
-            fi
-            echo "Push failed, attempting rebase (attempt $i/3)..."
-            git fetch origin main
-            if ! git rebase origin/main; then
-              echo "ERROR: Rebase failed due to conflicts. Manual intervention required."
-              git rebase --abort
-              exit 1
-            fi
-            sleep $((2**i))
-          done
-          echo "ERROR: Push failed after 3 attempts"
-          exit 1
-
-  # Trigger sync to ensure releases.json is fully up to date
-  trigger-sync:
-    needs: update-manifest
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-    steps:
-      - name: Trigger sync-releases workflow
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh workflow run sync-releases.yml --repo ${{ github.repository }}
-          echo "Triggered sync-releases workflow"
+          git add releases.json databases.json
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update releases.json"
+          git push

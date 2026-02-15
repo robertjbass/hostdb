@@ -1,86 +1,7 @@
 {
+  "_generated": "DO NOT EDIT. Generated from databases.yml by pnpm prep. Edit databases.yml instead.",
   "$schema": "./schemas/databases.schema.json",
   "databases": {
-    "apache-cassandra": {
-      "displayName": "Apache Cassandra",
-      "description": "Distributed NoSQL database designed for high availability, linear scalability, and fault tolerance",
-      "type": "Distributed NoSQL",
-      "sourceRepo": "https://github.com/apache/cassandra",
-      "license": "Apache-2.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": null,
-      "note": "Java-based; requires JVM bundled or installed",
-      "latestLts": "5.0",
-      "versions": {
-        "5.0.6": true,
-        "4.1.10": false
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": "cassandra",
-        "client": "cqlsh",
-        "utilities": ["nodetool", "sstableloader"],
-        "enhanced": []
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 9042,
-        "scheme": "cql",
-        "defaultDatabase": null,
-        "defaultUser": "cassandra",
-        "queryLanguage": "CQL"
-      },
-      "status": "pending"
-    },
-    "arangodb": {
-      "displayName": "ArangoDB",
-      "description": "Multi-model database supporting graphs, documents, and key-value with unified query language",
-      "type": "Multi-model",
-      "sourceRepo": "https://github.com/arangodb/arangodb",
-      "license": "BSL-1.1 / ArangoDB Community License",
-      "commercialUse": false,
-      "hostedServiceAllowed": false,
-      "protocol": null,
-      "note": "Unsupported: License changed to BSL-1.1 (source) + ArangoDB Community License (binaries) in v3.12. Community binaries have 100GB dataset limit. Dropped native macOS and Windows binaries in v3.12 (Docker only). linux-arm64 is evaluation-only, not production-recommended.",
-      "latestLts": "3.12",
-      "versions": {
-        "3.12.6": false
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": false,
-        "darwin-x64": false,
-        "darwin-arm64": false,
-        "win32-x64": false
-      },
-      "cliTools": {
-        "server": "arangod",
-        "client": "arangosh",
-        "utilities": [
-          "arangodump",
-          "arangorestore",
-          "arangoimport",
-          "arangoexport"
-        ],
-        "enhanced": []
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 8529,
-        "scheme": "arangodb",
-        "defaultDatabase": "_system",
-        "defaultUser": "root",
-        "queryLanguage": "AQL"
-      },
-      "status": "unsupported"
-    },
     "clickhouse": {
       "displayName": "ClickHouse",
       "description": "Column-oriented database for real-time analytics and big data processing.",
@@ -91,20 +12,22 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Windows binaries unavailable. Require WSL.",
-      "latestLts": "25.12",
       "versions": {
         "25.12.3.21": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64"
+      ],
       "cliTools": {
         "server": "clickhouse-server",
         "client": "clickhouse-client",
-        "utilities": ["clickhouse-local", "clickhouse-benchmark"],
+        "utilities": [
+          "clickhouse-local",
+          "clickhouse-benchmark"
+        ],
         "enhanced": []
       },
       "connection": {
@@ -115,45 +38,7 @@
         "defaultUser": "default",
         "queryLanguage": "SQL"
       },
-      "status": "completed"
-    },
-    "chroma": {
-      "displayName": "Chroma",
-      "description": "AI-native embedding database for LLM applications, lightweight and easy to deploy",
-      "type": "Vector",
-      "sourceRepo": "https://github.com/chroma-core/chroma",
-      "license": "Apache-2.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": null,
-      "note": "Unsupported: Python-only distribution via pip. No standalone native binaries for any platform. Rust core is compiled as Python extension, not standalone executable.",
-      "latestLts": "1.0",
-      "versions": {
-        "1.0.12": false
-      },
-      "platforms": {
-        "linux-x64": false,
-        "linux-arm64": false,
-        "darwin-x64": false,
-        "darwin-arm64": false,
-        "win32-x64": false
-      },
-      "cliTools": {
-        "server": "chroma",
-        "client": null,
-        "utilities": [],
-        "enhanced": [],
-        "note": "HTTP/gRPC API; use official SDKs"
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 8000,
-        "scheme": "http",
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "HTTP"
-      },
-      "status": "unsupported"
+      "spindbStatus": "completed"
     },
     "cockroachdb": {
       "displayName": "CockroachDB",
@@ -165,22 +50,24 @@
       "hostedServiceAllowed": false,
       "protocol": "postgresql",
       "note": "CockroachDB Software License restricts competing cloud services; fine for local dev",
-      "latestLts": "25.4",
       "versions": {
         "25.4.2": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "cockroach",
         "client": "cockroach",
         "utilities": [],
-        "enhanced": ["pgcli", "usql"],
+        "enhanced": [
+          "pgcli",
+          "usql"
+        ],
         "note": "Single binary; use 'cockroach start-single-node' for server, 'cockroach sql' for client"
       },
       "connection": {
@@ -191,7 +78,7 @@
         "defaultUser": "root",
         "queryLanguage": "SQL"
       },
-      "status": "completed"
+      "spindbStatus": "completed"
     },
     "couchdb": {
       "displayName": "CouchDB",
@@ -203,17 +90,16 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
-      "latestLts": "3.5",
       "versions": {
         "3.5.1": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "couchdb",
         "client": null,
@@ -229,7 +115,7 @@
         "defaultUser": "admin",
         "queryLanguage": "HTTP"
       },
-      "status": "completed"
+      "spindbStatus": "completed"
     },
     "duckdb": {
       "displayName": "DuckDB",
@@ -241,22 +127,23 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
-      "latestLts": "1.4",
       "versions": {
         "1.4.3": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": null,
         "client": "duckdb",
         "utilities": [],
-        "enhanced": ["usql"]
+        "enhanced": [
+          "usql"
+        ]
       },
       "connection": {
         "runtime": "embedded",
@@ -266,86 +153,7 @@
         "defaultUser": null,
         "queryLanguage": "SQL"
       },
-      "status": "completed"
-    },
-    "duckdb-vss": {
-      "displayName": "DuckDB VSS",
-      "description": "Vector similarity search extension for DuckDB using HNSW indexing",
-      "type": "Vector",
-      "sourceRepo": "https://github.com/duckdb/duckdb_vss",
-      "license": "MIT",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": null,
-      "note": "Unsupported: DuckDB extension, not a standalone database. Auto-installs within DuckDB via 'INSTALL vss; LOAD vss;'. Explicitly marked experimental and not production-ready by the DuckDB team — WAL recovery is not implemented for custom HNSW indexes, risking data loss on crash. No separate GitHub releases; distributed through DuckDB's built-in extension hub. Since DuckDB is already in hostdb, this would not be a separate entry — could potentially be pre-bundled with DuckDB releases if it reaches production status. Vectors must be FLOAT[n] type only. Index is in-memory (persisted on checkpoint). Supports L2sq, cosine, and inner product distance metrics.",
-      "dependency": {
-        "database": "duckdb",
-        "cascadeDelete": false,
-        "note": "DuckDB extension; requires DuckDB v0.10.0+ as host. Loaded via SQL: INSTALL vss; LOAD vss;"
-      },
-      "latestLts": "0.0",
-      "versions": {},
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": null,
-        "client": "duckdb",
-        "utilities": [],
-        "enhanced": [],
-        "note": "Loaded as extension within DuckDB CLI; no separate binary. No formal versioned releases — distributed via DuckDB extension hub only."
-      },
-      "connection": {
-        "runtime": "embedded",
-        "defaultPort": null,
-        "scheme": "duckdb",
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "SQL"
-      },
-      "status": "unsupported"
-    },
-    "dgraph": {
-      "displayName": "Dgraph",
-      "description": "Native GraphQL database with horizontal scaling and distributed ACID transactions",
-      "type": "Multi-model",
-      "sourceRepo": "https://github.com/dgraph-io/dgraph",
-      "license": "Apache-2.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": null,
-      "note": "Unsupported: Official binaries are Linux-only since v21.03.0 (macOS/Windows dropped Feb 2021). Requires two processes (dgraph zero + dgraph alpha) with no single-process mode. Dynamically links jemalloc which blocks Windows builds. Ratel UI removed from binary, now separate project. Acquired twice (Dgraph Labs → Hypermode → Istari Digital Oct 2025).",
-      "latestLts": "25.2",
-      "versions": {
-        "25.2.0": false
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": false,
-        "darwin-arm64": false,
-        "win32-x64": false
-      },
-      "cliTools": {
-        "server": "dgraph",
-        "client": null,
-        "utilities": [],
-        "enhanced": [],
-        "note": "GraphQL/HTTP API; no bundled CLI query console. Requires two processes: 'dgraph zero' + 'dgraph alpha'"
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 8080,
-        "scheme": "http",
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "HTTP"
-      },
-      "status": "unsupported"
+      "spindbStatus": "completed"
     },
     "ferretdb": {
       "displayName": "FerretDB",
@@ -356,27 +164,47 @@
       "commercialUse": true,
       "hostedServiceAllowed": true,
       "protocol": "mongodb",
-      "note": "Version 2 requires Postgres-DocumentDB (not on windows) but v1 may in theory build on windows",
-      "dependency": {
-        "database": "postgresql-documentdb",
-        "cascadeDelete": true,
-        "note": "FerretDB uses postgresql-documentdb as its backend; removing FerretDB also removes postgresql-documentdb since it has no standalone use"
-      },
-      "latestLts": "2.7",
+      "note": "FerretDB v2 requires PostgreSQL-DocumentDB; v1 uses plain PostgreSQL",
       "versions": {
-        "2.7.0": true
+        "2.7.0": {
+          "platforms": [
+            "linux-x64",
+            "linux-arm64",
+            "darwin-x64",
+            "darwin-arm64"
+          ],
+          "dependencies": [
+            {
+              "database": "postgresql-documentdb",
+              "cascadeDelete": true,
+              "note": "FerretDB v2 uses postgresql-documentdb as its backend; removing FerretDB also removes postgresql-documentdb"
+            }
+          ]
+        },
+        "1.24.2": {
+          "dependencies": [
+            {
+              "database": "postgresql",
+              "cascadeDelete": false,
+              "note": "FerretDB v1 uses plain PostgreSQL; PostgreSQL remains installed when FerretDB is removed"
+            }
+          ]
+        }
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "ferretdb",
         "client": "mongosh",
-        "utilities": ["mongodump", "mongorestore"],
+        "utilities": [
+          "mongodump",
+          "mongorestore"
+        ],
         "enhanced": []
       },
       "connection": {
@@ -387,124 +215,7 @@
         "defaultUser": null,
         "queryLanguage": "MQL"
       },
-      "status": "completed"
-    },
-    "ferretdb-v1": {
-      "displayName": "FerretDB (v1)",
-      "description": "Open-source MongoDB alternative using plain PostgreSQL as the backend, wire-protocol compatible (v1.x line)",
-      "type": "Document",
-      "sourceRepo": "https://github.com/FerretDB/FerretDB",
-      "license": "Apache-2.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": "mongodb",
-      "note": "FerretDB v1.x uses plain PostgreSQL (no DocumentDB extension). Lighter weight than v2 but fewer MongoDB features. Linux binaries from official releases; macOS/Windows cross-compiled from source with Go.",
-      "dependency": {
-        "database": "postgresql",
-        "cascadeDelete": false,
-        "note": "FerretDB v1 uses plain PostgreSQL as its backend; PostgreSQL remains installed as a standalone database when FerretDB is removed"
-      },
-      "latestLts": "1.24",
-      "versions": {
-        "1.24.2": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": "ferretdb",
-        "client": "mongosh",
-        "utilities": ["mongodump", "mongorestore"],
-        "enhanced": []
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 27017,
-        "scheme": "mongodb",
-        "defaultDatabase": "test",
-        "defaultUser": null,
-        "queryLanguage": "MQL"
-      },
-      "status": "in-progress"
-    },
-    "firebird": {
-      "displayName": "Firebird",
-      "description": "Relational database with embedded and client/server modes, full SQL support with stored procedures and triggers",
-      "type": "Relational",
-      "sourceRepo": "https://github.com/FirebirdSQL/firebird",
-      "license": "IDPL-1.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": null,
-      "note": "Single-file database. Supports both embedded (no server process, single-file like SQLite) and client/server modes. Official pre-built binaries available for all platforms.",
-      "latestLts": "5.0",
-      "versions": {
-        "5.0.3": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": "firebird",
-        "client": "isql",
-        "utilities": ["gbak", "gfix", "gstat", "nbackup", "gsec"],
-        "enhanced": []
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 3050,
-        "scheme": null,
-        "defaultDatabase": null,
-        "defaultUser": "SYSDBA",
-        "queryLanguage": "SQL"
-      },
-      "status": "pending"
-    },
-    "gel": {
-      "displayName": "Gel",
-      "description": "Graph-relational database built on PostgreSQL, formerly EdgeDB, with strict typing and declarative schema",
-      "type": "Multi-model",
-      "sourceRepo": "https://github.com/geldata/gel",
-      "license": "Apache-2.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": "postgresql",
-      "note": "Formerly EdgeDB; PostgreSQL-based with graph capabilities. No Windows binary (Docker only). No GitHub Release assets; distributed via custom install script. linux-arm64 support uncertain.",
-      "latestLts": "7.0",
-      "versions": {
-        "7.0.0": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": false,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": false
-      },
-      "cliTools": {
-        "server": "gel-server",
-        "client": "gel",
-        "utilities": [],
-        "enhanced": [],
-        "note": "EdgeQL query language; native CLI"
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 5656,
-        "scheme": "edgedb",
-        "defaultDatabase": "edgedb",
-        "defaultUser": "edgedb",
-        "queryLanguage": "SQL"
-      },
-      "status": "pending"
+      "spindbStatus": "completed"
     },
     "influxdb": {
       "displayName": "InfluxDB",
@@ -516,17 +227,16 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "v3.0 is a Rust rewrite using Apache Arrow/DataFusion. Single binary with bundled Python runtime for plugin system. Most popular time-series database by adoption.",
-      "latestLts": "3.0",
       "versions": {
         "3.8.0": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "influxdb3",
         "client": null,
@@ -542,45 +252,7 @@
         "defaultUser": null,
         "queryLanguage": "SQL"
       },
-      "status": "in-progress"
-    },
-    "kuzu": {
-      "displayName": "Kuzu",
-      "description": "Embedded graph database with Cypher query language, designed as the DuckDB/SQLite of graph databases",
-      "type": "Graph",
-      "sourceRepo": "https://github.com/kuzudb/kuzu",
-      "license": "MIT",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": null,
-      "note": "Unsupported: Repo archived Oct 2025 ('Kuzu is working on something new'). Community forks: Ladybug (ex-Facebook/Google lead), Bighorn (Kineviz), RyuGraph (Predictable Labs). No clear successor yet. Last release v0.11.3 binaries still downloadable but unmaintained.",
-      "latestLts": "0.11",
-      "versions": {
-        "0.11.3": false
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": null,
-        "client": "kuzu",
-        "utilities": [],
-        "enhanced": [],
-        "note": "Embedded database; single CLI binary, no server process"
-      },
-      "connection": {
-        "runtime": "embedded",
-        "defaultPort": null,
-        "scheme": null,
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "Cypher"
-      },
-      "status": "unsupported"
+      "spindbStatus": "completed"
     },
     "mariadb": {
       "displayName": "MariaDB",
@@ -592,24 +264,30 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
-      "latestLts": "11.8",
       "versions": {
         "11.8.5": true,
         "11.4.5": true,
         "10.11.15": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "mariadbd",
         "client": "mariadb",
-        "utilities": ["mariadb-dump", "mariadb-import", "mariadb-admin"],
-        "enhanced": ["mycli", "usql"]
+        "utilities": [
+          "mariadb-dump",
+          "mariadb-import",
+          "mariadb-admin"
+        ],
+        "enhanced": [
+          "mycli",
+          "usql"
+        ]
       },
       "connection": {
         "runtime": "server",
@@ -619,7 +297,7 @@
         "defaultUser": "root",
         "queryLanguage": "SQL"
       },
-      "status": "completed"
+      "spindbStatus": "completed"
     },
     "meilisearch": {
       "displayName": "Meilisearch",
@@ -631,17 +309,16 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
-      "latestLts": "1.33",
       "versions": {
         "1.33.1": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "meilisearch",
         "client": null,
@@ -657,45 +334,7 @@
         "defaultUser": null,
         "queryLanguage": "HTTP"
       },
-      "status": "completed"
-    },
-    "milvus": {
-      "displayName": "Milvus",
-      "description": "Cloud-native vector database for scalable similarity search and AI applications",
-      "type": "Vector",
-      "sourceRepo": "https://github.com/milvus-io/milvus",
-      "license": "Apache-2.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": null,
-      "note": "Unsupported: Docker-only distribution. No native binaries for any platform. Complex multi-component architecture requiring etcd + MinIO. GitHub releases contain only Docker Compose files.",
-      "latestLts": "2.5",
-      "versions": {
-        "2.5.4": false
-      },
-      "platforms": {
-        "linux-x64": false,
-        "linux-arm64": false,
-        "darwin-x64": false,
-        "darwin-arm64": false,
-        "win32-x64": false
-      },
-      "cliTools": {
-        "server": "milvus",
-        "client": null,
-        "utilities": ["birdwatcher"],
-        "enhanced": [],
-        "note": "gRPC/HTTP API; use official SDKs"
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 19530,
-        "scheme": "http",
-        "defaultDatabase": "default",
-        "defaultUser": null,
-        "queryLanguage": "HTTP"
-      },
-      "status": "unsupported"
+      "spindbStatus": "completed"
     },
     "mongodb": {
       "displayName": "MongoDB",
@@ -707,19 +346,18 @@
       "hostedServiceAllowed": false,
       "protocol": null,
       "note": "SSPL restricts offering MongoDB as a competing managed database service (i.e., MongoDB Atlas competitors). Commercial use in applications, local dev, and internal use is fine. FerretDB available as fully open-source alternative.",
-      "latestLts": "8.0",
       "versions": {
         "8.2.3": true,
         "8.0.17": true,
         "7.0.28": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "mongod",
         "client": "mongosh",
@@ -739,7 +377,7 @@
         "defaultUser": null,
         "queryLanguage": "MQL"
       },
-      "status": "completed"
+      "spindbStatus": "completed"
     },
     "mysql": {
       "displayName": "MySQL",
@@ -751,25 +389,31 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
-      "latestLts": "8.4",
       "versions": {
         "9.5.0": true,
         "9.1.0": true,
         "8.4.3": true,
         "8.0.40": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "mysqld",
         "client": "mysql",
-        "utilities": ["mysqldump", "mysqlpump", "mysqladmin"],
-        "enhanced": ["mycli", "usql"]
+        "utilities": [
+          "mysqldump",
+          "mysqlpump",
+          "mysqladmin"
+        ],
+        "enhanced": [
+          "mycli",
+          "usql"
+        ]
       },
       "connection": {
         "runtime": "server",
@@ -779,45 +423,7 @@
         "defaultUser": "root",
         "queryLanguage": "SQL"
       },
-      "status": "completed"
-    },
-    "opensearch": {
-      "displayName": "OpenSearch",
-      "description": "Distributed search and analytics engine, AWS fork of Elasticsearch",
-      "type": "Search",
-      "sourceRepo": "https://github.com/opensearch-project/OpenSearch",
-      "license": "Apache-2.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": "elasticsearch",
-      "note": "",
-      "latestLts": "3.4",
-      "versions": {
-        "3.4.0": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": "opensearch",
-        "client": "opensearch-cli",
-        "utilities": [],
-        "enhanced": [],
-        "note": "REST API; use curl or OpenSearch Dashboards"
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 9200,
-        "scheme": "http",
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "HTTP"
-      },
-      "status": "pending"
+      "spindbStatus": "completed"
     },
     "postgresql": {
       "displayName": "PostgreSQL",
@@ -829,20 +435,19 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
-      "latestLts": "18",
       "versions": {
         "18.1.0": true,
         "17.7.0": true,
         "16.11.0": true,
         "15.15.0": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "postgres",
         "client": "psql",
@@ -853,7 +458,10 @@
           "createdb",
           "dropdb"
         ],
-        "enhanced": ["pgcli", "usql"]
+        "enhanced": [
+          "pgcli",
+          "usql"
+        ]
       },
       "connection": {
         "runtime": "server",
@@ -863,7 +471,7 @@
         "defaultUser": "postgres",
         "queryLanguage": "SQL"
       },
-      "status": "completed"
+      "spindbStatus": "completed"
     },
     "postgresql-documentdb": {
       "displayName": "PostgreSQL + DocumentDB",
@@ -874,23 +482,28 @@
       "commercialUse": true,
       "hostedServiceAllowed": true,
       "protocol": "postgresql",
-      "note": "Backend for FerretDB; includes pg_cron, pgvector, PostGIS, rum extensions",
-      "latestLts": "17",
+      "note": "Backend for FerretDB v2 only; includes pg_cron, pgvector, PostGIS, rum extensions. Not available on Windows.",
       "versions": {
         "17-0.107.0": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64"
+      ],
       "cliTools": {
         "server": "postgres",
         "client": "psql",
-        "utilities": ["pg_dump", "pg_restore", "initdb", "pg_ctl"],
-        "enhanced": ["pgcli"]
+        "utilities": [
+          "pg_dump",
+          "pg_restore",
+          "initdb",
+          "pg_ctl"
+        ],
+        "enhanced": [
+          "pgcli"
+        ]
       },
       "connection": {
         "runtime": "server",
@@ -900,7 +513,7 @@
         "defaultUser": "postgres",
         "queryLanguage": "SQL"
       },
-      "status": "completed"
+      "spindbStatus": "completed"
     },
     "qdrant": {
       "displayName": "Qdrant",
@@ -912,17 +525,16 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
-      "latestLts": "1.16",
       "versions": {
         "1.16.3": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "qdrant",
         "client": null,
@@ -938,7 +550,7 @@
         "defaultUser": null,
         "queryLanguage": "HTTP"
       },
-      "status": "completed"
+      "spindbStatus": "completed"
     },
     "questdb": {
       "displayName": "QuestDB",
@@ -950,27 +562,31 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
-      "dependency": {
-        "database": "postgresql",
-        "cascadeDelete": false,
-        "note": "QuestDB uses PostgreSQL client tools (psql, pgcli) for its wire protocol; PostgreSQL remains installed as a standalone database when QuestDB is removed"
-      },
-      "latestLts": "9.2",
+      "dependencies": [
+        {
+          "database": "postgresql",
+          "cascadeDelete": false,
+          "note": "QuestDB uses PostgreSQL client tools (psql, pgcli) for its wire protocol; PostgreSQL remains installed as a standalone database when QuestDB is removed"
+        }
+      ],
       "versions": {
         "9.2.3": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "questdb",
         "client": "psql",
         "utilities": [],
-        "enhanced": ["pgcli", "usql"],
+        "enhanced": [
+          "pgcli",
+          "usql"
+        ],
         "note": "PostgreSQL wire protocol; use psql or pgcli"
       },
       "connection": {
@@ -981,7 +597,7 @@
         "defaultUser": "admin",
         "queryLanguage": "SQL"
       },
-      "status": "completed"
+      "spindbStatus": "completed"
     },
     "redis": {
       "displayName": "Redis",
@@ -993,23 +609,28 @@
       "hostedServiceAllowed": false,
       "protocol": null,
       "note": "RSALv2 restricts building competing products to Redis itself. AGPL-3.0 (8.0+) requires source disclosure if you modify Redis and offer it as a network service. Commercial use in applications, local dev, and internal use is fine. Valkey available as BSD-licensed drop-in alternative.",
-      "latestLts": "8.4",
       "versions": {
         "8.4.0": true,
         "7.4.7": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "redis-server",
         "client": "redis-cli",
-        "utilities": ["redis-benchmark", "redis-check-aof", "redis-check-rdb"],
-        "enhanced": ["iredis"]
+        "utilities": [
+          "redis-benchmark",
+          "redis-check-aof",
+          "redis-check-rdb"
+        ],
+        "enhanced": [
+          "iredis"
+        ]
       },
       "connection": {
         "runtime": "server",
@@ -1019,44 +640,7 @@
         "defaultUser": null,
         "queryLanguage": "Redis"
       },
-      "status": "completed"
-    },
-    "rocksdb": {
-      "displayName": "RocksDB",
-      "description": "High-performance embedded key-value store based on LSM trees, developed by Meta",
-      "type": "Embedded KV",
-      "sourceRepo": "https://github.com/facebook/rocksdb",
-      "license": "GPL-2.0 OR Apache-2.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": null,
-      "note": "Single-file database. Library-first with ldb and sst_dump CLI tools. No official pre-built binaries - build from source required for all platforms. Widely used as storage engine by CockroachDB, TiKV, MySQL/MyRocks.",
-      "latestLts": "10.10",
-      "versions": {
-        "10.10.1": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": null,
-        "client": "ldb",
-        "utilities": ["sst_dump"],
-        "enhanced": []
-      },
-      "connection": {
-        "runtime": "embedded",
-        "defaultPort": null,
-        "scheme": null,
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "API"
-      },
-      "status": "pending"
+      "spindbStatus": "completed"
     },
     "sqlite": {
       "displayName": "SQLite",
@@ -1068,22 +652,24 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
-      "latestLts": "3.51",
       "versions": {
         "3.51.2": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": null,
         "client": "sqlite3",
         "utilities": [],
-        "enhanced": ["litecli", "usql"]
+        "enhanced": [
+          "litecli",
+          "usql"
+        ]
       },
       "connection": {
         "runtime": "embedded",
@@ -1093,50 +679,7 @@
         "defaultUser": null,
         "queryLanguage": "SQL"
       },
-      "status": "completed"
-    },
-    "sqlite-vec": {
-      "displayName": "sqlite-vec",
-      "description": "Vector search SQLite extension for similarity search and KNN queries, pure C with zero dependencies",
-      "type": "Vector",
-      "sourceRepo": "https://github.com/asg017/sqlite-vec",
-      "license": "Apache-2.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": null,
-      "note": "SQLite loadable extension (.so/.dylib/.dll), not a standalone database. Adds vec0 virtual table for vector indexing with k-nearest-neighbor (KNN) queries. Pure C, zero dependencies — runs anywhere SQLite runs. Pre-built loadable extensions available for all 5 hostdb platforms on GitHub Releases. Loaded in sqlite3 CLI via '.load vec0'. Mozilla Builders backed. Last stable release v0.1.6 (Nov 2024), alpha v0.1.7 (Jan 2025) — development pace is slow but project is not abandoned. Successor to the deprecated sqlite-vss (which used FAISS). Natural fit for hostdb since SQLite is already distributed; could bundle the extension with SQLite releases or distribute as a separate entry. Supports metadata columns, partition keys, and auxiliary columns as of v0.1.6.",
-      "dependency": {
-        "database": "sqlite",
-        "cascadeDelete": false,
-        "note": "SQLite loadable extension; requires SQLite 3.41+ as host. Loaded via '.load vec0' in sqlite3 CLI. Removing sqlite-vec does not remove SQLite (standalone database)."
-      },
-      "latestLts": "0.1",
-      "versions": {
-        "0.1.6": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": null,
-        "client": "sqlite3",
-        "utilities": [],
-        "enhanced": ["litecli"],
-        "note": "Loaded as extension within sqlite3 CLI via '.load vec0'; no separate binary"
-      },
-      "connection": {
-        "runtime": "embedded",
-        "defaultPort": null,
-        "scheme": "sqlite",
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "SQL"
-      },
-      "status": "pending"
+      "spindbStatus": "completed"
     },
     "surrealdb": {
       "displayName": "SurrealDB",
@@ -1148,17 +691,16 @@
       "hostedServiceAllowed": false,
       "protocol": null,
       "note": "Rust-based; single binary. License is BSL-1.1 (not Apache-2.0); prohibits competing DBaaS offerings. Converts to Apache-2.0 after 4 years per release. Fine for local dev and internal use.",
-      "latestLts": "2.3",
       "versions": {
         "2.3.2": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "surreal",
         "client": "surreal",
@@ -1174,45 +716,7 @@
         "defaultUser": "root",
         "queryLanguage": "SQL"
       },
-      "status": "completed"
-    },
-    "tidb": {
-      "displayName": "TiDB",
-      "description": "Distributed SQL database with MySQL compatibility, horizontal scalability, and HTAP support",
-      "type": "Distributed SQL",
-      "sourceRepo": "https://github.com/pingcap/tidb",
-      "license": "Apache-2.0",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": "mysql",
-      "note": "No native Windows binary. macOS binaries only available via TiUP package manager, not direct download. Can run standalone with UniStore (without TiKV/PD).",
-      "latestLts": "8.5",
-      "versions": {
-        "8.5.4": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": false
-      },
-      "cliTools": {
-        "server": "tidb-server",
-        "client": "mysql",
-        "utilities": ["dumpling", "tidb-lightning"],
-        "enhanced": ["mycli", "usql"],
-        "note": "MySQL wire protocol; use mysql client"
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 4000,
-        "scheme": "mysql",
-        "defaultDatabase": "test",
-        "defaultUser": "root",
-        "queryLanguage": "SQL"
-      },
-      "status": "pending"
+      "spindbStatus": "completed"
     },
     "typedb": {
       "displayName": "TypeDB",
@@ -1224,17 +728,16 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Rewritten from Java to Rust in v3.0 (Dec 2024). Binaries distributed via Cloudsmith and GitHub Releases.",
-      "latestLts": "3.8",
       "versions": {
         "3.8.0": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "typedb",
         "client": "typedb-console",
@@ -1250,45 +753,7 @@
         "defaultUser": null,
         "queryLanguage": "TypeQL"
       },
-      "status": "completed"
-    },
-    "timescaledb": {
-      "displayName": "TimescaleDB",
-      "description": "Time-series database built on PostgreSQL for fast analytics and scalability",
-      "type": "Time-series",
-      "sourceRepo": "https://github.com/timescale/timescaledb",
-      "license": "Apache-2.0 / TSL",
-      "commercialUse": true,
-      "hostedServiceAllowed": false,
-      "protocol": "postgresql",
-      "note": "Dual-licensed: core is Apache-2.0, advanced features under Timescale License (TSL) which restricts competing DBaaS. PostgreSQL extension, not standalone.",
-      "latestLts": "2.24",
-      "versions": {
-        "2.24.0": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
-      "cliTools": {
-        "server": "postgres",
-        "client": "psql",
-        "utilities": ["pg_dump", "pg_restore"],
-        "enhanced": ["pgcli", "usql"],
-        "note": "PostgreSQL extension; uses PostgreSQL tools"
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 5432,
-        "scheme": "postgresql",
-        "defaultDatabase": "postgres",
-        "defaultUser": "postgres",
-        "queryLanguage": "SQL"
-      },
-      "status": "pending"
+      "spindbStatus": "completed"
     },
     "valkey": {
       "displayName": "Valkey",
@@ -1300,23 +765,26 @@
       "hostedServiceAllowed": true,
       "protocol": "redis",
       "note": "",
-      "latestLts": "9.0",
       "versions": {
         "9.0.1": true,
         "8.0.6": true
       },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": true
-      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
       "cliTools": {
         "server": "valkey-server",
         "client": "valkey-cli",
-        "utilities": ["valkey-benchmark"],
-        "enhanced": ["iredis"]
+        "utilities": [
+          "valkey-benchmark"
+        ],
+        "enhanced": [
+          "iredis"
+        ]
       },
       "connection": {
         "runtime": "server",
@@ -1326,45 +794,7 @@
         "defaultUser": null,
         "queryLanguage": "Redis"
       },
-      "status": "completed"
-    },
-    "weaviate": {
-      "displayName": "Weaviate",
-      "description": "AI-native vector database with built-in vectorization modules and hybrid search",
-      "type": "Vector",
-      "sourceRepo": "https://github.com/weaviate/weaviate",
-      "license": "BSD-3-Clause",
-      "commercialUse": true,
-      "hostedServiceAllowed": true,
-      "protocol": null,
-      "note": "Go-based single binary. No official Windows binary; macOS distributed as universal binary (x64+arm64).",
-      "latestLts": "1.29",
-      "versions": {
-        "1.29.0": true
-      },
-      "platforms": {
-        "linux-x64": true,
-        "linux-arm64": true,
-        "darwin-x64": true,
-        "darwin-arm64": true,
-        "win32-x64": false
-      },
-      "cliTools": {
-        "server": "weaviate",
-        "client": null,
-        "utilities": [],
-        "enhanced": [],
-        "note": "REST/GraphQL API; use official SDKs"
-      },
-      "connection": {
-        "runtime": "server",
-        "defaultPort": 8080,
-        "scheme": "http",
-        "defaultDatabase": null,
-        "defaultUser": null,
-        "queryLanguage": "HTTP"
-      },
-      "status": "pending"
+      "spindbStatus": "completed"
     }
   }
 }

@@ -63,36 +63,39 @@ export async function fetchChecksums(
     return {}
   }
 
-  // Fetch the actual checksums.txt content using the asset's download URL
-  const assetResponse = await fetch(checksumAsset.browser_download_url, {
+  // Use API asset download (works for both private and public repos)
+  const assetApiUrl = `https://api.github.com/repos/${repo}/releases/assets/${checksumAsset.id}`
+  const assetApiResponse = await fetch(assetApiUrl, {
     headers: {
+      Accept: 'application/octet-stream',
       'User-Agent': 'hostdb-checksums',
+      ...(process.env.GITHUB_TOKEN
+        ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+        : {}),
     },
     redirect: 'follow',
   })
 
-  if (!assetResponse.ok) {
-    // Fallback: try GitHub API asset download
-    const assetApiUrl = `https://api.github.com/repos/${repo}/releases/assets/${checksumAsset.id}`
-    const assetApiResponse = await fetch(assetApiUrl, {
-      headers: {
-        Accept: 'application/octet-stream',
-        'User-Agent': 'hostdb-checksums',
-        ...(process.env.GITHUB_TOKEN
-          ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
-          : {}),
-      },
-      redirect: 'follow',
-    })
-
-    if (!assetApiResponse.ok) {
-      return {}
-    }
-
+  if (assetApiResponse.ok) {
     const content = await assetApiResponse.text()
     return parseChecksums(content)
   }
 
-  const content = await assetResponse.text()
-  return parseChecksums(content)
+  // Fallback: try browser_download_url (only works for public repos)
+  if (!process.env.GITHUB_TOKEN) {
+    const browserResponse = await fetch(
+      checksumAsset.browser_download_url,
+      {
+        headers: { 'User-Agent': 'hostdb-checksums' },
+        redirect: 'follow',
+      },
+    )
+
+    if (browserResponse.ok) {
+      const content = await browserResponse.text()
+      return parseChecksums(content)
+    }
+  }
+
+  return {}
 }

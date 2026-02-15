@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.22.1",
+  "version": "0.23.0",
   "description": "Source and download pre-built database binaries for multiple platforms, distributed via GitHub Releases",
   "private": false,
   "type": "module",
@@ -29,6 +29,7 @@
     "add:engine": "tsx scripts/add-engine.ts",
     "checksums:populate": "tsx scripts/populate-checksums.ts",
     "dbs": "tsx scripts/list-databases.ts",
+    "delete:releases": "tsx scripts/delete-releases.ts",
     "download:clickhouse": "tsx builds/clickhouse/download.ts",
     "download:cockroachdb": "tsx builds/cockroachdb/download.ts",
     "download:couchdb": "tsx builds/couchdb/download.ts",
@@ -52,22 +53,26 @@
     "edb:fileids": "tsx scripts/fetch-edb-fileids.ts",
     "format": "prettier --write .",
     "lint": "tsc --noEmit && eslint .",
+    "migrate:r2": "tsx scripts/migrate-to-r2.ts",
     "prep": "tsx scripts/prep.ts",
-    "reconcile:releases": "tsx scripts/reconcile-releases.ts",
+    "build:releases": "tsx scripts/build-releases-json.ts",
     "repair:checksums": "tsx scripts/repair-checksums.ts",
     "start": "tsx cli/bin.ts",
     "sync:versions": "tsx scripts/sync-versions.ts",
-    "update:releases": "tsx scripts/update-releases.ts"
+    "upload:r2": "tsx scripts/upload-to-r2.ts"
   },
   "dependencies": {
     "tsx": "^4.19.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.990.0",
     "@eslint/js": "^9.17.0",
+    "@inquirer/prompts": "^8.2.1",
     "@types/node": "^22.10.0",
     "chalk": "^5.6.2",
     "cli-table3": "^0.6.5",
     "eslint": "^9.17.0",
+    "ora": "^9.3.0",
     "prettier": "^3.4.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.18.0",

@@ -49,15 +49,16 @@ function logWarning(message: string) {
   console.log(`${colors.yellow}⚠${colors.reset} ${message}`)
 }
 
+type VersionEntry = boolean | { enabled?: boolean; [key: string]: unknown }
+
 type DatabaseConfig = {
   displayName: string
   description: string
   type: string
   license: string
-  status: string
-  latestLts: string
-  versions: Record<string, boolean>
-  platforms: Record<string, boolean>
+  spindbStatus: string
+  versions: Record<string, VersionEntry>
+  platforms: string[]
 }
 
 type DatabasesJson = {
@@ -81,18 +82,21 @@ function savePackageJson(pkg: Record<string, unknown>) {
   writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n')
 }
 
+function isVersionEnabled(entry: VersionEntry): boolean {
+  if (typeof entry === 'boolean') return entry
+  return entry.enabled !== false
+}
+
 function generateSourcesJson(dbKey: string, db: DatabaseConfig): string {
   const versions: Record<string, Record<string, { sourceType: string }>> = {}
 
   // Get enabled versions
   const enabledVersions = Object.entries(db.versions)
-    .filter(([, enabled]) => enabled)
+    .filter(([, entry]) => isVersionEnabled(entry))
     .map(([version]) => version)
 
   // Get enabled platforms
-  const enabledPlatforms = Object.entries(db.platforms)
-    .filter(([, enabled]) => enabled)
-    .map(([platform]) => platform)
+  const enabledPlatforms = db.platforms
 
   for (const version of enabledVersions) {
     versions[version] = {}
@@ -123,7 +127,7 @@ function generateDownloadTs(dbKey: string, db: DatabaseConfig): string {
  *
  * Usage:
  *   pnpm download:${dbKey}
- *   pnpm download:${dbKey} -- --version ${Object.keys(db.versions).find((v) => db.versions[v]) || '1.0.0'}
+ *   pnpm download:${dbKey} -- --version ${Object.keys(db.versions).find((v) => isVersionEnabled(db.versions[v])) || '1.0.0'}
  *   pnpm download:${dbKey} -- --all-platforms
  *
  * TODO: Implement download logic for ${db.displayName}
@@ -164,7 +168,7 @@ function getCurrentPlatform(): Platform {
 
 function parseArgs() {
   const args = process.argv.slice(2)
-  let version = '${Object.keys(db.versions).find((v) => db.versions[v]) || '1.0.0'}'
+  let version = '${Object.keys(db.versions).find((v) => isVersionEnabled(db.versions[v])) || '1.0.0'}'
   let platform: Platform | null = null
   let allPlatforms = false
   let outputDir = './dist'
@@ -188,7 +192,7 @@ function parseArgs() {
 Usage: pnpm download:${dbKey} [options]
 
 Options:
-  --version <version>   Version to download (default: ${Object.keys(db.versions).find((v) => db.versions[v]) || '1.0.0'})
+  --version <version>   Version to download (default: ${Object.keys(db.versions).find((v) => isVersionEnabled(db.versions[v])) || '1.0.0'})
   --platform <platform> Target platform (default: current)
   --all-platforms       Download for all platforms
   --output <dir>        Output directory (default: ./dist)
@@ -246,7 +250,7 @@ main().catch((error) => {
 
 function getEnabledVersionsSorted(db: DatabaseConfig): string[] {
   return Object.entries(db.versions)
-    .filter(([, enabled]) => enabled)
+    .filter(([, entry]) => isVersionEnabled(entry))
     .map(([version]) => version)
     .sort((a, b) => {
       // Sort by semantic version, newest first
@@ -268,9 +272,7 @@ function getEnabledVersionsSorted(db: DatabaseConfig): string[] {
 function generateReadme(dbKey: string, db: DatabaseConfig): string {
   const enabledVersions = getEnabledVersionsSorted(db)
 
-  const enabledPlatforms = Object.entries(db.platforms)
-    .filter(([, enabled]) => enabled)
-    .map(([platform]) => platform)
+  const enabledPlatforms = db.platforms
 
   return `# ${db.displayName} Builds
 
@@ -381,12 +383,12 @@ jobs:
           echo "Validating ${db.displayName} version: $VERSION"
 
           # Check if version exists and is enabled in databases.json
-          ENABLED=$(jq -r ".databases.$DB.versions[\\"$VERSION\\"] // false" databases.json)
+          ENABLED=$(jq -r '.databases["'"$DB"'"].versions["'"$VERSION"'"] | if type == "object" then .enabled else . end // false' databases.json)
           if [ "$ENABLED" != "true" ]; then
             echo "::error::Version '$VERSION' is not enabled in databases.json"
             echo ""
             echo "Available versions:"
-            jq -r ".databases.$DB.versions | to_entries | map(select(.value == true)) | .[].key" databases.json
+            jq -r '.databases["'"$DB"'"].versions | to_entries | map(select(.value == true or (.value | type == "object" and .enabled == true))) | .[].key' databases.json
             exit 1
           fi
 
@@ -529,64 +531,39 @@ jobs:
             release-assets/checksums.txt
           fail_on_unmatched_files: false
 
-  update-manifest:
+  update-releases:
     needs: release
     runs-on: ubuntu-latest
-    env:
-      VERSION: \${{ github.event.inputs.version }}
     permissions:
       contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: main
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Update releases.json
-        run: |
-          pnpm tsx scripts/update-releases.ts \\
-            --database ${dbKey} \\
-            --version "$VERSION" \\
-            --tag "${dbKey}-$VERSION"
+      - name: Rebuild releases.json
+        env:
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          R2_ACCOUNT_ID: \${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: \${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: \${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: \${{ secrets.R2_BUCKET_NAME }}
+        run: pnpm tsx scripts/build-releases-json.ts --upload-r2
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add releases.json
-          git diff --staged --quiet && echo "No changes to commit" && exit 0
-
-          git commit -m "chore: update releases.json for ${dbKey}-$VERSION"
-
-          # Retry push with rebase if remote has changed
-          for i in 1 2 3; do
-            if git push; then
-              echo "Push succeeded"
-              exit 0
-            fi
-            echo "Push failed, attempting rebase (attempt $i/3)..."
-            git fetch origin main
-            if ! git rebase origin/main; then
-              echo "ERROR: Rebase failed due to conflicts. Manual intervention required."
-              git rebase --abort
-              exit 1
-            fi
-            sleep $((2**i))
-          done
-          echo "ERROR: Push failed after 3 attempts"
-          exit 1
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update releases.json"
+          git push
 `
 }
 
@@ -616,21 +593,13 @@ ${colors.yellow}Available databases:${colors.reset}
 `)
     const databases = loadDatabases()
     const sortedDbs = Object.entries(databases.databases)
-      .filter(
-        ([, db]) => db.status === 'in-progress' || db.status === 'pending',
-      )
-      .sort(([, a], [, b]) => {
-        if (a.status === 'in-progress' && b.status !== 'in-progress') return -1
-        if (b.status === 'in-progress' && a.status !== 'in-progress') return 1
-        return 0
-      })
+      .filter(([, db]) => db.spindbStatus === 'in-progress')
+      .sort(([a], [b]) => a.localeCompare(b))
 
     for (const [key, db] of sortedDbs) {
-      const statusColor =
-        db.status === 'in-progress' ? colors.green : colors.dim
       const hasBuilds = existsSync(join(ROOT, 'builds', key))
       const marker = hasBuilds ? `${colors.dim}(exists)${colors.reset}` : ''
-      log(`  ${statusColor}${key}${colors.reset} - ${db.displayName} ${marker}`)
+      log(`  ${colors.green}${key}${colors.reset} - ${db.displayName} ${marker}`)
     }
     log('')
     process.exit(0)
