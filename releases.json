@@ -263,10 +263,10 @@
         "releaseTag": "mariadb-10.11.15",
         "releasedAt": "2026-01-07T07:50:03Z",
         "platforms": {
-          "darwin-x64": {
-            "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-darwin-x64.tar.gz",
-            "sha256": "0fd659d55146a2cc947cc227b92f847bb11c0b72193432ee603b43294a91d241",
-            "size": 81943116
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-darwin-arm64.tar.gz",
+            "sha256": "51894275a19270c9cf429788630e0725293c39ee4f5450ed696ddef8c0b8d0ac",
+            "size": 79653537
           }
         }
       }
