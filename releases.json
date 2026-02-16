@@ -959,6 +959,40 @@
         }
       }
     },
+    "tigerbeetle": {
+      "0.16.70": {
+        "version": "0.16.70",
+        "releaseTag": "tigerbeetle-0.16.70",
+        "releasedAt": "2026-02-16T07:47:07Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/tigerbeetle-0.16.70/tigerbeetle-0.16.70-darwin-arm64.tar.gz",
+            "sha256": "433109c9082f6d97ef0bde2bdb39677aacaa5c2fd1076dcd237d326d603216cc",
+            "size": 14286674
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/tigerbeetle-0.16.70/tigerbeetle-0.16.70-darwin-x64.tar.gz",
+            "sha256": "e65521fe855fecf64908ade149ecb298326d5f96abb9ed87876f669d3414b36a",
+            "size": 14286676
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/tigerbeetle-0.16.70/tigerbeetle-0.16.70-linux-arm64.tar.gz",
+            "sha256": "40765af5d645e2594742d87474f807e0d6aeb218180bab2ee0a43946ec33080c",
+            "size": 6560574
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/tigerbeetle-0.16.70/tigerbeetle-0.16.70-linux-x64.tar.gz",
+            "sha256": "8cd8d7b69c43bbed824ae89390622a30aad1a8c0ed659f10c3a878679d873f9f",
+            "size": 6930374
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/tigerbeetle-0.16.70/tigerbeetle-0.16.70-win32-x64.zip",
+            "sha256": "d24e57ee9f05d676e58215c2b136185ba70e97ae5ef6868ddcfbf3b0bf377c07",
+            "size": 7766832
+          }
+        }
+      }
+    },
     "typedb": {
       "3.8.0": {
         "version": "3.8.0",
