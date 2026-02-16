@@ -17,9 +17,15 @@ All notable changes to this project will be documented in this file.
   - `builds/common/check-macos-dylibs.sh` — read-only diagnostic that scans packages for non-relocatable Homebrew paths (`pnpm check:dylibs`)
   - `.github/workflows/audit-dylibs.yml` — manually triggered workflow that downloads macOS tarballs from R2 and audits them, producing a summary table with prescriptive rebuild actions
 
+- **Cloudflare CDN cache purging** on R2 uploads
+  - Added `purgeCloudflareCache()` to `lib/r2.ts` — purges CDN edge cache after force-uploading to R2
+  - Integrated into `scripts/upload-to-r2.ts` when `--force` is used
+  - All release workflows now use `--force` on upload-to-r2, ensuring rebuilds always overwrite R2 objects and purge stale CDN cache
+
 ### Changed
 
 - **CouchDB macOS builds now run on macOS runners** (was ubuntu-latest) to enable dylib patching — downloads from Neighbourhoodie are now patched for relocatability
+- **All release workflows now force-upload to R2** with automatic CDN cache purging — eliminates stale cached tarballs after rebuilds
 - **Redis and Valkey macOS builds now include `lib/`** with bundled OpenSSL dylibs (`libssl.3.dylib`, `libcrypto.3.dylib`)
 - **BINARIES.md** updated to reflect `lib/` directory in Redis and Valkey macOS archives
 - **CHECKLIST.md** updated with Phase 5.1b for macOS dylib patching guidance
