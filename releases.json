@@ -833,28 +833,8 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-darwin-arm64.tar.gz",
-            "sha256": "eeac10db13ce778c07dcab215ea4b71c8a14595ce7a62d3ef4bd3eeb4a9a00ab",
-            "size": 1497752
-          },
-          "darwin-x64": {
-            "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-darwin-x64.tar.gz",
-            "sha256": "0a11a44c16ac5df97fd2e7b3811bef5449d2bec19c7dbb51cc86f84c63611b48",
-            "size": 1582372
-          },
-          "linux-arm64": {
-            "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-linux-arm64.tar.gz",
-            "sha256": "f580eb8d8dd82e98f2d7dbd30cf3737d3f8640affee5b8053e9bc4be3fb2d937",
-            "size": 13816267
-          },
-          "linux-x64": {
-            "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-linux-x64.tar.gz",
-            "sha256": "14b4d4e4d78e71b0e9800d411bd49586606eaaff5ce95d1e063226e01dc70c36",
-            "size": 13738541
-          },
-          "win32-x64": {
-            "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-win32-x64.zip",
-            "sha256": "80847d5e55488a74b1bd474978c516ae23bd0de604ec160549536c673ab5762e",
-            "size": 12750074
+            "sha256": "0e2a48c3d5ae8c973b5f6c65d7fb68d1a80da9378df635e6cdc00fc2a55a5a8a",
+            "size": 4162572
           }
         }
       },
@@ -1035,28 +1015,8 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-darwin-arm64.tar.gz",
-            "sha256": "4cfd2aec2120d4d36b2a8cb8b1dd1d292ca0930f940fb7e108bcf415dfdd0183",
-            "size": 1391047
-          },
-          "darwin-x64": {
-            "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-darwin-x64.tar.gz",
-            "sha256": "bae40b31af7c2a83a58b61a39c23fa6c4d03d307199ed4668a828e6d8de01412",
-            "size": 1490869
-          },
-          "linux-arm64": {
-            "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-linux-arm64.tar.gz",
-            "sha256": "4a2ad2b5c07c698415132fb43a7265e999bffc607600c970a20060931174309e",
-            "size": 13718081
-          },
-          "linux-x64": {
-            "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-linux-x64.tar.gz",
-            "sha256": "767ca095cbe179e65cf1b4426a01f50e819752dc1a2e04c39b78e2cc94004084",
-            "size": 13670174
-          },
-          "win32-x64": {
-            "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-win32-x64.zip",
-            "sha256": "98683ed78c091335b86f8e719460bdc834f320484d4a89c7fd3c2c91d325b36e",
-            "size": 18574527
+            "sha256": "3d49a6c92cf4656ce128d6c60b0c017cc62317ce5cc0afa8d025009066093d09",
+            "size": 4059940
           }
         }
       },
