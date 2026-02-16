@@ -1008,6 +1008,18 @@
       }
     },
     "valkey": {
+      "9.0.1": {
+        "version": "9.0.1",
+        "releaseTag": "valkey-9.0.1",
+        "releasedAt": "2026-01-08T00:23:09Z",
+        "platforms": {
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-darwin-x64.tar.gz",
+            "sha256": "633f8bfc3fce675f9751c5cbc396d35169ce5790353e005cbe4056ec988cefa1",
+            "size": 3941591
+          }
+        }
+      },
       "8.0.6": {
         "version": "8.0.6",
         "releaseTag": "valkey-8.0.6",
