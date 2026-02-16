@@ -140,7 +140,13 @@ jobs:
       - name: Generate checksums
         run: |
           cd dist
-          sha256sum *.tar.gz *.zip 2>/dev/null > checksums.txt || sha256sum *.tar.gz > checksums.txt
+          shopt -s nullglob
+          FILES=(*.tar.gz *.zip)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "ERROR: No artifacts found to checksum"
+            exit 1
+          fi
+          sha256sum "${FILES[@]}" > checksums.txt
           cat checksums.txt
 
       - name: Upload artifacts
@@ -200,7 +206,7 @@ jobs:
             release-assets/*.tar.gz
             release-assets/*.zip
             release-assets/checksums.txt
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
 
   upload-to-r2:
     needs: release
