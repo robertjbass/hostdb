@@ -35,15 +35,16 @@ Databases we intend to add to hostdb. Listed roughly by priority/readiness.
 - **Version:** 3.4.0
 - **Why:** AWS fork of Elasticsearch. Distributed search and analytics engine with REST API. Fully open-source.
 
-### Weaviate
+### TigerBeetle
 
-- **Type:** Vector
-- **License:** BSD-3-Clause
-- **Repo:** https://github.com/weaviate/weaviate
-- **Platforms:** linux-x64, linux-arm64, darwin-x64, darwin-arm64 (no Windows)
-- **Version:** 1.29.0
-- **Why:** AI-native vector database with built-in vectorization modules and hybrid search. Go-based single binary. macOS distributed as universal binary (x64+arm64).
-- **Notes:** No official Windows binary.
+- **Type:** Financial Ledger
+- **License:** Apache-2.0
+- **Repo:** https://github.com/tigerbeetle/tigerbeetle
+- **Platforms:** linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+- **Version:** 0.16.70
+- **Why:** High-performance financial ledger / accounting database. Single statically-linked binary (written in Zig). Official pre-built binaries available for all 5 platforms as zip archives. Built-in REPL client (`tigerbeetle repl`). Custom binary protocol over TCP. Unique in the ecosystem — purpose-built for double-entry bookkeeping with strict consistency guarantees.
+- **Binary pattern:** `tigerbeetle-{x86_64|aarch64}-{linux|macos|windows}.zip`
+- **Notes:** All platforms are zip format. Single binary includes server, REPL, and formatter. Default port 3000. Very easy to add — download and repackage like Qdrant/Meilisearch.
 
 ### TiDB
 
@@ -142,4 +143,4 @@ Databases we've evaluated and decided not to add, with reasoning.
 - **Type:** Vector
 - **License:** Apache-2.0
 - **Repo:** https://github.com/milvus-io/milvus
-- **Why not:** Docker-only distribution. No native binaries for any platform. Complex multi-component architecture requiring etcd + MinIO. GitHub releases contain only Docker Compose files.
+- **Why not:** Docker-only distribution. No native binaries for any platform. Complex multi-component architecture requiring etcd + MinIO — even "standalone" mode needs both running alongside the server. CGO dependencies (C++ FAISS/Knowhere vector index libraries) prevent pure Go cross-compilation. GitHub releases contain only Docker Compose files. Linux-only even in Docker.

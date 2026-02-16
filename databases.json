@@ -718,6 +718,43 @@
       },
       "spindbStatus": "completed"
     },
+    "tigerbeetle": {
+      "displayName": "TigerBeetle",
+      "description": "High-performance financial ledger database designed for mission-critical safety and throughput",
+      "type": "Financial Ledger",
+      "sourceRepo": "https://github.com/tigerbeetle/tigerbeetle",
+      "license": "Apache-2.0",
+      "commercialUse": true,
+      "hostedServiceAllowed": true,
+      "protocol": null,
+      "note": "Written in Zig; single binary with built-in REPL client. Uses a custom binary protocol (not HTTP/SQL). macOS uses a universal (fat) binary for both x64 and arm64.",
+      "versions": {
+        "0.16.70": true
+      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
+      "cliTools": {
+        "server": "tigerbeetle",
+        "client": "tigerbeetle",
+        "utilities": [],
+        "enhanced": [],
+        "note": "Single binary; use 'tigerbeetle start' for server, 'tigerbeetle repl' for client"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 3000,
+        "scheme": null,
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "Custom"
+      },
+      "spindbStatus": "in-progress"
+    },
     "typedb": {
       "displayName": "TypeDB",
       "description": "Strongly-typed graph database with TypeQL query language, built for knowledge representation and reasoning",
