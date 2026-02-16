@@ -635,7 +635,7 @@ databases:
       default_database: null
       default_user: null
       query_language: Custom
-    spindb_status: in-progress
+    spindb_status: completed
   typedb:
     display_name: TypeDB
     description: Strongly-typed graph database with TypeQL query language, built for knowledge representation and reasoning

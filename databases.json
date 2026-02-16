@@ -753,7 +753,7 @@
         "defaultUser": null,
         "queryLanguage": "Custom"
       },
-      "spindbStatus": "in-progress"
+      "spindbStatus": "completed"
     },
     "typedb": {
       "displayName": "TypeDB",
