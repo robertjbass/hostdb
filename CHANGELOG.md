@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.1] - 2026-02-16
+
+### Fixed
+
+- **TigerBeetle workflow: revert `fail_on_unmatched_files` to false** — Single-platform builds (e.g. linux-x64 only) produce only `.tar.gz`, no `.zip`; `true` would fail the release step on unmatched glob
+- **TigerBeetle workflow: validate artifacts before checksumming** — Fail early if no archives exist instead of silently creating empty checksums.txt
+- **TigerBeetle download script: specific error handling in `findBinary`** — Only ignore expected filesystem errors (ENOENT, EACCES, ENOTDIR) during recursive search; rethrow unexpected errors
+- **TigerBeetle download script: remove unreachable `break` after `process.exit()`** — Clean up dead code in argument parsing
+- **Removed TigerBeetle from PROSPECTS.md** — Already built and released; no longer a prospect
+
 ## [0.26.0] - 2026-02-16
 
 ### Added
