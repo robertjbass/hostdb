@@ -98,6 +98,9 @@ hostdb/
 │   ├── sources.schema.json
 │   └── releases.schema.json
 ├── builds/                 # Per-database build configurations
+│   ├── common/
+│   │   ├── fix-macos-dylibs.sh   # Bundle Homebrew dylibs for relocatable binaries
+│   │   └── check-macos-dylibs.sh # Audit packages for non-relocatable paths
 │   ├── mysql/
 │   │   ├── download.ts     # Downloads/repackages binaries
 │   │   ├── sources.json    # Version → URL mappings
@@ -376,6 +379,10 @@ pnpm checksums:populate <database> # Populate missing SHA256 checksums
 pnpm edb:fileids                   # Show available file IDs from EDB
 pnpm edb:fileids -- --update       # Update sources.json with latest IDs
 
+# macOS dylib auditing
+pnpm check:dylibs                              # Scan ./dist for Homebrew paths
+pnpm check:dylibs -- ./dist/redis              # Scan specific package
+
 # R2 binary hosting
 pnpm upload:r2 -- --tag mysql-8.4.3            # Upload single release to R2
 pnpm migrate:r2                                 # Migrate all releases to R2
@@ -531,3 +538,23 @@ concurrency:
 ```
 
 This means only one build runs at a time - subsequent triggers are queued, not cancelled.
+
+## macOS Dylib Patching (Shared Script)
+
+macOS source builds that link against Homebrew (OpenSSL, pcre2, etc.) produce binaries with absolute paths like `/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib`. These break on any Mac without those exact Homebrew packages installed.
+
+**`builds/common/fix-macos-dylibs.sh <package-root>`** fixes this by:
+1. Bundling Homebrew dylibs into the package's `lib/` directory
+2. Rewriting all absolute paths to `@loader_path` relative references
+3. Re-signing modified binaries (required by macOS)
+4. Verifying no Homebrew paths remain (fails the build if any found)
+
+**When to use:** Add to any release workflow's macOS build step if the database links against Homebrew libraries at build time. Insert between metadata creation and tarball creation:
+```bash
+chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
+"$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh" "$GITHUB_WORKSPACE/install/<database>"
+```
+
+**Currently used by:** MariaDB, Redis, Valkey workflows. PostgreSQL-DocumentDB has its own inline implementation.
+
+**Diagnostic:** `pnpm check:dylibs [<path>]` scans packages for non-relocatable paths without modifying anything. The `audit-dylibs` workflow (`workflow_dispatch`) audits published releases on R2.

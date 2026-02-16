@@ -340,6 +340,10 @@ jobs:
           }
           EOF
 
+          # Fix macOS dylib paths for relocatable binaries
+          chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
+          "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh" "$GITHUB_WORKSPACE/install/mariadb"
+
           # Create tarball
           mkdir -p "$GITHUB_WORKSPACE/dist"
           tar -czvf "$GITHUB_WORKSPACE/dist/mariadb-${VERSION}-${PLATFORM}.tar.gz" mariadb

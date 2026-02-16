@@ -1,0 +1,139 @@
+name: Audit macOS dylibs
+
+on:
+  workflow_dispatch:
+    inputs:
+      database:
+        description: 'Database to audit'
+        required: true
+        type: choice
+        default: 'all'
+        options:
+          - 'all'
+          - 'mariadb'
+          - 'redis'
+          - 'valkey'
+          - 'postgresql'
+          - 'postgresql-documentdb'
+          - 'mysql'
+          - 'mongodb'
+          - 'sqlite'
+          - 'couchdb'
+
+jobs:
+  audit:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Audit macOS releases for Homebrew dylib paths
+        run: |
+          set -euo pipefail
+
+          INPUT_DB="${{ github.event.inputs.database }}"
+
+          # Databases that use macOS source builds (may link against Homebrew).
+          # Statically-linked Go/Rust binaries (clickhouse, ferretdb, influxdb,
+          # meilisearch, qdrant, surrealdb, tigerbeetle, weaviate, cockroachdb,
+          # questdb, typedb, duckdb) are excluded — they have no dylib deps.
+          SOURCE_BUILD_DBS=("mariadb" "redis" "valkey" "postgresql" "postgresql-documentdb" "mysql" "mongodb" "sqlite" "couchdb")
+
+          if [[ "$INPUT_DB" != "all" ]]; then
+            DBS_TO_AUDIT=("$INPUT_DB")
+          else
+            DBS_TO_AUDIT=("${SOURCE_BUILD_DBS[@]}")
+          fi
+
+          echo "=== Audit macOS dylibs ==="
+          echo "Databases to audit: ${DBS_TO_AUDIT[*]}"
+          echo ""
+
+          chmod +x builds/common/check-macos-dylibs.sh
+
+          RESULTS=()
+          OVERALL_PASS=true
+
+          for db in "${DBS_TO_AUDIT[@]}"; do
+            echo "============================================"
+            echo "Auditing: $db"
+            echo "============================================"
+
+            # Get all versions for this database from releases.json
+            VERSIONS=$(jq -r ".databases[\"$db\"] // {} | keys[]" releases.json 2>/dev/null || true)
+
+            if [[ -z "$VERSIONS" ]]; then
+              echo "  No releases found for $db — skipping"
+              RESULTS+=("| $db | — | — | SKIP | No releases found |")
+              continue
+            fi
+
+            for version in $VERSIONS; do
+              for platform in darwin-arm64 darwin-x64; do
+                URL=$(jq -r ".databases[\"$db\"][\"$version\"].platforms[\"$platform\"].url // empty" releases.json)
+
+                if [[ -z "$URL" ]]; then
+                  RESULTS+=("| $db | $version | $platform | SKIP | No release URL |")
+                  continue
+                fi
+
+                TAG=$(jq -r ".databases[\"$db\"][\"$version\"].releaseTag" releases.json)
+                FILENAME=$(basename "$URL")
+                TMPDIR=$(mktemp -d)
+
+                echo ""
+                echo "--- $db $version ($platform) ---"
+                echo "  URL: $URL"
+
+                # Download
+                if ! curl -fsSL "$URL" -o "${TMPDIR}/${FILENAME}" 2>/dev/null; then
+                  echo "  WARN: Download failed"
+                  RESULTS+=("| $db | $version | $platform | WARN | Download failed |")
+                  rm -rf "$TMPDIR"
+                  continue
+                fi
+
+                # Extract
+                EXTRACT_DIR="${TMPDIR}/extract"
+                mkdir -p "$EXTRACT_DIR"
+
+                if [[ "$FILENAME" == *.tar.gz ]]; then
+                  tar -xzf "${TMPDIR}/${FILENAME}" -C "$EXTRACT_DIR" 2>/dev/null || true
+                elif [[ "$FILENAME" == *.zip ]]; then
+                  unzip -q "${TMPDIR}/${FILENAME}" -d "$EXTRACT_DIR" 2>/dev/null || true
+                fi
+
+                # Run check
+                if ./builds/common/check-macos-dylibs.sh "$EXTRACT_DIR" 2>&1; then
+                  RESULTS+=("| $db | $version | $platform | PASS | |")
+                else
+                  OVERALL_PASS=false
+                  ACTION="Run \`gh workflow run release-${db}.yml -f version=${version} -f platforms=${platform}\` to rebuild"
+                  RESULTS+=("| $db | $version | $platform | **FAIL** | ${ACTION} |")
+                fi
+
+                rm -rf "$TMPDIR"
+              done
+            done
+          done
+
+          # Print summary table
+          echo ""
+          echo "============================================"
+          echo "SUMMARY"
+          echo "============================================"
+          echo ""
+          echo "| Database | Version | Platform | Status | Action |"
+          echo "|----------|---------|----------|--------|--------|"
+          for row in "${RESULTS[@]}"; do
+            echo "$row"
+          done
+
+          echo ""
+          if [[ "$OVERALL_PASS" == "true" ]]; then
+            echo "Overall: PASS — all audited releases are clean"
+          else
+            echo "Overall: FAIL — some releases have non-relocatable Homebrew paths"
+            echo "Re-trigger the release workflow for each failing version/platform to rebuild with dylib patching."
+            exit 1
+          fi

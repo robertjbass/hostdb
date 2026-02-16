@@ -10,8 +10,8 @@ Archive structure for each database distributed by hostdb.
 | PostgreSQL | `postgresql/` | `bin/` `lib/` `share/` `.hostdb-metadata.json` | `bin/postgres` | `bin/psql` |
 | MariaDB | `mariadb/` | `bin/` `lib/` `share/` `man/` `.hostdb-metadata.json` | `bin/mariadbd` | `bin/mariadb` |
 | MongoDB | `mongodb/` | `bin/` `.hostdb-metadata.json` | `bin/mongod` | `bin/mongosh` |
-| Redis | `redis/` | `bin/` `.hostdb-metadata.json` | `bin/redis-server` | `bin/redis-cli` |
-| Valkey | `valkey/` | `bin/` `.hostdb-metadata.json` | `bin/valkey-server` | `bin/valkey-cli` |
+| Redis | `redis/` | `bin/` `lib/` (macOS) `.hostdb-metadata.json` | `bin/redis-server` | `bin/redis-cli` |
+| Valkey | `valkey/` | `bin/` `lib/` (macOS) `.hostdb-metadata.json` | `bin/valkey-server` | `bin/valkey-cli` |
 | SQLite | `sqlite/` | `bin/` `.hostdb-metadata.json` | — | `bin/sqlite3` |
 | DuckDB | `duckdb/` | `duckdb` `.hostdb-metadata.json` | — | `duckdb` |
 | ClickHouse | `clickhouse/` | `bin/` `.hostdb-metadata.json` | `bin/clickhouse` | `bin/clickhouse` |
@@ -71,6 +71,9 @@ redis/
 │   ├── redis-server
 │   ├── redis-cli
 │   └── redis-benchmark
+├── lib/                        # macOS only (bundled Homebrew dylibs)
+│   ├── libssl.3.dylib
+│   └── libcrypto.3.dylib
 └── .hostdb-metadata.json
 
 valkey/
@@ -78,6 +81,9 @@ valkey/
 │   ├── valkey-server
 │   ├── valkey-cli
 │   └── valkey-benchmark
+├── lib/                        # macOS only (bundled Homebrew dylibs)
+│   ├── libssl.3.dylib
+│   └── libcrypto.3.dylib
 └── .hostdb-metadata.json
 
 sqlite/
