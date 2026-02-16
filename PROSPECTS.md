@@ -35,17 +35,6 @@ Databases we intend to add to hostdb. Listed roughly by priority/readiness.
 - **Version:** 3.4.0
 - **Why:** AWS fork of Elasticsearch. Distributed search and analytics engine with REST API. Fully open-source.
 
-### TigerBeetle
-
-- **Type:** Financial Ledger
-- **License:** Apache-2.0
-- **Repo:** https://github.com/tigerbeetle/tigerbeetle
-- **Platforms:** linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
-- **Version:** 0.16.70
-- **Why:** High-performance financial ledger / accounting database. Single statically-linked binary (written in Zig). Official pre-built binaries available for all 5 platforms as zip archives. Built-in REPL client (`tigerbeetle repl`). Custom binary protocol over TCP. Unique in the ecosystem — purpose-built for double-entry bookkeeping with strict consistency guarantees.
-- **Binary pattern:** `tigerbeetle-{x86_64|aarch64}-{linux|macos|windows}.zip`
-- **Notes:** All platforms are zip format. Single binary includes server, REPL, and formatter. Default port 3000. Very easy to add — download and repackage like Qdrant/Meilisearch.
-
 ### TiDB
 
 - **Type:** Distributed SQL

@@ -240,8 +240,18 @@ function findBinary(dir: string, binaryName: string): string {
       try {
         const found = findBinary(fullPath, binaryName)
         if (found) return found
-      } catch {
-        // Continue searching
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code
+        if (code === 'ENOENT' || code === 'EACCES' || code === 'ENOTDIR') {
+          continue
+        }
+        if (
+          error instanceof Error &&
+          error.message.startsWith('Could not find')
+        ) {
+          continue
+        }
+        throw error
       }
     } else if (
       file.name === binaryName ||
@@ -337,14 +347,12 @@ function parseArgs(): {
         if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
           logError('--version requires a value')
           process.exit(1)
-          break
         }
         const versionValue = args[++i]
         if (!isValidVersion(versionValue)) {
           logError(`Invalid version format: ${versionValue}`)
           logError('Version must be in format: X.Y.Z (e.g., 0.16.70)')
           process.exit(1)
-          break
         }
         version = versionValue
         break
@@ -353,14 +361,12 @@ function parseArgs(): {
         if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
           logError('--platform requires a value')
           process.exit(1)
-          break
         }
         const platformValue = args[++i]
         if (!isValidPlatform(platformValue)) {
           logError(`Invalid platform: ${platformValue}`)
           logError(`Valid platforms: ${VALID_PLATFORMS.join(', ')}`)
           process.exit(1)
-          break
         }
         platforms.push(platformValue)
         break
@@ -369,7 +375,6 @@ function parseArgs(): {
         if (i + 1 >= args.length || args[i + 1].startsWith('-')) {
           logError('--output requires a value')
           process.exit(1)
-          break
         }
         outputDir = args[++i]
         break
@@ -396,7 +401,6 @@ Examples:
   pnpm download:tigerbeetle -- --all-platforms
 `)
         process.exit(0)
-        break
     }
   }
 
