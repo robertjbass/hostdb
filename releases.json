@@ -71,10 +71,10 @@
         "releaseTag": "couchdb-3.5.1",
         "releasedAt": "2026-01-25T18:54:37Z",
         "platforms": {
-          "darwin-arm64": {
-            "url": "https://registry.layerbase.host/couchdb-3.5.1/couchdb-3.5.1-darwin-arm64.tar.gz",
-            "sha256": "444b41ecca208faa2ea6b25b57b270d2493cac55f5783c2e577aeeff9497f854",
-            "size": 96726799
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.1/couchdb-3.5.1-darwin-x64.tar.gz",
+            "sha256": "6f52214ab10b75c47577ba513bddffd4add8f5e3d509d135d0fcd4505492fc12",
+            "size": 99199477
           }
         }
       }
