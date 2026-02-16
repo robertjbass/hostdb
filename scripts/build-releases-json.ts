@@ -259,9 +259,7 @@ async function buildVersionRelease(
   tag: string,
   version: string,
 ): Promise<VersionRelease | null> {
-  const checksumAsset = ghRelease.assets.find(
-    (a) => a.name === 'checksums.txt',
-  )
+  const checksumAsset = ghRelease.assets.find((a) => a.name === 'checksums.txt')
   if (!checksumAsset) {
     console.warn(`  Warning: No checksums.txt in ${tag}, skipping`)
     return null
@@ -393,9 +391,8 @@ async function main() {
       console.log('\n✓ Regenerated databases.json from databases.yml')
     }
 
-    const { loadR2Config, createR2Client, publishJsonToR2 } = await import(
-      '../lib/r2.js'
-    )
+    const { loadR2Config, createR2Client, publishJsonToR2 } =
+      await import('../lib/r2.js')
     const config = loadR2Config()
     const client = createR2Client(config)
     const r2Opts = { client, bucket: config.bucket, rootDir: ROOT_DIR }

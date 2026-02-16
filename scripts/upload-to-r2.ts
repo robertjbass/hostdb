@@ -11,7 +11,12 @@
  *                    R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME
  */
 
-import { loadR2Config, createR2Client, uploadToR2, objectExists } from '../lib/r2.js'
+import {
+  loadR2Config,
+  createR2Client,
+  uploadToR2,
+  objectExists,
+} from '../lib/r2.js'
 
 type GitHubAsset = {
   id: number
@@ -84,7 +89,9 @@ async function fetchRelease(repo: string, tag: string): Promise<GitHubRelease> {
   })
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch release ${tag}: ${response.status} ${response.statusText}`)
+    throw new Error(
+      `Failed to fetch release ${tag}: ${response.status} ${response.statusText}`,
+    )
   }
 
   return response.json() as Promise<GitHubRelease>
@@ -144,15 +151,18 @@ async function main() {
       continue
     }
 
-    console.log(`  uploading: ${asset.name} (${(asset.size / 1024 / 1024).toFixed(1)} MB)...`)
+    console.log(
+      `  uploading: ${asset.name} (${(asset.size / 1024 / 1024).toFixed(1)} MB)...`,
+    )
 
     const data = await downloadAsset(repo, asset.id)
 
-    const contentType = asset.name === 'checksums.txt'
-      ? 'text/plain'
-      : asset.name.endsWith('.zip')
-        ? 'application/zip'
-        : 'application/gzip'
+    const contentType =
+      asset.name === 'checksums.txt'
+        ? 'text/plain'
+        : asset.name.endsWith('.zip')
+          ? 'application/zip'
+          : 'application/gzip'
 
     await uploadToR2({
       client,

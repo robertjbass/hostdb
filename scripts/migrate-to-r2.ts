@@ -15,7 +15,12 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { loadR2Config, createR2Client, uploadToR2, objectExists } from '../lib/r2.js'
+import {
+  loadR2Config,
+  createR2Client,
+  uploadToR2,
+  objectExists,
+} from '../lib/r2.js'
 import { getDownloadUrl } from '../lib/registry.js'
 import type { S3Client } from '@aws-sdk/client-s3'
 
@@ -223,11 +228,12 @@ async function processUploadBatch(
       console.log(`  uploading: ${key} (${task.sizeMB} MB)...`)
       const data = await downloadGitHubAsset(options.repo, task.assetId)
 
-      const contentType = task.assetName === 'checksums.txt'
-        ? 'text/plain'
-        : task.assetName.endsWith('.zip')
-          ? 'application/zip'
-          : 'application/gzip'
+      const contentType =
+        task.assetName === 'checksums.txt'
+          ? 'text/plain'
+          : task.assetName.endsWith('.zip')
+            ? 'application/zip'
+            : 'application/gzip'
 
       await uploadToR2({
         client: options.client,
@@ -239,7 +245,9 @@ async function processUploadBatch(
 
       uploaded++
     } catch (error) {
-      console.error(`  FAILED: ${key}: ${error instanceof Error ? error.message : error}`)
+      console.error(
+        `  FAILED: ${key}: ${error instanceof Error ? error.message : error}`,
+      )
       failed++
     }
   }
@@ -331,11 +339,15 @@ async function main() {
     }
   }
 
-  console.log(`\nUpload summary: ${totalUploaded} uploaded, ${totalSkipped} skipped, ${totalFailed} failed`)
+  console.log(
+    `\nUpload summary: ${totalUploaded} uploaded, ${totalSkipped} skipped, ${totalFailed} failed`,
+  )
 
   // Rewrite URLs in releases.json
   if (totalFailed > 0 && !dryRun) {
-    console.error('\nSome uploads failed. Fix errors and re-run before rewriting URLs.')
+    console.error(
+      '\nSome uploads failed. Fix errors and re-run before rewriting URLs.',
+    )
     process.exit(1)
   }
 
@@ -356,7 +368,9 @@ async function main() {
 
         if (asset.url !== newUrl) {
           if (dryRun) {
-            console.log(`  [dry-run] ${db}/${release.version}/${platform}: ${asset.url} -> ${newUrl}`)
+            console.log(
+              `  [dry-run] ${db}/${release.version}/${platform}: ${asset.url} -> ${newUrl}`,
+            )
           }
           asset.url = newUrl
           urlsRewritten++

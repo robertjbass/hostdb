@@ -213,7 +213,8 @@ ${colors.yellow}What it does:${colors.reset}
   const dbsToProcess = specificDb
     ? [[specificDb, databases.databases[specificDb]] as const]
     : Object.entries(databases.databases).filter(
-        ([, db]) => db.spindbStatus === 'in-progress' || db.spindbStatus === 'completed',
+        ([, db]) =>
+          db.spindbStatus === 'in-progress' || db.spindbStatus === 'completed',
       )
 
   for (const [dbKey, db] of dbsToProcess) {
@@ -237,9 +238,7 @@ ${colors.yellow}What it does:${colors.reset}
       if (checkOnly) {
         logWarning(`${dbKey}: ${result.reason} (${versions.join(', ')})`)
       } else {
-        logSuccess(
-          `${dbKey}: updated versions (${versions.join(', ')})`,
-        )
+        logSuccess(`${dbKey}: updated versions (${versions.join(', ')})`)
       }
     } else {
       logInfo(`${dbKey}: ${result.reason}`)

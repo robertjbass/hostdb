@@ -221,10 +221,7 @@
         ]
       },
       "additionalProperties": {
-        "oneOf": [
-          { "const": true },
-          { "$ref": "#/definitions/PlatformConfig" }
-        ]
+        "oneOf": [{ "const": true }, { "$ref": "#/definitions/PlatformConfig" }]
       }
     },
     "PlatformConfig": {

@@ -165,6 +165,38 @@
             "size": 142234360
           }
         }
+      },
+      "1.24.2": {
+        "version": "1.24.2",
+        "releaseTag": "ferretdb-1.24.2",
+        "releasedAt": "2026-02-15T10:42:42Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/ferretdb-1.24.2/ferretdb-1.24.2-darwin-arm64.tar.gz",
+            "sha256": "c5df8ef97ac47290207774cc4e9ba449a09aa773c398648e9784b91c9b11adea",
+            "size": 166668002
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/ferretdb-1.24.2/ferretdb-1.24.2-darwin-x64.tar.gz",
+            "sha256": "5d73443522daee333554f8b018456ec086daed82364cc063a38c8fc198953d0d",
+            "size": 178015447
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/ferretdb-1.24.2/ferretdb-1.24.2-linux-arm64.tar.gz",
+            "sha256": "4482c21e72f06a09c737b2e06d4a9637ef12a1936a87cf6635779337c17ae235",
+            "size": 171768972
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/ferretdb-1.24.2/ferretdb-1.24.2-linux-x64.tar.gz",
+            "sha256": "468350e8c97f8fc71d2e008d06bae9058c114ff810b9b0073610cf44cee6b5ed",
+            "size": 180530045
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/ferretdb-1.24.2/ferretdb-1.24.2-win32-x64.zip",
+            "sha256": "174cf1c5077cf29b8fe7ff0efdaa36e0f3e9ead477be0f97fd11957fa801007f",
+            "size": 147875677
+          }
+        }
       }
     },
     "influxdb": {

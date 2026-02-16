@@ -670,3 +670,35 @@ databases:
       default_user: null
       query_language: Redis
     spindb_status: completed
+  weaviate:
+    display_name: Weaviate
+    description: AI-native vector database with built-in vectorization modules and hybrid search
+    type: Vector
+    source_repo: https://github.com/weaviate/weaviate
+    license: BSD-3-Clause
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: Go-based single binary (CGO_ENABLED=0). Linux from official releases; macOS/Windows cross-compiled from source.
+    versions:
+      1.35.7: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: weaviate
+      client: null
+      utilities: []
+      enhanced: []
+      note: REST/gRPC API only; use curl or official SDKs
+    connection:
+      runtime: server
+      default_port: 8080
+      scheme: http
+      default_database: null
+      default_user: null
+      query_language: GraphQL
+    spindb_status: in-progress

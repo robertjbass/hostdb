@@ -15,19 +15,11 @@
       "versions": {
         "25.12.3.21": true
       },
-      "platforms": [
-        "linux-x64",
-        "linux-arm64",
-        "darwin-x64",
-        "darwin-arm64"
-      ],
+      "platforms": ["linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64"],
       "cliTools": {
         "server": "clickhouse-server",
         "client": "clickhouse-client",
-        "utilities": [
-          "clickhouse-local",
-          "clickhouse-benchmark"
-        ],
+        "utilities": ["clickhouse-local", "clickhouse-benchmark"],
         "enhanced": []
       },
       "connection": {
@@ -64,10 +56,7 @@
         "server": "cockroach",
         "client": "cockroach",
         "utilities": [],
-        "enhanced": [
-          "pgcli",
-          "usql"
-        ],
+        "enhanced": ["pgcli", "usql"],
         "note": "Single binary; use 'cockroach start-single-node' for server, 'cockroach sql' for client"
       },
       "connection": {
@@ -141,9 +130,7 @@
         "server": null,
         "client": "duckdb",
         "utilities": [],
-        "enhanced": [
-          "usql"
-        ]
+        "enhanced": ["usql"]
       },
       "connection": {
         "runtime": "embedded",
@@ -201,10 +188,7 @@
       "cliTools": {
         "server": "ferretdb",
         "client": "mongosh",
-        "utilities": [
-          "mongodump",
-          "mongorestore"
-        ],
+        "utilities": ["mongodump", "mongorestore"],
         "enhanced": []
       },
       "connection": {
@@ -279,15 +263,8 @@
       "cliTools": {
         "server": "mariadbd",
         "client": "mariadb",
-        "utilities": [
-          "mariadb-dump",
-          "mariadb-import",
-          "mariadb-admin"
-        ],
-        "enhanced": [
-          "mycli",
-          "usql"
-        ]
+        "utilities": ["mariadb-dump", "mariadb-import", "mariadb-admin"],
+        "enhanced": ["mycli", "usql"]
       },
       "connection": {
         "runtime": "server",
@@ -405,15 +382,8 @@
       "cliTools": {
         "server": "mysqld",
         "client": "mysql",
-        "utilities": [
-          "mysqldump",
-          "mysqlpump",
-          "mysqladmin"
-        ],
-        "enhanced": [
-          "mycli",
-          "usql"
-        ]
+        "utilities": ["mysqldump", "mysqlpump", "mysqladmin"],
+        "enhanced": ["mycli", "usql"]
       },
       "connection": {
         "runtime": "server",
@@ -458,10 +428,7 @@
           "createdb",
           "dropdb"
         ],
-        "enhanced": [
-          "pgcli",
-          "usql"
-        ]
+        "enhanced": ["pgcli", "usql"]
       },
       "connection": {
         "runtime": "server",
@@ -486,24 +453,12 @@
       "versions": {
         "17-0.107.0": true
       },
-      "platforms": [
-        "linux-x64",
-        "linux-arm64",
-        "darwin-x64",
-        "darwin-arm64"
-      ],
+      "platforms": ["linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64"],
       "cliTools": {
         "server": "postgres",
         "client": "psql",
-        "utilities": [
-          "pg_dump",
-          "pg_restore",
-          "initdb",
-          "pg_ctl"
-        ],
-        "enhanced": [
-          "pgcli"
-        ]
+        "utilities": ["pg_dump", "pg_restore", "initdb", "pg_ctl"],
+        "enhanced": ["pgcli"]
       },
       "connection": {
         "runtime": "server",
@@ -583,10 +538,7 @@
         "server": "questdb",
         "client": "psql",
         "utilities": [],
-        "enhanced": [
-          "pgcli",
-          "usql"
-        ],
+        "enhanced": ["pgcli", "usql"],
         "note": "PostgreSQL wire protocol; use psql or pgcli"
       },
       "connection": {
@@ -623,14 +575,8 @@
       "cliTools": {
         "server": "redis-server",
         "client": "redis-cli",
-        "utilities": [
-          "redis-benchmark",
-          "redis-check-aof",
-          "redis-check-rdb"
-        ],
-        "enhanced": [
-          "iredis"
-        ]
+        "utilities": ["redis-benchmark", "redis-check-aof", "redis-check-rdb"],
+        "enhanced": ["iredis"]
       },
       "connection": {
         "runtime": "server",
@@ -666,10 +612,7 @@
         "server": null,
         "client": "sqlite3",
         "utilities": [],
-        "enhanced": [
-          "litecli",
-          "usql"
-        ]
+        "enhanced": ["litecli", "usql"]
       },
       "connection": {
         "runtime": "embedded",
@@ -779,12 +722,8 @@
       "cliTools": {
         "server": "valkey-server",
         "client": "valkey-cli",
-        "utilities": [
-          "valkey-benchmark"
-        ],
-        "enhanced": [
-          "iredis"
-        ]
+        "utilities": ["valkey-benchmark"],
+        "enhanced": ["iredis"]
       },
       "connection": {
         "runtime": "server",
@@ -795,6 +734,43 @@
         "queryLanguage": "Redis"
       },
       "spindbStatus": "completed"
+    },
+    "weaviate": {
+      "displayName": "Weaviate",
+      "description": "AI-native vector database with built-in vectorization modules and hybrid search",
+      "type": "Vector",
+      "sourceRepo": "https://github.com/weaviate/weaviate",
+      "license": "BSD-3-Clause",
+      "commercialUse": true,
+      "hostedServiceAllowed": true,
+      "protocol": null,
+      "note": "Go-based single binary (CGO_ENABLED=0). Linux from official releases; macOS/Windows cross-compiled from source.",
+      "versions": {
+        "1.35.7": true
+      },
+      "platforms": [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64"
+      ],
+      "cliTools": {
+        "server": "weaviate",
+        "client": null,
+        "utilities": [],
+        "enhanced": [],
+        "note": "REST/gRPC API only; use curl or official SDKs"
+      },
+      "connection": {
+        "runtime": "server",
+        "defaultPort": 8080,
+        "scheme": "http",
+        "defaultDatabase": null,
+        "defaultUser": null,
+        "queryLanguage": "GraphQL"
+      },
+      "spindbStatus": "in-progress"
     }
   }
 }

@@ -16,6 +16,7 @@ Archive structure for each database distributed by hostdb.
 | DuckDB | `duckdb/` | `duckdb` `.hostdb-metadata.json` | — | `duckdb` |
 | ClickHouse | `clickhouse/` | `bin/` `.hostdb-metadata.json` | `bin/clickhouse` | `bin/clickhouse` |
 | Qdrant | `qdrant/` | `qdrant` `.hostdb-metadata.json` | `qdrant` | — (HTTP) |
+| Weaviate | `weaviate/` | `weaviate` `.hostdb-metadata.json` | `weaviate` | — (HTTP/gRPC) |
 | Meilisearch | `meilisearch/` | `meilisearch` `.hostdb-metadata.json` | `meilisearch` | — (HTTP) |
 | InfluxDB | `influxdb/` | `influxdb3` `python/` `LICENSE-APACHE` `LICENSE-MIT` `.hostdb-metadata.json` | `influxdb3` | — (HTTP/SQL) |
 | TypeDB | `typedb/` | `server/` `console/` `typedb` `LICENSE` `.hostdb-metadata.json` | `server/typedb_server_bin` | `console/typedb_console_bin` |
@@ -134,6 +135,10 @@ qdrant/
 ├── qdrant                   # or qdrant.exe on Windows
 └── .hostdb-metadata.json
 
+weaviate/
+├── weaviate                 # or weaviate.exe on Windows
+└── .hostdb-metadata.json
+
 meilisearch/
 ├── meilisearch              # or meilisearch.exe on Windows
 └── .hostdb-metadata.json
@@ -180,6 +185,7 @@ Every archive includes `.hostdb-metadata.json`:
 | DuckDB | No | 1 | CLI (`duckdb`) |
 | ClickHouse | Yes | 1 + symlinks | CLI (`clickhouse client`) |
 | Qdrant | No | 1 | HTTP API only |
+| Weaviate | No | 1 | HTTP/gRPC API only |
 | Meilisearch | No | 1 | HTTP API only |
 | InfluxDB | Custom (`python/`) | 1 + runtime | HTTP API / SQL |
 | TypeDB | Custom (`server/`, `console/`) | 2 + launcher | CLI (`typedb_console_bin`) |

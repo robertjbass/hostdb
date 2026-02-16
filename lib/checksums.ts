@@ -83,13 +83,10 @@ export async function fetchChecksums(
 
   // Fallback: try browser_download_url (only works for public repos)
   if (!process.env.GITHUB_TOKEN) {
-    const browserResponse = await fetch(
-      checksumAsset.browser_download_url,
-      {
-        headers: { 'User-Agent': 'hostdb-checksums' },
-        redirect: 'follow',
-      },
-    )
+    const browserResponse = await fetch(checksumAsset.browser_download_url, {
+      headers: { 'User-Agent': 'hostdb-checksums' },
+      redirect: 'follow',
+    })
 
     if (browserResponse.ok) {
       const content = await browserResponse.text()

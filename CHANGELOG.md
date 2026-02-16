@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.25.0] - 2026-02-15
+
+### Added
+
+- **Weaviate support** (new database engine)
+  - AI-native vector database with built-in vectorization modules and hybrid search
+  - All 5 platforms supported: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+  - Linux: Official binaries from GitHub Releases
+  - macOS/Windows: Cross-compiled from source using Go (CGO_ENABLED=0, pure Go)
+  - Single binary architecture (REST/gRPC API, GraphQL query language)
+  - Version 1.35.7
+  - Second vector database in hostdb (alongside Qdrant)
+  - License: BSD-3-Clause (fully permissive)
+
 ## [0.24.0] - 2026-02-15
 
 ### Changed

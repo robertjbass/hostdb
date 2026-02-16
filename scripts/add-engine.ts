@@ -599,7 +599,9 @@ ${colors.yellow}Available databases:${colors.reset}
     for (const [key, db] of sortedDbs) {
       const hasBuilds = existsSync(join(ROOT, 'builds', key))
       const marker = hasBuilds ? `${colors.dim}(exists)${colors.reset}` : ''
-      log(`  ${colors.green}${key}${colors.reset} - ${db.displayName} ${marker}`)
+      log(
+        `  ${colors.green}${key}${colors.reset} - ${db.displayName} ${marker}`,
+      )
     }
     log('')
     process.exit(0)

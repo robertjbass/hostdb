@@ -128,9 +128,10 @@ export function loadReleasesJson(): ReleasesJson {
 // --- Internal helpers ---
 
 /** Get the version's platforms field, handling both array and object forms */
-function getVersionPlatformsRaw(
-  versionEntry: VersionConfig,
-): { list: Platform[]; map: Record<string, PlatformEntry> | null } {
+function getVersionPlatformsRaw(versionEntry: VersionConfig): {
+  list: Platform[]
+  map: Record<string, PlatformEntry> | null
+} {
   if (!versionEntry.platforms) {
     return { list: [], map: null }
   }

@@ -296,10 +296,7 @@ async function fetchGitHubRelease(
   return response.json() as Promise<GitHubRelease>
 }
 
-async function deleteGitHubRelease(
-  repo: string,
-  tag: string,
-): Promise<void> {
+async function deleteGitHubRelease(repo: string, tag: string): Promise<void> {
   const release = await fetchGitHubRelease(repo, tag)
   const url = `https://api.github.com/repos/${repo}/releases/${release.id}`
   const response = await fetch(url, {
@@ -444,13 +441,10 @@ async function runInteractive(
     }
   } else {
     for (const s of selected) {
-      const release =
-        releases.databases[s.database]?.[s.version]
+      const release = releases.databases[s.database]?.[s.version]
       if (!release) continue
 
-      const availablePlatforms = Object.keys(
-        release.platforms,
-      ) as Platform[]
+      const availablePlatforms = Object.keys(release.platforms) as Platform[]
 
       const chosen = await checkbox<Platform>({
         message: `${s.database} ${s.version} — select platforms to delete:`,
@@ -627,9 +621,7 @@ async function executeDelete(options: {
 
   if (needsGitHub && !dryRun && !process.env.GITHUB_TOKEN) {
     console.error(
-      chalk.red(
-        'Error: GITHUB_TOKEN is required for GitHub release deletion',
-      ),
+      chalk.red('Error: GITHUB_TOKEN is required for GitHub release deletion'),
     )
     process.exit(1)
   }
@@ -646,9 +638,7 @@ async function executeDelete(options: {
 
     // Delete from GitHub
     if (needsGitHub) {
-      const spinner = ora(
-        `${prefix}Deleting ${label} from GitHub...`,
-      ).start()
+      const spinner = ora(`${prefix}Deleting ${label} from GitHub...`).start()
       try {
         if (item.platforms === 'all') {
           if (dryRun) {
@@ -684,9 +674,7 @@ async function executeDelete(options: {
 
     // Delete from R2
     if (needsR2) {
-      const spinner = ora(
-        `${prefix}Deleting ${label} from R2...`,
-      ).start()
+      const spinner = ora(`${prefix}Deleting ${label} from R2...`).start()
       try {
         if (dryRun) {
           if (r2Client) {
@@ -743,9 +731,7 @@ async function executeDelete(options: {
     for (const f of failures) {
       console.log(chalk.red(`  - ${f}`))
     }
-    console.log(
-      chalk.red('\nreleases.json was NOT updated due to failures.'),
-    )
+    console.log(chalk.red('\nreleases.json was NOT updated due to failures.'))
     process.exit(1)
   }
 
