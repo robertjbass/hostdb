@@ -256,6 +256,10 @@ jobs:
             "  \"rehosted_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"" \
             '}' > valkey/.hostdb-metadata.json
 
+          # Fix macOS dylib paths for relocatable binaries
+          chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
+          "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh" "$GITHUB_WORKSPACE/install/valkey"
+
           # Create tarball
           mkdir -p "$GITHUB_WORKSPACE/dist"
           tar -czvf "$GITHUB_WORKSPACE/dist/valkey-${VERSION}-${PLATFORM}.tar.gz" valkey

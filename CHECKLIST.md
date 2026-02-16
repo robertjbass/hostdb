@@ -218,6 +218,20 @@ Reference: `builds/mariadb/build-local.sh`
 
 Reference: `.github/workflows/release-mariadb.yml`, `.github/workflows/release-sqlite.yml`
 
+### 5.1b macOS dylib patching
+
+If the database links against Homebrew libraries (OpenSSL, pcre2, etc.) during macOS source builds:
+
+- [ ] Add `fix-macos-dylibs.sh` call in the macOS build step, between metadata creation and tarball creation:
+  ```bash
+  chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
+  "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh" "$GITHUB_WORKSPACE/install/<database>"
+  ```
+- [ ] Update `BINARIES.md` to note the `lib/` directory for macOS builds
+- [ ] After first build, verify with `pnpm check:dylibs -- ./dist/<database>`
+
+Databases that **don't need this**: statically-linked Go/Rust binaries (ClickHouse, FerretDB, Meilisearch, Qdrant, SurrealDB, TigerBeetle, Weaviate, etc.)
+
 ### 5.2 Configure build matrix
 
 For each platform, ensure correct runner and build type:

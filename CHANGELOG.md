@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.27.0] - 2026-02-16
+
+### Added
+
+- **Generic macOS dylib patching for relocatable binaries** (`builds/common/fix-macos-dylibs.sh`)
+  - Standalone script that bundles Homebrew dylibs into a package's `lib/` directory and rewrites absolute paths to `@loader_path` relative references
+  - Adapted from the proven inline implementation in `builds/postgresql-documentdb/build-macos.sh`
+  - Handles recursive transitive dependencies, code signing, and verification (fails CI if Homebrew paths remain)
+  - Integrated into MariaDB, Redis, and Valkey release workflows (macOS build steps)
+  - Fixes OpenSSL (and pcre2, jemalloc, lz4, zstd, snappy for MariaDB) dylib-not-found crashes on Macs without Homebrew
+
+- **macOS dylib audit tooling**
+  - `builds/common/check-macos-dylibs.sh` — read-only diagnostic that scans packages for non-relocatable Homebrew paths (`pnpm check:dylibs`)
+  - `.github/workflows/audit-dylibs.yml` — manually triggered workflow that downloads macOS tarballs from R2 and audits them, producing a summary table with prescriptive rebuild actions
+
+### Changed
+
+- **Redis and Valkey macOS builds now include `lib/`** with bundled OpenSSL dylibs (`libssl.3.dylib`, `libcrypto.3.dylib`)
+- **BINARIES.md** updated to reflect `lib/` directory in Redis and Valkey macOS archives
+- **CHECKLIST.md** updated with Phase 5.1b for macOS dylib patching guidance
+
 ## [0.26.1] - 2026-02-16
 
 ### Fixed
