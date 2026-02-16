@@ -16,7 +16,9 @@ import {
   createR2Client,
   uploadToR2,
   objectExists,
+  purgeCloudflareCache,
 } from '../lib/r2.js'
+import { getRegistryBaseUrl } from '../lib/registry.js'
 
 type GitHubAsset = {
   id: number
@@ -64,6 +66,10 @@ Required env vars:
   R2_ACCESS_KEY_ID     R2 API token access key
   R2_SECRET_ACCESS_KEY R2 API token secret key
   R2_BUCKET_NAME       R2 bucket name
+
+Optional env vars (for --force CDN cache purging):
+  CLOUDFLARE_API_TOKEN Cloudflare API token with Zone.Cache Purge permission
+  CLOUDFLARE_ZONE_ID   Cloudflare zone ID for registry.layerbase.host
 `)
         process.exit(0)
         break // unreachable, but required for no-fallthrough rule
@@ -183,6 +189,25 @@ async function main() {
   }
 
   console.log(`\nDone: ${uploaded} uploaded, ${skipped} skipped`)
+
+  // Purge CDN cache for uploaded files when using --force
+  if (force && uploaded > 0) {
+    const baseUrl = getRegistryBaseUrl()
+    const urls = release.assets.map(
+      (asset) => `${baseUrl}/${tag}/${asset.name}`,
+    )
+
+    console.log(`\nPurging CDN cache for ${urls.length} URLs...`)
+    const { purged, count } = await purgeCloudflareCache(urls)
+
+    if (purged) {
+      console.log(`  Purged ${count} URLs from Cloudflare CDN cache`)
+    } else {
+      console.log(
+        '  Skipped: CLOUDFLARE_API_TOKEN/CLOUDFLARE_ZONE_ID not set',
+      )
+    }
+  }
 }
 
 main().catch((error) => {

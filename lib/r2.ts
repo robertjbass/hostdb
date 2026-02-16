@@ -158,3 +158,51 @@ export async function publishReleasesJson(options: {
 }): Promise<void> {
   await publishJsonToR2({ ...options, filename: 'releases.json' })
 }
+
+/**
+ * Purge Cloudflare CDN cache for specific URLs.
+ *
+ * Required env vars: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID
+ * If not set, logs a warning and returns (no-op).
+ */
+export async function purgeCloudflareCache(
+  urls: string[],
+): Promise<{ purged: boolean; count: number }> {
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN
+  const zoneId = process.env.CLOUDFLARE_ZONE_ID
+
+  if (!apiToken || !zoneId) {
+    return { purged: false, count: 0 }
+  }
+
+  // Cloudflare allows max 30 URLs per purge request
+  const BATCH_SIZE = 30
+  let totalPurged = 0
+
+  for (let i = 0; i < urls.length; i += BATCH_SIZE) {
+    const batch = urls.slice(i, i + BATCH_SIZE)
+
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/zones/${zoneId}/purge_cache`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ files: batch }),
+      },
+    )
+
+    if (!response.ok) {
+      const body = await response.text()
+      throw new Error(
+        `Cloudflare cache purge failed: ${response.status} ${body}`,
+      )
+    }
+
+    totalPurged += batch.length
+  }
+
+  return { purged: true, count: totalPurged }
+}
