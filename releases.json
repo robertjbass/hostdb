@@ -243,6 +243,26 @@
             "url": "https://registry.layerbase.host/mariadb-11.8.5/mariadb-11.8.5-darwin-arm64.tar.gz",
             "sha256": "c454854be9bc25c7d3f3a662c57819a2b0d78e9802f3764e2776032fa5477c78",
             "size": 80955321
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mariadb-11.8.5/mariadb-11.8.5-darwin-x64.tar.gz",
+            "sha256": "2a343d94b6f6e56f46d113be7c360e68b307c9145ed1d5b4078e1c1f2497a4c2",
+            "size": 79510963
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mariadb-11.8.5/mariadb-11.8.5-linux-arm64.tar.gz",
+            "sha256": "166301bc1b57f86b67b07e76b8e5a3d41c9af73bec05b808ea5eb86fb2cd1c81",
+            "size": 90583362
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mariadb-11.8.5/mariadb-11.8.5-linux-x64.tar.gz",
+            "sha256": "1851a0c4d1afe68668f9835ed90ddb6a12f7a709caea5672842193598bc806f3",
+            "size": 427348777
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mariadb-11.8.5/mariadb-11.8.5-win32-x64.zip",
+            "sha256": "928f2aa500c741a7cd43c93d6b717f45a9b4efc3d6d93644957abf56240ee723",
+            "size": 95628803
           }
         }
       },
@@ -251,10 +271,30 @@
         "releaseTag": "mariadb-11.4.5",
         "releasedAt": "2026-01-07T12:15:53Z",
         "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mariadb-11.4.5/mariadb-11.4.5-darwin-arm64.tar.gz",
+            "sha256": "eaf68030cd808d5db5b449d870a98cba68c41d459325f0ad0d855c3908633eaa",
+            "size": 79824774
+          },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/mariadb-11.4.5/mariadb-11.4.5-darwin-x64.tar.gz",
             "sha256": "8b099ad3314c95a4e18255c5fb0cccf586b9a669a734d42ee20b8d4df19fb82f",
             "size": 82119958
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mariadb-11.4.5/mariadb-11.4.5-linux-arm64.tar.gz",
+            "sha256": "b7a2b4f8b562cdabb5fdfd36f2a2e39a7c5f8a4e0c74586c4d5bf9b1ab4646cd",
+            "size": 89043339
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mariadb-11.4.5/mariadb-11.4.5-linux-x64.tar.gz",
+            "sha256": "56875f0cec14e33c3643513681649510a654a0590edbdd4a344ff7e3c57efd14",
+            "size": 349156896
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mariadb-11.4.5/mariadb-11.4.5-win32-x64.zip",
+            "sha256": "b9da836893d54d16bbd21f4202b7f964387e3001789bbbce79253cbfd24ced2a",
+            "size": 90640728
           }
         }
       },
@@ -263,10 +303,30 @@
         "releaseTag": "mariadb-10.11.15",
         "releasedAt": "2026-01-07T07:50:03Z",
         "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-darwin-arm64.tar.gz",
+            "sha256": "51894275a19270c9cf429788630e0725293c39ee4f5450ed696ddef8c0b8d0ac",
+            "size": 79653537
+          },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-darwin-x64.tar.gz",
             "sha256": "1d773381079b6f33e29f61ee830da021894c8302a50ea81f98980a9dad79ee23",
             "size": 81943271
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-linux-arm64.tar.gz",
+            "sha256": "f67f8e43d6ac1c21a6f68b4438fd5a5d9f9a63f9e8bcd60d2a73b82cc107fa3e",
+            "size": 88733054
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-linux-x64.tar.gz",
+            "sha256": "0d4c28a62329e1bd76f5cf3272bc0816e118f5f18ef49c2d5baf0d0f75050209",
+            "size": 375447846
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-win32-x64.zip",
+            "sha256": "a884c0d23729fec2beed08e52807b1a92af407da46eebe22fbb54e23e657772e",
+            "size": 93004045
           }
         }
       }
@@ -775,6 +835,26 @@
             "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-darwin-arm64.tar.gz",
             "sha256": "0e2a48c3d5ae8c973b5f6c65d7fb68d1a80da9378df635e6cdc00fc2a55a5a8a",
             "size": 4162572
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-darwin-x64.tar.gz",
+            "sha256": "0a11a44c16ac5df97fd2e7b3811bef5449d2bec19c7dbb51cc86f84c63611b48",
+            "size": 1582372
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-linux-arm64.tar.gz",
+            "sha256": "f580eb8d8dd82e98f2d7dbd30cf3737d3f8640affee5b8053e9bc4be3fb2d937",
+            "size": 13816267
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-linux-x64.tar.gz",
+            "sha256": "14b4d4e4d78e71b0e9800d411bd49586606eaaff5ce95d1e063226e01dc70c36",
+            "size": 13738541
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-win32-x64.zip",
+            "sha256": "80847d5e55488a74b1bd474978c516ae23bd0de604ec160549536c673ab5762e",
+            "size": 12750074
           }
         }
       },
@@ -783,10 +863,30 @@
         "releaseTag": "redis-7.4.7",
         "releasedAt": "2026-01-07T15:39:06Z",
         "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.4.7/redis-7.4.7-darwin-arm64.tar.gz",
+            "sha256": "242cb46cf12f52205e7978df520ffc70e0569f1352a01ac42bbd93d23eb256ef",
+            "size": 3947352
+          },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/redis-7.4.7/redis-7.4.7-darwin-x64.tar.gz",
             "sha256": "2bb2049471467234e2191c01032a9f5039323fd0825ece792d6248aca306245f",
             "size": 3810104
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.4.7/redis-7.4.7-linux-arm64.tar.gz",
+            "sha256": "921724df4b2a43e2e6d1bf23a6070d9ee0fb4a357280a4d9f7a1d1127b729c1d",
+            "size": 12730660
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/redis-7.4.7/redis-7.4.7-linux-x64.tar.gz",
+            "sha256": "1080b8ede021c529d0b540e93dd64d62ea589b422437e24b6fe794a617dc56a7",
+            "size": 12658739
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/redis-7.4.7/redis-7.4.7-win32-x64.zip",
+            "sha256": "8846aaf20860063263542ebf535bc874e475a17f82e5e4aee9540958abf583cf",
+            "size": 11481934
           }
         }
       }
@@ -937,6 +1037,26 @@
             "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-darwin-arm64.tar.gz",
             "sha256": "3d49a6c92cf4656ce128d6c60b0c017cc62317ce5cc0afa8d025009066093d09",
             "size": 4059940
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-darwin-x64.tar.gz",
+            "sha256": "bae40b31af7c2a83a58b61a39c23fa6c4d03d307199ed4668a828e6d8de01412",
+            "size": 1490869
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-linux-arm64.tar.gz",
+            "sha256": "4a2ad2b5c07c698415132fb43a7265e999bffc607600c970a20060931174309e",
+            "size": 13718081
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-linux-x64.tar.gz",
+            "sha256": "767ca095cbe179e65cf1b4426a01f50e819752dc1a2e04c39b78e2cc94004084",
+            "size": 13670174
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-win32-x64.zip",
+            "sha256": "98683ed78c091335b86f8e719460bdc834f320484d4a89c7fd3c2c91d325b36e",
+            "size": 18574527
           }
         }
       },
@@ -945,10 +1065,30 @@
         "releaseTag": "valkey-8.0.6",
         "releasedAt": "2026-01-07T18:14:22Z",
         "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/valkey-8.0.6/valkey-8.0.6-darwin-arm64.tar.gz",
+            "sha256": "8501a77d9f289122599f43fd932be5367863ca0d693cc792b3fe4f239425811a",
+            "size": 3954916
+          },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/valkey-8.0.6/valkey-8.0.6-darwin-x64.tar.gz",
             "sha256": "917982453b64e80fb2968ee0ea3e61c71d86f89bbaa8d513acbde7908a8bd0ce",
             "size": 3815087
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/valkey-8.0.6/valkey-8.0.6-linux-arm64.tar.gz",
+            "sha256": "844d49da6fb0676997a685804738d8cc1dfa9d07137991e8e24cc70a829deeba",
+            "size": 12800279
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/valkey-8.0.6/valkey-8.0.6-linux-x64.tar.gz",
+            "sha256": "d50de7772631dface7fc81c7df2175034c0c5514b068407e94c5f4f181cc3ba9",
+            "size": 12718461
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/valkey-8.0.6/valkey-8.0.6-win32-x64.zip",
+            "sha256": "6e873cbe6aa71fa3da80bd511bcc739bf9433a09a05c180a68f2aa6ea21082fc",
+            "size": 16565541
           }
         }
       }

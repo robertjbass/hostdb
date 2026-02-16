@@ -1,0 +1,48 @@
+name: Re-upload to R2
+
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Release tags to re-upload (comma-separated, e.g., "redis-8.4.0,valkey-9.0.1")'
+        required: true
+        type: string
+
+jobs:
+  reupload:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Re-upload tags to R2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: |
+          IFS=',' read -ra TAGS <<< "${{ github.event.inputs.tags }}"
+          for tag in "${TAGS[@]}"; do
+            tag=$(echo "$tag" | xargs)  # trim whitespace
+            echo ""
+            echo "=== Re-uploading $tag ==="
+            pnpm tsx scripts/upload-to-r2.ts --tag "$tag" --force
+          done
+          echo ""
+          echo "=== All re-uploads complete ==="

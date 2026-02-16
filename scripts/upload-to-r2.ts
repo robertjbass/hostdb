@@ -29,9 +29,10 @@ type GitHubRelease = {
   assets: GitHubAsset[]
 }
 
-function parseArgs(): { tag: string } {
+function parseArgs(): { tag: string; force: boolean } {
   const args = process.argv.slice(2)
   let tag = ''
+  let force = false
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -42,6 +43,9 @@ function parseArgs(): { tag: string } {
         }
         tag = args[++i]
         break
+      case '--force':
+        force = true
+        break
       case '--':
         break
       case '--help':
@@ -51,6 +55,7 @@ Usage: pnpm tsx scripts/upload-to-r2.ts --tag <release-tag>
 
 Options:
   --tag TAG   GitHub release tag (e.g., mysql-8.4.3)
+  --force     Overwrite existing files in R2
   --help      Show this help
 
 Required env vars:
@@ -70,7 +75,7 @@ Required env vars:
     process.exit(1)
   }
 
-  return { tag }
+  return { tag, force }
 }
 
 async function fetchRelease(repo: string, tag: string): Promise<GitHubRelease> {
@@ -122,10 +127,10 @@ async function downloadAsset(repo: string, assetId: number): Promise<Buffer> {
 }
 
 async function main() {
-  const { tag } = parseArgs()
+  const { tag, force } = parseArgs()
   const repo = 'robertjbass/hostdb'
 
-  console.log(`Uploading assets for release ${tag} to R2...\n`)
+  console.log(`Uploading assets for release ${tag} to R2...${force ? ' (force overwrite)' : ''}\n`)
 
   const r2Config = loadR2Config()
   const client = createR2Client(r2Config)
@@ -139,16 +144,18 @@ async function main() {
   for (const asset of release.assets) {
     const key = `${tag}/${asset.name}`
 
-    const exists = await objectExists({
-      client,
-      bucket: r2Config.bucket,
-      key,
-    })
+    if (!force) {
+      const exists = await objectExists({
+        client,
+        bucket: r2Config.bucket,
+        key,
+      })
 
-    if (exists) {
-      console.log(`  skip: ${asset.name} (already exists)`)
-      skipped++
-      continue
+      if (exists) {
+        console.log(`  skip: ${asset.name} (already exists)`)
+        skipped++
+        continue
+      }
     }
 
     console.log(
