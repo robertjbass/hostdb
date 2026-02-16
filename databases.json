@@ -831,7 +831,7 @@
         "defaultUser": null,
         "queryLanguage": "GraphQL"
       },
-      "spindbStatus": "in-progress"
+      "spindbStatus": "completed"
     }
   }
 }

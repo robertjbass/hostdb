@@ -701,4 +701,4 @@ databases:
       default_database: null
       default_user: null
       query_language: GraphQL
-    spindb_status: in-progress
+    spindb_status: completed

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.25.1] - 2026-02-15
+
+### Changed
+
+- **Weaviate marked as completed** - All platforms fully implemented and ready for release
+
 ## [0.25.0] - 2026-02-15
 
 ### Added
