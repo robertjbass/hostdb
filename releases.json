@@ -242,7 +242,7 @@
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/mariadb-11.8.5/mariadb-11.8.5-darwin-arm64.tar.gz",
             "sha256": "6fdd569e40ce8ddddbbed7e45273e078c34d87a823c3581a043f560d2fe2f4fc",
-            "size": 78302849
+            "size": 80955321
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/mariadb-11.8.5/mariadb-11.8.5-darwin-x64.tar.gz",
@@ -303,30 +303,10 @@
         "releaseTag": "mariadb-10.11.15",
         "releasedAt": "2026-01-07T07:50:03Z",
         "platforms": {
-          "darwin-arm64": {
-            "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-darwin-arm64.tar.gz",
-            "sha256": "784efdf5e6d66e57b610e0d8642e1849cac678a26fe84c5ec78d3f4345205767",
-            "size": 76998863
-          },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-darwin-x64.tar.gz",
-            "sha256": "09d499629ba20f8a9d243d38fb2157ec61cb923748168f5cdac54fdf0c124f75",
-            "size": 78162243
-          },
-          "linux-arm64": {
-            "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-linux-arm64.tar.gz",
-            "sha256": "f67f8e43d6ac1c21a6f68b4438fd5a5d9f9a63f9e8bcd60d2a73b82cc107fa3e",
-            "size": 88733054
-          },
-          "linux-x64": {
-            "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-linux-x64.tar.gz",
-            "sha256": "0d4c28a62329e1bd76f5cf3272bc0816e118f5f18ef49c2d5baf0d0f75050209",
-            "size": 375447846
-          },
-          "win32-x64": {
-            "url": "https://registry.layerbase.host/mariadb-10.11.15/mariadb-10.11.15-win32-x64.zip",
-            "sha256": "a884c0d23729fec2beed08e52807b1a92af407da46eebe22fbb54e23e657772e",
-            "size": 93004045
+            "sha256": "0fd659d55146a2cc947cc227b92f847bb11c0b72193432ee603b43294a91d241",
+            "size": 81943116
           }
         }
       }
