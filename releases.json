@@ -803,10 +803,10 @@
         "releaseTag": "redis-7.4.7",
         "releasedAt": "2026-01-07T15:39:06Z",
         "platforms": {
-          "darwin-x64": {
-            "url": "https://registry.layerbase.host/redis-7.4.7/redis-7.4.7-darwin-x64.tar.gz",
-            "sha256": "32985dc99b2b5606ec559e80edd39ea68d186b1c268d9b6cb1b9c044e6eb81f6",
-            "size": 3810122
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.4.7/redis-7.4.7-darwin-arm64.tar.gz",
+            "sha256": "242cb46cf12f52205e7978df520ffc70e0569f1352a01ac42bbd93d23eb256ef",
+            "size": 3947352
           }
         }
       }
@@ -965,10 +965,10 @@
         "releaseTag": "valkey-8.0.6",
         "releasedAt": "2026-01-07T18:14:22Z",
         "platforms": {
-          "darwin-x64": {
-            "url": "https://registry.layerbase.host/valkey-8.0.6/valkey-8.0.6-darwin-x64.tar.gz",
-            "sha256": "33af08c23d1e7ab4eba03d0a529b54516738ab0a62f1fdf160339f559c671436",
-            "size": 3815097
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/valkey-8.0.6/valkey-8.0.6-darwin-arm64.tar.gz",
+            "sha256": "8501a77d9f289122599f43fd932be5367863ca0d693cc792b3fe4f239425811a",
+            "size": 3954916
           }
         }
       }
