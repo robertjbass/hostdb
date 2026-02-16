@@ -19,6 +19,7 @@ Archive structure for each database distributed by hostdb.
 | Weaviate | `weaviate/` | `weaviate` `.hostdb-metadata.json` | `weaviate` | — (HTTP/gRPC) |
 | Meilisearch | `meilisearch/` | `meilisearch` `.hostdb-metadata.json` | `meilisearch` | — (HTTP) |
 | InfluxDB | `influxdb/` | `influxdb3` `python/` `LICENSE-APACHE` `LICENSE-MIT` `.hostdb-metadata.json` | `influxdb3` | — (HTTP/SQL) |
+| TigerBeetle | `tigerbeetle/` | `tigerbeetle` `.hostdb-metadata.json` | `tigerbeetle` | `tigerbeetle` (REPL) |
 | TypeDB | `typedb/` | `server/` `console/` `typedb` `LICENSE` `.hostdb-metadata.json` | `server/typedb_server_bin` | `console/typedb_console_bin` |
 
 ## Detailed Structure
@@ -142,6 +143,10 @@ weaviate/
 meilisearch/
 ├── meilisearch              # or meilisearch.exe on Windows
 └── .hostdb-metadata.json
+
+tigerbeetle/
+├── tigerbeetle              # or tigerbeetle.exe on Windows
+└── .hostdb-metadata.json
 ```
 
 ## Archive Formats
@@ -187,5 +192,6 @@ Every archive includes `.hostdb-metadata.json`:
 | Qdrant | No | 1 | HTTP API only |
 | Weaviate | No | 1 | HTTP/gRPC API only |
 | Meilisearch | No | 1 | HTTP API only |
+| TigerBeetle | No | 1 | Built-in REPL |
 | InfluxDB | Custom (`python/`) | 1 + runtime | HTTP API / SQL |
 | TypeDB | Custom (`server/`, `console/`) | 2 + launcher | CLI (`typedb_console_bin`) |

@@ -604,6 +604,38 @@ databases:
       default_user: root
       query_language: SQL
     spindb_status: completed
+  tigerbeetle:
+    display_name: TigerBeetle
+    description: High-performance financial ledger database designed for mission-critical safety and throughput
+    type: Financial Ledger
+    source_repo: https://github.com/tigerbeetle/tigerbeetle
+    license: Apache-2.0
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: null
+    note: Written in Zig; single binary with built-in REPL client. Uses a custom binary protocol (not HTTP/SQL). macOS uses a universal (fat) binary for both x64 and arm64.
+    versions:
+      0.16.70: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+      - win32-x64
+    cli_tools:
+      server: tigerbeetle
+      client: tigerbeetle
+      utilities: []
+      enhanced: []
+      note: Single binary; use 'tigerbeetle start' for server, 'tigerbeetle repl' for client
+    connection:
+      runtime: server
+      default_port: 3000
+      scheme: null
+      default_database: null
+      default_user: null
+      query_language: Custom
+    spindb_status: in-progress
   typedb:
     display_name: TypeDB
     description: Strongly-typed graph database with TypeQL query language, built for knowledge representation and reasoning

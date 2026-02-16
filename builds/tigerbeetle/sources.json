@@ -1,0 +1,44 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "tigerbeetle",
+  "versions": {
+    "0.16.70": {
+      "linux-x64": {
+        "url": "https://github.com/tigerbeetle/tigerbeetle/releases/download/0.16.70/tigerbeetle-x86_64-linux.zip",
+        "format": "zip",
+        "sha256": "c5b40e6bdd7310d54733e8da8404a4db981e7fc824d1021d95f1a0e2e4decd50",
+        "sourceType": "official"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/tigerbeetle/tigerbeetle/releases/download/0.16.70/tigerbeetle-aarch64-linux.zip",
+        "format": "zip",
+        "sha256": "b5d7fc200fcb5e972d2dd28de14ea8f6b9502235a3641af45399c1b4b29d61f4",
+        "sourceType": "official"
+      },
+      "darwin-x64": {
+        "url": "https://github.com/tigerbeetle/tigerbeetle/releases/download/0.16.70/tigerbeetle-universal-macos.zip",
+        "format": "zip",
+        "sha256": "d45273aa0f25df9183e62a7cbf0f1d778082a0c5dab1c24caa40641db1d281ff",
+        "sourceType": "official"
+      },
+      "darwin-arm64": {
+        "url": "https://github.com/tigerbeetle/tigerbeetle/releases/download/0.16.70/tigerbeetle-universal-macos.zip",
+        "format": "zip",
+        "sha256": "d45273aa0f25df9183e62a7cbf0f1d778082a0c5dab1c24caa40641db1d281ff",
+        "sourceType": "official"
+      },
+      "win32-x64": {
+        "url": "https://github.com/tigerbeetle/tigerbeetle/releases/download/0.16.70/tigerbeetle-x86_64-windows.zip",
+        "format": "zip",
+        "sha256": "e20f14665676f301c8961fa216dc55e30916428431783b62db5ec2189131ab8c",
+        "sourceType": "official"
+      }
+    }
+  },
+  "notes": {
+    "source": "Official TigerBeetle GitHub releases: https://github.com/tigerbeetle/tigerbeetle/releases",
+    "format": "All platforms distributed as zip archives containing a single binary",
+    "naming": "TigerBeetle uses {arch}-{os} naming: x86_64/aarch64 + linux/macos/windows",
+    "macos": "macOS uses a universal (fat) binary for both x64 and arm64"
+  }
+}

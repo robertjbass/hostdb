@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.26.0] - 2026-02-16
+
+### Added
+
+- **TigerBeetle support** (new database engine)
+  - High-performance financial ledger database designed for mission-critical safety and throughput
+  - All 5 platforms supported: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+  - Official binaries from GitHub Releases (all platforms as zip archives)
+  - Single binary architecture with built-in REPL client (`tigerbeetle start` for server, `tigerbeetle repl` for client)
+  - Written in Zig; uses custom binary protocol on port 3000
+  - Version 0.16.70
+  - First financial ledger database in hostdb
+  - License: Apache-2.0
+
 ## [0.25.1] - 2026-02-15
 
 ### Changed
