@@ -107,7 +107,6 @@ type Discrepancy = {
   message: string
 }
 
-
 function findDiscrepancies(): Discrepancy[] {
   const discrepancies: Discrepancy[] = []
 
@@ -127,7 +126,8 @@ function findDiscrepancies(): Discrepancy[] {
   const activeDatabases = Object.entries(databases.databases)
     .filter(
       ([_, entry]) =>
-        entry.spindbStatus === 'in-progress' || entry.spindbStatus === 'completed',
+        entry.spindbStatus === 'in-progress' ||
+        entry.spindbStatus === 'completed',
     )
     .map(([id]) => id)
 
@@ -315,9 +315,7 @@ ${colors.yellow}Checks:${colors.reset}
   logStep('Generating databases.json from databases.yml')
   const jsonChanged = generateDatabasesJson({ checkOnly })
   if (checkOnly && jsonChanged) {
-    logError(
-      'databases.json is out of date with databases.yml. Run: pnpm prep',
-    )
+    logError('databases.json is out of date with databases.yml. Run: pnpm prep')
     allPassed = false
   } else if (jsonChanged) {
     logSuccess('Generated databases.json from databases.yml')

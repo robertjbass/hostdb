@@ -127,7 +127,9 @@ function isVersionEnabled(entry: VersionEntry): boolean {
   return entry.enabled !== false
 }
 
-function getEnabledVersionCount(versions: Record<string, VersionEntry>): number {
+function getEnabledVersionCount(
+  versions: Record<string, VersionEntry>,
+): number {
   return Object.values(versions).filter(isVersionEnabled).length
 }
 
@@ -184,11 +186,10 @@ ${chalk.dim('See PROSPECTS.md for planned and unsupported databases.')}
     return
   }
 
-  const entries = Object.entries(databases)
-    .map(([key, db]) => ({
-      key,
-      ...db,
-    }))
+  const entries = Object.entries(databases).map(([key, db]) => ({
+    key,
+    ...db,
+  }))
 
   if (entries.length === 0) {
     console.log(chalk.yellow('No databases found matching criteria.'))
