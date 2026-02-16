@@ -251,10 +251,10 @@
         "releaseTag": "mariadb-11.4.5",
         "releasedAt": "2026-01-07T12:15:53Z",
         "platforms": {
-          "darwin-arm64": {
-            "url": "https://registry.layerbase.host/mariadb-11.4.5/mariadb-11.4.5-darwin-arm64.tar.gz",
-            "sha256": "eaf68030cd808d5db5b449d870a98cba68c41d459325f0ad0d855c3908633eaa",
-            "size": 79824774
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mariadb-11.4.5/mariadb-11.4.5-darwin-x64.tar.gz",
+            "sha256": "8b099ad3314c95a4e18255c5fb0cccf586b9a669a734d42ee20b8d4df19fb82f",
+            "size": 82119958
           }
         }
       },
