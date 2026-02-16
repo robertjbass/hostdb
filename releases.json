@@ -1058,6 +1058,40 @@
           }
         }
       }
+    },
+    "weaviate": {
+      "1.35.7": {
+        "version": "1.35.7",
+        "releaseTag": "weaviate-1.35.7",
+        "releasedAt": "2026-02-16T05:41:41Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/weaviate-1.35.7/weaviate-1.35.7-darwin-arm64.tar.gz",
+            "sha256": "9f762253ff1ff2400df014bd7af3be3fb4b8a924ad8305868539980960e6217c",
+            "size": 63977749
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/weaviate-1.35.7/weaviate-1.35.7-darwin-x64.tar.gz",
+            "sha256": "5ad87e45ee7dbe7e2294c14db105db4b314a6a03af48c9099b65558796aa42e6",
+            "size": 65940371
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/weaviate-1.35.7/weaviate-1.35.7-linux-arm64.tar.gz",
+            "sha256": "e80d1def0aef5c6cba8ba4a77ee4d88b3d8f7aa1a45b4ecd5b1333477300d0fd",
+            "size": 63941443
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/weaviate-1.35.7/weaviate-1.35.7-linux-x64.tar.gz",
+            "sha256": "16847addf7e04e9054d3bfc9fd060a08b2d1ffd1f3eeadea0fa5b831f8042561",
+            "size": 66925113
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/weaviate-1.35.7/weaviate-1.35.7-win32-x64.zip",
+            "sha256": "2e30584e46b28f80046f0e8025e0d713f07b384b607a88f10836413888527252",
+            "size": 65869877
+          }
+        }
+      }
     }
   }
 }
