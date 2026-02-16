@@ -104,13 +104,13 @@ jobs:
           if [ "$PLATFORMS" = "all" ]; then
             # All 5 platforms with their appropriate runners and build types
             # - Linux: Docker extraction from official CouchDB image
-            # - macOS: Download from Neighbourhoodie
+            # - macOS: Download from Neighbourhoodie (macOS runners for dylib patching)
             # - Windows: Download MSI and extract on Windows runner
             MATRIX='[
               {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
               {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
-              {"platform": "darwin-x64", "runner": "ubuntu-latest", "build_type": "download"},
-              {"platform": "darwin-arm64", "runner": "ubuntu-latest", "build_type": "download"},
+              {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "download"},
+              {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "download"},
               {"platform": "win32-x64", "runner": "windows-latest", "build_type": "msi-extract"}
             ]'
           else
@@ -119,8 +119,11 @@ jobs:
               linux-x64|linux-arm64)
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"docker\"}]"
                 ;;
-              darwin-x64|darwin-arm64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"download\"}]"
+              darwin-x64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\", \"build_type\": \"download\"}]"
+                ;;
+              darwin-arm64)
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-14\", \"build_type\": \"download\"}]"
                 ;;
               win32-x64)
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"windows-latest\", \"build_type\": \"msi-extract\"}]"
@@ -228,6 +231,37 @@ jobs:
             exit 1
           fi
           ls -la ./dist/
+
+      # Fix macOS dylib paths for relocatable binaries
+      - name: Fix macOS dylib paths
+        if: matrix.build_type == 'download'
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          PLATFORM="${{ matrix.platform }}"
+          TARBALL="./dist/couchdb-${VERSION}-${PLATFORM}.tar.gz"
+
+          if [ ! -f "$TARBALL" ]; then
+            echo "::error::Tarball not found: $TARBALL"
+            exit 1
+          fi
+
+          # Extract tarball to patch the binaries
+          mkdir -p ./dist/extract
+          tar xzf "$TARBALL" -C ./dist/extract
+
+          # Fix dylib paths
+          chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
+          "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh" ./dist/extract/couchdb
+
+          # Re-create tarball with patched binaries
+          rm "$TARBALL"
+          tar czf "$TARBALL" -C ./dist/extract couchdb
+
+          # Clean up
+          rm -rf ./dist/extract
+
+          echo "Patched tarball:"
+          ls -la "$TARBALL"
 
       # For Windows: install MSI, copy files, then uninstall
       # Using actual install instead of extraction (/a) because extraction breaks

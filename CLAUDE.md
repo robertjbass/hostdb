@@ -571,6 +571,6 @@ chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
 "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh" "$GITHUB_WORKSPACE/install/<database>"
 ```
 
-**Currently used by:** MariaDB, Redis, Valkey workflows. PostgreSQL-DocumentDB has its own inline implementation.
+**Currently used by:** MariaDB, Redis, Valkey, CouchDB workflows. PostgreSQL-DocumentDB has its own inline implementation.
 
 **Diagnostic:** `pnpm check:dylibs [<path>]` scans packages for non-relocatable paths without modifying anything. The `audit-dylibs` workflow (`workflow_dispatch`) audits published releases on R2.

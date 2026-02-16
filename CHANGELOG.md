@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
   - Standalone script that bundles Homebrew dylibs into a package's `lib/` directory and rewrites absolute paths to `@loader_path` relative references
   - Adapted from the proven inline implementation in `builds/postgresql-documentdb/build-macos.sh`
   - Handles recursive transitive dependencies, code signing, and verification (fails CI if Homebrew paths remain)
-  - Integrated into MariaDB, Redis, and Valkey release workflows (macOS build steps)
+  - Integrated into MariaDB, Redis, Valkey, and CouchDB release workflows (macOS build steps)
   - Fixes OpenSSL (and pcre2, jemalloc, lz4, zstd, snappy for MariaDB) dylib-not-found crashes on Macs without Homebrew
 
 - **macOS dylib audit tooling**
@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **CouchDB macOS builds now run on macOS runners** (was ubuntu-latest) to enable dylib patching — downloads from Neighbourhoodie are now patched for relocatability
 - **Redis and Valkey macOS builds now include `lib/`** with bundled OpenSSL dylibs (`libssl.3.dylib`, `libcrypto.3.dylib`)
 - **BINARIES.md** updated to reflect `lib/` directory in Redis and Valkey macOS archives
 - **CHECKLIST.md** updated with Phase 5.1b for macOS dylib patching guidance
