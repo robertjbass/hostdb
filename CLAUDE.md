@@ -115,6 +115,7 @@ hostdb/
 │   └── releases.schema.json
 ├── builds/                 # Per-database build configurations
 │   ├── common/
+│   │   ├── validate-binaries.sh  # Validate archives contain all required cli_tools binaries
 │   │   ├── fix-macos-dylibs.sh   # Bundle Homebrew dylibs for relocatable binaries
 │   │   └── check-macos-dylibs.sh # Audit packages for non-relocatable paths
 │   ├── mysql/
@@ -214,8 +215,10 @@ Each database has a release workflow that **validates against databases.json**:
 3. **Validate job** checks version is enabled in `databases.json` and exists in `sources.json`
 4. Matrix builds all platforms in parallel
 5. Downloads official binaries OR builds from source
-6. Creates GitHub Release with artifacts
-7. `update-releases` job rebuilds `releases.json` from all GitHub releases and publishes to R2
+6. **Validate binaries** - extracts archives and verifies all `cli_tools` binaries exist
+7. Creates GitHub Release with artifacts
+8. `upload-to-r2` job mirrors release assets to Cloudflare R2
+9. `update-releases` job rebuilds `releases.json` from all GitHub releases and publishes to R2
 
 **Validation flow:**
 ```
@@ -333,6 +336,14 @@ When implementing `.github/workflows/release-<database>.yml`:
    - name: Download source build artifacts
      if: needs.build-source.result == 'success'
      uses: actions/download-artifact@v4
+   ```
+
+3. **Binary validation step**: Every release workflow must validate archives before creating the GitHub Release. Add this step in the `release` job, after preparing release assets and before the "Create Release" step:
+   ```yaml
+   - name: Validate required binaries
+     run: |
+       chmod +x builds/common/validate-binaries.sh
+       ./builds/common/validate-binaries.sh <database-id> ./release-assets
    ```
 
 ## Adding New Versions
@@ -574,3 +585,22 @@ chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
 **Currently used by:** MariaDB, Redis, Valkey, CouchDB workflows. PostgreSQL-DocumentDB has its own inline implementation.
 
 **Diagnostic:** `pnpm check:dylibs [<path>]` scans packages for non-relocatable paths without modifying anything. The `audit-dylibs` workflow (`workflow_dispatch`) audits published releases on R2.
+
+## Binary Validation (Shared Script)
+
+Every release workflow validates that archives contain all required binaries before creating the GitHub Release. This prevents shipping incomplete releases (e.g., PostgreSQL 17.7.0 once shipped without `psql`, `pg_dump`, and other client tools, breaking SpinDB's backup/restore).
+
+**`builds/common/validate-binaries.sh <database> <release-assets-dir>`** does the following:
+1. Reads `databases.json` to get the database's `cliTools` (server, client, utilities)
+2. Collects all non-null binary names from those fields (skips `enhanced` tools)
+3. For each archive (`.tar.gz` / `.zip`) in the release assets directory, extracts and searches for each required binary
+4. Fails the build with clear error messages if any binary is missing
+
+**Dependency-aware:** Some databases depend on others for client tools. For example, QuestDB lists `psql` as its client but depends on PostgreSQL — `psql` comes from the PostgreSQL install, not the QuestDB tarball. The script reads `dependencies` from `databases.json` (both top-level and per-version) and skips binaries provided by dependency databases.
+
+**Name variant handling:** The script handles naming differences between `cli_tools` and actual binaries:
+- Windows extensions: `.exe`, `.cmd`, `.bat`
+- Hyphen-to-underscore: `typedb-console` → `typedb_console`, `typedb_console_bin`
+- Searches recursively through the entire extracted archive (handles `bin/`, root, and custom paths like TypeDB's `server/` and `console/`)
+
+**Currently used by:** All 21 release workflows. Added as a "Validate required binaries" step in each workflow's `release` job, positioned after artifact preparation and before "Create Release".

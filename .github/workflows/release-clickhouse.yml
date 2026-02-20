@@ -264,6 +264,12 @@ jobs:
           echo "Checksums:"
           cat ./release-assets/checksums.txt || echo "No checksums"
 
+      - name: Validate required binaries
+        if: steps.prepare.outputs.has-artifacts == 'true'
+        run: |
+          chmod +x builds/common/validate-binaries.sh
+          ./builds/common/validate-binaries.sh clickhouse ./release-assets
+
       - name: Create Release
         if: steps.prepare.outputs.has-artifacts == 'true'
         uses: softprops/action-gh-release@v2

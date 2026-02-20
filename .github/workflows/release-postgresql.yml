@@ -790,6 +790,11 @@ jobs:
           echo "Checksums:"
           cat ./release-assets/checksums.txt
 
+      - name: Validate required binaries
+        run: |
+          chmod +x builds/common/validate-binaries.sh
+          ./builds/common/validate-binaries.sh postgresql ./release-assets
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
