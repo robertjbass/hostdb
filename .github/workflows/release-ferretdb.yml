@@ -184,6 +184,11 @@ jobs:
       - name: List release assets
         run: ls -la ./release-assets/
 
+      - name: Validate required binaries
+        run: |
+          chmod +x builds/common/validate-binaries.sh
+          ./builds/common/validate-binaries.sh ferretdb ./release-assets
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:

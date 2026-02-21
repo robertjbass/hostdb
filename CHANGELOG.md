@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.28.0] - 2026-02-20
+
+### Added
+
+- **Binary validation in all release workflows** (`builds/common/validate-binaries.sh`)
+  - Shared script that extracts archives and verifies all required `cli_tools` binaries exist before creating GitHub Releases
+  - Reads `databases.json` to determine required binaries per engine (server, client, utilities)
+  - Handles dependency-aware validation — skips binaries provided by dependency databases (e.g., QuestDB depends on PostgreSQL for `psql`)
+  - Handles naming variants across platforms (Windows `.exe`/`.cmd`/`.bat` extensions, hyphen-to-underscore)
+  - Added as a "Validate required binaries" step in all 21 release workflows
+  - Prevents shipping incomplete releases (e.g., PostgreSQL without `psql` and `pg_dump`)
+
 ## [0.27.0] - 2026-02-16
 
 ### Added
