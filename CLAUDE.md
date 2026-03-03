@@ -362,6 +362,8 @@ When adding a new version to an existing database:
 
 **That's it.** The prep script handles syncing workflow dropdowns and populating SHA256 checksums automatically.
 
+**Downstream impact:** layerbase-cloud (`~/dev/layerbase-cloud`) uses major.minor version tags (e.g., `11.8`) that must correspond to versions built here (full semver, e.g., `11.8.5`). When adding a **new major.minor** version (not just a patch bump), the cloud project needs updates in three files: `src/config/engines.ts`, `.github/workflows/build-images.yml`, `.github/workflows/deploy.yml`. See cloud CLAUDE.md "Engine Version Sync" for details. Patch bumps (e.g., `11.8.5` → `11.8.6`) don't require cloud changes — the Docker images pick up the latest patch at build time.
+
 ## Checksums
 
 Most databases use **SHA-256** checksums. The `pnpm checksums:populate` script downloads files and computes checksums automatically.
