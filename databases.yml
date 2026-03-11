@@ -329,10 +329,17 @@ databases:
     protocol: null
     note: ''
     versions:
-      9.5.0: true
-      9.1.0: true
+      9.6.0: true
+      9.5.0:
+        deprecated: true
+        note: Deprecated; superseded by 9.6.0
+      9.1.0:
+        deprecated: true
+        note: Deprecated; superseded by 9.6.0
       8.4.3: true
-      8.0.40: true
+      8.0.40:
+        deprecated: true
+        note: Deprecated; use 8.4.x LTS instead
     platforms:
       - linux-x64
       - linux-arm64

@@ -23,6 +23,7 @@ import {
   generateDatabasesJson,
   getEnabledVersions,
   isVersionEnabled,
+  isVersionDeprecated,
   getVersionPlatforms,
   type Platform,
   type DatabasesJson,
@@ -152,6 +153,11 @@ function findDiscrepancies(): Discrepancy[] {
     // Check for versions enabled but not released
     for (const version of enabledVersions) {
       if (!releases.databases[dbId][version]) {
+        // Skip deprecated versions — they retain existing releases but
+        // should not be flagged if they happen to be missing
+        const versionEntry = dbEntry.versions[version]
+        if (isVersionDeprecated(versionEntry)) continue
+
         discrepancies.push({
           type: 'missing-version',
           database: dbId,

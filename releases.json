@@ -494,7 +494,8 @@
             "sha256": "240d0fcb48663ff32a475e3e04fa4e5691ccaae489c35cf49fc0bbd000b256cd",
             "size": 302737000
           }
-        }
+        },
+        "deprecated": true
       },
       "9.1.0": {
         "version": "9.1.0",
@@ -526,7 +527,8 @@
             "sha256": "4bc4068ae41cdc1b7bc5dfca524d90cb4f625923eab8d29d7a199a4bbbf2498d",
             "size": 302352713
           }
-        }
+        },
+        "deprecated": true
       },
       "8.4.3": {
         "version": "8.4.3",
@@ -590,7 +592,8 @@
             "sha256": "83096828de495d32f4816f97bf59113ad294c5950fc03594aae9b4adb8ab2100",
             "size": 243702261
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "postgresql": {

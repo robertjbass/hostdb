@@ -150,6 +150,11 @@
           "default": true,
           "description": "Whether this version is enabled for building/releasing. Defaults to true for object entries."
         },
+        "deprecated": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this version has been deprecated. Deprecated versions retain their existing releases but are excluded from build workflows and not recommended for new installations."
+        },
         "note": {
           "type": "string",
           "description": "Version-specific notes"

@@ -53,6 +53,7 @@ type VersionRelease = {
   version: string
   releaseTag: string
   releasedAt: string
+  deprecated?: boolean
   platforms: Partial<Record<Platform, PlatformAsset>>
 }
 
@@ -350,6 +351,31 @@ async function main() {
   }
 
   console.log(`\nProcessed ${processed} releases (${skipped} skipped)`)
+
+  // Mark deprecated versions from databases.json
+  const databasesPath = resolve(ROOT_DIR, 'databases.json')
+  if (existsSync(databasesPath)) {
+    const databasesJson = JSON.parse(readFileSync(databasesPath, 'utf-8')) as {
+      databases: Record<
+        string,
+        { versions: Record<string, boolean | { deprecated?: boolean }> }
+      >
+    }
+    for (const [dbId, versions] of Object.entries(manifest.databases)) {
+      const dbConfig = databasesJson.databases[dbId]
+      if (!dbConfig) continue
+      for (const [version, release] of Object.entries(versions)) {
+        const versionEntry = dbConfig.versions[version]
+        if (
+          versionEntry &&
+          typeof versionEntry === 'object' &&
+          versionEntry.deprecated === true
+        ) {
+          release.deprecated = true
+        }
+      }
+    }
+  }
 
   // Sort for deterministic output
   const sorted = sortManifest(manifest)

@@ -46,6 +46,10 @@
           "format": "date-time",
           "description": "When this version was released"
         },
+        "deprecated": {
+          "type": "boolean",
+          "description": "Whether this version has been deprecated. Deprecated versions retain their binaries but are not recommended for new installations."
+        },
         "platforms": {
           "type": "object",
           "description": "Available platforms for this version",
