@@ -51,6 +51,7 @@ export type PlatformEntry = true | PlatformConfig
 // Version config with overrides (when version entry is an object)
 export type VersionConfig = {
   enabled?: boolean
+  deprecated?: boolean
   note?: string
   dependencies?: Dependency[]
   platforms?: Platform[] | Record<string, PlatformEntry>
@@ -105,6 +106,7 @@ export type VersionRelease = {
   version: string
   releaseTag: string
   releasedAt: string
+  deprecated?: boolean
   platforms: Partial<Record<Platform, PlatformAsset>>
 }
 
@@ -151,6 +153,12 @@ function getVersionPlatformsRaw(versionEntry: VersionConfig): {
 export function isVersionEnabled(entry: VersionEntry): boolean {
   if (typeof entry === 'boolean') return entry
   return entry.enabled !== false
+}
+
+/** Check if a version entry is deprecated */
+export function isVersionDeprecated(entry: VersionEntry): boolean {
+  if (typeof entry === 'boolean') return false
+  return entry.deprecated === true
 }
 
 /** Get set of enabled version strings for a database */

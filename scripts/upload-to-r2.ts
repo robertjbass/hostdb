@@ -136,7 +136,9 @@ async function main() {
   const { tag, force } = parseArgs()
   const repo = 'robertjbass/hostdb'
 
-  console.log(`Uploading assets for release ${tag} to R2...${force ? ' (force overwrite)' : ''}\n`)
+  console.log(
+    `Uploading assets for release ${tag} to R2...${force ? ' (force overwrite)' : ''}\n`,
+  )
 
   const r2Config = loadR2Config()
   const client = createR2Client(r2Config)
@@ -203,9 +205,7 @@ async function main() {
     if (purged) {
       console.log(`  Purged ${count} URLs from Cloudflare CDN cache`)
     } else {
-      console.log(
-        '  Skipped: CLOUDFLARE_API_TOKEN/CLOUDFLARE_ZONE_ID not set',
-      )
+      console.log('  Skipped: CLOUDFLARE_API_TOKEN/CLOUDFLARE_ZONE_ID not set')
     }
   }
 }

@@ -50,7 +50,9 @@ function logWarning(message: string) {
   console.log(`${colors.yellow}⚠${colors.reset} ${message}`)
 }
 
-type VersionEntry = boolean | { enabled?: boolean; [key: string]: unknown }
+type VersionEntry =
+  | boolean
+  | { enabled?: boolean; deprecated?: boolean; [key: string]: unknown }
 
 type DatabaseConfig = {
   displayName: string
@@ -73,9 +75,16 @@ function isVersionEnabled(entry: VersionEntry): boolean {
   return entry.enabled !== false
 }
 
+function isVersionDeprecated(entry: VersionEntry): boolean {
+  if (typeof entry === 'boolean') return false
+  return entry.deprecated === true
+}
+
 function getEnabledVersions(db: DatabaseConfig): string[] {
   return Object.entries(db.versions)
-    .filter(([, entry]) => isVersionEnabled(entry))
+    .filter(
+      ([, entry]) => isVersionEnabled(entry) && !isVersionDeprecated(entry),
+    )
     .map(([version]) => version)
     .sort((a, b) => {
       // Sort by semantic version, newest first

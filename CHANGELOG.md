@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.29.0] - 2026-03-11
+
+### Added
+
+- **Version deprecation support** — new `deprecated` field in database and release schemas
+  - Deprecated versions retain existing binaries in `releases.json` but are excluded from workflow build dropdowns
+  - `databases.schema.json`, `releases.schema.json`, and `lib/databases.ts` updated with `deprecated` field
+  - `sync-versions.ts` excludes deprecated versions from GitHub Actions workflow dropdowns
+  - `build-releases-json.ts` propagates `deprecated` flag into `releases.json` entries
+  - `prep.ts` skips deprecated versions when checking for missing releases
+- **MySQL 9.6.0** — added with official binaries for all 5 platforms
+
+### Deprecated
+
+- **MySQL 8.0.40** — use 8.4.x LTS instead
+- **MySQL 9.1.0** — superseded by 9.6.0
+- **MySQL 9.5.0** — superseded by 9.6.0
+
 ## [0.28.0] - 2026-02-20
 
 ### Added

@@ -2,6 +2,33 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "mysql",
   "versions": {
+    "9.6.0": {
+      "linux-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-linux-glibc2.28-x86_64.tar.xz",
+        "format": "tar.xz",
+        "sha256": "92271b67eb88cd74931f6bfc1f79edcf6a285508fc437c80d704b16512486374"
+      },
+      "linux-arm64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-linux-glibc2.28-aarch64.tar.xz",
+        "format": "tar.xz",
+        "sha256": "fe6141f6069534724b0eb9a5d235a7616c7829d74bd1509e624c9466485843a0"
+      },
+      "darwin-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-macos15-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "488584fbbb7c3d3f19c86da84dc773c4b86edcbf4e7b0e5990cd828cfb97f62a"
+      },
+      "darwin-arm64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-macos15-arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "fda7f5196768763f366a7967a7e53e8c09ad31713a13f636ccd6ba2706730757"
+      },
+      "win32-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-winx64.zip",
+        "format": "zip",
+        "sha256": "e799c423e1df0740cfe8295117231d7bd5c6f7b6aad22a31bdeff6b33f8de809"
+      }
+    },
     "9.5.0": {
       "linux-x64": {
         "url": "https://cdn.mysql.com/Downloads/MySQL-9.5/mysql-9.5.0-linux-glibc2.28-x86_64.tar.xz",
@@ -87,6 +114,7 @@
   "notes": {
     "glibc": "Linux binaries require glibc 2.28+ (Ubuntu 20.04+, Debian 10+, RHEL 8+)",
     "macos": "macOS binaries target macos14 (Sonoma) for 8.x versions; MySQL 9.5.0+ targets macos15 (Sequoia). Binaries may work on earlier macOS versions.",
+    "deprecated": "Versions 8.0.40, 9.1.0, and 9.5.0 are deprecated. Existing binaries are retained but no new builds will be triggered.",
     "cdn": "Use cdn.mysql.com/archives/ for direct downloads (dev.mysql.com redirects require auth)"
   }
 }
