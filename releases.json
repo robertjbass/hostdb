@@ -636,12 +636,12 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/postgresql-18.1.0/postgresql-18.1.0-darwin-arm64.tar.gz",
-            "sha256": "41b9a9f0b02d6bb9d4960a0fed4949e413d5dd4c9087d1ef9fff80480ad26221",
+            "sha256": "275d9ceda8e4756758c0318824bb2d6df52a3e28d02bda0031653284b165853c",
             "size": 29191486
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/postgresql-18.1.0/postgresql-18.1.0-darwin-x64.tar.gz",
-            "sha256": "7dbbf27186e1cb8ce630c3a4f87a239dfb2593fb35e319a16d963892f0b8df5c",
+            "sha256": "ddc444e375d5ccec7921a6e7134c0343b57884dfde73cb6402d6debfc2806ba0",
             "size": 28944135
           },
           "linux-arm64": {
@@ -668,12 +668,12 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/postgresql-17.7.0/postgresql-17.7.0-darwin-arm64.tar.gz",
-            "sha256": "0ecbca90a47638f88599b29c232a826085c86bee06f1de5118d3d939eac73f70",
+            "sha256": "283937f371ca2460806a5f44ea9fcd34baa9b4b2b0a54adfc8ed4049bda7c0a3",
             "size": 28797739
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/postgresql-17.7.0/postgresql-17.7.0-darwin-x64.tar.gz",
-            "sha256": "659865a0de855e5472404188ea58ac26237427a547b271319e99e98dc267017b",
+            "sha256": "440a70e994f62775888edc91156693b36b172c04b9fdff7183b7689cfb31b290",
             "size": 28566989
           },
           "linux-arm64": {
@@ -700,12 +700,12 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/postgresql-16.11.0/postgresql-16.11.0-darwin-arm64.tar.gz",
-            "sha256": "14263aa593747300d1b11c766810a3949e2d5f14e79c6bed4ed4224072ebac2e",
+            "sha256": "d387bd9ed051fc03a0c584d57dd720735aa256aa4e5db165e1e91064291f7a52",
             "size": 28119952
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/postgresql-16.11.0/postgresql-16.11.0-darwin-x64.tar.gz",
-            "sha256": "83ea273c6cc8f40ebd53bfce819d80f8437724344053f4920201a00f70a13ac0",
+            "sha256": "8409f3897ca2f63f21b6b7b44642c36ac3370f3fe52b7f53865f49ccb4086d9e",
             "size": 27880406
           },
           "linux-arm64": {
