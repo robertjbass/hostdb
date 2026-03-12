@@ -464,6 +464,38 @@
       }
     },
     "mysql": {
+      "9.6.0": {
+        "version": "9.6.0",
+        "releaseTag": "mysql-9.6.0",
+        "releasedAt": "2026-03-12T01:15:09Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-darwin-arm64.tar.gz",
+            "sha256": "cb4adad53102e1bc0c8743c20c3a2dee07c94e5377690d2115f0658d567a9326",
+            "size": 171310635
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-darwin-x64.tar.gz",
+            "sha256": "219a378666c16ef650845871041d792f3b53d4c4b7c6f4bbc7fe3ee280842a58",
+            "size": 176031206
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-linux-arm64.tar.gz",
+            "sha256": "c30a503c056249893456a1746e0f2788568066bafde25ba96ea3ae56f8c890ba",
+            "size": 1083410543
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-linux-x64.tar.gz",
+            "sha256": "3d58d551d6c066e8e13628f44d1307802607a8f6c7f41f4d4ba15e6433f692c2",
+            "size": 1092567180
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-win32-x64.zip",
+            "sha256": "7c9f16ad7a6435a6f4977aa7d0a026cc3da8f2e6910be3b3cc23d688f3c2150c",
+            "size": 304502159
+          }
+        }
+      },
       "9.5.0": {
         "version": "9.5.0",
         "releaseTag": "mysql-9.5.0",
