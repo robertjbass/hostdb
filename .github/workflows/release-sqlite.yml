@@ -361,4 +361,5 @@ jobs:
           git add releases.json databases.json
           git diff --staged --quiet && echo "No changes" && exit 0
           git commit -m "chore: update releases.json"
+          git pull --rebase origin main
           git push

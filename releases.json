@@ -233,6 +233,35 @@
         }
       }
     },
+    "libsql": {
+      "0.24.32": {
+        "version": "0.24.32",
+        "releaseTag": "libsql-0.24.32",
+        "releasedAt": "2026-03-12T21:13:38Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/libsql-0.24.32/libsql-0.24.32-darwin-arm64.tar.gz",
+            "sha256": "ba5092016f299f73ee03011e12e3c4c49467e9a87eda236c27ee43ee46b517df",
+            "size": 14951364
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/libsql-0.24.32/libsql-0.24.32-darwin-x64.tar.gz",
+            "sha256": "26ae8f6131fc40ac1a05f064a62d4d7f6262d57319968fabd9f44a9340126b96",
+            "size": 15883714
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/libsql-0.24.32/libsql-0.24.32-linux-arm64.tar.gz",
+            "sha256": "c40cb6e966701074a275e6e8953a6047a96dd0e78bdd45d4aafa6ee2b1fac442",
+            "size": 16466831
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/libsql-0.24.32/libsql-0.24.32-linux-x64.tar.gz",
+            "sha256": "8b224df013ebf1ddbda39f0fa74f03e98010aedb085ffd99bd3a65d06e0e070d",
+            "size": 16492900
+          }
+        }
+      }
+    },
     "mariadb": {
       "11.8.5": {
         "version": "11.8.5",
@@ -732,12 +761,12 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/postgresql-15.15.0/postgresql-15.15.0-darwin-arm64.tar.gz",
-            "sha256": "4f0908b45fa87c22e5926504944b69cb7ed51676f7532d9f6de706c6e490e046",
+            "sha256": "43c02493e46b67b9dba200084edc91b5ea5f29935a2edf0f7ae8a36a4e553e18",
             "size": 27732505
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/postgresql-15.15.0/postgresql-15.15.0-darwin-x64.tar.gz",
-            "sha256": "d707692702067fd0ce5fa84a313e5dc391901fb2c908ebf715445fa531481436",
+            "sha256": "3e4d4b1c57cc361f926516fa3d1f6255d769f89afc11b91c5d61185319e25009",
             "size": 27444850
           },
           "linux-arm64": {
