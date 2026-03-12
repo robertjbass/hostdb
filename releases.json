@@ -241,23 +241,23 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/libsql-0.24.32/libsql-0.24.32-darwin-arm64.tar.gz",
-            "sha256": "ba5092016f299f73ee03011e12e3c4c49467e9a87eda236c27ee43ee46b517df",
-            "size": 14951364
+            "sha256": "444937c810457e4474fe66945e0ce1372271fafdcca0a7be79cc08e5d66ecbd0",
+            "size": 14951284
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/libsql-0.24.32/libsql-0.24.32-darwin-x64.tar.gz",
-            "sha256": "26ae8f6131fc40ac1a05f064a62d4d7f6262d57319968fabd9f44a9340126b96",
-            "size": 15883714
+            "sha256": "145dad6b328fc807fe0627661c1c43cf72c22bb3540751caf96af712b6a08164",
+            "size": 15883700
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/libsql-0.24.32/libsql-0.24.32-linux-arm64.tar.gz",
-            "sha256": "c40cb6e966701074a275e6e8953a6047a96dd0e78bdd45d4aafa6ee2b1fac442",
-            "size": 16466831
+            "sha256": "dd28afdc474b960029547fe1a8a7929757c397acbc8de6f39513c6fc1fee3b1d",
+            "size": 16466677
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/libsql-0.24.32/libsql-0.24.32-linux-x64.tar.gz",
-            "sha256": "8b224df013ebf1ddbda39f0fa74f03e98010aedb085ffd99bd3a65d06e0e070d",
-            "size": 16492900
+            "sha256": "b210396f32a93f1bd798a47f9dc46afdddea895e29c126817841ef4f06932ba5",
+            "size": 16492722
           }
         }
       }
