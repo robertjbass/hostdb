@@ -1,0 +1,266 @@
+name: Release libSQL
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'libSQL version'
+        required: true
+        type: choice
+        options:
+          - 0.24.32
+        default: 0.24.32
+      platforms:
+        description: 'Platforms'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'linux-x64'
+          - 'linux-arm64'
+          - 'darwin-x64'
+          - 'darwin-arm64'
+
+# Prevent concurrent runs that could conflict when updating releases.json
+concurrency:
+  group: release-libsql
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version against databases.json
+        run: |
+          DB="libsql"
+
+          echo "Validating libSQL version: $VERSION"
+
+          # A version is enabled if its value is `true` or an object without `"enabled": false`
+          ENABLED=$(jq -r "
+            .databases.$DB.versions[\"$VERSION\"] // null
+            | if . == null or . == false then \"false\"
+              elif type == \"object\" and .enabled == false then \"false\"
+              else \"true\"
+            end
+          " databases.json)
+          if [ "$ENABLED" != "true" ]; then
+            echo "::error::Version '$VERSION' is not enabled in databases.json"
+            echo ""
+            echo "Available versions:"
+            jq -r "
+              .databases.$DB.versions | to_entries
+              | map(select(.value == true or ((.value | type) == \"object\" and (.value.enabled // true) == true)))
+              | .[].key
+            " databases.json
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION is enabled in databases.json"
+
+      - name: Validate sources.json exists
+        run: |
+          DB="libsql"
+          if [ ! -f "builds/$DB/sources.json" ]; then
+            echo "::error::Missing builds/$DB/sources.json"
+            exit 1
+          fi
+          echo "✓ builds/$DB/sources.json exists"
+
+      - name: Validate version in sources.json
+        run: |
+          DB="libsql"
+
+          HAS_VERSION=$(jq -r ".versions[\"$VERSION\"] // empty" "builds/$DB/sources.json")
+          if [ -z "$HAS_VERSION" ]; then
+            echo "::error::Version '$VERSION' not found in builds/$DB/sources.json"
+            echo ""
+            echo "Available versions in sources.json:"
+            jq -r ".versions | keys[]" "builds/$DB/sources.json"
+            exit 1
+          fi
+
+          echo "✓ Version $VERSION found in sources.json"
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+      PLATFORMS: ${{ github.event.inputs.platforms }}
+    outputs:
+      artifact_names: ${{ steps.build.outputs.artifact_names }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install xz-utils
+        run: sudo apt-get update && sudo apt-get install -y xz-utils
+
+      - name: Download and repackage libSQL
+        id: build
+        run: |
+          if [ "$PLATFORMS" = "all" ]; then
+            pnpm download:libsql -- --version "$VERSION" --all-platforms --output ./dist
+          else
+            for platform in $(echo "$PLATFORMS" | tr ',' ' '); do
+              pnpm download:libsql -- --version "$VERSION" --platform "$platform" --output ./dist
+            done
+          fi
+
+          # List created artifacts
+          ls -la ./dist/
+
+          # Create artifact names output
+          shopt -s nullglob
+          FILES=(./dist/*.tar.gz ./dist/*.zip)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "ERROR: No artifacts were created"
+            exit 1
+          fi
+          ARTIFACTS=$(printf '%s\n' "${FILES[@]}" | xargs -n1 basename | tr '\n' ',' | sed 's/,$//')
+          echo "artifact_names=$ARTIFACTS" >> $GITHUB_OUTPUT
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum *.tar.gz 2>/dev/null > checksums.txt
+          cat checksums.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libsql-${{ github.event.inputs.version }}
+          path: |
+            dist/*.tar.gz
+            dist/checksums.txt
+          retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: libsql-${{ github.event.inputs.version }}
+          path: ./release-assets
+
+      - name: List release assets
+        run: ls -la ./release-assets/
+
+      - name: Validate required binaries
+        run: |
+          chmod +x builds/common/validate-binaries.sh
+          ./builds/common/validate-binaries.sh libsql ./release-assets
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: libsql-${{ github.event.inputs.version }}
+          name: libSQL ${{ github.event.inputs.version }}
+          body: |
+            ## libSQL ${{ github.event.inputs.version }}
+
+            libSQL server (sqld) binaries repackaged for hostdb.
+            libSQL is a SQLite fork by Turso with server mode, HTTP API, and replication support.
+
+            ### Platforms
+            - `linux-x64` - Linux x86_64
+            - `linux-arm64` - Linux ARM64
+            - `darwin-x64` - macOS x86_64
+            - `darwin-arm64` - macOS Apple Silicon
+
+            ### Usage
+            ```bash
+            # Download URL pattern
+            https://github.com/${{ github.repository }}/releases/download/libsql-${{ github.event.inputs.version }}/libsql-${{ github.event.inputs.version }}-<platform>.tar.gz
+            ```
+
+            ### Checksums
+            See `checksums.txt` for SHA256 checksums.
+          files: |
+            release-assets/*.tar.gz
+            release-assets/checksums.txt
+          fail_on_unmatched_files: false
+
+  upload-to-r2:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Upload to R2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: pnpm tsx scripts/upload-to-r2.ts --tag "libsql-${{ github.event.inputs.version }}" --force
+
+  update-releases:
+    needs: upload-to-r2
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+
+      - name: Rebuild releases.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: pnpm tsx scripts/build-releases-json.ts --upload-r2
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add releases.json databases.json
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update releases.json"
+          git push

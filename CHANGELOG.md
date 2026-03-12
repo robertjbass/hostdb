@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.30.0] - 2026-03-12
+
+### Added
+
+- **libSQL (sqld) engine** — SQLite fork by Turso with server mode, HTTP API, and replication
+  - Version 0.24.32 with official binaries for 4 platforms (linux-x64, linux-arm64, darwin-x64, darwin-arm64)
+  - No Windows binaries available upstream (WSL required, same pattern as ClickHouse)
+  - MIT licensed, sqlite protocol compatible
+  - Download script repackages official tar.xz archives into hostdb tar.gz format
+  - Release workflow with full validation, R2 upload, and releases.json update
+
 ## [0.29.0] - 2026-03-11
 
 ### Added

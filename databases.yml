@@ -211,6 +211,39 @@ databases:
       default_user: null
       query_language: SQL
     spindb_status: completed
+  libsql:
+    display_name: libSQL
+    description: SQLite fork by Turso with server mode (sqld), HTTP API, replication, and embedded replica support
+    type: Embedded SQL
+    source_repo: https://github.com/tursodatabase/libsql
+    license: MIT
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: sqlite
+    note: Windows binaries unavailable. Require WSL.
+    versions:
+      0.24.32: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+      - darwin-x64
+      - darwin-arm64
+    cli_tools:
+      server: sqld
+      client: null
+      utilities: []
+      enhanced:
+        - litecli
+        - usql
+      note: HTTP API; use Turso client SDKs or any libSQL/SQLite client
+    connection:
+      runtime: server
+      default_port: 8080
+      scheme: http
+      default_database: null
+      default_user: null
+      query_language: SQL
+    spindb_status: in-progress
   mariadb:
     display_name: MariaDB
     description: Community-developed fork of MySQL with enhanced performance, storage engines, and features

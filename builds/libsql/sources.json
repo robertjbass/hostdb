@@ -1,0 +1,38 @@
+{
+  "$schema": "../../schemas/sources.schema.json",
+  "database": "libsql",
+  "versions": {
+    "0.24.32": {
+      "linux-x64": {
+        "url": "https://github.com/tursodatabase/libsql/releases/download/libsql-server-v0.24.32/libsql-server-x86_64-unknown-linux-gnu.tar.xz",
+        "format": "tar.xz",
+        "sha256": "71720fc8648c19efef416efebd47145ef59b62e198770533530a858e1336879f",
+        "sourceType": "official"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/tursodatabase/libsql/releases/download/libsql-server-v0.24.32/libsql-server-aarch64-unknown-linux-gnu.tar.xz",
+        "format": "tar.xz",
+        "sha256": "37f9eee45b388a30192907ecf4565b93df945c079331657073b5b3caf8bb1cd0",
+        "sourceType": "official"
+      },
+      "darwin-x64": {
+        "url": "https://github.com/tursodatabase/libsql/releases/download/libsql-server-v0.24.32/libsql-server-x86_64-apple-darwin.tar.xz",
+        "format": "tar.xz",
+        "sha256": "461480ea5a17781bab7dd5974aa804007434611baced37b6349c8060d0648e34",
+        "sourceType": "official"
+      },
+      "darwin-arm64": {
+        "url": "https://github.com/tursodatabase/libsql/releases/download/libsql-server-v0.24.32/libsql-server-aarch64-apple-darwin.tar.xz",
+        "format": "tar.xz",
+        "sha256": "ced2a9d65a5d4b6bd72c67e98ad6c63139e2a139d91769f07fdd15be935381dd",
+        "sourceType": "official"
+      }
+    }
+  },
+  "notes": {
+    "source": "Official libsql-server releases from Turso: https://github.com/tursodatabase/libsql/releases",
+    "platforms": "No Windows binaries available upstream; Linux and macOS only",
+    "url-pattern": "libsql-server-v{VERSION}/libsql-server-{rust-triple}.tar.xz",
+    "binary": "Archive contains a single binary named 'sqld'"
+  }
+}
