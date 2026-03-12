@@ -153,6 +153,8 @@ jobs:
     needs: find-missing
     if: github.event.inputs.action == 'build-missing' && needs.find-missing.outputs.has-missing == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     outputs:
       triggered: ${{ steps.trigger.outputs.triggered }}
     strategy:
