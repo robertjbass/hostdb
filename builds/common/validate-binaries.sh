@@ -31,7 +31,7 @@ echo "=== Binary Validation for $DB ==="
 
 # Extract version from the first archive filename (e.g., mysql-9.6.0-darwin-arm64.tar.gz → 9.6.0)
 # All archives in a single release run share the same version
-FIRST_ARCHIVE=$(ls "$ASSETS_DIR"/*.tar.gz "$ASSETS_DIR"/*.zip 2>/dev/null | head -1)
+FIRST_ARCHIVE=$(find "$ASSETS_DIR" -maxdepth 1 \( -name '*.tar.gz' -o -name '*.zip' \) -print -quit)
 VERSION=""
 if [ -n "$FIRST_ARCHIVE" ]; then
   BASENAME=$(basename "$FIRST_ARCHIVE")
