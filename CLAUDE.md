@@ -356,13 +356,92 @@ When implementing `.github/workflows/release-<database>.yml`:
 
 When adding a new version to an existing database:
 
-1. Update `databases.json` - add version with `true`
+1. Update `databases.yml` - add version with `true` (or a version config object)
 2. Update `builds/<database>/sources.json` - add URLs for all platforms
-3. Run `pnpm prep` - syncs workflows and populates checksums
+3. Run `pnpm prep` - generates databases.json, syncs workflows, and populates checksums
 
 **That's it.** The prep script handles syncing workflow dropdowns and populating SHA256 checksums automatically.
 
-**Downstream impact:** layerbase-cloud (`~/dev/layerbase-cloud`) uses major.minor version tags (e.g., `11.8`) that must correspond to versions built here (full semver, e.g., `11.8.5`). When adding a **new major.minor** version (not just a patch bump), the cloud project needs updates in three files: `src/config/engines.ts`, `.github/workflows/build-images.yml`, `.github/workflows/deploy.yml`. See cloud CLAUDE.md "Engine Version Sync" for details. Patch bumps (e.g., `11.8.5` → `11.8.6`) don't require cloud changes — the Docker images pick up the latest patch at build time.
+### Downstream Impact (spindb + layerbase-cloud)
+
+Changes in hostdb ripple to two downstream projects. Always check both when adding or deprecating versions.
+
+**spindb** (`~/dev/spindb`) — needs updates when adding or deprecating versions:
+- `engines/<db>/version-maps.ts` — add/update version mappings and `SUPPORTED_MAJOR_VERSIONS`
+- `config/engines.json` — update `supportedVersions` (only non-deprecated versions) and `defaultVersion`
+- `config/engine-defaults.ts` — update `latestVersion` mapping
+- `engines/<db>/hostdb-releases.ts` — export `fetchDeprecatedVersions` if deprecation is newly added for this engine
+- `engines/<db>/index.ts` — override `fetchDeprecatedVersions()` if newly added
+- `cli/ui/prompts.ts` — already handles `[deprecated]` tags generically; no changes needed unless UI behavior changes
+
+**layerbase-cloud** (`~/dev/layerbase-cloud`) — uses major.minor version tags (e.g., `11.8`) that must correspond to versions built here (full semver, e.g., `11.8.5`). When adding a **new major.minor** version (not just a patch bump), the cloud project needs updates in three files: `src/config/engines.ts`, `.github/workflows/build-images.yml`, `.github/workflows/deploy.yml`. See cloud CLAUDE.md "Engine Version Sync" for details. Patch bumps (e.g., `11.8.5` → `11.8.6`) don't require cloud changes — the Docker images pick up the latest patch at build time.
+
+## Deprecating Versions
+
+To deprecate a version (stop building it but keep existing binaries downloadable):
+
+1. **Update `databases.yml`** — change the version entry from `true` to an object with `deprecated: true`:
+   ```yaml
+   versions:
+     9.5.0:
+       deprecated: true
+       note: "Deprecated; superseded by 9.6.0"
+   ```
+
+2. **Run `pnpm prep`** — this regenerates databases.json and syncs workflow dropdowns. Deprecated versions are automatically excluded from workflow dropdowns by `sync-versions.ts`.
+
+3. **Rebuild releases.json** — `build-releases-json.ts` propagates the `deprecated` flag from databases.json into releases.json entries, so consumers like spindb can read it.
+
+4. **Update spindb** — see "Downstream Impact" above. The key files are version-maps, engines.json, and engine-defaults.
+
+**Important:** Deprecation does NOT delete binaries. Existing releases remain on R2 and in releases.json. Users can still download and use deprecated versions — they just won't appear in workflow build dropdowns or be recommended in spindb's UI.
+
+### Version-Level cliTools Overrides
+
+When a vendor removes or adds binaries between versions (e.g., MySQL removed `mysqlpump` in 9.0), use version-level `cli_tools` overrides in `databases.yml`:
+
+```yaml
+mysql:
+  cli_tools:
+    server: mysqld
+    client: mysql
+    utilities:
+      - mysqldump
+      - mysqladmin
+      - mysqlpump     # present in 8.x
+  versions:
+    9.6.0:
+      note: "mysqlpump removed in MySQL 9.0"
+      cli_tools:       # overrides engine-level cli_tools
+        server: mysqld
+        client: mysql
+        utilities:
+          - mysqldump
+          - mysqladmin
+    8.4.3: true        # uses engine-level cli_tools (includes mysqlpump)
+```
+
+`validate-binaries.sh` extracts the version from archive filenames and checks for version-level `cliTools` overrides before falling back to engine-level. This prevents build failures when the binary list differs between versions.
+
+## Version Tracking
+
+**`UPGRADE_VERSIONS.md`** tracks which engines need upgrades, organized by priority tier. Run `/audit-hostdb-versions` to refresh it with latest upstream versions.
+
+## Engine-Specific Notes
+
+### MariaDB
+
+Three versions are hosted: 10.11, 11.4, and 11.8 — all LTS releases. This is intentional:
+
+- **10.11** (LTS, EOL Feb 2028) — Last LTS in the 10.x line. Many production deployments still run 10.x because the jump to 11.x had breaking changes (removed `mysql_install_db`, system table changes). Users need this to match their production version.
+- **11.4** (LTS, EOL May 2029) — First long-term-supported release in 11.x. The "safe upgrade target" for users migrating from 10.x.
+- **11.8** (LTS, EOL ~2028) — Latest LTS with newer features. Same major line as 11.4 but both are independently supported LTS releases with different EOL dates.
+
+All three are justified. Do not consolidate.
+
+### FerretDB
+
+Both v1 (1.24.x) and v2 (2.x) are hosted. **v1 must be kept for backwards compatibility** — do not deprecate it. v2 uses DocumentDB (PostgreSQL extension) while v1 uses its own storage engine. Users may depend on either.
 
 ## Checksums
 
@@ -599,10 +678,11 @@ chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
 Every release workflow validates that archives contain all required binaries before creating the GitHub Release. This prevents shipping incomplete releases (e.g., PostgreSQL 17.7.0 once shipped without `psql`, `pg_dump`, and other client tools, breaking SpinDB's backup/restore).
 
 **`builds/common/validate-binaries.sh <database> <release-assets-dir>`** does the following:
-1. Reads `databases.json` to get the database's `cliTools` (server, client, utilities)
-2. Collects all non-null binary names from those fields (skips `enhanced` tools)
-3. For each archive (`.tar.gz` / `.zip`) in the release assets directory, extracts and searches for each required binary
-4. Fails the build with clear error messages if any binary is missing
+1. Extracts the version from archive filenames (e.g., `mysql-9.6.0-darwin-arm64.tar.gz` → `9.6.0`)
+2. Checks for version-level `cliTools` overrides in `databases.json` before falling back to engine-level `cliTools`
+3. Collects all non-null binary names from those fields (skips `enhanced` tools)
+4. For each archive (`.tar.gz` / `.zip`) in the release assets directory, extracts and searches for each required binary
+5. Fails the build with clear error messages if any binary is missing
 
 **Dependency-aware:** Some databases depend on others for client tools. For example, QuestDB lists `psql` as its client but depends on PostgreSQL — `psql` comes from the PostgreSQL install, not the QuestDB tarball. The script reads `dependencies` from `databases.json` (both top-level and per-version) and skips binaries provided by dependency databases.
 
