@@ -29,10 +29,31 @@ fi
 
 echo "=== Binary Validation for $DB ==="
 
+# Extract version from the first archive filename (e.g., mysql-9.6.0-darwin-arm64.tar.gz → 9.6.0)
+# All archives in a single release run share the same version
+FIRST_ARCHIVE=$(ls "$ASSETS_DIR"/*.tar.gz "$ASSETS_DIR"/*.zip 2>/dev/null | head -1)
+VERSION=""
+if [ -n "$FIRST_ARCHIVE" ]; then
+  BASENAME=$(basename "$FIRST_ARCHIVE")
+  # Strip database prefix and extension to get version-platform, then strip platform
+  VERSION=$(echo "$BASENAME" | sed -E "s/^${DB}-//; s/-(linux|darwin|win32)-.*//" )
+  echo "Detected version: $VERSION"
+fi
+
 # Collect required binaries from cli_tools (server, client, utilities)
+# Use version-level cliTools override if present, otherwise engine-level
 # Skip null values, empty strings, and enhanced tools
 REQUIRED_BINARIES=$(jq -r "
-  .databases[\"$DB\"].cliTools |
+  .databases[\"$DB\"] as \$engine |
+  (
+    if \"$VERSION\" != \"\" then
+      \$engine.versions[\"$VERSION\"] |
+      if type == \"object\" and .cliTools != null then .cliTools
+      else \$engine.cliTools
+      end
+    else \$engine.cliTools
+    end
+  ) |
   [
     .server,
     .client,
