@@ -8,7 +8,7 @@ Pre-built database binaries for all major platforms, hosted on Cloudflare R2 via
 
 **Ecosystem invariants:** `~/dev/layerbase-architecture/INVARIANTS.md` — Non-negotiable rules (scripting-first, thin desktop wrapper, platform-agnostic cloud, binary ownership). Read before making architectural changes.
 
-**Ecosystem:** hostdb builds database binaries and publishes them to Cloudflare R2. **spindb** (`~/dev/spindb`) downloads them to run databases locally. **layerbase-cloud** (`~/dev/layerbase-cloud`) uses spindb inside Docker containers (images at `ghcr.io/layerbase-llc/`) which download hostdb binaries at build time. **layerbase-desktop** (`~/dev/layerbase-desktop`) is an Electron GUI over spindb. **layerbase** (`~/dev/layerbase`) is the web app at layerbase.com.
+**Ecosystem:** hostdb builds database binaries and publishes them to Cloudflare R2. **spindb** (`~/dev/spindb`) downloads them to run databases locally. **layerbase-cloud** (`~/dev/layerbase-cloud`) uses a universal Docker image at `ghcr.io/layerbase-llc/`, and spindb downloads hostdb binaries on demand inside that container. **layerbase-desktop** (`~/dev/layerbase-desktop`) is an Electron GUI over spindb. **layerbase** (`~/dev/layerbase`) is the web app at layerbase.com.
 
 ## Versioning & Changelog
 
