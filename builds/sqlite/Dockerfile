@@ -5,13 +5,13 @@
 #
 # Usage:
 #   docker build --build-arg VERSION=3.51.2 -t sqlite-builder .
-#   docker run --rm -v $(pwd)/downloads:/downloads sqlite-builder
+#   docker run --rm -v $(pwd)/dist:/dist sqlite-builder
 #
 # For cross-architecture builds:
 #   docker buildx build --platform linux/arm64 --build-arg VERSION=3.51.2 ...
 #   docker buildx build --platform linux/amd64 --build-arg VERSION=3.51.2 ...
 #
-# Output: /downloads/sqlite-3.51.2-linux-{x64,arm64}.tar.gz
+# Output: /dist/sqlite-3.51.2-linux-{x64,arm64}.tar.gz
 
 # Ubuntu 20.04 provides GLIBC 2.31, compatible with Ubuntu 20.04+
 FROM ubuntu:20.04
@@ -96,4 +96,4 @@ CMD ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then PLATFORM="linux-x64"; \
     elif [ "$ARCH" = "aarch64" ]; then PLATFORM="linux-arm64"; \
     else echo "Unknown architecture: $ARCH" && exit 1; fi && \
-    cp /build/sqlite-${VERSION}-${PLATFORM}.tar.gz /downloads/
+    cp /build/sqlite-${VERSION}-${PLATFORM}.tar.gz /dist/
