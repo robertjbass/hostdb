@@ -523,6 +523,38 @@
           }
         }
       },
+      "7.0.34": {
+        "version": "7.0.34",
+        "releaseTag": "mongodb-7.0.34",
+        "releasedAt": "2026-05-14T18:18:44Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-7.0.34/mongodb-7.0.34-darwin-arm64.tar.gz",
+            "sha256": "08ca793a0072d751c8b81db95a3d74b82d45242774384d2442db301744b34406",
+            "size": 215322680
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mongodb-7.0.34/mongodb-7.0.34-darwin-x64.tar.gz",
+            "sha256": "b6f90eb571774b8cf9fd75a2bb02ac8be51ac9dc07201b41952e738df495ce36",
+            "size": 231241563
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-7.0.34/mongodb-7.0.34-linux-arm64.tar.gz",
+            "sha256": "61a6815dbf01b2d805c3846668f3cd9341e9809fc648a4c5b038b822e17f4d58",
+            "size": 232188204
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mongodb-7.0.34/mongodb-7.0.34-linux-x64.tar.gz",
+            "sha256": "563dd9f0d65003e887d97f65743c2559ea1566a876e730ad4edec5945d1da3aa",
+            "size": 244606323
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mongodb-7.0.34/mongodb-7.0.34-win32-x64.zip",
+            "sha256": "4beae2bc19520e1d22ac8cec17dd87c050996ca8d53a1703b5cdca934787d79e",
+            "size": 760835070
+          }
+        }
+      },
       "7.0.28": {
         "version": "7.0.28",
         "releaseTag": "mongodb-7.0.28",
