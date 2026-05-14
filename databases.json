@@ -128,6 +128,7 @@
       "protocol": null,
       "note": "",
       "versions": {
+        "1.4.4": true,
         "1.4.3": true
       },
       "platforms": [

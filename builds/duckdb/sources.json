@@ -2,6 +2,38 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "duckdb",
   "versions": {
+    "1.4.4": {
+      "linux-x64": {
+        "url": "https://github.com/duckdb/duckdb/releases/download/v1.4.4/duckdb_cli-linux-amd64.gz",
+        "format": "gz",
+        "sourceType": "official",
+        "sha256": "58882f65fcde335484857d595a6e7c1836eb2b125f78652fcfc813ad74ee348d"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/duckdb/duckdb/releases/download/v1.4.4/duckdb_cli-linux-arm64.gz",
+        "format": "gz",
+        "sourceType": "official",
+        "sha256": "1c381a63d29aebb689ff7d261021a7ff690716316ec8e4f05a8f94edc3d04aba"
+      },
+      "darwin-x64": {
+        "url": "https://github.com/duckdb/duckdb/releases/download/v1.4.4/duckdb_cli-osx-amd64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "92efd4f5e11f34b2b694f3bc9ad7c480b09a31193033e2c0c80c0688295dfda0"
+      },
+      "darwin-arm64": {
+        "url": "https://github.com/duckdb/duckdb/releases/download/v1.4.4/duckdb_cli-osx-arm64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "9daef42173916715d488b7c75f4200bd8c1d93afe2ebbfde4a90d1a30d4ab6fc"
+      },
+      "win32-x64": {
+        "url": "https://github.com/duckdb/duckdb/releases/download/v1.4.4/duckdb_cli-windows-amd64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "cd24e5736ac69a33dc1411209f161ded5595ffc578e3cf016474346c64a87f5e"
+      }
+    },
     "1.4.3": {
       "linux-x64": {
         "url": "https://github.com/duckdb/duckdb/releases/download/v1.4.3/duckdb_cli-linux-amd64.gz",
