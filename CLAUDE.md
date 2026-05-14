@@ -374,7 +374,10 @@ Changes in hostdb ripple to two downstream projects. Always check both when addi
 - `engines/<db>/index.ts` — override `fetchDeprecatedVersions()` if newly added
 - `cli/ui/prompts.ts` — already handles `[deprecated]` tags generically; no changes needed unless UI behavior changes
 
-**layerbase-cloud** (`~/dev/layerbase-cloud`) — uses major.minor version tags (e.g., `11.8`) that must correspond to versions built here (full semver, e.g., `11.8.5`). When adding a **new major.minor** version (not just a patch bump), the cloud project needs updates in three files: `src/config/engines.ts`, `.github/workflows/build-images.yml`, `.github/workflows/deploy.yml`. See cloud CLAUDE.md "Engine Version Sync" for details. Patch bumps (e.g., `11.8.5` → `11.8.6`) don't require cloud changes — the Docker images pick up the latest patch at build time.
+**layerbase-cloud** (`~/dev/layerbase-cloud`) — uses major.minor version tags (e.g., `11.8`) that spindb resolves to a full semver (e.g., `11.8.5`) via its static `engines/<db>/version-maps.ts` MAP. The cloud runs a single universal Docker image (`ghcr.io/layerbase-llc/universal`); engine binaries are **not** baked into the image — spindb downloads them on demand from `registry.layerbase.host`. The version resolution authority is the spindb baked into the image, not the registry. Practical impact per change shape:
+- **Patch bump within same major.minor** (e.g., `11.8.5 → 11.8.6`): No cloud changes. The new spindb release (with the updated MAP) takes effect when the universal image is rebuilt with the new `SPINDB_VERSION`.
+- **New major.minor** (e.g., adding `11.9`): Update `src/config/engine-registry.ts` (`supportedVersions` array). No workflow file changes — cloud's `build-images.yml`/`deploy.yml` are engine-agnostic.
+- **Change defaultVersion**: Update `src/config/engine-registry.ts` (`defaultVersion`). Also update `images/entrypoints/<engine>.sh` if a hardcoded `SPINDB_VERSION` default exists (only `clickhouse.sh` and `cockroachdb.sh` carry these).
 
 ## Deprecating Versions
 
