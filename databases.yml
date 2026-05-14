@@ -405,7 +405,17 @@ databases:
           enhanced:
             - mycli
             - usql
-      8.4.9: true
+      8.4.9:
+        note: mysqlpump removed in 8.4.9
+        cli_tools:
+          server: mysqld
+          client: mysql
+          utilities:
+            - mysqldump
+            - mysqladmin
+          enhanced:
+            - mycli
+            - usql
       8.4.3: true
       8.0.40:
         deprecated: true
