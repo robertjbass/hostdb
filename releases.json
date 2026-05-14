@@ -459,6 +459,38 @@
       }
     },
     "mongodb": {
+      "8.2.9": {
+        "version": "8.2.9",
+        "releaseTag": "mongodb-8.2.9",
+        "releasedAt": "2026-05-14T18:31:09Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.9/mongodb-8.2.9-darwin-arm64.tar.gz",
+            "sha256": "8d76286a8bf996617be025edf87840924d7e53f536e5c0ed6943f2ed89cfa2bb",
+            "size": 225060386
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.9/mongodb-8.2.9-darwin-x64.tar.gz",
+            "sha256": "252c7bfe17b9e6c763312e95e7818cab44c6f129363db6a2a63e66078f5675f8",
+            "size": 242912552
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.9/mongodb-8.2.9-linux-arm64.tar.gz",
+            "sha256": "3aa980da824c215f6440aa4d7572563e0003e3c5f81255192eabf5c160d7bf59",
+            "size": 270746236
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.9/mongodb-8.2.9-linux-x64.tar.gz",
+            "sha256": "7c97df59cd6f8cb7e322796f9c5c53abc9b689569d0860fe9ef1efbde53f5252",
+            "size": 286145441
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.9/mongodb-8.2.9-win32-x64.zip",
+            "sha256": "04edae242537f04ea90cd32a61364ffe9c4c821d016dd68bb86a928390f3e31f",
+            "size": 946885421
+          }
+        }
+      },
       "8.2.3": {
         "version": "8.2.3",
         "releaseTag": "mongodb-8.2.3",
@@ -686,6 +718,38 @@
           }
         },
         "deprecated": true
+      },
+      "8.4.9": {
+        "version": "8.4.9",
+        "releaseTag": "mysql-8.4.9",
+        "releasedAt": "2026-05-14T18:30:09Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.9/mysql-8.4.9-darwin-arm64.tar.gz",
+            "sha256": "39bf2709744ca806306b03e3c0769f3d58ef41bcf96e3c1b91b516d02633b640",
+            "size": 168846886
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.9/mysql-8.4.9-darwin-x64.tar.gz",
+            "sha256": "a044f90e8df594a6adbea4cfeb093e9b826f0383755082da7dbb99c25d865d02",
+            "size": 173107137
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.9/mysql-8.4.9-linux-arm64.tar.gz",
+            "sha256": "e77a4938424c75608b0c06bc0a22057c3c79508ccc7d3bb4c015faa874c8f997",
+            "size": 906150212
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.9/mysql-8.4.9-linux-x64.tar.gz",
+            "sha256": "eddea8096253014a251532814629a14db66b5e98686ff88f5e5b6dc917769275",
+            "size": 914338917
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.9/mysql-8.4.9-win32-x64.zip",
+            "sha256": "33273d33c8366853e2f865e95960f99103be28a7437d61b54e03aac1f39394d2",
+            "size": 280416089
+          }
+        }
       },
       "8.4.3": {
         "version": "8.4.3",
