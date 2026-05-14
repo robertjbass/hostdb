@@ -523,6 +523,38 @@
           }
         }
       },
+      "8.0.23": {
+        "version": "8.0.23",
+        "releaseTag": "mongodb-8.0.23",
+        "releasedAt": "2026-05-14T18:42:32Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-8.0.23/mongodb-8.0.23-darwin-arm64.tar.gz",
+            "sha256": "71a04660517db2a41fc63ea0f6c12103e3d01275c3178789d8c0324fdbe9cbd1",
+            "size": 226085252
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.0.23/mongodb-8.0.23-darwin-x64.tar.gz",
+            "sha256": "0ea04dcf4abc46fe286a9156249117c2899a03a744de1f4578b1f8144f5d8f3c",
+            "size": 243251894
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-8.0.23/mongodb-8.0.23-linux-arm64.tar.gz",
+            "sha256": "d3de6afa55f7997f3abf4adab1c90fa0211e09d463e304d60994ded5c3f2c855",
+            "size": 249195129
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.0.23/mongodb-8.0.23-linux-x64.tar.gz",
+            "sha256": "f5772764d4edd06bc48a749943b4e9191d95d2628f2ec60e2877b60ba929e2c9",
+            "size": 262681454
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.0.23/mongodb-8.0.23-win32-x64.zip",
+            "sha256": "5ebdc186dacf0541235507694ece829f9566671cbbe07daffe45a9215562b0c3",
+            "size": 929250845
+          }
+        }
+      },
       "8.0.17": {
         "version": "8.0.17",
         "releaseTag": "mongodb-8.0.17",
