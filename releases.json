@@ -882,6 +882,38 @@
           }
         }
       },
+      "17.10.0": {
+        "version": "17.10.0",
+        "releaseTag": "postgresql-17.10.0",
+        "releasedAt": "2026-05-14T19:07:59Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/postgresql-17.10.0/postgresql-17.10.0-darwin-arm64.tar.gz",
+            "sha256": "4a7b92a290b0f020bda5312a31eb101da4af6929014ad41b0ef06960f6b30b04",
+            "size": 28847120
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/postgresql-17.10.0/postgresql-17.10.0-darwin-x64.tar.gz",
+            "sha256": "f0fc10d67602be594645f63d38a2315067825af684268267740f8b9e501a3d42",
+            "size": 28620120
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/postgresql-17.10.0/postgresql-17.10.0-linux-arm64.tar.gz",
+            "sha256": "b451333d1bd939f225cb116540dca86213e3d9bc239da4edd09140cab2df8271",
+            "size": 11680624
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/postgresql-17.10.0/postgresql-17.10.0-linux-x64.tar.gz",
+            "sha256": "9e682a9e827a822b5b6023f85381c778885ced3e3ee1d090219e6b33e87585d7",
+            "size": 11842249
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/postgresql-17.10.0/postgresql-17.10.0-win32-x64.zip",
+            "sha256": "1a6c29515227b00e3bb44f2f61f0c3b4862f7b4c34eaeb07bb2eba98090e5f61",
+            "size": 334679007
+          }
+        }
+      },
       "17.7.0": {
         "version": "17.7.0",
         "releaseTag": "postgresql-17.7.0",
