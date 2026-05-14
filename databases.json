@@ -349,6 +349,7 @@
       "protocol": null,
       "note": "",
       "versions": {
+        "1.43.1": true,
         "1.33.1": true
       },
       "platforms": [
