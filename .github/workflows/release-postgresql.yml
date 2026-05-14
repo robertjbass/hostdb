@@ -8,11 +8,15 @@ on:
         required: true
         type: choice
         options:
+          - 18.4.0
           - 18.1.0
+          - 17.10.0
           - 17.7.0
+          - 16.14.0
           - 16.11.0
+          - 15.18.0
           - 15.15.0
-        default: 18.1.0
+        default: 18.4.0
       platforms:
         description: 'Platforms to build'
         required: true

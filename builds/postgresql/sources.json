@@ -2,6 +2,25 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "postgresql",
   "versions": {
+    "18.4.0": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1260197",
+        "format": "zip",
+        "sourceType": "official"
+      }
+    },
     "18.1.0": {
       "linux-x64": {
         "sourceType": "build-required"
@@ -23,6 +42,25 @@
         "format": "zip",
         "sourceType": "official",
         "sha256": "a05155fc413d8a9c250b04e9535cfe788c9e24acb3e7050140087987f81cf495"
+      }
+    },
+    "17.10.0": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1260201",
+        "format": "zip",
+        "sourceType": "official"
       }
     },
     "17.7.0": {
@@ -48,6 +86,27 @@
         "sha256": "f256b0df079182965808d886ef132901e67f847a4ce1d439702dea8d55265998"
       }
     },
+    "16.14.0": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "url": "https://downloads.percona.com/downloads/postgresql-distribution-16/16.14/binary/tarball/percona-postgresql-16.14-ssl3-linux-aarch64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "percona"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1260202",
+        "format": "zip",
+        "sourceType": "official"
+      }
+    },
     "16.11.0": {
       "linux-x64": {
         "sourceType": "build-required"
@@ -69,6 +128,27 @@
         "format": "zip",
         "sourceType": "official",
         "sha256": "579f70755723259d85d80301f1b793559edc31516cdeb3bcf34f1ec9d140cebb"
+      }
+    },
+    "15.18.0": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "url": "https://downloads.percona.com/downloads/postgresql-distribution-15/15.18/binary/tarball/percona-postgresql-15.18-ssl3-linux-aarch64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "percona"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1260205",
+        "format": "zip",
+        "sourceType": "official"
       }
     },
     "15.15.0": {
