@@ -956,6 +956,38 @@
       }
     },
     "sqlite": {
+      "3.53.1": {
+        "version": "3.53.1",
+        "releaseTag": "sqlite-3.53.1",
+        "releasedAt": "2026-05-14T17:19:33Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.1/sqlite-3.53.1-darwin-arm64.tar.gz",
+            "sha256": "6470a5afa642a3b6c47c2ff0b8ed5b0c825edf2a17f02c8f9d03e6442b07cee5",
+            "size": 4478243
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.1/sqlite-3.53.1-darwin-x64.tar.gz",
+            "sha256": "59e3f857091e08ccfaed740bc2fe9247ccca8c48a9d83fbecb1eba2680c00def",
+            "size": 4491612
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.1/sqlite-3.53.1-linux-arm64.tar.gz",
+            "sha256": "2bf9241673db6e705676cc997aa154b8240be37ad6a81455f97d2af9062f3210",
+            "size": 969392
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.1/sqlite-3.53.1-linux-x64.tar.gz",
+            "sha256": "34908bfc60aed5e083233fa1927995eabd78f4d79c60493710e1cd23603f7c52",
+            "size": 978246
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.1/sqlite-3.53.1-win32-x64.zip",
+            "sha256": "e323bbc8442b62e79621476e1cdf156de6ff5169858ce3ce94c812657cfddf42",
+            "size": 6531734
+          }
+        }
+      },
       "3.51.2": {
         "version": "3.51.2",
         "releaseTag": "sqlite-3.51.2",
