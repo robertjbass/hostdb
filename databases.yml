@@ -751,7 +751,9 @@ databases:
     protocol: redis
     note: ''
     versions:
+      9.0.4: true
       9.0.1: true
+      8.0.9: true
       8.0.6: true
     platforms:
       - linux-x64
