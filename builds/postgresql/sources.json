@@ -18,7 +18,8 @@
       "win32-x64": {
         "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1260197",
         "format": "zip",
-        "sourceType": "official"
+        "sourceType": "official",
+        "sha256": "7effe34c0bf89027b3f171447d351cbc460f4566c8d0f643daec67f140787858"
       }
     },
     "18.1.0": {
@@ -60,7 +61,8 @@
       "win32-x64": {
         "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1260201",
         "format": "zip",
-        "sourceType": "official"
+        "sourceType": "official",
+        "sha256": "f9aafca58e7026a1ef2caeee711acf761671e57904d430adc85f468374f5a821"
       }
     },
     "17.7.0": {
@@ -93,7 +95,8 @@
       "linux-arm64": {
         "url": "https://downloads.percona.com/downloads/postgresql-distribution-16/16.14/binary/tarball/percona-postgresql-16.14-ssl3-linux-aarch64.tar.gz",
         "format": "tar.gz",
-        "sourceType": "percona"
+        "sourceType": "percona",
+        "sha256": "7ba323111fb3175345008f55f6f9c760940682e1a227e0436aaf7e37d05c4dc4"
       },
       "darwin-x64": {
         "sourceType": "build-required"
@@ -104,7 +107,8 @@
       "win32-x64": {
         "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1260202",
         "format": "zip",
-        "sourceType": "official"
+        "sourceType": "official",
+        "sha256": "98af1417ba6a8dc30543e560e5407833a3b9e7cc7ed20e73b2006f3aa2f04663"
       }
     },
     "16.11.0": {
@@ -137,7 +141,8 @@
       "linux-arm64": {
         "url": "https://downloads.percona.com/downloads/postgresql-distribution-15/15.18/binary/tarball/percona-postgresql-15.18-ssl3-linux-aarch64.tar.gz",
         "format": "tar.gz",
-        "sourceType": "percona"
+        "sourceType": "percona",
+        "sha256": "823c0f17ce19da5c1fe75c7a0c8d2fd5a3493a5f984629aaf0832cc1775378ab"
       },
       "darwin-x64": {
         "sourceType": "build-required"
@@ -148,7 +153,8 @@
       "win32-x64": {
         "url": "https://sbp.enterprisedb.com/getfile.jsp?fileid=1260205",
         "format": "zip",
-        "sourceType": "official"
+        "sourceType": "official",
+        "sha256": "ef57c1f67550a548a83437bdbc35ccda632d63d267299cb9ce45c5fca2c900f4"
       }
     },
     "15.15.0": {
