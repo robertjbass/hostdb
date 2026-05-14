@@ -585,6 +585,7 @@ databases:
     note: RSALv2 restricts building competing products to Redis itself. AGPL-3.0 (8.0+) requires source disclosure if you modify Redis and offer it as a network service. Commercial use in applications, local dev, and internal use is fine. Valkey available as BSD-licensed drop-in alternative.
     versions:
       8.4.0: true
+      7.4.9: true
       7.4.7: true
     platforms:
       - linux-x64
