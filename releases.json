@@ -986,6 +986,38 @@
           }
         }
       },
+      "7.4.9": {
+        "version": "7.4.9",
+        "releaseTag": "redis-7.4.9",
+        "releasedAt": "2026-05-14T17:44:54Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.4.9/redis-7.4.9-darwin-arm64.tar.gz",
+            "sha256": "939a8dddd508752ae1222565aa0495a184a42c582446330d8fd5e09df4c2ddc9",
+            "size": 3950685
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/redis-7.4.9/redis-7.4.9-darwin-x64.tar.gz",
+            "sha256": "4643c519ff0a4125c5d9e8353a1ed894a0e1ab5217b8a5896875be6d063d2def",
+            "size": 3811983
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.4.9/redis-7.4.9-linux-arm64.tar.gz",
+            "sha256": "10e310e8386c587fe477ca728c47d8d6c131c12ffe3ef4561c6ee7e56884d91c",
+            "size": 12737026
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/redis-7.4.9/redis-7.4.9-linux-x64.tar.gz",
+            "sha256": "026e1419fa9f288297b519d772cbfbec68539a004535970290484da7eee9aa96",
+            "size": 12665472
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/redis-7.4.9/redis-7.4.9-win32-x64.zip",
+            "sha256": "f6f3886f8b3427867a39cabc613489cf6bd98191c995a73c077aa9aa2d5e004a",
+            "size": 11489268
+          }
+        }
+      },
       "7.4.7": {
         "version": "7.4.7",
         "releaseTag": "redis-7.4.7",
