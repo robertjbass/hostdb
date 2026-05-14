@@ -1220,6 +1220,38 @@
       }
     },
     "valkey": {
+      "9.0.4": {
+        "version": "9.0.4",
+        "releaseTag": "valkey-9.0.4",
+        "releasedAt": "2026-05-14T17:48:26Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.4/valkey-9.0.4-darwin-arm64.tar.gz",
+            "sha256": "d7b54888305c03e634d700132d7939350d01ed83734daef3f1fd4cbdd30a009d",
+            "size": 4063767
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.4/valkey-9.0.4-darwin-x64.tar.gz",
+            "sha256": "698469715d34a2400b29b6bf8c253f14304afa7eaeb4ffd132949aebfa17d517",
+            "size": 3950079
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.4/valkey-9.0.4-linux-arm64.tar.gz",
+            "sha256": "8d900a509574269c5c6ffe4e312e9b502ae95f8e5c3e47235dbdf89ee22bba71",
+            "size": 13728085
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.4/valkey-9.0.4-linux-x64.tar.gz",
+            "sha256": "87a301aad617ea83d1db618d89b30889763dbe4664ea04df5cd701d628f9fd97",
+            "size": 13662950
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.4/valkey-9.0.4-win32-x64.zip",
+            "sha256": "892b26873429f93ade794e840f02b2614d2fd15fad260030a8dd9db2ee1ce3c1",
+            "size": 19126122
+          }
+        }
+      },
       "9.0.1": {
         "version": "9.0.1",
         "releaseTag": "valkey-9.0.1",
