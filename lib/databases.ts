@@ -1,7 +1,9 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parse as parseYaml } from 'yaml'
+// `yaml` is intentionally NOT statically imported — it's a devDependency only.
+// `generateDatabasesJson` lazy-imports it so npm consumers (who only call the
+// resolver) don't need yaml in their tree.
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
@@ -299,14 +301,18 @@ function transformKeys(obj: unknown): unknown {
 }
 
 /**
- * Generate databases.json from databases.yml
+ * Generate databases.json from databases.yml.
+ *
+ * Build-time helper. Uses `yaml` (devDependency) via dynamic import so that
+ * npm consumers of this package (who only call the resolver) don't need
+ * `yaml` in their tree.
  *
  * @returns true if the file was changed/created (or needs updating in check mode), false if already up-to-date
  */
-export function generateDatabasesJson(options?: {
+export async function generateDatabasesJson(options?: {
   checkOnly?: boolean
   rootDir?: string
-}): boolean {
+}): Promise<boolean> {
   const { checkOnly = false, rootDir = ROOT } = options ?? {}
   const yamlPath = join(rootDir, 'databases.yml')
   const jsonPath = join(rootDir, 'databases.json')
@@ -315,6 +321,7 @@ export function generateDatabasesJson(options?: {
     return false
   }
 
+  const { parse: parseYaml } = await import('yaml')
   const yamlContent = readFileSync(yamlPath, 'utf-8')
   const parsed = parseYaml(yamlContent) as Record<string, unknown>
 

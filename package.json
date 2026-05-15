@@ -1,9 +1,20 @@
 {
   "name": "hostdb",
   "version": "0.30.0",
-  "description": "Source and download pre-built database binaries for multiple platforms, distributed via GitHub Releases",
+  "description": "Pre-built database binaries for multiple platforms, plus a typed registry library for resolving versions and download URLs offline.",
   "private": false,
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./databases.json": "./databases.json",
+    "./releases.json": "./releases.json",
+    "./downloads.json": "./downloads.json"
+  },
   "bin": {
     "hostdb": "./bin/cli.js"
   },
@@ -20,6 +31,7 @@
   "files": [
     "bin",
     "cli",
+    "dist",
     "lib",
     "databases.json",
     "releases.json",
@@ -27,7 +39,9 @@
   ],
   "scripts": {
     "add:engine": "tsx scripts/add-engine.ts",
+    "build": "tsc -p tsconfig.build.json",
     "build:releases": "tsx scripts/build-releases-json.ts",
+    "prepublishOnly": "pnpm build",
     "check:dylibs": "builds/common/check-macos-dylibs.sh",
     "checksums:populate": "tsx scripts/populate-checksums.ts",
     "dbs": "tsx scripts/list-databases.ts",

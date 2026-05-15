@@ -38,3 +38,11 @@ The new versions exist on R2 (`https://registry.layerbase.host/releases.json` is
 This finding is significant for the integration: if hostdb publishes to npm with a stale `releases.json` baked in, spindb consumers will resolve to old versions. The publish workflow needs `build:releases` as a pre-publish step, OR the publish must only happen after a `chore: update releases.json` commit.
 
 ---
+
+### F2 — `yaml` is in devDependencies but `lib/databases.ts` imported it (2026-05-15 ~04:30 UTC)
+
+When I packed and installed the resulting tarball into a clean test directory, `import { resolveVersion } from 'hostdb'` blew up with `Cannot find package 'yaml'`. The `lib/databases.ts` module top-imports `yaml` because of `generateDatabasesJson()`, which is a build-time helper used by `pnpm prep` to convert `databases.yml` → `databases.json`. Consumers don't need that function — they read the bundled `databases.json` directly — but the top-level import still gets evaluated.
+
+**Fix:** make the `yaml` import lazy inside `generateDatabasesJson` so it only loads when explicitly called. Alternative would be to move `yaml` to dependencies; I picked lazy-import to keep the dep footprint minimal for consumers.
+
+---

@@ -319,7 +319,7 @@ ${colors.yellow}Checks:${colors.reset}
 
   // 1. Generate databases.json from databases.yml
   logStep('Generating databases.json from databases.yml')
-  const jsonChanged = generateDatabasesJson({ checkOnly })
+  const jsonChanged = await generateDatabasesJson({ checkOnly })
   if (checkOnly && jsonChanged) {
     logError('databases.json is out of date with databases.yml. Run: pnpm prep')
     allPassed = false
