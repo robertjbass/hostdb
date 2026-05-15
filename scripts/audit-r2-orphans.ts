@@ -97,6 +97,22 @@ function loadReferencedKeys(): Set<string> {
   return keys
 }
 
+/**
+ * Companion artifacts that the release workflow uploads alongside binaries
+ * but `releases.json` doesn't directly reference. They're not real orphans
+ * (and not engine-binary dead weight) — `releases.json` embeds the sha256
+ * inline per platform entry, and `scripts/build-releases-json.ts` reads
+ * checksums from GitHub's CDN, not from R2. Excluded from the orphan list
+ * so the audit focuses on what actually matters: stale binaries.
+ *
+ * If we ever delete these from R2 entirely, this filter becomes unnecessary.
+ */
+function isExpectedCompanionArtifact(key: string): boolean {
+  // Per-release checksums files: <engine>-<version>/checksums.txt and
+  // <engine>-<version>/checksums-macos.txt (PostgreSQL native macOS builds).
+  return /\/checksums(-[a-z0-9]+)?\.txt$/.test(key)
+}
+
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2))
   const referenced = loadReferencedKeys()
@@ -108,10 +124,17 @@ async function main(): Promise<void> {
   const r2Objects = await listAllR2Objects(client, config.bucket, prefix)
 
   const orphans: { key: string; size?: number }[] = []
+  const companions: { key: string; size?: number }[] = []
   let totalSize = 0
+  let companionSize = 0
   for (const obj of r2Objects) {
     if (!obj.key) continue
     if (referenced.has(obj.key)) continue
+    if (isExpectedCompanionArtifact(obj.key)) {
+      companions.push({ key: obj.key, size: obj.size })
+      if (obj.size) companionSize += obj.size
+      continue
+    }
     orphans.push({ key: obj.key, size: obj.size })
     if (obj.size) totalSize += obj.size
   }
@@ -122,6 +145,8 @@ async function main(): Promise<void> {
         {
           totalR2Objects: r2Objects.length,
           referenced: referenced.size,
+          companions: companions.length,
+          companionBytes: companionSize,
           orphans: orphans.length,
           orphanBytes: totalSize,
           orphanKeys: orphans.map((o) => o.key),
@@ -133,7 +158,10 @@ async function main(): Promise<void> {
   } else {
     console.log(`R2 objects: ${r2Objects.length}`)
     console.log(`Referenced by releases.json: ${referenced.size}`)
-    console.log(`Orphans: ${orphans.length} (${formatBytes(totalSize)})`)
+    console.log(
+      `Companion artifacts (checksums.txt): ${companions.length} (${formatBytes(companionSize)}) — expected, not orphans`,
+    )
+    console.log(`True orphans: ${orphans.length} (${formatBytes(totalSize)})`)
     if (orphans.length > 0) {
       console.log('\nOrphan keys:')
       // Group by engine prefix for readability
