@@ -19,6 +19,7 @@
 import {
   loadDatabasesJson,
   loadReleasesJson,
+  _resetLoaderCachesForTests,
   isVersionDeprecated as _isVersionDeprecated,
   isVersionEnabled,
   getVersionPlatforms,
@@ -26,30 +27,19 @@ import {
   type DatabaseEntry,
   type CliTools,
   type Platform,
-  type DatabasesJson,
-  type ReleasesJson,
 } from './databases.js'
 
-// ─── Loaded data (cached on first call) ──────────────────────────────────────
+// The loader functions cache their parsed result, so calling them on every
+// resolver invocation is O(1) after the first read. No second-layer cache needed.
 
-let _databasesCache: DatabasesJson | null = null
-let _releasesCache: ReleasesJson | null = null
+const databases = loadDatabasesJson
+const releases = loadReleasesJson
 
-function databases(): DatabasesJson {
-  if (_databasesCache === null) _databasesCache = loadDatabasesJson()
-  return _databasesCache
-}
-
-function releases(): ReleasesJson {
-  if (_releasesCache === null) _releasesCache = loadReleasesJson()
-  return _releasesCache
-}
-
-/** Reset the in-process cache. Useful for tests. Not part of the public API. */
-export function _resetCacheForTests(): void {
-  _databasesCache = null
-  _releasesCache = null
-}
+/**
+ * Reset the in-process loader cache. Tests only — not part of the public API.
+ * Re-exported here so test files don't need to import from two places.
+ */
+export const _resetCacheForTests = _resetLoaderCachesForTests
 
 // ─── Version comparison ─────────────────────────────────────────────────────
 

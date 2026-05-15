@@ -32,7 +32,6 @@
     "bin",
     "cli",
     "dist",
-    "lib",
     "databases.json",
     "releases.json",
     "downloads.json"
@@ -42,6 +41,7 @@
     "build": "tsc -p tsconfig.build.json",
     "test": "node --import tsx --test tests/*.test.ts",
     "build:releases": "tsx scripts/build-releases-json.ts",
+    "prepare": "pnpm build",
     "prepublishOnly": "pnpm build",
     "check:dylibs": "builds/common/check-macos-dylibs.sh",
     "checksums:populate": "tsx scripts/populate-checksums.ts",
