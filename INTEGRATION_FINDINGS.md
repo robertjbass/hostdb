@@ -316,4 +316,53 @@ A cleaner design would be: pull `defaultVersion` from hostdb's `getEngineDefault
 
 - **A10** is a real bug, FIXED in the same commit pattern as A9.
 - **A11** confirms the other version-write paths are already safe.
-- **A12–A14** are non-runtime-affecting inconsistencies. Worth a future cleanup pass but not blocking the merge.
+- **A12–A14** were non-runtime-affecting inconsistencies — initially flagged for a future cleanup pass; the user asked for them to be fixed now (and rightly so — A13 in particular directly contradicted the "single source of truth" intent). All three now FIXED below.
+
+---
+
+### A12 FIX — SQLite/DuckDB container version sourced from hostdb
+
+`core/container-manager.ts` `getSqliteConfig` / `getDuckDBConfig` / the list-all paths no longer hardcode `version: '3'` / `version: '1'`. Added a small `fileBasedEngineVersion(engine)` helper that reads `getEngineDefaults(engine).defaultVersion` (the spindb-side major recommendation) and resolves it through `getEngine(engine).resolveFullVersion()` (the wrapper, hostdb-driven) to produce the full version string.
+
+File-based engines (SQLite, DuckDB) don't pin a binary version per data file — the library reads any file of its format — so this is purely a display-consistency fix. The reported `version` field now matches whatever binary spindb would download today (`3.53.1` / `1.4.4`).
+
+Commit: `fix(container-manager): resolve SQLite/DuckDB version via hostdb instead of hardcoding`.
+
+### A13 FIX — `engines.json` no longer carries version data
+
+`config/engines.json` lost three fields per engine:
+- `supportedVersions` (was hand-maintained, drifted from hostdb)
+- `defaultVersion` (was hand-maintained, drifted from hostdb)
+- `versionPlatforms` (per-version platform overrides — that data lives in hostdb's `databases.json` now)
+
+Companion changes:
+- `EngineConfig` type in `config/engines-registry.ts` dropped those three fields.
+- `filterEnginesByPlatform()` (only used by `spindb engines supported` and tests) removed; its engine-level platform-filter logic inlined at the single non-test call site.
+- `tests/unit/engines-registry.test.ts` deleted (covered only the removed function).
+- `config/engines.schema.json` updated to match.
+- **Public surface preserved**: `spindb engines supported --json` still emits `supportedVersions` + `defaultVersion` per engine, but they're enriched at output time from `getEngine(name).supportedVersions` (hostdb-driven) and `getEngineDefaults(name).defaultVersion`. Consumers see the same JSON shape, sourced from the single source of truth.
+
+Remaining `engines.json` fields (stable engine-shape metadata): `displayName`, `icon`, `status`, `binarySource`, `defaultPort`, `runtime`, `queryLanguage`, `scriptFileLabel`, `connectionScheme`, `superuser`, `clientTools`, `licensing`, `notes`, `platforms`. None of these drift with hostdb releases.
+
+Commit: `fix(config): drop stale version fields from engines.json; hostdb is single source of truth`.
+
+### A14 FIX — `engine-defaults.ts` lost the duplicate `latestVersion`
+
+`EngineDefaults` type and the static `engineDefaults` record both lost the `latestVersion` field. Three callers fixed:
+
+- `getPostgresHomebrewPackage()` — now calls `hostdb.listVersions('postgresql', { format: 'major' })[0]`. When hostdb adds PG 19, the Homebrew package name becomes `postgresql@19` automatically.
+- `cli/ui/prompts.ts` two sites — both use `engine.supportedVersions[0]` (which is the latest major in the engine's own format, sourced from the wrapper). Same data, just routed through the engine instance instead of an out-of-date duplicate.
+
+What stayed: `defaultVersion` remains in `engine-defaults.ts` because it represents a SPINDB POLICY decision (e.g., "MySQL users should default to 8.4 LTS, not 9.x current") that is intentionally NOT a hostdb concern. The shorthand stored here (`'8.4'`) is resolved to a full version (`'8.4.9'`) via hostdb at create time — same eager-resolution pattern A9 introduced. Added a clarifying docstring at the top of the file.
+
+Commit: `fix(defaults): remove duplicated latestVersion; derive from hostdb`.
+
+### Architectural picture after A9–A14
+
+Single source of truth for **versions / patches / what exists on R2**: hostdb.
+
+Single source of truth for **spindb's recommended major-version policy** (e.g., "MySQL 8.4 LTS over 9.x current"): `config/engine-defaults.ts:defaultVersion`. This is a small set of shorthand strings, each resolved through hostdb at use time.
+
+Single source of truth for **stable engine metadata** (display name, connection scheme, port, file paths, client-tool list): `config/engines.json`.
+
+These three layers don't overlap anymore. There's nowhere left for a version number to be hand-maintained and drift from hostdb.
