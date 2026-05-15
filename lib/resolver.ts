@@ -151,26 +151,23 @@ export function resolveVersion(engine: string, version: string): string | null {
     return versions.includes(target) ? target : null
   }
 
-  // 3. Major.minor prefix — pick highest in that minor
-  // (matches inputs like '11.4', '17.7', '8.0')
-  const dots = version.split('.').length
-  if (dots === 2) {
-    const matches = versions
-      .filter((v) => v.startsWith(version + '.'))
-      .sort((a, b) => compareVersions(b, a))
-    return matches[0] ?? null
+  // 3. Prefix match — for any input length, pick the highest non-deprecated
+  //    full version that starts with `<input>.`
+  //
+  // Skip the major-only case (1-part) when an explicit `defaults` entry exists
+  // for a different major: e.g., MongoDB '8' is governed by defaults block;
+  // don't fall through to "highest version starting with '8.'" which would
+  // pick 8.2.9 instead of the intended 8.0.23 LTS.
+  const isOnePart = !version.includes('.')
+  if (isOnePart && defaults[version]) {
+    // already handled above; this case shouldn't fall through
+    return null
   }
 
-  // 4. Major prefix — only when no explicit default declared
-  // (matches inputs like '17', '8', '11')
-  if (dots === 1 && !defaults[version]) {
-    const matches = versions
-      .filter((v) => v.startsWith(version + '.') || v === version)
-      .sort((a, b) => compareVersions(b, a))
-    return matches[0] ?? null
-  }
-
-  return null
+  const matches = versions
+    .filter((v) => v.startsWith(version + '.'))
+    .sort((a, b) => compareVersions(b, a))
+  return matches[0] ?? null
 }
 
 /**

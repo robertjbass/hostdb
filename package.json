@@ -40,6 +40,7 @@
   "scripts": {
     "add:engine": "tsx scripts/add-engine.ts",
     "build": "tsc -p tsconfig.build.json",
+    "test": "node --import tsx --test tests/*.test.ts",
     "build:releases": "tsx scripts/build-releases-json.ts",
     "prepublishOnly": "pnpm build",
     "check:dylibs": "builds/common/check-macos-dylibs.sh",
