@@ -46,3 +46,79 @@ When I packed and installed the resulting tarball into a clean test directory, `
 **Fix:** make the `yaml` import lazy inside `generateDatabasesJson` so it only loads when explicitly called. Alternative would be to move `yaml` to dependencies; I picked lazy-import to keep the dep footprint minimal for consumers.
 
 ---
+
+### F3 — Deprecated patches stay resolvable through the resolver (2026-05-15 ~07:10 UTC)
+
+Three MySQL patches are flagged `deprecated: true` in databases.yml (8.0.40, 9.1.0, 9.5.0), but the existing spindb MYSQL_VERSION_MAP still includes them so already-running containers keep working. My defaults-sync test snapshot mirrors that — it expects `resolveVersion('mysql', '9.5.0')` to return `'9.5.0'`.
+
+I worried this might be inconsistent. It isn't, but the contract is subtle: `loadDatabasesJson`'s helpers distinguish two flags:
+- `enabled: false` — version removed entirely. Hidden from listings, never resolves.
+- `deprecated: true` — version flagged in UIs ("don't pick this for new instances"), but still resolvable so old containers don't lose their binary URL.
+
+The resolver matches `isVersionEnabled`, not `isVersionDeprecated`. That's the right call. Updated the resolver docstring (which previously said "highest non-deprecated full version") so it reflects what the code does.
+
+Practical impact: spindb's deprecated-version UX (the `[deprecated]` tag in `cli/ui/prompts.ts`) still works because it explicitly queries `getDeprecatedVersions()`. The resolver doesn't decide policy; it just resolves.
+
+---
+
+### F4 — `SUPPORTED_MAJOR_VERSIONS` convention varies per engine, can't be flattened (2026-05-15 ~07:25 UTC)
+
+Most spindb engines export 1-part majors (`['3']`, `['15', '16', '17', '18']`, `['7', '8']`). Five engines export 2-part: MongoDB `['7.0', '8.0', '8.2']`, MySQL `['8.0', '8.4', '9.1', '9.5', '9.6']`, MariaDB `['10.11', '11.4', '11.8']`, ClickHouse `['25.12']`, TigerBeetle `['0.16']`.
+
+The 2-part convention exists because `core/version-migration.ts:getMajorVersion()` reverse-maps a full version (e.g., `'8.0.23'`) to its major group. If MongoDB's array were `['7', '8']`, the lookup would group 8.0.x and 8.2.x together — losing the LTS-vs-latest distinction.
+
+Implemented per-wrapper, not per-resolver:
+- 1-part majors (16 engines): `SUPPORTED_MAJOR_VERSIONS = getSupportedMajorVersions(ENGINE)` from defaults block.
+- 2-part majors (5 engines): `SUPPORTED_MAJOR_VERSIONS = listVersions(ENGINE, { format: 'major-minor' })` from the version list.
+
+Both data-driven from hostdb; per-engine wrappers just declare their convention.
+
+---
+
+### F5 — Spindb metadata helpers were fetching databases.json/downloads.json over HTTP (2026-05-15 ~07:40 UTC)
+
+`core/hostdb-metadata.ts:fetchDatabasesJson` and `fetchDownloadsJson` were calling `https://registry.layerbase.host/...` (with raw GitHub fallback) on every cache miss. With hostdb bundled inside spindb's installed dependency tree, that's a regression on the offline-registry mandate.
+
+Rewired both to call `hostdb.loadDatabasesJson()` / `hostdb.loadDownloadsJson()` first, falling back to the network only if the bundled load throws (corrupt install, etc.). The 5-min cache, the schema unwrap, and the in-flight dedup all still apply to the network fallback path; the bundled path is synchronous and cheap so no caching is needed.
+
+Required adding `loadDownloadsJson` to hostdb's public API (bumped api-shape snapshot to 19 names from 18). This is a minor surface bump, not a breaking change.
+
+---
+
+## Migration outcome (2026-05-15 ~07:55 UTC)
+
+All 21 engines migrated to thin hostdb wrappers. Per-engine commits on `upgrade/spindb-hostdb-integration`:
+
+1. `sqlite` — simplest single-track template.
+2. `couchdb, duckdb, influxdb, libsql, meilisearch, qdrant, weaviate` — single-track 1-part.
+3. `cockroachdb, surrealdb, typedb` — preserve `DEFAULT_VERSION + isVersionSupported + getLatestPatch` trio.
+4. `postgresql, redis, valkey` — multi-track 1-part.
+5. `mariadb, mongodb, mysql, clickhouse, tigerbeetle` — 2-part SUPPORTED_MAJOR_VERSIONS (see F4).
+6. `questdb` — has FALLBACK_VERSION_MAP alias.
+7. `ferretdb` — pulls from two hostdb engines (`ferretdb` + `postgresql-documentdb`), preserves `isV1`, `DEFAULT_DOCUMENTDB_VERSION`, `DEFAULT_V1_POSTGRESQL_VERSION`, `normalizeDocumentDBVersion`.
+
+Plus `core/hostdb-metadata.ts` rewired to use the bundled hostdb package (F5).
+
+Test outcome:
+- **hostdb**: 167 / 167 pass (resolver, defaults-sync, api-shape).
+- **spindb unit**: 1562 / 1562 pass.
+- **spindb hostdb-sync** (integration, network): 23 / 23 pass.
+- **spindb CLI e2e**: 44 / 44 pass.
+
+The defaults-sync snapshot in hostdb was the gate — it asserts the resolver returns the same full-version for every input that spindb's old MAP returned. Migration is byte-equivalent under that snapshot.
+
+## What's intentionally NOT done
+
+Per Bob's directive ("don't merge anything until I wake up"):
+
+- No merge to either `dev` branch.
+- No PR opened.
+- No npm publish of hostdb.
+- No layerbase-cloud touched.
+- The `file:../hostdb` linkage in spindb's package.json is a dev wiring; it must be replaced with a real `^0.31.0` (or whatever the published version becomes) before any merge.
+- pnpm-lock.yaml in spindb was regenerated (pnpm store version mismatch on initial install). Both old and new lockfiles work; flagging only because it's a side-effect on a non-version-related file.
+
+## Branches as pushed
+
+- `hostdb@upgrade/spindb-hostdb-integration` — to be pushed at end of session.
+- `spindb@upgrade/spindb-hostdb-integration` — to be pushed at end of session.
