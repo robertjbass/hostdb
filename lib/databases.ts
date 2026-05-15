@@ -135,6 +135,11 @@ export function loadReleasesJson(): ReleasesJson {
   return JSON.parse(readFileSync(filePath, 'utf-8')) as ReleasesJson
 }
 
+export function loadDownloadsJson(): unknown {
+  const filePath = join(ROOT, 'downloads.json')
+  return JSON.parse(readFileSync(filePath, 'utf-8'))
+}
+
 // --- Internal helpers ---
 
 /** Get the version's platforms field, handling both array and object forms */

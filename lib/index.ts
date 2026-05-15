@@ -38,6 +38,7 @@ export {
 export {
   loadDatabasesJson,
   loadReleasesJson,
+  loadDownloadsJson,
   isVersionEnabled,
   getEnabledVersions,
 } from './databases.js'

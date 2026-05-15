@@ -34,6 +34,7 @@ const EXPECTED_EXPORTS = [
   'listEngines',
   'listVersions',
   'loadDatabasesJson',
+  'loadDownloadsJson',
   'loadReleasesJson',
   'normalizeVersion',
   'resolveVersion',
