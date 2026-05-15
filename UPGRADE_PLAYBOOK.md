@@ -243,3 +243,4 @@ When this document changes (architecture refactor, new conventions, etc.), recor
 | Date | Change | By |
 |---|---|---|
 | 2026-05-14 | Initial draft. Captures state after the universal-image refactor. | initial setup |
+| 2026-05-15 | Phase 1 May 2026 patch wave shipped: SQLite 3.53.1, Meilisearch 1.43.1, DuckDB 1.4.4, Redis 7.4.9, Valkey 8.0.9/9.0.4, MariaDB 10.11.16/11.4.10/11.8.6, MongoDB 7.0.34/8.0.23/8.2.9, MySQL 8.4.9, PostgreSQL 15.18/16.14/17.10/18.4. spindb 0.49.0 published; cloud universal image rebuilt; verified on staging via `SELECT version()` → `PostgreSQL 18.4`. | bob |
