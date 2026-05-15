@@ -115,7 +115,7 @@ Per Bob's directive ("don't merge anything until I wake up"):
 - No PR opened.
 - No npm publish of hostdb.
 - No layerbase-cloud touched.
-- The `file:../hostdb` linkage in spindb's package.json is a dev wiring; it must be replaced with a real `^0.31.0` (or whatever the published version becomes) before any merge.
+- The `file:../hostdb` linkage in spindb's package.json is a dev wiring; it must be replaced with an exact pin `"0.31.0"` (no caret, no tilde) once hostdb publishes. Run `pnpm flip-hostdb-pin` from spindb to do this mechanically — see that script for the rationale and merge checklist.
 - pnpm-lock.yaml in spindb was regenerated (pnpm store version mismatch on initial install). Both old and new lockfiles work; flagging only because it's a side-effect on a non-version-related file.
 
 ## Branches as pushed

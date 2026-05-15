@@ -152,13 +152,16 @@ export function resolveVersion(engine: string, version: string): string | null {
     return versions.includes(target) ? target : null
   }
 
-  // 3. Prefix match — for any input length, pick the highest non-deprecated
-  //    full version that starts with `<input>.`
+  // 3. Prefix match — for any input length, pick the highest enabled full
+  //    version that starts with `<input>.`. Deprecated versions are still
+  //    considered enabled (`enabled: false` is the only flag that excludes a
+  //    version from resolution) — see the file-level docstring for the
+  //    enabled-vs-deprecated rationale.
   //
   // Skip the major-only case (1-part) when an explicit `defaults` entry exists
-  // for a different major: e.g., MongoDB '8' is governed by defaults block;
-  // don't fall through to "highest version starting with '8.'" which would
-  // pick 8.2.9 instead of the intended 8.0.23 LTS.
+  // for that major: e.g., MongoDB '8' is governed by defaults block; don't
+  // fall through to "highest version starting with '8.'" which would pick
+  // 8.2.9 instead of the intended 8.0.23 LTS.
   const isOnePart = !version.includes('.')
   if (isOnePart && defaults[version]) {
     // already handled above; this case shouldn't fall through
@@ -258,7 +261,8 @@ export function getMajorDefault(engine: string, major: string): string | null {
 /**
  * Convenience defaults: the engine's overall `defaultVersion` (typically the
  * highest declared major's resolved value) and `latestVersion` (the highest
- * non-deprecated full version).
+ * enabled full version — deprecated patches are still included; only
+ * `enabled: false` excludes a version).
  *
  * For multi-track engines like MongoDB the two can differ:
  *   - MongoDB defaultVersion = '8.0.23' (LTS pick from defaults['8'])

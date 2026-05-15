@@ -79,7 +79,7 @@ The resolver checks `defaults` first; falls back to "highest non-deprecated vers
 
 **spindb (modify, one PR per engine):**
 
-- `package.json` — add `"hostdb": "^0.31.0"` to dependencies.
+- `package.json` — add `"hostdb": "0.31.0"` to dependencies (exact pin — no caret, no tilde; a patch hostdb release can add new versions so caret/tilde would silently change behavior for previously-published spindb versions).
 - `engines/<X>/version-maps.ts` × 21 — replace with 5-line wrapper:
 
   ```ts
