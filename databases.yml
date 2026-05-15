@@ -111,6 +111,7 @@ databases:
     protocol: null
     note: ''
     versions:
+      1.4.4: true
       1.4.3: true
     platforms:
       - linux-x64
@@ -255,8 +256,11 @@ databases:
     protocol: null
     note: ''
     versions:
+      11.8.6: true
       11.8.5: true
+      11.4.10: true
       11.4.5: true
+      10.11.16: true
       10.11.15: true
     platforms:
       - linux-x64
@@ -293,6 +297,7 @@ databases:
     protocol: null
     note: ''
     versions:
+      1.43.1: true
       1.33.1: true
     platforms:
       - linux-x64
@@ -325,8 +330,11 @@ databases:
     protocol: null
     note: SSPL restricts offering MongoDB as a competing managed database service (i.e., MongoDB Atlas competitors). Commercial use in applications, local dev, and internal use is fine. FerretDB available as fully open-source alternative.
     versions:
+      8.2.9: true
       8.2.3: true
+      8.0.23: true
       8.0.17: true
+      7.0.34: true
       7.0.28: true
     platforms:
       - linux-x64
@@ -397,6 +405,17 @@ databases:
           enhanced:
             - mycli
             - usql
+      8.4.9:
+        note: mysqlpump removed in 8.4.9
+        cli_tools:
+          server: mysqld
+          client: mysql
+          utilities:
+            - mysqldump
+            - mysqladmin
+          enhanced:
+            - mycli
+            - usql
       8.4.3: true
       8.0.40:
         deprecated: true
@@ -436,9 +455,13 @@ databases:
     protocol: null
     note: ''
     versions:
+      18.4.0: true
       18.1.0: true
+      17.10.0: true
       17.7.0: true
+      16.14.0: true
       16.11.0: true
+      15.18.0: true
       15.15.0: true
     platforms:
       - linux-x64
@@ -583,6 +606,7 @@ databases:
     note: RSALv2 restricts building competing products to Redis itself. AGPL-3.0 (8.0+) requires source disclosure if you modify Redis and offer it as a network service. Commercial use in applications, local dev, and internal use is fine. Valkey available as BSD-licensed drop-in alternative.
     versions:
       8.4.0: true
+      7.4.9: true
       7.4.7: true
     platforms:
       - linux-x64
@@ -618,6 +642,7 @@ databases:
     protocol: null
     note: ''
     versions:
+      3.53.1: true
       3.51.2: true
     platforms:
       - linux-x64
@@ -747,7 +772,9 @@ databases:
     protocol: redis
     note: ''
     versions:
+      9.0.4: true
       9.0.1: true
+      8.0.9: true
       8.0.6: true
     platforms:
       - linux-x64
