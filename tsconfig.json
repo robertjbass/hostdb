@@ -13,6 +13,6 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["scripts/**/*", "builds/**/*", "cli/**/*", "lib/**/*"],
+  "include": ["scripts/**/*", "builds/**/*", "cli/**/*", "lib/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist", "downloads", "legacy", "bin"]
 }
