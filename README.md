@@ -1,8 +1,8 @@
 # hostdb
 
-Pre-built database binaries for all major platforms, distributed via GitHub Releases.
+Pre-built database binaries for all major platforms, distributed via Cloudflare R2 (mirrored from GitHub Releases). Also a **typed npm package** (`hostdb`) that bundles the registry offline so consumers can resolve versions and download URLs without a network round-trip to `registry.layerbase.host`.
 
-**Primary consumer:** [SpinDB](https://github.com/robertjbass/spindb) - a CLI tool for spinning up local database instances
+**Primary consumer:** [SpinDB](https://github.com/robertjbass/spindb) — a CLI tool for spinning up local database instances. SpinDB depends on `hostdb` as a pinned npm dependency; bumping `hostdb` is how SpinDB picks up new database versions.
 
 ## Philosophy
 
@@ -51,19 +51,51 @@ pnpm dbs
 
 ## Querying Available Binaries
 
-SpinDB (or any consumer) can fetch `releases.json` for available binaries:
+### As an npm package (recommended)
 
 ```bash
-curl https://raw.githubusercontent.com/robertjbass/hostdb/main/releases.json
+pnpm add hostdb         # or: npm install hostdb / yarn add hostdb
+```
+
+```ts
+import {
+  resolveVersion,
+  getReleaseInfo,
+  listEngines,
+} from 'hostdb'
+
+// Short-form version → full pinned version (LTS-aware via the defaults block)
+resolveVersion('postgresql', '17')       // '17.10.0'
+resolveVersion('mongodb', '8')           // '8.0.23'   (LTS pick, not the highest 8.x)
+resolveVersion('mysql', '8')             // '8.4.9'    (LTS, not the 9.x latest)
+
+// Find the R2 download URL + sha256 for a specific platform
+getReleaseInfo('postgresql', '17.10.0', 'linux-x64')
+// → { url: 'https://registry.layerbase.host/...', sha256: '...', size: 165123456 }
+
+// All bundled engines
+listEngines()  // ['clickhouse', 'cockroachdb', ..., 'weaviate']
+```
+
+The published tarball ships `databases.json`, `releases.json`, and `downloads.json` baked in. No runtime network calls. Pin to an exact version (e.g., `"hostdb": "0.31.0"` — no caret, no tilde) so the snapshot is deterministic for any given consumer release.
+
+Full API surface is locked in `tests/api-shape.test.ts` (currently 19 exported names).
+
+### As raw JSON
+
+```bash
+curl https://registry.layerbase.host/releases.json
 ```
 
 **Download URL pattern:**
 ```
-https://github.com/robertjbass/hostdb/releases/download/{tag}/{filename}
+https://registry.layerbase.host/{tag}/{filename}
 
 # Example:
-https://github.com/robertjbass/hostdb/releases/download/mysql-8.4.3/mysql-8.4.3-darwin-arm64.tar.gz
+https://registry.layerbase.host/mysql-8.4.3/mysql-8.4.3-darwin-arm64.tar.gz
 ```
+
+GitHub Releases (`https://github.com/robertjbass/hostdb/releases/download/...`) are the upstream source; R2 is the canonical mirror.
 
 ## Configuration Files
 
