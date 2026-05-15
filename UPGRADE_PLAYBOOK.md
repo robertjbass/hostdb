@@ -43,21 +43,28 @@ If you skip step 3, the patch is downloadable by anyone running spindb locally b
 
 This is the safest, lowest-risk upgrade type — and ~80% of upgrades are this shape.
 
-| Action | Where | What |
-|---|---|---|
-| 1 | `hostdb/databases.yml` | Add the new version key with value `true`. Leave old versions in place. |
-| 2 | `hostdb/builds/<engine>/sources.json` | Add URLs + SHA-256 for all 5 platforms. |
-| 3 | `hostdb/` (repo root) | Run `pnpm prep` — regenerates databases.json, syncs workflow dropdowns, populates checksums. |
-| 4 | Commit and push | Conventional commit format. **No AI attribution.** |
-| 5 | GitHub Actions | `gh workflow run release-<engine>.yml --field version=<X> --field platforms=all` |
-| 6 | Wait for green build | `gh run watch`. Validate: R2 has the new tarballs, `releases.json` reflects them. |
-| 7 | `spindb/engines/<engine>/version-maps.ts` | Add the new full version, repoint the major and major.minor keys to it, add the identity mapping. Leave old patches present so existing containers don't break. |
-| 8 | spindb | `pnpm test:unit && pnpm test:hostdb-sync` |
-| 9 | spindb | Bump version (minor or patch — patch usually suffices), update CHANGELOG.md. |
-| 10 | spindb | Open PR, merge to main, npm publish via OIDC. |
-| 11 | layerbase-cloud | Bump `SPINDB_VERSION` in `images/Dockerfile.base`. The `build-images.yml` workflow rebuilds the universal image; `deploy.yml` then rolls servers. |
+**Post-integration flow** (May 2026 onward, after `hostdb` became an npm package consumed by spindb):
 
-No cloud config file changes for patch-only bumps.
+| # | Where | What | Automated? |
+|---|---|---|---|
+| 1 | `hostdb/databases.yml` | Add the new version key with value `true`. Leave old versions in place. If this version should be the new patch for its major in the `defaults` block, update it there too. | manual |
+| 2 | `hostdb/builds/<engine>/sources.json` | Add URLs + SHA-256 for all 5 platforms. | manual |
+| 3 | `hostdb/` (repo root) | `pnpm prep` — regenerates databases.json, syncs workflow dropdowns, populates checksums. | manual |
+| 4 | `hostdb/package.json` | **Bump patch version** (e.g., 0.30.0 → 0.30.1). Without this, the `publish.yml` workflow's version check fails and no npm publish happens. | manual |
+| 5 | Commit + push to a feature branch on hostdb | Conventional commit. No AI attribution. | manual |
+| 6 | GitHub Actions on hostdb | `gh workflow run release-<engine>.yml --field version=<X> --field platforms=all`. The release workflow uploads to R2, mirrors GitHub Releases, regenerates `releases.json`. | auto once triggered |
+| 7 | Merge hostdb feature → dev → main | `publish.yml` fires on push to main: regenerates releases.json one more time, runs all 167 tests + defaults-sync gate, then `npm publish` via OIDC. | auto |
+| 8 | Verify npm | `npm view hostdb version` shows the new version. | manual check |
+| 9 | `spindb/package.json` | **Exact-pin bump:** change `"hostdb": "0.30.0"` → `"hostdb": "0.30.1"` (no caret, no tilde). | manual |
+| 10 | spindb | `pnpm install && pnpm test:hostdb-sync && pnpm test:unit && pnpm test:cli` — should be all-green. The wrappers in `engines/<engine>/version-maps.ts` auto-rebuild from the new hostdb snapshot; **no manual MAP edits.** | manual run, auto checks |
+| 11 | spindb | Bump spindb's own version + CHANGELOG.md note. | manual |
+| 12 | Merge spindb feature → dev → main | spindb's own publish workflow fires. | auto |
+| 13 | layerbase-cloud | Bump `SPINDB_VERSION` in `images/Dockerfile.base`. `build-images.yml` rebuilds the universal image; `deploy.yml` rolls servers. | manual edit, auto deploy |
+| 14 | layerbase-desktop | Bump `spindb` in `package.json` (also an exact pin). Next desktop release ships the new spindb to end users. | manual edit, auto release |
+
+**Critical ordering**: steps 1–8 must complete BEFORE step 9. If you bump spindb's hostdb pin to a version that isn't yet on npm, `pnpm install` fails on spindb's CI.
+
+No cloud config file changes for patch-only bumps. No spindb code changes for patch-only bumps — only the dep pin.
 
 ### A4. Things that are easy to forget
 
@@ -81,9 +88,10 @@ When doing a multi-engine upgrade batch (like this May 2026 sweep), do it in pha
 
 ### A6. Test gates before declaring done
 
-- **hostdb**: `pnpm prep --check` (clean), every release workflow green, `validate-binaries.sh` passes for each archive (this runs automatically in CI).
-- **spindb**: `pnpm lint && pnpm test:unit && pnpm test:hostdb-sync`. The last test fetches `releases.json` from R2 and verifies every VERSION_MAP value exists there.
-- **End-to-end**: Run `spindb create test-pg --engine postgresql --db-version 18` against the new spindb build. Confirm it downloads the new patch, starts, accepts a connection.
+- **hostdb**: `pnpm prep --check` (clean), every release workflow green, `validate-binaries.sh` passes for each archive (CI), the publish workflow's `git diff --exit-code releases.json` drift gate passes, all 167 unit tests + defaults-sync + api-shape tests pass.
+- **hostdb CI smoke**: `.github/workflows/ci.yml` packs the tarball and installs it under BOTH `npm` and `pnpm` into a clean dir, then runs 10 public-API smoke checks. Catches "tests green but tarball broken" failures (missing files, wrong exports path, etc.).
+- **spindb**: `pnpm lint && pnpm test:unit && pnpm test:hostdb-sync`. After the npm-package integration: `test:hostdb-sync` verifies the *bundled* hostdb snapshot agrees with the *live* R2 registry — catches a stale hostdb pin or a publish ordering mistake.
+- **End-to-end**: Run `spindb create test-pg --engine postgresql --db-version 18` against the new spindb build. Confirm it downloads the new patch, starts, accepts a connection. With eager version resolution (A9), `cat ~/.spindb/containers/postgresql/test-pg/container.json` should show `"version": "<full version>"`, never shorthand.
 - **Cloud canary**: After the universal image rebuild, provision a test database via the cloud API and confirm the new patch shows up in `spindb info`.
 
 ---
@@ -112,18 +120,17 @@ For engine `<X>`, the files that exist and their roles:
 
 | File | Role | Edited for |
 |---|---|---|
-| `engines/<X>/version-maps.ts` | Static MAP of major (`'11'`), major.minor (`'11.8'`), and full (`'11.8.5'`) → resolved full version. **The authority for download resolution.** | Every version add. |
-| `engines/<X>/binary-urls.ts` | Builds the R2 URL using the version + platform. Calls `normalizeVersion` from the MAP. | Rarely; only when URL format changes. |
-| `engines/<X>/hostdb-releases.ts` | Factory wrapper that exposes "list available versions" for the UI version picker. Fetches `databases.json` from R2 at runtime (30-second cache). Has 3-tier fallback: registry → locally-installed → static MAP. | Rarely; mostly when adding a new engine. |
+| `package.json` | **Exact-pin** of the `hostdb` npm dep (`"hostdb": "0.31.0"` — no caret, no tilde). Bumping this is how new database versions reach spindb. | Every version add (just the pin bump). |
+| `engines/<X>/version-maps.ts` | **Thin wrapper** over the `hostdb` package. `<ENGINE>_VERSION_MAP` and `SUPPORTED_MAJOR_VERSIONS` are built at module-load time by calling `hostdb.resolveVersion`, `getSupportedMajorVersions`, and `listVersions`. **Do not edit by hand** — the wrapper rebuilds from hostdb's snapshot automatically. | Almost never; only if the legacy export shape needs new fields. |
+| `engines/<X>/binary-urls.ts` | Builds the R2 URL using the version + platform. Calls the wrapper's `normalizeVersion`. | Rarely; only when URL format changes. |
+| `engines/<X>/hostdb-releases.ts` | Factory wrapper that exposes "list available versions" for the UI version picker. Reads from the bundled hostdb snapshot via `core/hostdb-metadata.ts`. | Rarely; mostly when adding a new engine. |
 | `engines/<X>/version-validator.ts` | Compatibility checks (e.g., pg_restore version vs dump version). Some hardcode versions in tests. | When validation rules change. |
-| `config/engines.json` | Engine registry with `supportedVersions`, `defaultVersion`, `clientTools`. Used by the engine discovery layer. | When changing what spindb advertises as supported. |
-| `config/engine-defaults.ts` | Per-engine defaults: `defaultVersion`, `latestVersion` (for display), `defaultPort`. | When changing defaults. |
-| `core/hostdb-releases-factory.ts` | The factory used by `engines/<X>/hostdb-releases.ts`. Implements caching + fallback chain. | Almost never. |
-| `core/hostdb-client.ts` | Network layer for fetching `databases.json` and `releases.json` from R2, with GitHub fallback (`ENABLE_GITHUB_FALLBACK`). | Almost never. |
-| `core/hostdb-metadata.ts` | Reads `databases.json` for available/deprecated version queries. | Almost never. |
-| `tests/integration/hostdb-sync.test.ts` | Live test: fetches `releases.json` from R2 and asserts every VERSION_MAP value exists in it. | Adding a new engine. |
+| `config/engines.json` | Engine registry with stable engine-shape metadata: `displayName`, `clientTools`, `connectionScheme`, etc. **No version data** (removed in A13 because it duplicated hostdb). | When changing engine metadata. |
+| `config/engine-defaults.ts` | Per-engine **major-level policy**: `defaultVersion` (which major to default to — e.g., MySQL `'8.4'` for LTS), `defaultPort`, port range, etc. The major → full version resolution happens via hostdb at create time. | When changing defaults policy. |
+| `core/hostdb-metadata.ts` | Reads `databases.json` / `downloads.json` from the bundled `hostdb` package (no runtime network call); 5-min network fallback only on a corrupt install. | Almost never. |
+| `core/hostdb-client.ts` | Network layer for the **binary downloads** themselves (R2 URLs + GitHub fallback via `ENABLE_GITHUB_FALLBACK`). Registry metadata reads no longer hit the network — see `hostdb-metadata.ts`. | Almost never. |
+| `tests/integration/hostdb-sync.test.ts` | Drift gate: fetches the LIVE `releases.json` from R2 and asserts every value in the bundled snapshot exists there. Catches stale `hostdb` pins. | Adding a new engine. |
 | `tests/unit/<X>-version-validator.test.ts` | Unit tests with hardcoded version strings. | When changing version-validator behavior. |
-| `tests/unit/engines-registry.test.ts` | Validates `config/engines.json` schema. | When changing the schema. |
 
 #### layerbase-cloud (`~/dev/layerbase-cloud`)
 
@@ -143,28 +150,31 @@ When a `spindb create --engine mariadb --db-version 11.8` is run (whether by use
 
 ```
 cli/commands/create.ts
-  └─ resolves version = '11.8' (or defaults from engineDefaults.defaultVersion)
-  └─ calls dbEngine.initDataDir(name, version, opts)
+  └─ resolves version = '11.8' (or defaults from engineDefaults.defaultVersion = '11.8')
+  └─ EAGER RESOLUTION (A9): dbEngine.resolveFullVersion('11.8') → '11.8.6'
+  └─ container.json now stores 'version': '11.8.6'
+  └─ calls dbEngine.initDataDir(name, '11.8.6', opts)
 
 engines/mariadb/index.ts
   └─ delegates to binary manager for download
 
 engines/mariadb/binary-manager.ts → core/base-binary-manager.ts
-  └─ calls normalizeVersionFromModule('11.8')
-  └─ which calls normalizeVersion from engines/mariadb/version-maps.ts
-  └─ MARIADB_VERSION_MAP['11.8'] → '11.8.5' (or whatever the MAP says)
+  └─ getFullVersion('11.8.6') → normalizeVersion → '11.8.6' (identity match)
 
-engines/mariadb/binary-urls.ts → getBinaryUrl('11.8', platform, arch)
-  └─ normalizeVersion('11.8', MARIADB_VERSION_MAP) → '11.8.5'
-  └─ buildHostdbUrl(Engine.MariaDB, { version: '11.8.5', ... })
-  └─ returns: https://registry.layerbase.host/mariadb-11.8.5/mariadb-11.8.5-linux-x64.tar.gz
+engines/mariadb/version-maps.ts (thin wrapper)
+  └─ hostdb.resolveVersion('mariadb', '11.8.6') → '11.8.6' (identity)
+
+engines/mariadb/binary-urls.ts → getBinaryUrl('11.8.6', platform, arch)
+  └─ buildHostdbUrl(Engine.MariaDB, { version: '11.8.6', ... })
+  └─ returns: https://registry.layerbase.host/mariadb-11.8.6/mariadb-11.8.6-linux-x64.tar.gz
 
 binary-manager downloads from that URL, extracts, validates.
 ```
 
-**Key point:** at no step does the running code consult R2's `releases.json` to decide *which patch* to download. `releases.json` is only consulted (via `hostdb-releases-factory`) when **listing** versions for the UI picker, not when **resolving** a version to a URL.
-
-This is why the static `VERSION_MAP` is the authority. Updating R2 with a new patch without updating spindb does nothing for download behavior.
+**Key points:**
+- The resolver authority is **hostdb's bundled snapshot** (databases.json + the `defaults` block), accessed via the thin wrapper in `engines/<X>/version-maps.ts`. The snapshot is pinned per-spindb-release.
+- Container configs persist **full versions** (`'11.8.6'`), not shorthand (`'11.8'`). A future spindb upgrade with a different hostdb pin won't move the container onto a different patch — the container is self-pinning.
+- R2's `releases.json` is consulted for the URL/sha256/size, but **not** for "which patch should '11.8' resolve to?" — that decision is frozen into the published `hostdb` tarball.
 
 ### B3. Engine-specific quirks
 
