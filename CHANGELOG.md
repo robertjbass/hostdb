@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.31.0] - 2026-05-15
+
+### Added — npm package surface
+
+hostdb now publishes a typed npm package alongside the R2 binary registry. Consumers (spindb, layerbase-cloud, layerbase-desktop) import `hostdb` and resolve versions, query CLI tools, and look up download URLs entirely offline — no runtime fetch from `registry.layerbase.host` for the registry itself.
+
+- **Resolver API** (`lib/resolver.ts`) — `resolveVersion`, `normalizeVersion`, `listVersions`, `listEngines`, `getSupportedMajorVersions`, `getMajorDefault`, `getEngineDefaults`, `getReleaseInfo`, `getAvailablePlatforms`, `isVersionDeprecated`, `getCliTools`, `getDatabaseEntry`, `compareVersions`. Full surface locked in `tests/api-shape.test.ts` (19 names).
+- **Bundled registry snapshot** — `databases.json`, `releases.json`, `downloads.json` ship in the npm tarball; programmatic loaders `loadDatabasesJson` / `loadReleasesJson` / `loadDownloadsJson` are also exported.
+- **`defaults` block per engine** in `databases.yml` — explicit major→full-version policy. Encodes LTS-vs-latest decisions (`mongodb '8' → 8.0.23` LTS, NOT 8.2.x; `mysql '8' → 8.4.9` LTS, NOT 9.x).
+- **Compiled `dist/`** ships in the tarball; consumers don't need TypeScript or tsx. `prepare` script auto-builds dist/ on `pnpm install` in the repo dir.
+- **CI pack-and-install smoke test** (`.github/workflows/ci.yml`) verifies the tarball installs cleanly under both npm and pnpm.
+- **Pre-publish drift gate** — `publish.yml` regenerates `releases.json` from live GitHub releases and aborts if it diverges from the committed file.
+- **R2 orphan audit** — new `pnpm audit:r2-orphans` script lists R2 objects not referenced by `releases.json`.
+
+### Changed
+
+- `databases.yml` schema gained an optional `defaults` block per engine. Backward-compatible — old consumers ignore unknown fields.
+- `databases.json` regenerated from `databases.yml` includes the new `defaults` block.
+
+### Coordination notes
+
+Spindb consumes this version as an **exact pin** (`"hostdb": "0.31.0"`, no caret/tilde). See `UPGRADE_PLAYBOOK.md` Part A3 for the full publish cascade across the 5-repo ecosystem.
+
 ## [0.30.0] - 2026-03-12
 
 ### Added
