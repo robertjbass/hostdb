@@ -206,3 +206,29 @@ Also verified the clean-install path works end-to-end: packed hostdb, installed 
 1. **Hostdb npm version pinning in spindb** — currently `file:../hostdb`. Must be replaced with `^X.Y.Z` matching the published version. Mechanical, but easy to forget.
 2. **First publish ordering** — hostdb must publish to npm BEFORE spindb's `file:../hostdb` line can be flipped. Order: (a) merge hostdb dev → main → publish triggers, (b) verify version on npm, (c) bump hostdb dep in spindb to match, (d) merge spindb feature → dev → main.
 3. **Defaults block as policy** — a future change to `mongodb: '8' → '8.2.0'` (LTS rolls forward) is a silent semantic shift for end-users. The defaults-sync test in hostdb only validates the CURRENT snapshot; it doesn't warn about deliberate policy changes between hostdb versions. Worth a CHANGELOG entry whenever defaults change.
+
+---
+
+## Standardization pass (post-audit, 2026-05-15 ~09:10 UTC)
+
+After the deep audit found A1–A8, the user asked whether the remaining items were worth standardizing. Triaged each:
+
+| Finding | Status | Reasoning |
+|---------|--------|-----------|
+| A1 (metadata cache) | **Fixed** during audit | Real bug; performance regression after the bundled rewire |
+| A4 (lib/ in tarball) | **Fixed** | Trivial; package.json `files` array now excludes lib. Tarball: 38→32 files, 61KB→55KB. Verified clean install + 8 public exports + 3 loaders still work |
+| A7 (loader caching) | **Fixed + consolidated** | Loaders now memoize. Removed redundant `_databasesCache`/`_releasesCache` from resolver.ts (they pointed at the same data). Reset path consolidated under `_resetLoaderCachesForTests` |
+| A8 (prepare script) | **Fixed (publish path only)** | `prepare` runs during hostdb's own `pnpm install` and during `npm publish` — both build dist/. **Does NOT run for `file:` deps in pnpm 9** (security policy). Dev workflow now: "clone hostdb → `pnpm install` (builds dist) → clone spindb → `pnpm install` (links to existing dist)". If hostdb dist/ is stale and you only `pnpm install` in spindb, dist won't rebuild — has to be triggered in hostdb dir. Tried `postinstall`, `onlyBuiltDependencies`, `enable-pre-post-scripts` — none worked because pnpm 9 has hard-coded behavior here |
+| A2 (`SUPPORTED_MAJOR_VERSIONS` shape) | **Left as-is (intentional divergence)** | Five engines export 2-part majors; sixteen export 1-part. This is not technical debt — it reflects a real domain distinction. For MongoDB the `'8.0.x'` and `'8.2.x'` lines are different LTS-vs-current tracks. If you flatten SUPPORTED_MAJOR_VERSIONS to 1-part for MongoDB, `getMajorVersion('mongodb', '8.0.23')` returns `'8'` instead of `'8.0'`, and downstream code that groups containers by major would conflate the two tracks. Each wrapper signals the choice via its function call (`getSupportedMajorVersions(ENGINE)` for 1-part, `listVersions(ENGINE, { format: 'major-minor' })` for 2-part), which IS the documentation |
+| A3 (resolver doesn't filter deprecated) | **Left as-is (intentional)** | Spindb has existing containers running on deprecated patches. The resolver MUST keep returning those binaries so existing installs keep working. UI-level filtering (don't *recommend* a deprecated version) already lives in `cli/ui/prompts.ts` via `getDeprecatedVersions()`. Making the resolver strict would break the migration UX |
+| A5 (tsx as runtime dep) | **Left as-is (cost > benefit)** | To drop tsx from runtime deps, the CLI (`cli/bin.ts`) would need to compile to JS. That requires changing `tsconfig.build.json` rootDir (currently `./lib`), which cascades into package.json's `main`/`types`/`exports` paths. Disruptive diff for ~1MB of dep that spindb already has anyway |
+| A6 (pnpm hard-links file: deps) | n/a — good behavior | Nothing to change |
+
+### Net result
+
+Cache consolidation, tarball slimming, and the prepare hook are all in. The two "left as-is" items (A2, A3) reflect deliberate domain modeling — the divergence is the right answer, not a problem. A5 is a worthwhile optimization for a future major version, not a bug.
+
+After the standardization pass:
+- Total commits on hostdb branch: 14
+- Total commits on spindb branch: 12
+- Tests: hostdb 167/167, spindb 1562 unit + 23 hostdb-sync + 44 CLI e2e — all green
