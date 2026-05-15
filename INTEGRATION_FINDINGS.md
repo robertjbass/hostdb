@@ -263,3 +263,57 @@ Commit: `fix(create): persist resolved full version in container config (not sho
 **Existing pre-migration containers** with shorthand `version: '18'` are NOT retroactively updated. They survive (`isInstalled` still finds the binary directory) but remain vulnerable to drift on the next spindb upgrade. `spindb doctor --migrate` is the user-facing escape hatch — it already writes back full versions via `migrateContainerVersion()`. Worth a note in the next release's CHANGELOG.
 
 **`'unknown'` container.version entries** (legacy data from earlier spindb versions) — saw a couple in the live `~/.spindb/containers/`. Out of scope here; existing migration tooling handles them.
+
+---
+
+### A10 — Menu-driven create paths had the same drift bug (FIXED)
+
+`cli/commands/create.ts` was only one of three places that call `containerManager.create()` with a fresh user-supplied version. A grep for `containerManager\.create` turned up two more:
+
+- `cli/commands/menu/container-handlers.ts:345` — interactive "Create new container" wizard (the main TUI flow).
+- `cli/commands/menu/backup-handlers.ts:329` — "Restore to new container" wizard.
+
+Both took `version` straight from the prompt and persisted it without resolving. Same drift risk as A9.
+
+**Fix:** Same pattern — call `dbEngine.resolveFullVersion(version)` right after `getEngine()`, log if it differs, then proceed. Applied to both files.
+
+Commit: `fix(create): apply eager-version-resolution to menu handlers too`.
+
+### A11 — Other `containerManager.updateConfig({ version })` writes (verified safe)
+
+Audited all four remaining sites that update `version` on an EXISTING container:
+
+| Site | Source of value | Status |
+|------|-----------------|--------|
+| `core/version-migration.ts:293` | `getTargetVersion(engine, major)` returns MAP value (full version) | ✓ Full |
+| `engines/postgresql/index.ts:174` | `installed.version` parsed from binary install path | ✓ Full |
+| `engines/postgresql/index.ts:218` | `targetVersion` from `getTargetVersion()` | ✓ Full |
+| `core/container-manager.ts:633` (link command) | Hardcoded `'unknown'` for remote-linked containers | Intentional — no local binary, no resolution to do |
+
+All updateConfig writes produce full versions. None need changes.
+
+### A12 — File-based engines hardcode `version: '3'` / `version: '1'` (intentional, low risk)
+
+`core/container-manager.ts` SQLite/DuckDB `getConfig()` paths inject `version: '3'` and `version: '1'` (shorthand) for file-based containers. SQLite's data file format is library-stable across all 3.x versions; DuckDB has compatibility within a major. No binary on disk to mismatch against. The wrapper resolves `'3'` and `'1'` correctly at every call site. Not a bug — just inconsistent with the new "store full versions" principle. Could be cleaned up later for consistency, but no functional issue.
+
+### A13 — `config/engines.json` registry is stale (cosmetic, not runtime-affecting)
+
+The hand-maintained `config/engines.json` has stale `supportedVersions` arrays — e.g., PostgreSQL lists `['15.15.0', '16.11.0', '17.7.0', '18.1.0']`, missing the May 2026 patch wave (15.18.0, 16.14.0, 17.10.0, 18.4.0). Default is still `18.1.0` rather than `18.4.0`.
+
+**Runtime impact: none.** The version picker (`cli/ui/prompts.ts:promptVersion`) and engine listing (`engines/index.ts:listEngines`) both use `engine.supportedVersions` from the engine instance, which comes from each wrapper's `SUPPORTED_MAJOR_VERSIONS` — now derived from hostdb. The `engines.json` `supportedVersions` field is referenced by `filterEnginesByPlatform()` which is only invoked by tests.
+
+**What `engines.json` IS used for at runtime:** `queryLanguage`, `runtime`, `connectionScheme`, `displayName` (via `getEngineConfig()` in `cli/helpers.ts` and `cli/commands/ports.ts`). Those fields don't drift.
+
+**Recommendation:** Either delete the stale fields, or wire them up to hostdb at runtime (so `engines.json` only carries the stable engine metadata). Non-urgent — flagging for a future cleanup.
+
+### A14 — `config/engine-defaults.ts:defaultVersion` is shorthand (intentional now, redundant later)
+
+Per-engine `defaultVersion: '18'` / `'8.4'` / `'11.8'` etc. is shorthand. With A9's eager resolution, these get resolved to full versions before persistence, so they're effectively just "what should we ask hostdb for when the user doesn't specify."
+
+A cleaner design would be: pull `defaultVersion` from hostdb's `getEngineDefaults(engine).defaultVersion` at runtime. Then engine-defaults.ts only carries stable per-engine metadata (default port, port range, superuser, etc.) — the version policy lives entirely in hostdb's defaults block. Non-urgent.
+
+### Summary of new findings
+
+- **A10** is a real bug, FIXED in the same commit pattern as A9.
+- **A11** confirms the other version-write paths are already safe.
+- **A12–A14** are non-runtime-affecting inconsistencies. Worth a future cleanup pass but not blocking the merge.
