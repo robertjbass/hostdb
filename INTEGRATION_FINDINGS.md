@@ -236,3 +236,30 @@ After the standardization pass:
 - Total commits on hostdb branch: 14
 - Total commits on spindb branch: 12
 - Tests: hostdb 167/167, spindb 1562 unit + 23 hostdb-sync + 44 CLI e2e — all green
+
+---
+
+### A9 — Container configs persisted shorthand versions (real durability bug, FIXED)
+
+**Discovered during a downstream-impact audit.** When a user ran `spindb create postgresql 18`, the resulting `container.json` stored `version: '18'` (shorthand). At start time, spindb's binary manager would re-resolve `'18'` against the *currently bundled* hostdb snapshot — which could return a different patch in a later spindb release.
+
+Concrete scenario:
+1. User has spindb@0.49.0 with hostdb@0.31.0; runs `spindb create postgresql 18`. Container persists `version: '18'`. Binary downloaded to `~/.spindb/bin/postgresql-18.4.0-darwin-arm64/`. Container starts cleanly.
+2. Time passes. User upgrades to spindb@0.55.0 with hostdb@0.40.0 (`defaults['18']` now resolves to `18.6.0`).
+3. `spindb start <container>` reads `version: '18'`, resolves it via the new hostdb to `'18.6.0'`, looks for `~/.spindb/bin/postgresql-18.6.0-darwin-arm64/` — doesn't exist, downloads it, then runs the new binary against the existing 18.4-created data dir.
+4. For PostgreSQL, same major = OK (patch-compatible). For MongoDB / MySQL, this is risky (cross-patch system table changes).
+
+**The R2 side is durable** — old binaries stay on R2 forever, and the binary on disk doesn't go away. But spindb's lookup *path* depends on the resolved version, so the old binary becomes effectively unused once the resolution shifts.
+
+**Fix:** Eager resolution at create time. `cli/commands/create.ts` now calls `dbEngine.resolveFullVersion(version)` immediately after the engine is constructed, before any persistence. Container configs are written with the full resolved string (e.g., `'18.4.0'`). The container locks itself to the version it was created against.
+
+Required changes:
+- `engines/base-engine.ts` — added default `resolveFullVersion(version: string): string` returning the input unchanged.
+- `engines/sqlite/index.ts` + `engines/duckdb/index.ts` — added override delegating to `normalizeVersion`. (19 other engines already had the method; they now override the new base default.)
+- `cli/commands/create.ts` — calls `dbEngine.resolveFullVersion(version)` post-engine-construction, before the FerretDB-on-Windows override and before any persistence.
+
+Commit: `fix(create): persist resolved full version in container config (not shorthand)`.
+
+**Existing pre-migration containers** with shorthand `version: '18'` are NOT retroactively updated. They survive (`isInstalled` still finds the binary directory) but remain vulnerable to drift on the next spindb upgrade. `spindb doctor --migrate` is the user-facing escape hatch — it already writes back full versions via `migrateContainerVersion()`. Worth a note in the next release's CHANGELOG.
+
+**`'unknown'` container.version entries** (legacy data from earlier spindb versions) — saw a couple in the live `~/.spindb/containers/`. Out of scope here; existing migration tooling handles them.
