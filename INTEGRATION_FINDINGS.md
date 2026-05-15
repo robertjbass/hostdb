@@ -203,7 +203,11 @@ Also verified the clean-install path works end-to-end: packed hostdb, installed 
 
 ### Real risk before merging
 
-1. **Hostdb npm version pinning in spindb** — currently `file:../hostdb`. Must be replaced with `^X.Y.Z` matching the published version. Mechanical, but easy to forget.
+1. **Hostdb npm version pinning in spindb** — currently `file:../hostdb`. Must be replaced with an **exact pin** (`"hostdb": "0.31.0"`, no caret/tilde) matching the published version. Why exact:
+   - A patch hostdb release can add NEW version entries (e.g., `0.31.1` adds PG 17.11.0). With `^0.31.0`, an end-user installing a previously-published spindb@0.49.0 could pick up `hostdb@0.31.5` and see versions spindb's tests never validated against.
+   - The bundled-vs-live drift test (`hostdb-sync.test.ts`) passes against a specific snapshot. Floating the snapshot defeats it.
+   - Users expect spindb@X.Y.Z to show the same versions every time they install it.
+   - Bumping hostdb becomes an explicit spindb release. That's the desired UX, not friction.
 2. **First publish ordering** — hostdb must publish to npm BEFORE spindb's `file:../hostdb` line can be flipped. Order: (a) merge hostdb dev → main → publish triggers, (b) verify version on npm, (c) bump hostdb dep in spindb to match, (d) merge spindb feature → dev → main.
 3. **Defaults block as policy** — a future change to `mongodb: '8' → '8.2.0'` (LTS rolls forward) is a silent semantic shift for end-users. The defaults-sync test in hostdb only validates the CURRENT snapshot; it doesn't warn about deliberate policy changes between hostdb versions. Worth a CHANGELOG entry whenever defaults change.
 
