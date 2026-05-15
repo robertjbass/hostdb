@@ -7,13 +7,24 @@
  *
  * Resolution algorithm:
  *   1. Identity — if the input is already a known full version, return it.
+ *      Deprecated patches still match here; only `enabled: false` excludes a
+ *      version from resolution entirely. The deprecated-but-resolvable case
+ *      is intentional: existing containers keep working when a version is
+ *      deprecation-flagged but not removed.
  *   2. Defaults — if the input matches a key in the engine's `defaults` block,
- *      return the explicit policy choice. This preserves LTS-vs-latest decisions
+ *      return the explicit policy choice. Preserves LTS-vs-latest decisions
  *      that previously lived only as comments in spindb's hand-written MAPs.
- *   3. Major.minor prefix — pick the highest non-deprecated full version that
- *      starts with the input prefix.
+ *   3. Major.minor prefix — pick the highest full version (including deprecated)
+ *      that starts with the input prefix.
  *   4. Major prefix — same, but only when no `defaults['X']` is declared.
  *   5. Otherwise null.
+ *
+ * "Enabled" vs "deprecated":
+ *   - `enabled: false`  → version is INVISIBLE to the resolver (skipped entirely).
+ *   - `deprecated: true` → version is still resolvable (so containers don't break)
+ *                          but flagged for UI consumers via `isVersionDeprecated`.
+ *   These flags are independent. UI layers like spindb's version picker use
+ *   `getDeprecatedVersions()` to hide deprecated entries from create flows.
  */
 
 import {
@@ -78,22 +89,22 @@ function getEntry(engine: string): DatabaseEntry | null {
   return databases().databases[engine] ?? null
 }
 
-function getAvailableFullVersions(
-  engine: string,
-  opts: { includeDeprecated?: boolean } = {},
-): string[] {
+/**
+ * Return the engine's full-version list, filtered by the `enabled` flag.
+ * Deprecated versions stay in the list — see resolver-level docstring.
+ */
+function getAvailableFullVersions(engine: string): string[] {
   const entry = getEntry(engine)
   if (!entry) return []
-  const all = Object.keys(entry.versions ?? {})
-  if (opts.includeDeprecated) return all
-  return all.filter((v) => isVersionEnabled(entry.versions[v]))
+  return Object.keys(entry.versions ?? {}).filter((v) =>
+    isVersionEnabled(entry.versions[v]),
+  )
 }
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 export type ListVersionsOptions = {
   format?: 'full' | 'major' | 'major-minor'
-  includeDeprecated?: boolean
 }
 
 /**
@@ -180,7 +191,7 @@ export function listVersions(
   engine: string,
   opts: ListVersionsOptions = {},
 ): string[] {
-  const versions = getAvailableFullVersions(engine, opts)
+  const versions = getAvailableFullVersions(engine)
   if (versions.length === 0) return []
 
   const sorted = [...versions].sort((a, b) => compareVersions(b, a))
