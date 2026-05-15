@@ -122,3 +122,87 @@ Per Bob's directive ("don't merge anything until I wake up"):
 
 - `hostdb@upgrade/spindb-hostdb-integration` — to be pushed at end of session.
 - `spindb@upgrade/spindb-hostdb-integration` — to be pushed at end of session.
+
+---
+
+## Deep audit (post-migration, 2026-05-15 ~08:30 UTC)
+
+After the initial migration I went looking for things that could quietly break in prod. Findings A1–A8 below. Six are FYI/non-blocking; **A1 is a real bug I fixed**; **A8 is a footgun the user should know about before publishing**.
+
+### A1 — Metadata fetches no longer cached (FIXED)
+
+When I first rewired `core/hostdb-metadata.ts` to read from the bundled hostdb package, I removed the 5-min cache for the bundled path. `fetchDatabasesJson` and `fetchDownloadsJson` are called repeatedly during a single CLI run (engines.ts, downloads.json prompts, deprecation checks, etc.) — every call did a fresh `readFileSync + JSON.parse`. Re-parsing a ~80KB JSON file every call is cheap but pointless.
+
+**Fix:** Added module-level cache (`databasesCache` / `downloadsCache`) for the bundled path with `timestamp: Infinity` so it never expires within a process. Network fallback path still uses the original 5-min TTL. Commit: `perf(metadata): cache bundled databases.json + downloads.json across calls`.
+
+### A2 — `SUPPORTED_MAJOR_VERSIONS` shape divergence is intentional, but undocumented
+
+Five engines (MariaDB, MongoDB, MySQL, ClickHouse, TigerBeetle) export 2-part majors (`['11.8', '11.4', '10.11']`); the other 16 export 1-part (`['18', '17', '16', '15']`). This is because `core/version-migration.ts:getMajorVersion()` uses the array to reverse-map a full version to its grouping. For MongoDB, 2-part is required because `'8.0.x'` and `'8.2.x'` are distinct LTS-vs-latest tracks that must not collapse to a single `'8'` group.
+
+I preserved both shapes per-wrapper. Documented in F4. The wrapper code itself signals the choice via `getSupportedMajorVersions(ENGINE)` (1-part path) vs `listVersions(ENGINE, { format: 'major-minor' })` (2-part path). Anyone adding a new engine has to make this call.
+
+### A3 — Resolver doesn't filter deprecated versions (intentional)
+
+The resolver's `getAvailableFullVersions()` filters by `isVersionEnabled` (i.e., `enabled !== false`), not by `isVersionDeprecated`. So `resolveVersion('mysql', '8.0.40')` returns `'8.0.40'` even though that version carries `deprecated: true`.
+
+This is intentional: deprecation is a UI-level flag for "don't pick this for new instances," not a removal. Existing containers must keep resolving. The resolver docstring used to say "highest non-deprecated full version" — I corrected it to match reality.
+
+If we later want a strict-deprecation mode (resolver refuses deprecated, prompting upgrade), it should be opt-in via `resolveVersion(engine, v, { excludeDeprecated: true })`. Not done; flagging for future.
+
+### A4 — `pnpm pack` includes both `dist/` AND `lib/` (~61KB total)
+
+Published tarball ships both compiled `dist/*.js` + source `lib/*.ts` (latter is harmless but unused by consumers). Total 38 files, 61KB compressed. Removing `lib` from the files array would shrink things, but `lib` is also where `databases.ts` lives at import time during dev — and tsx-driven dev consumers might resolve to it. Safer to leave for now.
+
+Acceptable but worth a future cleanup if we want a tighter prod tarball.
+
+### A5 — `tsx` is a runtime dep of hostdb (bloats spindb's install)
+
+`hostdb/package.json` declares `"tsx"` as a runtime dependency because `bin/cli.js` (the `hostdb` CLI command) shells out via tsx to run `cli/bin.ts`. When spindb depends on hostdb, it transitively installs tsx, which spindb's own runtime doesn't need.
+
+Fixes (not done):
+- Move `cli/bin.ts` → `dist/cli.js` (compiled) and drop tsx from runtime deps.
+- Or mark tsx `optional: true` and have `bin/cli.js` print a friendly error if missing.
+
+Non-blocking — install size impact is small (~few hundred KB) and spindb already had tsx anyway.
+
+### A6 — pnpm hard-links the file:dep (good for cross-repo dev)
+
+Verified that `node_modules/hostdb/databases.json` shares an inode with `/Users/bob/dev/hostdb/databases.json`. Rebuilds to hostdb's `dist/` propagate immediately to spindb. No stale-cache footgun during dev iteration.
+
+But: `pnpm install` is still required after the FIRST `file:../hostdb` setup. If someone clones spindb fresh and runs tests, the install must succeed. The pnpm-lock.yaml commit ensures reproducibility.
+
+### A7 — `loadDatabasesJson()` does not cache; resolver does
+
+The hostdb resolver caches `databases.json` / `releases.json` in module-level vars on first resolver call. But `loadDatabasesJson()` and `loadReleasesJson()` (the lower-level exports) always re-read from disk. Consumers that call them directly in a hot loop will pay the JSON-parse cost each time.
+
+For SpinDB this is now mitigated by the metadata-layer cache (A1). External consumers should be aware.
+
+### A8 — Hostdb dist/ must be built before publish (BLOCKER for npm publish)
+
+`pnpm publish` invokes `prepublishOnly` which runs `pnpm build`. The publish workflow on GH Actions already calls `pnpm build` explicitly before `npm publish`. But: when developing locally with `file:../hostdb`, the dist/ is generated locally and stays as-is — if someone forgets to rebuild after editing `lib/*.ts`, the consumer (spindb) reads stale compiled code while the source has changed.
+
+Mitigation: tests in spindb's CI catch this (it runs against the bundled dist/). But during interactive dev, an unsaved rebuild will cause confusing failures.
+
+**Recommendation before publishing:** add a `pnpm prepare` script that runs `pnpm build` so `pnpm install` rebuilds dist/ automatically for `file:` consumers. One-line change; not done yet because the user is asleep and I'm flagging instead of speculating.
+
+### Probe results
+
+I built two ad-hoc audit harnesses (not committed, just smoke tests):
+- 48 resolver edge cases covering identity / defaults / prefix / 4-part / compound / deprecated / unknown / case-sensitivity / empty input / negative numbers — **all green**.
+- 32 wrapper-shape assertions covering every engine's MAP keys, SUPPORTED_MAJOR_VERSIONS shape, alias exports, isV1 polymorphism, DEFAULT_VERSION fallbacks — **all green**.
+
+Also verified the clean-install path works end-to-end: packed hostdb, installed into an empty pnpm workspace, imported every public symbol, confirmed `loadDatabasesJson` / `loadReleasesJson` / `loadDownloadsJson` all return well-formed objects. 22 engines resolve. `mongodb 8 → 8.0.23` confirmed end-to-end.
+
+### Things I deliberately did NOT touch
+
+- Hostdb's CLI (`cli/bin.ts`) — out of scope for the npm package surface.
+- The R2 upload pipeline — unaffected by resolver work.
+- `core/version-migration.ts` logic (the `findOutdatedContainers` flow) — kept compatible, just consumes the new MAPs.
+- Spindb's `cli/ui/prompts.ts` — already queries `getDeprecatedVersions` via the metadata layer; my changes route that through the bundled package transparently.
+- Layerbase-cloud — explicit user directive, no changes.
+
+### Real risk before merging
+
+1. **Hostdb npm version pinning in spindb** — currently `file:../hostdb`. Must be replaced with `^X.Y.Z` matching the published version. Mechanical, but easy to forget.
+2. **First publish ordering** — hostdb must publish to npm BEFORE spindb's `file:../hostdb` line can be flipped. Order: (a) merge hostdb dev → main → publish triggers, (b) verify version on npm, (c) bump hostdb dep in spindb to match, (d) merge spindb feature → dev → main.
+3. **Defaults block as policy** — a future change to `mongodb: '8' → '8.2.0'` (LTS rolls forward) is a silent semantic shift for end-users. The defaults-sync test in hostdb only validates the CURRENT snapshot; it doesn't warn about deliberate policy changes between hostdb versions. Worth a CHANGELOG entry whenever defaults change.
