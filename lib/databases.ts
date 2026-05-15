@@ -74,6 +74,12 @@ export type DatabaseEntry = {
   note?: string
   dependencies?: Dependency[]
   spindbStatus: 'completed' | 'in-progress'
+  /**
+   * Major-version → full-version policy (e.g., '8' → '8.0.23' for MongoDB).
+   * Resolves ambiguous user input to the intended LTS or latest pick.
+   * Optional: engines with single-track majors don't need it; multi-track engines must declare it.
+   */
+  defaults?: Record<string, string>
   versions: Record<string, VersionEntry>
   platforms: Platform[]
   cliTools: CliTools

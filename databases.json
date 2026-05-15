@@ -12,6 +12,9 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Windows binaries unavailable. Require WSL.",
+      "defaults": {
+        "25": "25.12.3.21"
+      },
       "versions": {
         "25.12.3.21": true
       },
@@ -50,6 +53,9 @@
       "hostedServiceAllowed": false,
       "protocol": "postgresql",
       "note": "CockroachDB Software License restricts competing cloud services; fine for local dev",
+      "defaults": {
+        "25": "25.4.2"
+      },
       "versions": {
         "25.4.2": true
       },
@@ -90,6 +96,9 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
+      "defaults": {
+        "3": "3.5.1"
+      },
       "versions": {
         "3.5.1": true
       },
@@ -127,6 +136,9 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
+      "defaults": {
+        "1": "1.4.4"
+      },
       "versions": {
         "1.4.4": true,
         "1.4.3": true
@@ -166,6 +178,10 @@
       "hostedServiceAllowed": true,
       "protocol": "mongodb",
       "note": "FerretDB v2 requires PostgreSQL-DocumentDB; v1 uses plain PostgreSQL",
+      "defaults": {
+        "1": "1.24.2",
+        "2": "2.7.0"
+      },
       "versions": {
         "2.7.0": {
           "platforms": [
@@ -228,6 +244,9 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "v3.0 is a Rust rewrite using Apache Arrow/DataFusion. Single binary with bundled Python runtime for plugin system. Most popular time-series database by adoption.",
+      "defaults": {
+        "3": "3.8.0"
+      },
       "versions": {
         "3.8.0": true
       },
@@ -265,6 +284,9 @@
       "hostedServiceAllowed": true,
       "protocol": "sqlite",
       "note": "Windows binaries unavailable. Require WSL.",
+      "defaults": {
+        "0": "0.24.32"
+      },
       "versions": {
         "0.24.32": true
       },
@@ -304,6 +326,10 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
+      "defaults": {
+        "10": "10.11.16",
+        "11": "11.8.6"
+      },
       "versions": {
         "11.8.6": true,
         "11.8.5": true,
@@ -352,6 +378,9 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
+      "defaults": {
+        "1": "1.43.1"
+      },
       "versions": {
         "1.43.1": true,
         "1.33.1": true
@@ -390,6 +419,10 @@
       "hostedServiceAllowed": false,
       "protocol": null,
       "note": "SSPL restricts offering MongoDB as a competing managed database service (i.e., MongoDB Atlas competitors). Commercial use in applications, local dev, and internal use is fine. FerretDB available as fully open-source alternative.",
+      "defaults": {
+        "7": "7.0.34",
+        "8": "8.0.23"
+      },
       "versions": {
         "8.2.9": true,
         "8.2.3": true,
@@ -436,6 +469,10 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
+      "defaults": {
+        "8": "8.4.9",
+        "9": "9.6.0"
+      },
       "versions": {
         "9.6.0": {
           "note": "mysqlpump removed in MySQL 9.0; 9.x uses mysqldump only",
@@ -545,6 +582,12 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
+      "defaults": {
+        "15": "15.18.0",
+        "16": "16.14.0",
+        "17": "17.10.0",
+        "18": "18.4.0"
+      },
       "versions": {
         "18.4.0": true,
         "18.1.0": true,
@@ -597,6 +640,9 @@
       "hostedServiceAllowed": true,
       "protocol": "postgresql",
       "note": "Backend for FerretDB v2 only; includes pg_cron, pgvector, PostGIS, rum extensions. Not available on Windows.",
+      "defaults": {
+        "17": "17-0.107.0"
+      },
       "versions": {
         "17-0.107.0": true
       },
@@ -639,6 +685,9 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
+      "defaults": {
+        "1": "1.16.3"
+      },
       "versions": {
         "1.16.3": true
       },
@@ -683,6 +732,9 @@
           "note": "QuestDB uses PostgreSQL client tools (psql, pgcli) for its wire protocol; PostgreSQL remains installed as a standalone database when QuestDB is removed"
         }
       ],
+      "defaults": {
+        "9": "9.2.3"
+      },
       "versions": {
         "9.2.3": true
       },
@@ -723,6 +775,10 @@
       "hostedServiceAllowed": false,
       "protocol": null,
       "note": "RSALv2 restricts building competing products to Redis itself. AGPL-3.0 (8.0+) requires source disclosure if you modify Redis and offer it as a network service. Commercial use in applications, local dev, and internal use is fine. Valkey available as BSD-licensed drop-in alternative.",
+      "defaults": {
+        "7": "7.4.9",
+        "8": "8.4.0"
+      },
       "versions": {
         "8.4.0": true,
         "7.4.9": true,
@@ -767,6 +823,9 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "",
+      "defaults": {
+        "3": "3.53.1"
+      },
       "versions": {
         "3.53.1": true,
         "3.51.2": true
@@ -807,6 +866,9 @@
       "hostedServiceAllowed": false,
       "protocol": null,
       "note": "Rust-based; single binary. License is BSL-1.1 (not Apache-2.0); prohibits competing DBaaS offerings. Converts to Apache-2.0 after 4 years per release. Fine for local dev and internal use.",
+      "defaults": {
+        "2": "2.3.2"
+      },
       "versions": {
         "2.3.2": true
       },
@@ -844,6 +906,9 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Written in Zig; single binary with built-in REPL client. Uses a custom binary protocol (not HTTP/SQL). macOS uses a universal (fat) binary for both x64 and arm64.",
+      "defaults": {
+        "0": "0.16.70"
+      },
       "versions": {
         "0.16.70": true
       },
@@ -881,6 +946,9 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Rewritten from Java to Rust in v3.0 (Dec 2024). Binaries distributed via Cloudsmith and GitHub Releases.",
+      "defaults": {
+        "3": "3.8.0"
+      },
       "versions": {
         "3.8.0": true
       },
@@ -918,6 +986,10 @@
       "hostedServiceAllowed": true,
       "protocol": "redis",
       "note": "",
+      "defaults": {
+        "8": "8.0.9",
+        "9": "9.0.4"
+      },
       "versions": {
         "9.0.4": true,
         "9.0.1": true,
@@ -961,6 +1033,9 @@
       "hostedServiceAllowed": true,
       "protocol": null,
       "note": "Go-based single binary (CGO_ENABLED=0). Linux from official releases; macOS/Windows cross-compiled from source.",
+      "defaults": {
+        "1": "1.35.7"
+      },
       "versions": {
         "1.35.7": true
       },
