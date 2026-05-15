@@ -114,6 +114,8 @@ Binaries are hosted on Cloudflare R2 behind `registry.layerbase.host`. GitHub Re
 
 **Migration:** To migrate existing releases: `pnpm migrate:r2 [--dry-run] [--database mysql] [--concurrency 3]`
 
+**Orphan cleanup:** R2 retains binaries forever by design (existing containers keep working). But after months of R&D, the bucket may contain binaries from engines we abandoned or version lines we removed. `pnpm audit:r2-orphans` lists every R2 object that isn't referenced by `releases.json`, grouped by engine prefix. Pass `--delete` to remove them after confirmation. Pass `--engine <name>` to scope the audit to one engine.
+
 ## npm Package (`hostdb`)
 
 This repo is **published to npm as `hostdb`** so consumers (spindb, layerbase-cloud, third parties) can resolve versions, query CLI tool metadata, and look up download URLs offline — no runtime fetch from `registry.layerbase.host` for the registry itself. R2 is still the source of truth for binary tarballs; the npm package ships a *snapshot* of the registry JSON files.
@@ -183,6 +185,29 @@ Spindb must pin `hostdb` **exactly** (`"hostdb": "0.31.0"`, no caret/tilde) so t
 ### Pre-publish dev setup
 
 `prepare` script (in `package.json`) runs `pnpm build` automatically on `pnpm install` in this repo's own dir and on `npm publish`. It does NOT run for `file:` deps in pnpm 9 consumers (pnpm security policy) — so the cross-repo dev workflow is: clone hostdb, `pnpm install` (builds dist), then clone spindb (which links to hostdb's pre-built dist).
+
+### Coordination rules — do not break these
+
+After the May 2026 integration, these rules are enforceable invariants. Violating any of them breaks downstream builds or silently changes user behavior. Captured here in the repo (not just in personal memory) so the rules are accessible from any machine.
+
+**Publish cascade order** (MUST be in this order for a database-version patch wave):
+
+1. Edit `databases.yml` (+ `defaults` block if needed), `sources.json`. Bump `package.json` patch version.
+2. Commit + push hostdb feature branch. Run the engine release workflow. Merge to main. `publish.yml` fires → npm publish via OIDC.
+3. **Verify** `npm view hostdb version` shows the new version before touching anything downstream.
+4. Bump `"hostdb": "X.Y.Z"` in `spindb/package.json` (exact pin). Run tests. Bump spindb version. Merge spindb feature → dev → main.
+5. Bump `SPINDB_VERSION` in `layerbase-cloud/images/Dockerfile.base`. The image build + deploy fires.
+6. Bump `"spindb": "X.Y.Z"` in `layerbase-desktop/package.json`. Next desktop release ships it.
+
+If you bump step 5 before step 3 completes, `npm install -g spindb@X.Y.Z` in the Dockerfile fails — the image build goes red.
+
+**Exact pin only.** Spindb pins hostdb as `"hostdb": "0.31.0"`, never `^0.31.0` or `~0.31.0`. A hostdb patch can add new database versions; with a caret, an end-user installing an old spindb would pick up versions spindb's tests never validated against, and shorthand-version containers would re-resolve to different patches. Lockfiles enforce this for CI/dev but lockfiles aren't published to npm — the package.json IS the contract for end-user installs.
+
+**Wrappers, not maps.** `spindb/engines/<X>/version-maps.ts` files are thin wrappers over the `hostdb` package. They auto-rebuild from hostdb's bundled snapshot at module-load time. **Do not hand-edit MAP entries.** To add a new database version: update hostdb, publish, bump spindb's hostdb pin. The wrapper picks it up automatically.
+
+**Defaults block changes are user-visible.** Changing `mongodb: '8' → 8.0.23` to `mongodb: '8' → 8.2.0` (LTS rollforward) changes resolution for every consumer pinning the new hostdb. **Always write a CHANGELOG entry** when changing a `defaults` value — it's policy, not data.
+
+**SUPPORTED_MAJOR_VERSIONS format divergence is intentional.** Five engines (MongoDB, MySQL, MariaDB, ClickHouse, TigerBeetle) export 2-part majors (`'8.0'`, `'11.8'`); the other 16 export 1-part (`'18'`, `'8'`). The 2-part form is required for `spindb/core/version-migration.ts:getMajorVersion()` to correctly group LTS-vs-current tracks (MongoDB 8.0.x ≠ 8.2.x). Don't flatten.
 
 ## Project Structure
 

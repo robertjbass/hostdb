@@ -77,7 +77,8 @@
     "repair:checksums": "tsx scripts/repair-checksums.ts",
     "start": "tsx cli/bin.ts",
     "sync:versions": "tsx scripts/sync-versions.ts",
-    "upload:r2": "tsx scripts/upload-to-r2.ts"
+    "upload:r2": "tsx scripts/upload-to-r2.ts",
+    "audit:r2-orphans": "tsx scripts/audit-r2-orphans.ts"
   },
   "dependencies": {
     "tsx": "^4.19.0"
