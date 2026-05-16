@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.31.0",
+  "version": "0.31.1",
   "description": "Pre-built database binaries for multiple platforms, plus a typed registry library for resolving versions and download URLs offline.",
   "private": false,
   "type": "module",
@@ -80,9 +80,6 @@
     "upload:r2": "tsx scripts/upload-to-r2.ts",
     "audit:r2-orphans": "tsx scripts/audit-r2-orphans.ts"
   },
-  "dependencies": {
-    "tsx": "^4.19.0"
-  },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.990.0",
     "@eslint/js": "^9.17.0",
@@ -93,6 +90,7 @@
     "eslint": "^9.17.0",
     "ora": "^9.3.0",
     "prettier": "^3.4.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.18.0",
     "yaml": "^2.8.2"

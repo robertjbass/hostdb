@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.31.1] - 2026-05-16
+
+### Fixed
+
+- **`tsx` moved from `dependencies` to `devDependencies`.** hostdb ships compiled JS in `dist/` and `bin/cli.js` is pre-compiled too, so end users do not need `tsx` at runtime. Having it as a regular dep caused downstream consumers (the spindb bundle in layerbase-desktop) to pull in platform-specific `@esbuild/<platform>` binaries via tsx's transitive deps, which broke electron-builder's universal-macOS merge with a misleading "same file in both arches" error. No functional change — `dist/index.js` and `bin/cli.js` are unchanged.
+
 ## [0.31.0] - 2026-05-15
 
 ### Added — npm package surface
