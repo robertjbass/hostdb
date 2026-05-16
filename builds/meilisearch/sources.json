@@ -2,6 +2,38 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "meilisearch",
   "versions": {
+    "1.43.1": {
+      "linux-x64": {
+        "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.43.1/meilisearch-linux-amd64",
+        "format": "binary",
+        "sourceType": "official",
+        "sha256": "ee746160c8dee859250a346dd62ca789b81f88d81804102ef47672ea8b1700bf"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.43.1/meilisearch-linux-aarch64",
+        "format": "binary",
+        "sourceType": "official",
+        "sha256": "6402c094f7afe43dd572af01fe5b008802c38449923392f906d19e6c1ee0fcc7"
+      },
+      "darwin-x64": {
+        "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.43.1/meilisearch-macos-amd64",
+        "format": "binary",
+        "sourceType": "official",
+        "sha256": "503c2c67fea00cfd640e161aa342c84dcc81d690bfde55c7cfecb2ffcac50f34"
+      },
+      "darwin-arm64": {
+        "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.43.1/meilisearch-macos-apple-silicon",
+        "format": "binary",
+        "sourceType": "official",
+        "sha256": "1877caee2f64351be48d743c8ce428fe0fd90019a39842b5ed8f70d9c2219862"
+      },
+      "win32-x64": {
+        "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.43.1/meilisearch-windows-amd64.exe",
+        "format": "binary",
+        "sourceType": "official",
+        "sha256": "30c39949894496c84724b285a6fa471c841699ac894b9cf61761521c5d915d00"
+      }
+    },
     "1.33.1": {
       "linux-x64": {
         "url": "https://github.com/meilisearch/meilisearch/releases/download/v1.33.1/meilisearch-linux-amd64",

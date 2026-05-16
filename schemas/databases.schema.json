@@ -110,6 +110,13 @@
           "items": { "$ref": "#/definitions/Dependency" },
           "description": "Runtime dependencies on other database engines"
         },
+        "defaults": {
+          "type": "object",
+          "description": "Major-version → full-version policy. Resolves ambiguous user input (e.g., '8' for MongoDB) to the intended LTS-or-latest pick. Mirrors what spindb's per-engine MAPs encoded as comments before being consumed by hostdb's resolver.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "versions": {
           "type": "object",
           "description": "Map of version strings to enabled status (boolean) or version config (object with overrides)",

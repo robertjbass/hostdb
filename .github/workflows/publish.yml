@@ -55,6 +55,33 @@ jobs:
         if: steps.check.outputs.publish == 'true'
         run: npm install -g npm@latest && pnpm install --frozen-lockfile
 
+      # Pre-publish guards. If any of these fail, the publish below is skipped.
+      # Tests run against bundled databases.json/releases.json — if the registry
+      # snapshot in this commit has drifted from spindb's MAPs, the
+      # defaults-sync test fails here and we never publish broken data.
+      - name: Regenerate releases.json from GitHub Releases
+        if: steps.check.outputs.publish == 'true'
+        run: pnpm build:releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fail if releases.json drifted (must be committed before publish)
+        if: steps.check.outputs.publish == 'true'
+        run: |
+          if ! git diff --exit-code releases.json; then
+            echo "releases.json drifted from what's in this commit."
+            echo "Run 'pnpm build:releases' locally, commit the result, then merge to main."
+            exit 1
+          fi
+
+      - name: Build TypeScript (dist/)
+        if: steps.check.outputs.publish == 'true'
+        run: pnpm build
+
+      - name: Run resolver + defaults-sync + api-shape tests
+        if: steps.check.outputs.publish == 'true'
+        run: pnpm test
+
       - name: Publish
         if: steps.check.outputs.publish == 'true'
         run: npm publish

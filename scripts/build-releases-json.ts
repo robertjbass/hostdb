@@ -412,7 +412,7 @@ async function main() {
   if (uploadR2 && !dryRun && !check) {
     // Regenerate databases.json from databases.yml to ensure it's fresh
     const { generateDatabasesJson } = await import('../lib/databases.js')
-    const dbChanged = generateDatabasesJson({ rootDir: ROOT_DIR })
+    const dbChanged = await generateDatabasesJson({ rootDir: ROOT_DIR })
     if (dbChanged) {
       console.log('\n✓ Regenerated databases.json from databases.yml')
     }
