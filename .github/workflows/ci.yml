@@ -1,0 +1,117 @@
+name: CI
+
+# Validates the build + tests + the published-tarball shape.
+# Runs on every PR and on pushes to dev/main. The pack-and-install smoke check
+# catches "tests green but tarball broken" failures that unit tests miss
+# (missing files, wrong exports path, dist not rebuilt, etc.).
+
+on:
+  pull_request:
+  push:
+    branches: [dev, main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint + type-check
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run resolver + defaults-sync + api-shape tests
+        run: pnpm test
+
+  pack-install-smoke:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    strategy:
+      # Verify the tarball installs cleanly under BOTH npm and pnpm.
+      # Cloud uses `npm install -g spindb@...` (which transitively installs
+      # hostdb). Desktop uses `npm install --production`. Dev workflow uses pnpm.
+      matrix:
+        package-manager: [npm, pnpm]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Pack hostdb
+        id: pack
+        run: |
+          pnpm pack --pack-destination /tmp
+          TARBALL=$(ls /tmp/hostdb-*.tgz | head -1)
+          echo "tarball=$TARBALL" >> $GITHUB_OUTPUT
+          echo "Packed: $TARBALL"
+
+      - name: Set up consumer directory
+        run: |
+          mkdir -p /tmp/consumer
+          cat > /tmp/consumer/package.json <<'EOF'
+          { "name": "consumer", "version": "0.0.0", "private": true, "type": "module" }
+          EOF
+
+      - name: Install via ${{ matrix.package-manager }}
+        run: |
+          cd /tmp/consumer
+          ${{ matrix.package-manager }} install ${{ steps.pack.outputs.tarball }}
+          ls node_modules/hostdb/
+
+      - name: Smoke-test public API
+        run: |
+          cat > /tmp/consumer/smoke.mjs <<'EOF'
+          import {
+            resolveVersion, listEngines, getReleaseInfo, getCliTools,
+            loadDatabasesJson, loadReleasesJson, loadDownloadsJson,
+            ALL_PLATFORMS,
+          } from 'hostdb'
+
+          const checks = [
+            ['engine count', listEngines().length === 22],
+            ['resolve postgres 18', resolveVersion('postgresql', '18') === '18.4.0'],
+            ['resolve mongodb LTS', resolveVersion('mongodb', '8') === '8.0.23'],
+            ['compound version', resolveVersion('postgresql-documentdb', '17') === '17-0.107.0'],
+            ['loadDatabasesJson', Object.keys(loadDatabasesJson().databases).length === 22],
+            ['loadReleasesJson', Object.keys(loadReleasesJson().databases).length === 22],
+            ['loadDownloadsJson', typeof loadDownloadsJson() === 'object'],
+            ['getReleaseInfo has url', !!getReleaseInfo('postgresql', '18.4.0', 'linux-x64')?.url],
+            ['getCliTools mysql', !!getCliTools('mysql', '9.6.0')?.utilities],
+            ['ALL_PLATFORMS', ALL_PLATFORMS.length === 5],
+          ]
+          let pass = 0
+          for (const [name, ok] of checks) {
+            console.log(ok ? `  ✓ ${name}` : `  ✗ ${name}`)
+            if (ok) pass++
+          }
+          console.log(`\n${pass}/${checks.length} smoke checks pass`)
+          process.exit(pass === checks.length ? 0 : 1)
+          EOF
+          cd /tmp/consumer && node smoke.mjs

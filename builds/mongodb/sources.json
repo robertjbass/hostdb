@@ -2,6 +2,33 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "mongodb",
   "versions": {
+    "8.2.9": {
+      "linux-x64": {
+        "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2204-8.2.9.tgz",
+        "format": "tar.gz",
+        "sha256": "a81b9ea8bedae0bdaac73be277b37b9c10859553a96b354a98a27821de341b2f"
+      },
+      "linux-arm64": {
+        "url": "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2204-8.2.9.tgz",
+        "format": "tar.gz",
+        "sha256": "cc261889d98680eb5e82600628924861ec837c7db3c8df6bd0cb755f610e7d37"
+      },
+      "darwin-x64": {
+        "url": "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-8.2.9.tgz",
+        "format": "tar.gz",
+        "sha256": "7658be79904f24b88027f299a330a9e59f473dc6ad0bbe5cf8e7a7902748cb3e"
+      },
+      "darwin-arm64": {
+        "url": "https://fastdl.mongodb.org/osx/mongodb-macos-arm64-8.2.9.tgz",
+        "format": "tar.gz",
+        "sha256": "bf2a23fa247f07cb9d5120c036ed7f2736539169dc673b561095943c8a55b61b"
+      },
+      "win32-x64": {
+        "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.2.9.zip",
+        "format": "zip",
+        "sha256": "8da2dbadc3ab58ab87ec039a6d9f207c8cd7ebabdd6b7ae54dff48f2737f5c53"
+      }
+    },
     "8.2.3": {
       "linux-x64": {
         "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2204-8.2.3.tgz",
@@ -29,6 +56,33 @@
         "sha256": "7993f73ed85b470352bd48087c4007a18607806f2acca16c41966f11c8fa89c8"
       }
     },
+    "8.0.23": {
+      "linux-x64": {
+        "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2204-8.0.23.tgz",
+        "format": "tar.gz",
+        "sha256": "978ea17936916ac68eeca028522dc0393f89a015d6e76e6ffcd5a69b88de13fc"
+      },
+      "linux-arm64": {
+        "url": "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2204-8.0.23.tgz",
+        "format": "tar.gz",
+        "sha256": "9670f8caac905f4497006a83bfbbf233219dec074d2b6c8aab10bfcc66949fe4"
+      },
+      "darwin-x64": {
+        "url": "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-8.0.23.tgz",
+        "format": "tar.gz",
+        "sha256": "f5d803151258e8c304af630c070db149bd00883fbf7c70fdf8925f3b31e360dd"
+      },
+      "darwin-arm64": {
+        "url": "https://fastdl.mongodb.org/osx/mongodb-macos-arm64-8.0.23.tgz",
+        "format": "tar.gz",
+        "sha256": "811f2341b8458fe30105aff470b7cf4df75c2b9659729217ec48dd2c4cc8d64c"
+      },
+      "win32-x64": {
+        "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.23.zip",
+        "format": "zip",
+        "sha256": "1f9e46916eea8f84c341143321dec8aa2c7e5cf18d46fa185f854ebb7031ad13"
+      }
+    },
     "8.0.17": {
       "linux-x64": {
         "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2204-8.0.17.tgz",
@@ -54,6 +108,33 @@
         "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.17.zip",
         "format": "zip",
         "sha256": "39f0b72797f73e0909da3b454739d0f86bfcd5df436509f43d3df1aeeafc30e3"
+      }
+    },
+    "7.0.34": {
+      "linux-x64": {
+        "url": "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2204-7.0.34.tgz",
+        "format": "tar.gz",
+        "sha256": "ca1ff8067a219b1dccb50a95305c7bba412c8a98787e4e51dbd3d2222817c8b8"
+      },
+      "linux-arm64": {
+        "url": "https://fastdl.mongodb.org/linux/mongodb-linux-aarch64-ubuntu2204-7.0.34.tgz",
+        "format": "tar.gz",
+        "sha256": "6392dca7d2139da16d408d4329be77a1d732865f1fd56700bdeaee2c177c98bd"
+      },
+      "darwin-x64": {
+        "url": "https://fastdl.mongodb.org/osx/mongodb-macos-x86_64-7.0.34.tgz",
+        "format": "tar.gz",
+        "sha256": "8d251c82bc1d5e0ac9a7e228ed36b64fd7f38fbd72f738ab74a29f643f9788d0"
+      },
+      "darwin-arm64": {
+        "url": "https://fastdl.mongodb.org/osx/mongodb-macos-arm64-7.0.34.tgz",
+        "format": "tar.gz",
+        "sha256": "a97548213b24b5b700acdd1a35357b241b6b30248fe9b516fffaab29ece61f6b"
+      },
+      "win32-x64": {
+        "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-7.0.34.zip",
+        "format": "zip",
+        "sha256": "83718268c898ae1bc8264bd8a55acb898310bdf000ef341c665e58851b7b54c7"
       }
     },
     "7.0.28": {
@@ -88,7 +169,9 @@
     "mongosh": {
       "version": "2.5.10",
       "description": "MongoDB Shell - interactive JavaScript interface",
-      "binaries": ["mongosh"],
+      "binaries": [
+        "mongosh"
+      ],
       "platforms": {
         "linux-x64": {
           "url": "https://downloads.mongodb.com/compass/mongosh-2.5.10-linux-x64.tgz",

@@ -8,9 +8,11 @@ on:
         required: true
         type: choice
         options:
+          - 9.0.4
           - 9.0.1
+          - 8.0.9
           - 8.0.6
-        default: 9.0.1
+        default: 9.0.4
       platforms:
         description: 'Platforms to build'
         required: true
@@ -273,13 +275,7 @@ jobs:
         uses: cygwin/cygwin-install-action@master
         with:
           packages: >-
-            make
-            gcc-core
-            gcc-g++
-            libssl-devel
-            pkg-config
-            zip
-            curl
+            make gcc-core gcc-g++ libssl-devel pkg-config zip curl
 
       # For Windows: build using Cygwin (POSIX compatibility layer)
       - name: Build for Windows (Cygwin)

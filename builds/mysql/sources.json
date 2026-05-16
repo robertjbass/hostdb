@@ -56,6 +56,33 @@
         "sha256": "c45a838c5960f9e533b88a48c71779dd5a74d96d1e2473a54d8c97b636baa438"
       }
     },
+    "8.4.9": {
+      "linux-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.9-linux-glibc2.28-x86_64.tar.xz",
+        "format": "tar.xz",
+        "sha256": "4297fb5d7dfd3b2b2d405efcc44b834237cd5e0d5dbf9b2cb6e49f6b0152940b"
+      },
+      "linux-arm64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.9-linux-glibc2.28-aarch64.tar.xz",
+        "format": "tar.xz",
+        "sha256": "497a4143d542b5b85ec7249016b0ff6ac6e7a855302a9822f667ca293d801aea"
+      },
+      "darwin-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.9-macos15-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "3c2eeadc4557c25c0af9aa957765b5722fee8463af55b8a02b9efcf7a8feb18f"
+      },
+      "darwin-arm64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.9-macos15-arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "5e1e11782219f81e2246f64f5515af451c36c1167c8158760e17a6854e6e8971"
+      },
+      "win32-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.9-winx64.zip",
+        "format": "zip",
+        "sha256": "5795ba250e89290f7507ed3bcc6a655be373616abb58b877acdea71e1b8f4e8c"
+      }
+    },
     "8.4.3": {
       "linux-x64": {
         "url": "https://cdn.mysql.com/archives/mysql-8.4/mysql-8.4.3-linux-glibc2.28-x86_64.tar.xz",

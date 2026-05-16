@@ -1,7 +1,9 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parse as parseYaml } from 'yaml'
+// `yaml` is intentionally NOT statically imported — it's a devDependency only.
+// `generateDatabasesJson` lazy-imports it so npm consumers (who only call the
+// resolver) don't need yaml in their tree.
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
@@ -74,6 +76,12 @@ export type DatabaseEntry = {
   note?: string
   dependencies?: Dependency[]
   spindbStatus: 'completed' | 'in-progress'
+  /**
+   * Major-version → full-version policy (e.g., '8' → '8.0.23' for MongoDB).
+   * Resolves ambiguous user input to the intended LTS or latest pick.
+   * Optional: engines with single-track majors don't need it; multi-track engines must declare it.
+   */
+  defaults?: Record<string, string>
   versions: Record<string, VersionEntry>
   platforms: Platform[]
   cliTools: CliTools
@@ -117,14 +125,44 @@ export type ReleasesJson = {
   databases: Record<string, Record<string, VersionRelease>>
 }
 
+// Loader caches. The bundled JSON files are immutable for the lifetime of a
+// process (they ship inside the npm tarball), so we memoize the parse result
+// to avoid re-reading + re-parsing on every call. Tests that need a clean
+// slate can call `_resetLoaderCachesForTests`.
+let _databasesJsonCache: DatabasesJson | null = null
+let _releasesJsonCache: ReleasesJson | null = null
+let _downloadsJsonCache: unknown = null
+
 export function loadDatabasesJson(): DatabasesJson {
+  if (_databasesJsonCache !== null) return _databasesJsonCache
   const filePath = join(ROOT, 'databases.json')
-  return JSON.parse(readFileSync(filePath, 'utf-8')) as DatabasesJson
+  _databasesJsonCache = JSON.parse(
+    readFileSync(filePath, 'utf-8'),
+  ) as DatabasesJson
+  return _databasesJsonCache
 }
 
 export function loadReleasesJson(): ReleasesJson {
+  if (_releasesJsonCache !== null) return _releasesJsonCache
   const filePath = join(ROOT, 'releases.json')
-  return JSON.parse(readFileSync(filePath, 'utf-8')) as ReleasesJson
+  _releasesJsonCache = JSON.parse(
+    readFileSync(filePath, 'utf-8'),
+  ) as ReleasesJson
+  return _releasesJsonCache
+}
+
+export function loadDownloadsJson(): unknown {
+  if (_downloadsJsonCache !== null) return _downloadsJsonCache
+  const filePath = join(ROOT, 'downloads.json')
+  _downloadsJsonCache = JSON.parse(readFileSync(filePath, 'utf-8'))
+  return _downloadsJsonCache
+}
+
+/** Drop loader caches. Tests only — not part of the public API. */
+export function _resetLoaderCachesForTests(): void {
+  _databasesJsonCache = null
+  _releasesJsonCache = null
+  _downloadsJsonCache = null
 }
 
 // --- Internal helpers ---
@@ -293,14 +331,18 @@ function transformKeys(obj: unknown): unknown {
 }
 
 /**
- * Generate databases.json from databases.yml
+ * Generate databases.json from databases.yml.
+ *
+ * Build-time helper. Uses `yaml` (devDependency) via dynamic import so that
+ * npm consumers of this package (who only call the resolver) don't need
+ * `yaml` in their tree.
  *
  * @returns true if the file was changed/created (or needs updating in check mode), false if already up-to-date
  */
-export function generateDatabasesJson(options?: {
+export async function generateDatabasesJson(options?: {
   checkOnly?: boolean
   rootDir?: string
-}): boolean {
+}): Promise<boolean> {
   const { checkOnly = false, rootDir = ROOT } = options ?? {}
   const yamlPath = join(rootDir, 'databases.yml')
   const jsonPath = join(rootDir, 'databases.json')
@@ -309,6 +351,7 @@ export function generateDatabasesJson(options?: {
     return false
   }
 
+  const { parse: parseYaml } = await import('yaml')
   const yamlContent = readFileSync(yamlPath, 'utf-8')
   const parsed = parseYaml(yamlContent) as Record<string, unknown>
 

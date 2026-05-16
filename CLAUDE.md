@@ -8,17 +8,24 @@ Pre-built database binaries for all major platforms, hosted on Cloudflare R2 via
 
 **Ecosystem invariants:** `~/dev/layerbase-architecture/INVARIANTS.md` — Non-negotiable rules (scripting-first, thin desktop wrapper, platform-agnostic cloud, binary ownership). Read before making architectural changes.
 
-**Ecosystem:** hostdb builds database binaries and publishes them to Cloudflare R2. **spindb** (`~/dev/spindb`) downloads them to run databases locally. **layerbase-cloud** (`~/dev/layerbase-cloud`) uses spindb inside Docker containers (images at `ghcr.io/layerbase-llc/`) which download hostdb binaries at build time. **layerbase-desktop** (`~/dev/layerbase-desktop`) is an Electron GUI over spindb. **layerbase** (`~/dev/layerbase`) is the web app at layerbase.com.
+**Ecosystem:** hostdb builds database binaries and publishes them to Cloudflare R2. **spindb** (`~/dev/spindb`) downloads them to run databases locally. **layerbase-cloud** (`~/dev/layerbase-cloud`) uses a universal Docker image at `ghcr.io/layerbase-llc/`, and spindb downloads hostdb binaries on demand inside that container. **layerbase-desktop** (`~/dev/layerbase-desktop`) is an Electron GUI over spindb. **layerbase** (`~/dev/layerbase`) is the web app at layerbase.com.
 
 ## Versioning & Changelog
+
+hostdb is **published to npm as `hostdb`** (see "npm Package" section below). Bumping `package.json` triggers a publish via `.github/workflows/publish.yml` on merge to main. Every spindb / layerbase-cloud release pins an exact hostdb version, so every `package.json` bump matters.
 
 When adding a **new database engine**:
 1. Bump the **minor version** in `package.json` (e.g., 0.8.0 → 0.9.0)
 2. Add a changelog entry in `CHANGELOG.md` with the new version and date
 3. Include what was added, any special notes about the implementation
 
-When adding a **new version of an existing database**:
-- No version bump needed - just update `databases.json` and `sources.json`
+When adding a **new version of an existing database** (patch wave, security fix, etc.):
+- Bump the **patch version** in `package.json` (e.g., 0.30.0 → 0.30.1) so consumers can detect and adopt the change.
+- Update `databases.yml` (run `pnpm prep` to regenerate `databases.json`) and `builds/{engine}/sources.json`.
+
+When changing a **defaults block policy** (e.g., MongoDB '8' rolls from 8.0 LTS to 8.2):
+- Bump the **minor version** at least, even though the schema didn't change. The behavior change is user-visible.
+- Add a clear CHANGELOG entry explaining the LTS-vs-latest policy shift.
 
 ## Philosophy
 
@@ -106,6 +113,101 @@ Binaries are hosted on Cloudflare R2 behind `registry.layerbase.host`. GitHub Re
 - If those secrets aren't set, the purge step is skipped with a warning — you'd need to purge manually via **Cloudflare Dashboard > layerbase.host > Caching > Configuration > Purge Everything**
 
 **Migration:** To migrate existing releases: `pnpm migrate:r2 [--dry-run] [--database mysql] [--concurrency 3]`
+
+**Orphan cleanup:** R2 retains binaries forever by design (existing containers keep working). But after months of R&D, the bucket may contain binaries from engines we abandoned or version lines we removed. `pnpm audit:r2-orphans` lists every R2 object that isn't referenced by `releases.json`, grouped by engine prefix. Pass `--delete` to remove them after confirmation. Pass `--engine <name>` to scope the audit to one engine.
+
+## npm Package (`hostdb`)
+
+This repo is **published to npm as `hostdb`** so consumers (spindb, layerbase-cloud, third parties) can resolve versions, query CLI tool metadata, and look up download URLs offline — no runtime fetch from `registry.layerbase.host` for the registry itself. R2 is still the source of truth for binary tarballs; the npm package ships a *snapshot* of the registry JSON files.
+
+### What's bundled in the tarball
+
+- `dist/index.js` + `dist/index.d.ts` (compiled from `lib/`) — public resolver API.
+- `databases.json` — version + platform + CLI tools per engine (also the source for the resolver's `defaults` block).
+- `releases.json` — R2 URLs + sha256 + size per (engine, version, platform).
+- `downloads.json` — package-manager install commands per CLI tool.
+- `cli/bin.ts` + `bin/cli.js` — the `hostdb` CLI command (runs via tsx).
+
+The `lib/` source TS is **not** shipped (consumers use the compiled dist/). See `package.json:files`.
+
+### Public API surface
+
+Snapshotted in `tests/api-shape.test.ts` (19 names). Most-used exports:
+
+- `resolveVersion(engine, version)` — `'17'` → `'17.10.0'`, `'8'` → LTS pick from defaults block. Returns `null` if unknown. Handles 4-part ClickHouse versions and `17-0.107.0` compound format.
+- `normalizeVersion(engine, version)` — like `resolveVersion` but returns the input unchanged on miss (so wrappers can drop in).
+- `listVersions(engine, { format: 'full' | 'major' | 'major-minor' })` — list available versions, descending sort.
+- `getSupportedMajorVersions(engine)` — keys of the engine's `defaults` block. Used by spindb's wrappers that expect 1-part majors.
+- `getMajorDefault(engine, major)` / `getEngineDefaults(engine)` — explicit-policy queries (defaultVersion vs latestVersion can differ for LTS-tracked engines).
+- `getReleaseInfo(engine, version, platform)` — `{ url, sha256, size }` straight from the bundled releases.json.
+- `getCliTools(engine, version)` — engine-level cli_tools with version-level overrides honored.
+- `isVersionDeprecated(engine, version)` — distinct from `enabled !== false` (deprecated versions still resolve; only `enabled: false` removes them from resolution entirely).
+- `loadDatabasesJson()` / `loadReleasesJson()` / `loadDownloadsJson()` — direct bundled-JSON access. Memoized on first call; tests reset via `_resetLoaderCachesForTests` from `lib/databases.ts`.
+
+### Defaults block — major-version resolution policy
+
+Every engine in `databases.yml` has a `defaults` block mapping 1-part major versions to the full version the resolver should return:
+
+```yaml
+mongodb:
+  defaults:
+    '7': 7.0.34
+    '8': 8.0.23    # LTS pick — NOT 8.2.x (the highest)
+mariadb:
+  defaults:
+    '10': 10.11.16
+    '11': 11.8.6   # Highest LTS line in 11.x
+```
+
+This makes silent LTS-vs-latest decisions explicit. Without the defaults block, `resolveVersion('mongodb', '8')` would prefix-match to `'8.2.9'` (highest), which contradicts the MongoDB project's LTS guidance. The block IS the policy declaration.
+
+When changing a `defaults` value (e.g., MongoDB rolls forward to `'8': 8.2.0` once 8.2 becomes LTS), bump at least a minor version and document in CHANGELOG — this is a user-visible behavior change for every spindb / layerbase-cloud install that bumps to the new hostdb.
+
+### Pre-publish guardrails (`.github/workflows/publish.yml`)
+
+The publish workflow runs these gates before `npm publish`:
+
+1. `pnpm build:releases` regenerates releases.json from live GitHub Releases.
+2. `git diff --exit-code releases.json` aborts the publish if the regenerated file differs from the committed snapshot — preventing publishing a stale registry.
+3. `pnpm build` compiles `lib/` → `dist/`.
+4. `pnpm test` runs all 167 tests (resolver + defaults-sync + api-shape). The defaults-sync test is the critical one: it asserts the resolver returns the same full-version for every input that spindb's MAPs returned at integration time. If hostdb's behavior drifts, publish fails.
+
+### Spindb wrapper pattern
+
+Spindb's `engines/<X>/version-maps.ts` are now thin wrappers that build their legacy `<ENGINE>_VERSION_MAP` and `SUPPORTED_MAJOR_VERSIONS` at module-load time from hostdb's resolver. To bump a version: update hostdb's `databases.yml`, publish a new hostdb, then bump the `hostdb` dep pin in spindb. The wrapper rebuilds automatically — no spindb code edits.
+
+Five engines (MongoDB, MySQL, MariaDB, ClickHouse, TigerBeetle) export 2-part `SUPPORTED_MAJOR_VERSIONS` (`['8.0', '8.2']` rather than `['8']`) because spindb's `core/version-migration.ts:getMajorVersion()` uses the array to reverse-map a full version to its grouping — and conflating MongoDB 8.0.x with 8.2.x would break the LTS/current distinction. The wrappers signal this choice via `listVersions(ENGINE, { format: 'major-minor' })` vs `getSupportedMajorVersions(ENGINE)`.
+
+### Spindb pinning
+
+Spindb must pin `hostdb` **exactly** (`"hostdb": "0.31.0"`, no caret/tilde) so that older spindb versions deterministically resolve to a single hostdb snapshot. See spindb's CLAUDE.md for the rationale — short version: a patch hostdb release can add new versions, which changes the user-visible spindb output for an already-published spindb.
+
+### Pre-publish dev setup
+
+`prepare` script (in `package.json`) runs `pnpm build` automatically on `pnpm install` in this repo's own dir and on `npm publish`. It does NOT run for `file:` deps in pnpm 9 consumers (pnpm security policy) — so the cross-repo dev workflow is: clone hostdb, `pnpm install` (builds dist), then clone spindb (which links to hostdb's pre-built dist).
+
+### Coordination rules — do not break these
+
+After the May 2026 integration, these rules are enforceable invariants. Violating any of them breaks downstream builds or silently changes user behavior. Captured here in the repo (not just in personal memory) so the rules are accessible from any machine.
+
+**Publish cascade order** (MUST be in this order for a database-version patch wave):
+
+1. Edit `databases.yml` (+ `defaults` block if needed), `sources.json`. Bump `package.json` patch version.
+2. Commit + push hostdb feature branch. Run the engine release workflow. Merge to main. `publish.yml` fires → npm publish via OIDC.
+3. **Verify** `npm view hostdb version` shows the new version before touching anything downstream.
+4. Bump `"hostdb": "X.Y.Z"` in `spindb/package.json` (exact pin). Run tests. Bump spindb version. Merge spindb feature → dev → main.
+5. Bump `SPINDB_VERSION` in `layerbase-cloud/images/Dockerfile.base`. The image build + deploy fires.
+6. Bump `"spindb": "X.Y.Z"` in `layerbase-desktop/package.json`. Next desktop release ships it.
+
+If you bump step 5 before step 3 completes, `npm install -g spindb@X.Y.Z` in the Dockerfile fails — the image build goes red.
+
+**Exact pin only.** Spindb pins hostdb as `"hostdb": "0.31.0"`, never `^0.31.0` or `~0.31.0`. A hostdb patch can add new database versions; with a caret, an end-user installing an old spindb would pick up versions spindb's tests never validated against, and shorthand-version containers would re-resolve to different patches. Lockfiles enforce this for CI/dev but lockfiles aren't published to npm — the package.json IS the contract for end-user installs.
+
+**Wrappers, not maps.** `spindb/engines/<X>/version-maps.ts` files are thin wrappers over the `hostdb` package. They auto-rebuild from hostdb's bundled snapshot at module-load time. **Do not hand-edit MAP entries.** To add a new database version: update hostdb, publish, bump spindb's hostdb pin. The wrapper picks it up automatically.
+
+**Defaults block changes are user-visible.** Changing `mongodb: '8' → 8.0.23` to `mongodb: '8' → 8.2.0` (LTS rollforward) changes resolution for every consumer pinning the new hostdb. **Always write a CHANGELOG entry** when changing a `defaults` value — it's policy, not data.
+
+**SUPPORTED_MAJOR_VERSIONS format divergence is intentional.** Five engines (MongoDB, MySQL, MariaDB, ClickHouse, TigerBeetle) export 2-part majors (`'8.0'`, `'11.8'`); the other 16 export 1-part (`'18'`, `'8'`). The 2-part form is required for `spindb/core/version-migration.ts:getMajorVersion()` to correctly group LTS-vs-current tracks (MongoDB 8.0.x ≠ 8.2.x). Don't flatten.
 
 ## Project Structure
 
@@ -356,25 +458,30 @@ When implementing `.github/workflows/release-<database>.yml`:
 
 When adding a new version to an existing database:
 
-1. Update `databases.yml` - add version with `true` (or a version config object)
+1. Update `databases.yml` - add version with `true` (or a version config object). If the new version should be the LTS or default pick for a major, also update the engine's `defaults` block.
 2. Update `builds/<database>/sources.json` - add URLs for all platforms
 3. Run `pnpm prep` - generates databases.json, syncs workflows, and populates checksums
+4. Run the release workflow on GitHub Actions — uploads binaries to GitHub Releases, mirrors to R2, rebuilds releases.json
+5. **Bump `package.json` patch version** (e.g., 0.30.0 → 0.30.1) so the new binaries propagate via the npm package. Without this bump, consumers pinning `hostdb@0.30.0` won't see the new version.
+6. Merge to main — `publish.yml` runs the pre-publish guards (build:releases drift check, build, tests) and publishes to npm via OIDC.
 
-**That's it.** The prep script handles syncing workflow dropdowns and populating SHA256 checksums automatically.
+**That's it.** The prep script handles syncing workflow dropdowns and populating SHA256 checksums automatically. The publish workflow handles npm.
 
 ### Downstream Impact (spindb + layerbase-cloud)
 
-Changes in hostdb ripple to two downstream projects. Always check both when adding or deprecating versions.
+Changes in hostdb ripple to two downstream projects. After the npm-package migration the spindb side is **almost fully automatic**, but a publish + dep-bump is still required.
 
-**spindb** (`~/dev/spindb`) — needs updates when adding or deprecating versions:
-- `engines/<db>/version-maps.ts` — add/update version mappings and `SUPPORTED_MAJOR_VERSIONS`
-- `config/engines.json` — update `supportedVersions` (only non-deprecated versions) and `defaultVersion`
-- `config/engine-defaults.ts` — update `latestVersion` mapping
-- `engines/<db>/hostdb-releases.ts` — export `fetchDeprecatedVersions` if deprecation is newly added for this engine
-- `engines/<db>/index.ts` — override `fetchDeprecatedVersions()` if newly added
-- `cli/ui/prompts.ts` — already handles `[deprecated]` tags generically; no changes needed unless UI behavior changes
+**spindb** (`~/dev/spindb`) — after the npm-package migration most of the version-related code is automatic:
+- `engines/<db>/version-maps.ts` — **no longer hand-edited**. The wrappers rebuild MAP + SUPPORTED_MAJOR_VERSIONS from hostdb's resolver at module-load time.
+- `config/engines.json` and `config/engine-defaults.ts` — still hand-maintained for now (`supportedVersions`, `defaultVersion`, `latestVersion`). A future refactor could derive these from hostdb's resolver too.
+- `engines/<db>/hostdb-releases.ts` / `engines/<db>/index.ts` — `fetchDeprecatedVersions` overrides only needed for engines newly gaining deprecation support.
+- `cli/ui/prompts.ts` — already handles `[deprecated]` tags generically; no changes needed unless UI behavior changes.
+- `package.json` — **bump the `hostdb` exact-pin** to the newly-published version so the bundled snapshot picks up the new releases. This is the actual "shipping" step.
 
-**layerbase-cloud** (`~/dev/layerbase-cloud`) — uses major.minor version tags (e.g., `11.8`) that must correspond to versions built here (full semver, e.g., `11.8.5`). When adding a **new major.minor** version (not just a patch bump), the cloud project needs updates in three files: `src/config/engines.ts`, `.github/workflows/build-images.yml`, `.github/workflows/deploy.yml`. See cloud CLAUDE.md "Engine Version Sync" for details. Patch bumps (e.g., `11.8.5` → `11.8.6`) don't require cloud changes — the Docker images pick up the latest patch at build time.
+**layerbase-cloud** (`~/dev/layerbase-cloud`) — uses major.minor version tags (e.g., `11.8`) that spindb resolves to a full semver (e.g., `11.8.5`) via its static `engines/<db>/version-maps.ts` MAP. The cloud runs a single universal Docker image (`ghcr.io/layerbase-llc/universal`); engine binaries are **not** baked into the image — spindb downloads them on demand from `registry.layerbase.host`. The version resolution authority is the spindb baked into the image, not the registry. Practical impact per change shape:
+- **Patch bump within same major.minor** (e.g., `11.8.5 → 11.8.6`): No cloud changes. The new spindb release (with the updated MAP) takes effect when the universal image is rebuilt with the new `SPINDB_VERSION`.
+- **New major.minor** (e.g., adding `11.9`): Update `src/config/engine-registry.ts` (`supportedVersions` array). No workflow file changes — cloud's `build-images.yml`/`deploy.yml` are engine-agnostic.
+- **Change defaultVersion**: Update `src/config/engine-registry.ts` (`defaultVersion`). Also update `images/entrypoints/<engine>.sh` if a hardcoded `SPINDB_VERSION` default exists (only `clickhouse.sh` and `cockroachdb.sh` carry these).
 
 ## Deprecating Versions
 
