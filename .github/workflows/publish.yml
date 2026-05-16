@@ -47,15 +47,22 @@ jobs:
         if: steps.check.outputs.publish == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
+      # npm trusted publishing requires npm CLI >= 11.5.1 for the current OIDC
+      # handshake; otherwise the registry treats the request as anonymous and
+      # returns a misleading 404. Node 24 ships with npm 11.x by default;
+      # this step is belt-and-suspenders to ensure latest npm regardless.
+      # Kept as a SEPARATE step (not combined with the install below) so
+      # shell-state corruption from the self-upgrade can't break the install.
+      - name: Upgrade npm for OIDC support
+        if: steps.check.outputs.publish == 'true'
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         if: steps.check.outputs.publish == 'true'
-        # Node 22's bundled npm 10.9.7 already supports OIDC trusted publishing.
-        # Self-upgrading npm via `npm install -g npm@latest` corrupts the install
-        # ("Cannot find module 'promise-retry'") so we skip it.
         run: pnpm install --frozen-lockfile
 
       # Pre-publish guards. If any of these fail, the publish below is skipped.
