@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.31.2] - 2026-05-22
+
+### Changed
+
+- **Docs reshuffle.** `CLAUDE.md` slimmed from 43k to 14k chars (was tripping the Claude Code harness performance warning). Build-script and macOS dylib reference moved to a new `builds/common/README.md`. Cloudflare R2 hosting + secret setup moved into `ARCHITECTURE.md`. No code or shipped-file changes — the published npm tarball contents are byte-identical to 0.31.1.
+
 ## [0.31.1] - 2026-05-16
 
 ### Fixed
