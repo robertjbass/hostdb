@@ -151,10 +151,15 @@ const SNAPSHOT: Record<string, Record<string, string>> = {
     '9.2.3': '9.2.3',
   },
   redis: {
-    '7': '7.4.9',
+    // 0.32.0 policy change: '7' now resolves to 7.2.14 (BSD-3-Clause) instead of
+    // 7.4.9 (RSALv2/SSPLv1) so managed-service consumers get the open-source line
+    // by default. 7.4.x entries kept — deprecated versions still resolve.
+    '7': '7.2.14',
     '8': '8.4.0',
+    '7.2': '7.2.14',
     '7.4': '7.4.9',
     '8.4': '8.4.0',
+    '7.2.14': '7.2.14',
     '7.4.7': '7.4.7',
     '7.4.9': '7.4.9',
     '8.4.0': '8.4.0',
