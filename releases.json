@@ -1368,7 +1368,8 @@
             "sha256": "f6f3886f8b3427867a39cabc613489cf6bd98191c995a73c077aa9aa2d5e004a",
             "size": 11489268
           }
-        }
+        },
+        "deprecated": true
       },
       "7.4.7": {
         "version": "7.4.7",
@@ -1400,7 +1401,8 @@
             "sha256": "8846aaf20860063263542ebf535bc874e475a17f82e5e4aee9540958abf583cf",
             "size": 11481934
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "sqlite": {
