@@ -86,6 +86,23 @@ Databases we intend to add to hostdb. Listed roughly by priority/readiness.
 - **Why:** Graph-relational database built on PostgreSQL with strict typing and declarative schema.
 - **Notes:** No Windows binary (Docker only). No GitHub Release assets — distributed via custom install script. linux-arm64 support uncertain.
 
+### RabbitMQ
+
+- **Type:** Message Queue (would be a new type — hostdb has no Message Queue category today)
+- **License:** Apache-2.0 / MPL-2.0
+- **Repo:** https://github.com/rabbitmq/rabbitmq-server
+- **Platforms:** linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+- **Version:** 4.1.x (latest stable line)
+- **Why:** Industry-standard open-source message broker; natural complement to Redis (already in hostdb as a broker-capable engine). Expands hostdb's scope from "databases" to "stateful services."
+- **Dependencies:** Requires Erlang/OTP runtime bundled with every platform tarball — no other hostdb engine drags a full language VM along. Tight version coupling: each RabbitMQ minor supports a narrow OTP range. Likely use compound version keys (`4.1.5-otp27`), same shape as `postgresql-documentdb` uses `17-0.107.0`.
+- **Notes:**
+  - Linux is easy — Docker-extract from `rabbitmq:X.Y-management` (same pattern as CouchDB, which is also Erlang-based and already ships a bundled Erlang inside its image).
+  - macOS is the hard part — needs a relocatable Erlang/OTP built from source on the runner, with `install_name_tool` dylib patching for the crypto/ssl NIFs (existing `builds/common/fix-macos-dylibs.sh` pattern). ~30–60 min/platform build.
+  - Windows: extract Erlang's official installer via `7z`, ship a `.bat` wrapper that sets `ERLANG_HOME` to the bundled path.
+  - epmd is a node-wide singleton on port 4369 — spindb's port-mapping needs per-instance `RABBITMQ_NODENAME`s for multiple concurrent instances.
+  - Decide before starting: ship `rabbitmq_management` plugin enabled by default (most dev workflows want the UI on :15672)?
+  - **Strategic question first:** does hostdb want to broaden from "databases" to "stateful services"? If yes, NATS / Kafka / Temporal become obvious next entries (and are all easier than RabbitMQ — none drag a VM along).
+
 ---
 
 ## Unsupported
