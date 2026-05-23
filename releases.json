@@ -1401,6 +1401,38 @@
             "size": 11481934
           }
         }
+      },
+      "7.2.14": {
+        "version": "7.2.14",
+        "releaseTag": "redis-7.2.14",
+        "releasedAt": "2026-05-23T19:27:20Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.2.14/redis-7.2.14-darwin-arm64.tar.gz",
+            "sha256": "ec47b714295b39fcbc21a990d81025b568e135fa888bc1ec03c6c8a750f1737b",
+            "size": 3885720
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.14/redis-7.2.14-darwin-x64.tar.gz",
+            "sha256": "0036b6438f51a779201cdde8e8e13fefe5ed1d7155cf0f5255e5a15b863b0da4",
+            "size": 3747544
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.2.14/redis-7.2.14-linux-arm64.tar.gz",
+            "sha256": "c79a778c2c7cc3cd29bd1beaf72016b17dfb2fcbd544d1915d9560bd3d580dda",
+            "size": 12346688
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.14/redis-7.2.14-linux-x64.tar.gz",
+            "sha256": "9e0c35f02d6762e38481b63930389fbb924f2d49464127b33a9f7954fe7dcc11",
+            "size": 12264029
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.14/redis-7.2.14-win32-x64.zip",
+            "sha256": "18b0cd011fbe2e6805ca539e39984ab8a3d2784beee3ae1639c38d7d910d6fc4",
+            "size": 10948993
+          }
+        }
       }
     },
     "sqlite": {
