@@ -636,18 +636,29 @@ databases:
     description: In-memory data store used as database, cache, and message broker
     type: Key-Value
     source_repo: https://github.com/redis/redis
-    license: RSALv2/SSPLv1 (7.4+), AGPL-3.0 (8.0+)
+    license: BSD-3-Clause (7.2.x), RSALv2/SSPLv1 (7.4+), AGPL-3.0 (8.0+)
     commercial_use: true
     hosted_service_allowed: false
     protocol: null
-    note: RSALv2 restricts building competing products to Redis itself. AGPL-3.0 (8.0+) requires source disclosure if you modify Redis and offer it as a network service. Commercial use in applications, local dev, and internal use is fine. Valkey available as BSD-licensed drop-in alternative.
+    note: Redis 7.2.x is BSD-3-Clause licensed — fully open-source, safe to host as a managed service. The 7.4+ relicense (RSALv2/SSPLv1) restricts building competing managed services to Redis itself; AGPL-3.0 (8.0+) additionally requires source disclosure if you modify Redis and offer it as a network service. Commercial use in applications, local dev, and internal use is fine on all versions. Valkey is a BSD-licensed drop-in alternative for newer Redis features.
+    # TODO(managed-service): 8.x is dual-licensed RSALv2/SSPLv1/AGPL-3.0. AGPL alone (ignoring
+    # the other two options) MIGHT be workable for a managed-service offering, but it requires
+    # publishing source of any modifications + arguably the surrounding management stack to
+    # network users. Worth a legal review before flipping. For now we're defaulting to 7.2.14
+    # (BSD) so hostedServiceAllowed:true downstream is unambiguous.
     defaults:
-      "7": "7.4.9"
+      "7": "7.2.14"
       "8": "8.4.0"
     versions:
       8.4.0: true
-      7.4.9: true
-      7.4.7: true
+      7.4.9:
+        deprecated: true
+        note: Deprecated; RSALv2/SSPLv1 license forbids offering Redis as a competing managed service. Use 7.2.14 (BSD) for managed-service use cases, or stay on 7.4.9 only for self-contained app use.
+      7.4.7:
+        deprecated: true
+        note: Deprecated; RSALv2/SSPLv1 license forbids offering Redis as a competing managed service. Use 7.2.14 (BSD) for managed-service use cases, or 7.4.9 if you need the latest 7.4 patch for self-contained app use.
+      7.2.14:
+        note: Latest patch in the BSD-3-Clause 7.2.x line — the newest Redis version permissively licensed for self-hosting as a managed/DBaaS service. 7.4+ (RSALv2/SSPLv1) forbids competing managed services; 8.0+ AGPL-3.0 requires source disclosure to network users.
     platforms:
       - linux-x64
       - linux-arm64

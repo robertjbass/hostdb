@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.32.0] - 2026-05-23
+
+### Added
+
+- **Redis 7.2.14** — latest patch in the BSD-3-Clause 7.2.x line, the newest Redis version permissively licensed for managed/DBaaS-style self-hosting. Built from source on linux-x64, linux-arm64, darwin-x64, darwin-arm64; Windows binary from [redis-windows](https://github.com/redis-windows/redis-windows). Adds a third Redis license tier alongside the existing 7.4.x (RSALv2/SSPLv1) and 8.x (RSALv2/SSPLv1/AGPL-3.0) lines.
+
+### Changed — defaults block policy
+
+- **Redis `defaults["7"]` repointed from `7.4.9` → `7.2.14`.** This is a user-visible policy change: `resolveVersion('redis', '7')` now returns the BSD-licensed 7.2.14 instead of the source-available 7.4.9. Driven by managed-service license compatibility — downstream consumers (spindb/layerbase-cloud) need a BSD path so `hostedServiceAllowed: true` is unambiguous. `defaults["8"]` is unchanged (still `8.4.0`); consumers that want a newer Redis can still pass an explicit 7.4.x or 8.x version.
+
+### Deprecated
+
+- **Redis 7.4.9 and 7.4.7** — marked deprecated due to RSALv2/SSPLv1 license restricting competing managed services. Existing R2 binaries remain available; the workflow dropdowns skip them and `isVersionDeprecated()` returns true. Use 7.2.14 for managed-service use or stay on 7.4.x for self-contained applications.
+
+### Coordination notes
+
+This is a **minor** bump (0.31.2 → 0.32.0), not patch, because the `defaults` block policy change is user-visible — per the project rule: "Always write a CHANGELOG entry when changing a `defaults` value — it's policy, not data." Downstream pin cascade applies (spindb exact-pin, layerbase-cloud `SPINDB_VERSION`, layerbase-desktop `spindb` pin).
+
+## [0.31.2] - 2026-05-22
+
+### Changed
+
+- **Docs reshuffle.** `CLAUDE.md` slimmed from 43k to 14k chars (was tripping the Claude Code harness performance warning). Build-script and macOS dylib reference moved to a new `builds/common/README.md`. Cloudflare R2 hosting + secret setup moved into `ARCHITECTURE.md`. No code or shipped-file changes — the published npm tarball contents are byte-identical to 0.31.1.
+
 ## [0.31.1] - 2026-05-16
 
 ### Fixed

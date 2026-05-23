@@ -382,3 +382,65 @@ User: spindb start mysql@8.4.7
 │   --datadir=...                │
 └─────────────────────────────────┘
 ```
+
+## Binary Hosting (Cloudflare R2)
+
+Binaries are hosted on Cloudflare R2 behind `registry.layerbase.host`. GitHub Releases are still created (as the build artifact source), but all public download URLs point to R2.
+
+**URL pattern:** `https://registry.layerbase.host/{tag}/{filename}`
+
+### Configuration
+
+| File | Purpose |
+|---|---|
+| `lib/registry.ts` | Single source of truth for `REGISTRY_BASE_URL` |
+| `lib/r2.ts` | Shared R2 client utilities (S3-compatible) |
+| `scripts/upload-to-r2.ts` | Per-release upload (called by CI after each release) |
+| `scripts/migrate-to-r2.ts` | One-time bulk migration of existing releases |
+
+### Workflow
+
+Each `release-*.yml` workflow has an `upload-to-r2` job that mirrors assets from GitHub Releases to R2, followed by `update-releases` which rebuilds `releases.json` from all GitHub releases and publishes it to R2.
+
+### CDN caching
+
+R2 tarballs are served through Cloudflare's CDN with `Cache-Control: public, max-age=31536000, immutable` (1-year cache):
+
+- Normal releases work fine — each version gets a unique URL that's cached forever.
+- **Re-uploading a file to R2 does NOT update the CDN** — the edge cache continues serving the old version.
+- When using `--force` on `upload-to-r2.ts`, the script automatically purges affected URLs from Cloudflare's CDN cache (requires `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ZONE_ID` secrets).
+- If those secrets aren't set, the purge step is skipped with a warning — you'd need to purge manually via **Cloudflare Dashboard > layerbase.host > Caching > Configuration > Purge Everything**.
+
+### Migration & orphan cleanup
+
+- **Bulk migration:** `pnpm migrate:r2 [--dry-run] [--database mysql] [--concurrency 3]`
+- **Orphan audit:** `pnpm audit:r2-orphans` lists every R2 object not referenced by `releases.json`, grouped by engine prefix. R2 retains binaries forever by design (existing containers keep working), but after months of R&D the bucket may contain binaries from abandoned engines or removed version lines. Pass `--delete` to remove them after confirmation. Pass `--engine <name>` to scope the audit to one engine.
+
+### Required GitHub Actions secrets
+
+| Secret | Purpose |
+|---|---|
+| `R2_ACCOUNT_ID` | Cloudflare account ID |
+| `R2_ACCESS_KEY_ID` | R2 API token access key |
+| `R2_SECRET_ACCESS_KEY` | R2 API token secret key |
+| `R2_BUCKET_NAME` | R2 bucket name (e.g., `hostdb-registry`) |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with `Zone.Cache Purge` permission |
+| `CLOUDFLARE_ZONE_ID` | Cloudflare zone ID for `registry.layerbase.host` |
+
+### Setting up Cloudflare secrets
+
+**1. Zone ID**
+
+Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → select the `layerbase.host` zone → the **Zone ID** is in the right sidebar of the **Overview** page under "API".
+
+**2. API Token**
+
+Go to [Cloudflare Dashboard](https://dash.cloudflare.com) → **My Profile** (top-right avatar) → **API Tokens** → **Create Token** → use the **"Custom token"** template:
+
+- **Token name:** `hostdb-cache-purge`
+- **Permissions:** Zone → Cache Purge → Purge
+- **Zone resources:** Include → Specific zone → `layerbase.host`
+
+**3. Add to repo**
+
+Add both values as GitHub Actions secrets in the hostdb repository settings (Settings → Secrets and variables → Actions).
