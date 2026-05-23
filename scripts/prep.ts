@@ -303,10 +303,11 @@ ${colors.yellow}Checks:${colors.reset}
   1. Generate databases.json from databases.yml
   2. Type checking (tsc --noEmit)
   3. Linting (eslint)
-  4. Workflow version sync (sync:versions --check)
-  5. Missing checksums detection
-  6. Build releases.json from GitHub releases
-  7. Check for discrepancies between databases.json and releases.json
+  4. Tests (node --test tests/*.test.ts — includes the defaults-sync snapshot)
+  5. Workflow version sync (sync:versions --check)
+  6. Missing checksums detection
+  7. Build releases.json from GitHub releases
+  8. Check for discrepancies between databases.json and releases.json
 `)
     process.exit(0)
   }
@@ -345,7 +346,13 @@ ${colors.yellow}Checks:${colors.reset}
     runCommand('pnpm prettier --write .', 'Formatting', { allowFailure: true })
   }
 
-  // 5. Sync workflow versions
+  // 5. Tests (includes defaults-sync snapshot — catches policy changes
+  // before they reach CI, e.g. when defaults block keys are repointed)
+  if (!runCommand('pnpm test', 'Tests')) {
+    allPassed = false
+  }
+
+  // 6. Sync workflow versions
   const syncCmd = checkOnly
     ? 'pnpm sync:versions --check'
     : 'pnpm sync:versions'
