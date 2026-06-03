@@ -1572,6 +1572,38 @@
       }
     },
     "typedb": {
+      "3.11.5": {
+        "version": "3.11.5",
+        "releaseTag": "typedb-3.11.5",
+        "releasedAt": "2026-06-03T18:47:50Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/typedb-3.11.5/typedb-3.11.5-darwin-arm64.tar.gz",
+            "sha256": "3e5cc90f49033c73f708fd3e90d32a300c562ccac2e4c9cd875a31a4c9641b21",
+            "size": 26662194
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.11.5/typedb-3.11.5-darwin-x64.tar.gz",
+            "sha256": "87b02777e7b9a1bee384a7606792481b6152eb30ca0d1dcb94dd51a73e53a965",
+            "size": 28010769
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/typedb-3.11.5/typedb-3.11.5-linux-arm64.tar.gz",
+            "sha256": "dbe714a52315c12e61d5be196b1ed4b427e059b0bb59c4d1b82681fd5443adc5",
+            "size": 28430150
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.11.5/typedb-3.11.5-linux-x64.tar.gz",
+            "sha256": "69ee11b65cfdb85f80cc5615e0e3594fb0d8043ca8efcb62926ee2153896e774",
+            "size": 28911985
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.11.5/typedb-3.11.5-win32-x64.zip",
+            "sha256": "0253af88ad4f13a13601d48771db4893d6b165e7557ac678c545e41c38fdb7c3",
+            "size": 24704546
+          }
+        }
+      },
       "3.8.0": {
         "version": "3.8.0",
         "releaseTag": "typedb-3.8.0",
