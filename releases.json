@@ -1602,7 +1602,8 @@
             "sha256": "a34ef0180278bef570c7bd4b9e64423c49c3d81977b0eb6d5d897e5f8af9aaeb",
             "size": 24220045
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "valkey": {

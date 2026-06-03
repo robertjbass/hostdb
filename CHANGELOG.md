@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.0] - 2026-06-03
+
+### Added
+
+- **TypeDB 3.11.5** for all 5 platforms (linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64), repackaged from the official Cloudsmith `typedb-all` archives. TypeDB 3.11 raised the network protocol version from 7 to 8, so the previously shipped 3.8.0 (protocol 7) could not talk to current TypeDB 3.11.x servers/drivers — 3.11.5 brings the bundled server and console back in step with the current TypeDB ecosystem.
+
+### Changed — defaults block policy
+
+- **TypeDB `defaults["3"]` repointed from `3.8.0` → `3.11.5`.** `resolveVersion('typedb', '3')` now returns `3.11.5`, so new `typedb 3` containers provision the current release. Existing containers pin their full version and are unaffected.
+
+### Deprecated
+
+- **TypeDB 3.8.0** is now `deprecated: true` — still resolvable and downloadable (so existing installs and references keep working), but hidden from default version listings and create flows in downstream UIs. Sunset in favor of 3.11.5.
+
 ## [0.32.0] - 2026-05-23
 
 ### Added
