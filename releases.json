@@ -756,28 +756,28 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-darwin-arm64.tar.gz",
-            "sha256": "cb4adad53102e1bc0c8743c20c3a2dee07c94e5377690d2115f0658d567a9326",
-            "size": 171310635
+            "sha256": "ca0475003507b7eed23b8284fad796a875648f68f794e2a9f26e391bcc2e84d5",
+            "size": 171310481
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-darwin-x64.tar.gz",
-            "sha256": "219a378666c16ef650845871041d792f3b53d4c4b7c6f4bbc7fe3ee280842a58",
-            "size": 176031206
+            "sha256": "52ab90dce10ac65c429e6b92bc276fdc0a7353b95335b0adc7eb3cf6bc93e7da",
+            "size": 176025019
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-linux-arm64.tar.gz",
-            "sha256": "c30a503c056249893456a1746e0f2788568066bafde25ba96ea3ae56f8c890ba",
-            "size": 1083410543
+            "sha256": "e9654d277b1e7a23adde050bcc9de8787446f16830a10e2dd260b76b45f00c36",
+            "size": 1083403287
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-linux-x64.tar.gz",
-            "sha256": "3d58d551d6c066e8e13628f44d1307802607a8f6c7f41f4d4ba15e6433f692c2",
-            "size": 1092567180
+            "sha256": "90965bebb23d8d34701a5bd4b3f0e21aa59197edf3783a15578367cec50c1ed9",
+            "size": 144517976
           },
           "win32-x64": {
             "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-win32-x64.zip",
-            "sha256": "7c9f16ad7a6435a6f4977aa7d0a026cc3da8f2e6910be3b3cc23d688f3c2150c",
-            "size": 304502159
+            "sha256": "c0d788f12425ab5eb97058dd16cbf448a9e4ac9a764dedc37120232c4f60b455",
+            "size": 304502158
           }
         }
       },
