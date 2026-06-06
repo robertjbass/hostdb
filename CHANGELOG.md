@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.4] - 2026-06-06
+
+### Changed
+
+- **`scripts/build-releases-json.ts`: hardened the GitHub fetches.** Added a 20s per-request timeout + retry to every fetch (the releases list and each release's `checksums.txt`), and parallelized the per-release processing (bounded to 8 concurrent). Previously the fetches were sequential with no timeout, so a single stuck connection could hang the publish indefinitely, and the step slowed as the release count grew (55 releases took ~40s locally, minutes on a bad CI run). Now it's ~3s. Output is byte-identical (the manifest is deterministically re-sorted), so `releases.json` is unchanged.
+
 ## [0.33.3] - 2026-06-06
 
 ### Changed

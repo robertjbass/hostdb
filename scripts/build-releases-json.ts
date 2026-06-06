@@ -173,6 +173,36 @@ function sortManifest(releases: ReleasesManifest): ReleasesManifest {
   return { ...releases, databases: sortedDatabases }
 }
 
+// Per-request timeout so a stuck connection can never hang the publish, plus a
+// couple of retries to ride out a transient timeout / network blip before
+// giving up. (Previously these fetches had no timeout and ran sequentially, so
+// one stuck checksums download could hang the whole publish indefinitely.)
+const FETCH_TIMEOUT_MS = 20_000
+const RETRY_DELAYS_MS = [0, 500, 1500]
+
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  let lastError: unknown
+  for (let attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt++) {
+    if (RETRY_DELAYS_MS[attempt] > 0) {
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]))
+    }
+    try {
+      return await fetch(url, {
+        ...options,
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      })
+    } catch (error) {
+      lastError = error
+    }
+  }
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(`fetch failed after ${RETRY_DELAYS_MS.length} attempts: ${url}`)
+}
+
 /** Fetch all releases from GitHub API with pagination */
 async function fetchAllReleases(): Promise<Map<string, GitHubRelease>> {
   const releases = new Map<string, GitHubRelease>()
@@ -183,7 +213,7 @@ async function fetchAllReleases(): Promise<Map<string, GitHubRelease>> {
 
   while (true) {
     const url = `https://api.github.com/repos/${REPO}/releases?per_page=${perPage}&page=${page}`
-    const response = await fetch(url, { headers: githubHeaders() })
+    const response = await fetchWithRetry(url, { headers: githubHeaders() })
 
     if (!response.ok) {
       throw new Error(
@@ -230,25 +260,32 @@ function githubHeaders(
 async function downloadChecksums(
   checksumAsset: GitHubAsset,
 ): Promise<Record<string, string>> {
-  // Try browser_download_url first — goes to CDN, no API rate limit
-  const cdnResponse = await fetch(checksumAsset.browser_download_url, {
-    headers: { 'User-Agent': 'hostdb-build-releases' },
-    redirect: 'follow',
-  })
-
-  if (cdnResponse.ok) {
-    return parseChecksums(await cdnResponse.text())
+  // Try browser_download_url first - goes to CDN, no API rate limit. Wrapped so
+  // a timeout / network error falls through to the API path instead of throwing.
+  try {
+    const cdnResponse = await fetchWithRetry(checksumAsset.browser_download_url, {
+      headers: { 'User-Agent': 'hostdb-build-releases' },
+      redirect: 'follow',
+    })
+    if (cdnResponse.ok) {
+      return parseChecksums(await cdnResponse.text())
+    }
+  } catch {
+    // fall through to the API fallback
   }
 
   // Fallback: API asset download (counts against rate limit but handles private repos)
-  const apiUrl = `https://api.github.com/repos/${REPO}/releases/assets/${checksumAsset.id}`
-  const apiResponse = await fetch(apiUrl, {
-    headers: githubHeaders('application/octet-stream'),
-    redirect: 'follow',
-  })
-
-  if (apiResponse.ok) {
-    return parseChecksums(await apiResponse.text())
+  try {
+    const apiUrl = `https://api.github.com/repos/${REPO}/releases/assets/${checksumAsset.id}`
+    const apiResponse = await fetchWithRetry(apiUrl, {
+      headers: githubHeaders('application/octet-stream'),
+      redirect: 'follow',
+    })
+    if (apiResponse.ok) {
+      return parseChecksums(await apiResponse.text())
+    }
+  } catch {
+    // fall through to empty (caller treats this release as skipped)
   }
 
   return {}
@@ -323,31 +360,42 @@ async function main() {
     databases: {},
   }
 
-  // Process each release
+  // Process releases concurrently in bounded batches. Each release is
+  // independent and the manifest is deterministically re-sorted below, so
+  // batch order doesn't affect output - only speed (one slow checksums fetch
+  // no longer blocks the other 54).
   let processed = 0
   let skipped = 0
+  const CONCURRENCY = 8
 
-  for (const [tag, ghRelease] of ghReleases) {
-    const parsed = parseReleaseTag(tag)
-    if (!parsed) {
-      console.warn(`  Skipping unparseable tag: ${tag}`)
-      skipped++
-      continue
+  const tags = [...ghReleases.keys()]
+  for (let i = 0; i < tags.length; i += CONCURRENCY) {
+    const batch = tags.slice(i, i + CONCURRENCY)
+    const results = await Promise.all(
+      batch.map(async (tag) => {
+        const ghRelease = ghReleases.get(tag) as GitHubRelease
+        const parsed = parseReleaseTag(tag)
+        if (!parsed) {
+          console.warn(`  Skipping unparseable tag: ${tag}`)
+          return null
+        }
+        const entry = await buildVersionRelease(ghRelease, tag, parsed.version)
+        if (!entry) return null
+        return { database: parsed.database, version: parsed.version, entry }
+      }),
+    )
+
+    for (const result of results) {
+      if (!result) {
+        skipped++
+        continue
+      }
+      if (!manifest.databases[result.database]) {
+        manifest.databases[result.database] = {}
+      }
+      manifest.databases[result.database][result.version] = result.entry
+      processed++
     }
-
-    const { database, version } = parsed
-    const entry = await buildVersionRelease(ghRelease, tag, version)
-
-    if (!entry) {
-      skipped++
-      continue
-    }
-
-    if (!manifest.databases[database]) {
-      manifest.databases[database] = {}
-    }
-    manifest.databases[database][version] = entry
-    processed++
   }
 
   console.log(`\nProcessed ${processed} releases (${skipped} skipped)`)
