@@ -108,7 +108,7 @@ const SNAPSHOT: Record<string, Record<string, string>> = {
     '9.5': '9.5.0',
     '9.6': '9.6.0',
     '8.0.40': '8.0.40',
-    '8.4.3': '8.4.3',
+    // 8.4.3 disabled (enabled: false) in 0.33.2 — superseded by 8.4.9; no longer resolvable.
     '8.4.9': '8.4.9',
     '9.1.0': '9.1.0',
     '9.5.0': '9.5.0',

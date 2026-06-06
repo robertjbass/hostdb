@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.2] - 2026-06-06
+
+### Removed
+
+- **MySQL 8.4.3 disabled (`enabled: false`).** Superseded by 8.4.9 (the current 8.4 LTS patch, which is the minimal build). `resolveVersion('mysql', '8.4.3')` now returns `null`, 8.4.3 is dropped from `listVersions` and from the release-workflow version dropdown, and `'8.4'` continues to resolve to 8.4.9. The ~953 MB R2 binary is **retained** (not deleted), so any already-running container is unaffected. Nothing in the ecosystem pins `8.4.3` explicitly (layerbase uses `'8.4'`). Note: this leaves 8.4.3's released binaries flagged as orphans by `pnpm prep`'s discrepancy check (expected for a disabled-but-retained version; would clear if the binary is later deleted via `delete:releases`).
+
 ## [0.33.1] - 2026-06-05
 
 ### Changed

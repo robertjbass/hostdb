@@ -28,6 +28,8 @@ Pre-built database binaries for all major platforms, hosted on Cloudflare R2 via
 | [`builds/postgresql-documentdb/README.md`](./builds/postgresql-documentdb/README.md) | Reference implementation of a macOS source build with relocatable dylibs |
 | [`UPGRADE_VERSIONS.md`](./UPGRADE_VERSIONS.md) | Current upgrade backlog, organized by priority tier |
 | [`PROSPECTS.md`](./PROSPECTS.md) | Planned and unsupported databases |
+| [`MINIMAL_BINARIES.md`](./MINIMAL_BINARIES.md) | Which binaries are minimal (MySQL linux-x64), vendor-minimal availability, how to extend to other platforms, and known non-uniformities |
+| [`REPLACE_BINARY_PLAYBOOK.md`](./REPLACE_BINARY_PLAYBOOK.md) | Replacing an already-published binary on R2 in place (backup -> overwrite -> purge), rollback, and the cascade |
 
 ## Sources of Truth
 
@@ -193,6 +195,10 @@ R2 retains binaries forever by design (existing containers keep working). `pnpm 
 See `ARCHITECTURE.md` for secret setup (Cloudflare Zone ID, API token) and the full list of required GH Actions secrets.
 
 ## Engine-Specific Notes
+
+### MySQL minimal binaries (linux-x64)
+
+MySQL **8.4.9** and **9.6.0** `linux-x64` are re-hosted as MySQL's official `-minimal` tarball (872 MB -> 135 MB, 1042 MB -> 138 MB). `sources.json` points those `linux-x64` entries at the `-minimal` URL; all other platforms/versions are full. Vendor `-minimal` exists for `x86_64` Linux ONLY - other platforms (incl. linux-arm64, the other ~1 GB) need custom trimming. See [`MINIMAL_BINARIES.md`](./MINIMAL_BINARIES.md) for status, the extend-to-other-platforms process, and the known non-uniformities (stale `releases.json`/GitHub-release labels + `_backup/` objects from the in-place overwrite). To replace any binary in place, see [`REPLACE_BINARY_PLAYBOOK.md`](./REPLACE_BINARY_PLAYBOOK.md).
 
 ### MariaDB
 

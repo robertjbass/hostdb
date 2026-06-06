@@ -442,7 +442,9 @@ databases:
           enhanced:
             - mycli
             - usql
-      8.4.3: true
+      8.4.3:
+        enabled: false
+        note: "Superseded by 8.4.9 (current 8.4 LTS patch, minimal build). Disabled from resolution so it is not selectable or resolvable; the existing ~953 MB R2 binary is retained (not deleted)."
       8.0.40:
         deprecated: true
         note: Deprecated; use 8.4.x LTS instead
