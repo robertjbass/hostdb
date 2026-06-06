@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.1] - 2026-06-05
+
+### Changed
+
+- **MySQL 8.4.9 and 9.6.0 `linux-x64` re-hosted as the official MySQL `-minimal` build.** The re-hosted tarballs shrink from ~872 MB → ~135 MB (8.4.9) and ~1042 MB → ~138 MB (9.6.0) — an ~84% cut. MySQL's `-minimal` distribution removes only never-executed artifacts (the `mysql-test/` suite, debug binaries, debug plugins, and static `.a` libraries) and keeps the entire `bin/` (every CLI tool), all runtime plugins, the bundled OpenSSL/SASL libraries, and the charset/error-message data. The four binaries spindb and layerbase-cloud invoke — `mysqld`, `mysql`, `mysqldump`, `mysqladmin` — are all present, and a full `spindb create → seed → backup → restore → verify` end-to-end run passed on both versions. `resolveVersion` output is unchanged (same inputs resolve to the same full versions); only the `linux-x64` binary payload and its `releases.json` size/sha change.
+
+### Notes
+
+- **`linux-x64` only.** MySQL publishes a `-minimal` build for `x86_64` (glibc2.28 — the same runtime floor as the full tarball, so no new compatibility requirement) but not for `aarch64`, macOS, or Windows, which are unchanged. MySQL 8.4.3 (no vendor `-minimal` available) and the deprecated versions (8.0.40, 9.1.0, 9.5.0) are also unchanged.
+- R2 retains the prior full binaries (`_backup/`), so already-cached containers keep working; new downloads pull the minimal.
+
+### Coordination notes
+
+This is a **patch** bump (0.33.0 → 0.33.1): a binary re-host only, with no `defaults`/resolver change. The downstream exact-pin cascade still applies — bump spindb's `hostdb` pin to 0.33.1 and run its test matrix (the MySQL integration test downloads the minimal and exercises it), then `SPINDB_VERSION` in layerbase-cloud and the `spindb` pin in layerbase-desktop.
+
 ## [0.33.0] - 2026-06-03
 
 ### Added

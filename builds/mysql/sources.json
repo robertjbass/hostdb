@@ -4,9 +4,9 @@
   "versions": {
     "9.6.0": {
       "linux-x64": {
-        "url": "https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-linux-glibc2.28-x86_64.tar.xz",
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-linux-glibc2.28-x86_64-minimal.tar.xz",
         "format": "tar.xz",
-        "sha256": "92271b67eb88cd74931f6bfc1f79edcf6a285508fc437c80d704b16512486374"
+        "sha256": "06ebd32ab32ccac2132c602ec3bfb4d5791b6ff9e98393b2fb04d1e97ff925b7"
       },
       "linux-arm64": {
         "url": "https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-linux-glibc2.28-aarch64.tar.xz",
@@ -58,9 +58,9 @@
     },
     "8.4.9": {
       "linux-x64": {
-        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.9-linux-glibc2.28-x86_64.tar.xz",
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.9-linux-glibc2.28-x86_64-minimal.tar.xz",
         "format": "tar.xz",
-        "sha256": "4297fb5d7dfd3b2b2d405efcc44b834237cd5e0d5dbf9b2cb6e49f6b0152940b"
+        "sha256": "d0142fc30e04bae7f15a46567238adf8956acccd35c5bca6e448322644536e3d"
       },
       "linux-arm64": {
         "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.9-linux-glibc2.28-aarch64.tar.xz",
@@ -142,6 +142,9 @@
     "glibc": "Linux binaries require glibc 2.28+ (Ubuntu 20.04+, Debian 10+, RHEL 8+)",
     "macos": "macOS binaries target macos14 (Sonoma) for 8.x versions; MySQL 9.5.0+ targets macos15 (Sequoia). Binaries may work on earlier macOS versions.",
     "deprecated": "Versions 8.0.40, 9.1.0, and 9.5.0 are deprecated. Existing binaries are retained but no new builds will be triggered.",
-    "cdn": "Use cdn.mysql.com/archives/ for direct downloads (dev.mysql.com redirects require auth)"
+    "cdn": "Use cdn.mysql.com/archives/ for direct downloads (dev.mysql.com redirects require auth)",
+    "minimal-builds": "linux-x64 (8.4.9, 9.6.0) uses MySQL's official -minimal tarball: test suite, debug binaries, and static libs removed, all CLI tools (mysqld/mysql/mysqldump/mysqladmin) retained. Cuts re-hosted size ~6x. Only x86_64 has a vendor -minimal (no aarch64/macOS/Windows). 8.4.3 has no minimal; 8.0.40/9.1.0/9.5.0 are deprecated. Validate any minimal swap with builds/mysql/test-roundtrip.sh before publishing.",
+    "8.4.9-linux-x64-full-revert": "REVERT: set versions.8.4.9.linux-x64 back to url=https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.9-linux-glibc2.28-x86_64.tar.xz sha256=4297fb5d7dfd3b2b2d405efcc44b834237cd5e0d5dbf9b2cb6e49f6b0152940b",
+    "9.6.0-linux-x64-full-revert": "REVERT: set versions.9.6.0.linux-x64 back to url=https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-linux-glibc2.28-x86_64.tar.xz sha256=92271b67eb88cd74931f6bfc1f79edcf6a285508fc437c80d704b16512486374"
   }
 }
