@@ -10,6 +10,7 @@ import {
   HeadObjectCommand,
   DeleteObjectCommand,
   ListObjectsV2Command,
+  CopyObjectCommand,
 } from '@aws-sdk/client-s3'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -108,6 +109,44 @@ export async function deleteFromR2(options: {
     new DeleteObjectCommand({
       Bucket: bucket,
       Key: key,
+    }),
+  )
+}
+
+/**
+ * Server-side copy of an R2 object (no download round-trip).
+ *
+ * By default the copy preserves the source object's metadata. Pass
+ * cacheControl/contentType to override them (used when restoring a backup
+ * over the canonical key, which must keep the immutable 1-year cache header).
+ */
+export async function copyR2Object(options: {
+  client: S3Client
+  bucket: string
+  sourceKey: string
+  destKey: string
+  cacheControl?: string
+  contentType?: string
+}): Promise<void> {
+  const { client, bucket, sourceKey, destKey, cacheControl, contentType } =
+    options
+
+  const overrideMetadata = Boolean(cacheControl || contentType)
+
+  await client.send(
+    new CopyObjectCommand({
+      Bucket: bucket,
+      // CopySource must be `<bucket>/<key>`, URL-encoded. encodeURI leaves the
+      // path separators and `-._` in our keys untouched.
+      CopySource: encodeURI(`${bucket}/${sourceKey}`),
+      Key: destKey,
+      ...(overrideMetadata
+        ? {
+            MetadataDirective: 'REPLACE' as const,
+            ...(cacheControl ? { CacheControl: cacheControl } : {}),
+            ...(contentType ? { ContentType: contentType } : {}),
+          }
+        : {}),
     }),
   )
 }

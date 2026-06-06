@@ -1,0 +1,141 @@
+name: Rebuild Minimal MySQL (linux-x64)
+
+# Re-hosts MySQL linux-x64 binaries as the smaller vendor `-minimal` build by
+# overwriting the canonical R2 object.
+#
+# Why overwrite (not a new URL): spindb constructs binary URLs from a fixed
+# template (registry.layerbase.host/mysql-{ver}/mysql-{ver}-linux-x64.tar.gz)
+# and ignores releases.json's `url`, so the minimal must live at that exact key.
+# spindb never verifies sha256/size, and its post-download check just runs
+# `mysqld --version`, so replacing the object is transparent to every pinned
+# consumer - no hostdb/spindb/layerbase-cloud version bump required.
+#
+# Safety: each binary is BUILT and round-trip-tested (init -> mysqldump backup ->
+# mysql restore -> verify) before the canonical object is overwritten, and the
+# original is backed up to `_backup/<key>` first (revert via the script's
+# --restore mode). Only versions with a vendor `-minimal` are eligible:
+# 8.4.9 and 9.6.0 (8.4.3 has none; 8.0.40/9.1.0/9.5.0 are deprecated).
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'rehost = swap in the minimal build; restore = revert to the backed-up original'
+        required: true
+        type: choice
+        options:
+          - rehost
+          - restore
+        default: rehost
+      version:
+        description: 'MySQL version (linux-x64)'
+        required: true
+        type: choice
+        options:
+          - all
+          - 9.6.0
+          - 8.4.9
+        default: all
+      skip_backup:
+        description: 'Skip backing up the existing R2 object (rehost mode only; NOT recommended)'
+        required: false
+        type: boolean
+        default: false
+
+# Never let two re-host runs race on the same R2 keys.
+concurrency:
+  group: rebuild-minimal-mysql
+  cancel-in-progress: false
+
+jobs:
+  rehost:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build/test/re-host (or restore) minimal linux-x64
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          set -euo pipefail
+
+          MODE="${{ github.event.inputs.mode }}"
+          SELECTED="${{ github.event.inputs.version }}"
+          if [ "$SELECTED" = "all" ]; then
+            VERSIONS="9.6.0 8.4.9"
+          else
+            VERSIONS="$SELECTED"
+          fi
+
+          BACKUP_FLAG=""
+          if [ "${{ github.event.inputs.skip_backup }}" = "true" ]; then
+            BACKUP_FLAG="--no-backup"
+          fi
+
+          chmod +x builds/mysql/test-roundtrip.sh
+
+          for V in $VERSIONS; do
+            FILE="./dist/mysql-$V-linux-x64.tar.gz"
+
+            # RESTORE mode: copy the backed-up original back over the canonical
+            # key (no build/test, just reverts).
+            if [ "$MODE" = "restore" ]; then
+              echo "::group::mysql $V - RESTORE original from _backup/"
+              pnpm tsx scripts/rehost-minimal-r2.ts \
+                --tag "mysql-$V" --filename "mysql-$V-linux-x64.tar.gz" --restore
+              echo "::endgroup::"
+              continue
+            fi
+
+            echo "::group::mysql $V - build minimal linux-x64"
+            rm -rf ./dist
+            pnpm download:mysql -- --version "$V" --platform linux-x64 --output ./dist
+            test -f "$FILE" || { echo "::error::artifact not built: $FILE"; exit 1; }
+            ls -la ./dist
+            echo "::endgroup::"
+
+            # The ubuntu-latest runner is x86_64 with Docker, so the linux/amd64
+            # round-trip runs natively (fast). Fails the job before any R2 write
+            # if backup/restore doesn't work on the minimal build.
+            echo "::group::mysql $V - round-trip test (backup + restore)"
+            ./builds/mysql/test-roundtrip.sh "$FILE" linux-x64
+            echo "::endgroup::"
+
+            echo "::group::mysql $V - re-host to R2 (backup + overwrite + purge)"
+            pnpm tsx scripts/rehost-minimal-r2.ts --tag "mysql-$V" --file "$FILE" $BACKUP_FLAG
+            echo "::endgroup::"
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Rebuild Minimal MySQL"
+            echo ""
+            echo "Re-hosted linux-x64 minimal build(s) over the canonical R2 key."
+            echo ""
+            echo "- Originals backed up to \`_backup/<key>\` (unless skip_backup)."
+            echo "- No version bumps needed - spindb constructs the same URL and gets the smaller binary on next download."
+            echo "- releases.json size/sha metadata is intentionally NOT synced (cosmetic; nothing reads it for the download). Re-run the full Release MySQL workflow if you want the GitHub release + releases.json to match."
+            echo "- Revert: \`pnpm tsx scripts/rehost-minimal-r2.ts --tag mysql-<ver> --filename mysql-<ver>-linux-x64.tar.gz --restore\`"
+          } >> "$GITHUB_STEP_SUMMARY"
