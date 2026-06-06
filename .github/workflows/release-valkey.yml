@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Validate version against databases.json
         run: |
@@ -145,7 +145,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup pnpm
         if: matrix.build_type != 'native-windows'
@@ -153,9 +153,9 @@ jobs:
 
       - name: Setup Node.js
         if: matrix.build_type != 'native-windows'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -403,7 +403,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -487,13 +487,13 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: main
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - name: Upload to R2
@@ -513,13 +513,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: main
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
 

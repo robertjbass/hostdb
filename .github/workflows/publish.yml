@@ -11,7 +11,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Check if version needs publishing
         id: check
@@ -45,7 +45,7 @@ jobs:
 
       - name: Setup Node.js
         if: steps.check.outputs.publish == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: 'pnpm'
