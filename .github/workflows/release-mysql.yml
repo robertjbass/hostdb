@@ -10,7 +10,6 @@ on:
         options:
           - 9.6.0
           - 8.4.9
-          - 8.4.3
         default: 9.6.0
       platforms:
         description: 'Platforms'
