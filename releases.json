@@ -756,28 +756,28 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-darwin-arm64.tar.gz",
-            "sha256": "cb4adad53102e1bc0c8743c20c3a2dee07c94e5377690d2115f0658d567a9326",
-            "size": 171310635
+            "sha256": "ca0475003507b7eed23b8284fad796a875648f68f794e2a9f26e391bcc2e84d5",
+            "size": 171310481
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-darwin-x64.tar.gz",
-            "sha256": "219a378666c16ef650845871041d792f3b53d4c4b7c6f4bbc7fe3ee280842a58",
-            "size": 176031206
+            "sha256": "52ab90dce10ac65c429e6b92bc276fdc0a7353b95335b0adc7eb3cf6bc93e7da",
+            "size": 176025019
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-linux-arm64.tar.gz",
-            "sha256": "c30a503c056249893456a1746e0f2788568066bafde25ba96ea3ae56f8c890ba",
-            "size": 1083410543
+            "sha256": "e9654d277b1e7a23adde050bcc9de8787446f16830a10e2dd260b76b45f00c36",
+            "size": 1083403287
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-linux-x64.tar.gz",
-            "sha256": "3d58d551d6c066e8e13628f44d1307802607a8f6c7f41f4d4ba15e6433f692c2",
-            "size": 1092567180
+            "sha256": "90965bebb23d8d34701a5bd4b3f0e21aa59197edf3783a15578367cec50c1ed9",
+            "size": 144517976
           },
           "win32-x64": {
             "url": "https://registry.layerbase.host/mysql-9.6.0/mysql-9.6.0-win32-x64.zip",
-            "sha256": "7c9f16ad7a6435a6f4977aa7d0a026cc3da8f2e6910be3b3cc23d688f3c2150c",
-            "size": 304502159
+            "sha256": "c0d788f12425ab5eb97058dd16cbf448a9e4ac9a764dedc37120232c4f60b455",
+            "size": 304502158
           }
         }
       },
@@ -854,28 +854,28 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/mysql-8.4.9/mysql-8.4.9-darwin-arm64.tar.gz",
-            "sha256": "39bf2709744ca806306b03e3c0769f3d58ef41bcf96e3c1b91b516d02633b640",
-            "size": 168846886
+            "sha256": "b85ae2277197f7160da26f7bfafa73e342d6002c8aa26e4c65e277a9b8e5daa1",
+            "size": 168848643
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/mysql-8.4.9/mysql-8.4.9-darwin-x64.tar.gz",
-            "sha256": "a044f90e8df594a6adbea4cfeb093e9b826f0383755082da7dbb99c25d865d02",
-            "size": 173107137
+            "sha256": "0acbc35ce8e2085bfbcdf0ad4c6b3cf62264d7b34faf6aa076338fb74e68f7bc",
+            "size": 173110843
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/mysql-8.4.9/mysql-8.4.9-linux-arm64.tar.gz",
-            "sha256": "e77a4938424c75608b0c06bc0a22057c3c79508ccc7d3bb4c015faa874c8f997",
-            "size": 906150212
+            "sha256": "522647b84616f1805bdc39db9a63238e429b67d713034b1d98620d3250338765",
+            "size": 906147251
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/mysql-8.4.9/mysql-8.4.9-linux-x64.tar.gz",
-            "sha256": "eddea8096253014a251532814629a14db66b5e98686ff88f5e5b6dc917769275",
-            "size": 914338917
+            "sha256": "2e4df7ec57ba094eae5f82c31526de9e43800752e1d7a2f67cd51afffe1146ec",
+            "size": 142113213
           },
           "win32-x64": {
             "url": "https://registry.layerbase.host/mysql-8.4.9/mysql-8.4.9-win32-x64.zip",
-            "sha256": "33273d33c8366853e2f865e95960f99103be28a7437d61b54e03aac1f39394d2",
-            "size": 280416089
+            "sha256": "06ecbe5506d4cd3ef40c005cf6fe57e4629cd62eaeb40cf3c9e2c7b517de063e",
+            "size": 280416087
           }
         }
       },
@@ -1572,6 +1572,38 @@
       }
     },
     "typedb": {
+      "3.11.5": {
+        "version": "3.11.5",
+        "releaseTag": "typedb-3.11.5",
+        "releasedAt": "2026-06-03T18:47:50Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/typedb-3.11.5/typedb-3.11.5-darwin-arm64.tar.gz",
+            "sha256": "3e5cc90f49033c73f708fd3e90d32a300c562ccac2e4c9cd875a31a4c9641b21",
+            "size": 26662194
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.11.5/typedb-3.11.5-darwin-x64.tar.gz",
+            "sha256": "87b02777e7b9a1bee384a7606792481b6152eb30ca0d1dcb94dd51a73e53a965",
+            "size": 28010769
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/typedb-3.11.5/typedb-3.11.5-linux-arm64.tar.gz",
+            "sha256": "dbe714a52315c12e61d5be196b1ed4b427e059b0bb59c4d1b82681fd5443adc5",
+            "size": 28430150
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.11.5/typedb-3.11.5-linux-x64.tar.gz",
+            "sha256": "69ee11b65cfdb85f80cc5615e0e3594fb0d8043ca8efcb62926ee2153896e774",
+            "size": 28911985
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.11.5/typedb-3.11.5-win32-x64.zip",
+            "sha256": "0253af88ad4f13a13601d48771db4893d6b165e7557ac678c545e41c38fdb7c3",
+            "size": 24704546
+          }
+        }
+      },
       "3.8.0": {
         "version": "3.8.0",
         "releaseTag": "typedb-3.8.0",
