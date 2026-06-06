@@ -148,7 +148,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -162,11 +162,11 @@ jobs:
       # Set up QEMU for cross-platform Docker builds (required for linux-arm64 on x64 runners)
       - name: Set up QEMU
         if: matrix.build_type == 'docker'
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         if: matrix.build_type == 'docker'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       # For Linux: extract from official Docker image
       - name: Build for Linux (Docker extraction)
@@ -549,7 +549,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: main
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
@@ -575,7 +575,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: main
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
         with:
           node-version: '24'

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.5] - 2026-06-06
+
+### Changed
+
+- **CI: bump the remaining safe actions off Node 20.** `pnpm/action-setup@v4 -> v6` (73x) and `docker/setup-buildx-action`/`docker/setup-qemu-action@v3 -> v4`. This clears the Node-20 deprecation on the everyday workflows (publish, ci, version-check). Known residual on the **dispatch-only `release-*.yml`** workflows: `upload-artifact@v4`/`download-artifact@v4` (latest v7/v8 are breaking-prone and PR CI can't validate them), `softprops/action-gh-release@v2` (latest v3), and `ilammy/msvc-dev-cmd@v1` (already the latest major) - those need a separate, manually-tested release-workflow pass.
+
 ## [0.33.4] - 2026-06-06
 
 ### Changed

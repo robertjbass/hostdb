@@ -41,7 +41,7 @@ jobs:
 
       - name: Setup pnpm
         if: steps.check.outputs.publish == 'true'
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
         if: steps.check.outputs.publish == 'true'
