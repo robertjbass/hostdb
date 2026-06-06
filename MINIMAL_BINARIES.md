@@ -27,6 +27,14 @@ MySQL publishes a `-minimal` build only for `x86_64` Linux. Every other platform
 
 macOS is already small because Apple's MySQL builds do not bundle the test suite. **linux-arm64 is the only other big one (~1 GB)**, for the same reason linux-x64 was (test suite + debug + unstripped symbols) - but it has no vendor minimal.
 
+## Policy: vendor-minimal swaps only (no custom trimming)
+
+We adopt a smaller binary ONLY when the vendor already publishes a minimal/slim tarball (a one-line `sources.json` URL swap, as done for MySQL linux-x64). We do NOT custom-trim/strip binaries ourselves - the per-platform build + validation maintenance is not worth it outside the egregious ~1 GB MySQL case. So MySQL arm64/macOS/Windows stay full, and the custom-trim steps below are kept only as a reference in case that calculus ever changes.
+
+### Other engines checked
+
+- **MariaDB** (checked 2026-06-06): no vendor `-minimal` exists. The release directory (e.g. `archive.mariadb.org/mariadb-11.8.6/`) holds exactly one linux-x64 tarball - `bintar-linux-systemd-x86_64/mariadb-<v>-linux-systemd-x86_64.tar.gz`, the full ~360-413 MB build - and nothing matching `minimal`/`slim`/`reduced`. linux-x64 is the only large MariaDB platform (bundled test suite + unstripped; the lean arm64 build is only ~87 MB), but per the policy above we do NOT trim it. All other MariaDB platforms are already ~80-90 MB. Re-check this only if MariaDB starts publishing a slim tarball.
+
 ## Adding a vendor-minimal for a NEW x64 version
 
 If a future MySQL x64 version ships a `-minimal` tarball: point its `linux-x64` entry in `builds/mysql/sources.json` at the `-minimal` URL + sha256 (confirm the URL exists first - naming varies: `glibc2.28` for recent versions, `glibc2.17` for some). Then follow `REPLACE_BINARY_PLAYBOOK.md`. Note: 8.4.3 and the deprecated versions (8.0.40 / 9.1.0 / 9.5.0) have no vendor minimal and stay full.
