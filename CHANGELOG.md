@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.3] - 2026-06-06
+
+### Changed
+
+- **CI: upgrade GitHub Actions off the deprecated Node 20 runtime.** Bumped `actions/checkout@v4 → v6`, `actions/setup-node@v4 → v6`, `actions/github-script@v7 → v9`, `actions/setup-go@v5 → v6`, and `node-version: '22' → '24'` (current Active LTS) across all workflows. This clears the Node-20 action-runtime deprecation warnings. The artifact actions (`upload-artifact@v4`, `download-artifact@v4`) are intentionally **left for a separate, manually-tested pass** - their latest majors are v7/v8 (multi-major, breaking-prone), and they run only in dispatch-only release workflows that PR CI does not exercise.
+
 ## [0.33.2] - 2026-06-06
 
 ### Removed
