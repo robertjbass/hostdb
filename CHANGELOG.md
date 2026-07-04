@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.33.6] - 2026-07-04
+
+### Changed
+
+- **Licensing: standardized the commercial-licensing language in `LICENSE` (matches spindb).** Added a commercial-use notice above the PolyForm Noncommercial 1.0.0 body (the grant itself is unchanged) that enumerates commercial use - commercial products/services/SaaS, internal for-profit operations, and using the software, its source, or its output to train, fine-tune, evaluate, or retrieval-augment AI/ML models, systems, or agents for any for-profit purpose - states that a one-time commercial license fee applies, and lists the licensing contact as bob@layerbase.com.
+
 ## [0.33.5] - 2026-06-06
 
 ### Changed
