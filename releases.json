@@ -1634,7 +1634,8 @@
             "sha256": "0253af88ad4f13a13601d48771db4893d6b165e7557ac678c545e41c38fdb7c3",
             "size": 24704546
           }
-        }
+        },
+        "deprecated": true
       },
       "3.8.0": {
         "version": "3.8.0",

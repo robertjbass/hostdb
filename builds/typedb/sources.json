@@ -65,6 +65,38 @@
         "sha256": "16c03cdfb7469425c770f449ad6c3bb73fcd8d5eaf840b597cb82c09449d102d",
         "sourceType": "official"
       }
+    },
+    "3.12.0": {
+      "linux-x64": {
+        "url": "https://repo.typedb.com/public/public-release/raw/names/typedb-all-linux-x86_64/versions/3.12.0/typedb-all-linux-x86_64-3.12.0.tar.gz",
+        "format": "tar.gz",
+        "sha256": "67636b35ef8d66310d67fbced73e65138e2faec5924629a5a1f0db493e255975",
+        "sourceType": "official"
+      },
+      "linux-arm64": {
+        "url": "https://repo.typedb.com/public/public-release/raw/names/typedb-all-linux-arm64/versions/3.12.0/typedb-all-linux-arm64-3.12.0.tar.gz",
+        "format": "tar.gz",
+        "sha256": "13d7e66d7985d1a1700eced82eb2f8480cc8297adcc8447962e3b03de72312c5",
+        "sourceType": "official"
+      },
+      "darwin-x64": {
+        "url": "https://repo.typedb.com/public/public-release/raw/names/typedb-all-mac-x86_64/versions/3.12.0/typedb-all-mac-x86_64-3.12.0.zip",
+        "format": "zip",
+        "sha256": "bf055d00b3844cc8b5896e7ed0f2dd196a9c489b1ab8af0c0d862129e186dabc",
+        "sourceType": "official"
+      },
+      "darwin-arm64": {
+        "url": "https://repo.typedb.com/public/public-release/raw/names/typedb-all-mac-arm64/versions/3.12.0/typedb-all-mac-arm64-3.12.0.zip",
+        "format": "zip",
+        "sha256": "21cf05297845e19d55b9cbe5d425294e0d2cc615af6c2564898b1134c89ed3aa",
+        "sourceType": "official"
+      },
+      "win32-x64": {
+        "url": "https://repo.typedb.com/public/public-release/raw/names/typedb-all-windows-x86_64/versions/3.12.0/typedb-all-windows-x86_64-3.12.0.zip",
+        "format": "zip",
+        "sha256": "b770e5dc99de58aadc8e9a483dfb338cebe046f3d79d9ff2008d4acb0a14c90a",
+        "sourceType": "official"
+      }
     }
   },
   "notes": {
