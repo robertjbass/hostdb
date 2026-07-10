@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.34.1] - 2026-07-10
+
+### Documentation
+
+- `BINARIES.md` now documents the two new top-level directories in TypeDB 3.12+ archives: `admin/typedb_admin_bin` (OS-socket admin CLI) and `loader/typedb_loader_bin` (bulk import). Pre-3.12 archives lack both and shipped a pre-created `server/data/` directory that 3.12 creates on first boot instead. No code or registry changes.
+
 ## [0.34.0] - 2026-07-10
 
 ### Added
