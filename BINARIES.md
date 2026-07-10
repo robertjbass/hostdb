@@ -20,7 +20,9 @@ Archive structure for each database distributed by hostdb.
 | Meilisearch | `meilisearch/` | `meilisearch` `.hostdb-metadata.json` | `meilisearch` | — (HTTP) |
 | InfluxDB | `influxdb/` | `influxdb3` `python/` `LICENSE-APACHE` `LICENSE-MIT` `.hostdb-metadata.json` | `influxdb3` | — (HTTP/SQL) |
 | TigerBeetle | `tigerbeetle/` | `tigerbeetle` `.hostdb-metadata.json` | `tigerbeetle` | `tigerbeetle` (REPL) |
-| TypeDB | `typedb/` | `server/` `console/` `typedb` `LICENSE` `.hostdb-metadata.json` | `server/typedb_server_bin` | `console/typedb_console_bin` |
+| TypeDB | `typedb/` | `server/` `console/` `admin/`\* `loader/`\* `typedb` `LICENSE` `.hostdb-metadata.json` | `server/typedb_server_bin` | `console/typedb_console_bin` |
+
+\* `admin/` (OS-socket admin CLI) and `loader/` (bulk-import tool) exist in TypeDB 3.12+ only.
 
 ## Detailed Structure
 
@@ -123,12 +125,21 @@ typedb/
 ├── typedb                   # launcher script (typedb.bat on Windows)
 ├── server/
 │   ├── typedb_server_bin    # or .exe on Windows
-│   ├── config.yml
-│   └── data/
+│   └── config.yml
 ├── console/
 │   └── typedb_console_bin   # or .exe on Windows
+├── admin/
+│   └── typedb_admin_bin     # 3.12+: OS-socket admin CLI
+├── loader/
+│   └── typedb_loader_bin    # 3.12+: bulk-import tool
 ├── LICENSE
 └── .hostdb-metadata.json
+```
+
+Version differences: 3.11.x and earlier have no `admin/` or `loader/` dirs and ship a
+pre-created `server/data/`; 3.12+ adds both dirs and creates `data/` on first boot.
+
+```
 ```
 
 ### Single binary (no bin/ subdirectory)
@@ -200,4 +211,4 @@ Every archive includes `.hostdb-metadata.json`:
 | Meilisearch | No | 1 | HTTP API only |
 | TigerBeetle | No | 1 | Built-in REPL |
 | InfluxDB | Custom (`python/`) | 1 + runtime | HTTP API / SQL |
-| TypeDB | Custom (`server/`, `console/`) | 2 + launcher | CLI (`typedb_console_bin`) |
+| TypeDB | Custom (`server/`, `console/`; 3.12+ adds `admin/`, `loader/`) | 2 + launcher (3.12+: 4 + launcher) | CLI (`typedb_console_bin`) |
