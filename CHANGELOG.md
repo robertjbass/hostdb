@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.34.0] - 2026-07-10
+
+### Added
+
+- **TypeDB 3.12.0 added** across all five hosted platforms (linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64). Sources and SHA-256 checksums populated in `builds/typedb/sources.json`; the release-workflow version dropdown now defaults to 3.12.0.
+
+### Changed
+
+- **TypeDB default for major `'3'` moved from `3.11.5` to `3.12.0` (policy change).** `resolveVersion('typedb', '3')` now returns `3.12.0`. This is a user-visible `defaults` block change, hence the minor bump.
+
+### Deprecated
+
+- **TypeDB 3.11.5 deprecated.** It is dropped from the release-workflow dropdown and marked deprecated in `databases.yml`/`databases.json`, but still resolves (`resolveVersion('typedb', '3.11.5')` → `3.11.5`) and its binaries remain hosted on R2 so existing consumers are unaffected.
+
 ## [0.33.6] - 2026-07-04
 
 ### Changed
