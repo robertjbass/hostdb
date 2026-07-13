@@ -106,6 +106,8 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       source_version: ${{ steps.parse-version.outputs.source_version }}
     steps:
+      - uses: actions/checkout@v6
+
       - name: Parse version for source download
         id: parse-version
         run: |
