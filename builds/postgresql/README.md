@@ -4,7 +4,9 @@ Build PostgreSQL from source for distribution via GitHub Releases.
 
 ## Platform Coverage
 
-**All 5 platforms are fully supported for all versions.**
+**All 5 platforms are fully supported for stable (GA) versions.** Prereleases
+(alpha/beta/rc) build 4 platforms only - EDB does not publish Windows binaries
+until the RC stage, so `win32-x64` is intentionally omitted for betas.
 
 | Platform | Method | Runner | Build Time |
 |----------|--------|--------|------------|
@@ -30,6 +32,16 @@ For Linux and macOS, we build PostgreSQL from source using the official tarballs
 ```
 https://ftp.postgresql.org/pub/source/v{VERSION}/postgresql-{VERSION}.tar.gz
 ```
+
+**Source-version mapping:** hostdb version strings are normalized to the
+upstream tarball name before download:
+
+- Stable: strip the trailing `.0` - `18.4.0` → `18.4` (tarball `postgresql-18.4.tar.gz`).
+- Prerelease: `^{major}.0.0-(alpha|beta|rc).{n}$` → `{major}{type}{n}` - e.g.
+  `19.0.0-beta.1` → `19beta1` (tarball `postgresql-19beta1.tar.gz`).
+
+This mapping lives in both `build-local.sh` and the `Parse version for source
+download` step of `.github/workflows/release-postgresql.yml`; keep them in sync.
 
 **Features included:**
 - SSL support (`--with-openssl`)
@@ -86,22 +98,23 @@ Archives contain:
 
 | Version | Type | Notes |
 |---------|------|-------|
-| 18.1 | Latest | PostgreSQL 18 |
-| 17.7 | Current | PostgreSQL 17 |
-| 16.11 | Supported | PostgreSQL 16 |
-| 15.15 | Supported | PostgreSQL 15 |
+| 19.0.0-beta.1 | Prerelease | PostgreSQL 19 Beta 1 (source `19beta1`); 4 platforms, no `win32-x64` (EDB betas start at RC). Not resolvable via bare major `19`. |
+| 18.4 | Latest | PostgreSQL 18 |
+| 17.10 | Current | PostgreSQL 17 |
+| 16.14 | Supported | PostgreSQL 16 |
+| 15.18 | Supported | PostgreSQL 15 |
 
 ## Platform Coverage Matrix
 
-**Full coverage: 5 platforms × 4 versions = 20 binaries**
+Stable versions ship all 5 platforms; the PG19 beta ships 4 (no `win32-x64`).
 
-| Platform | 18.1 | 17.7 | 16.11 | 15.15 | Method |
-|----------|------|------|-------|-------|--------|
-| linux-x64 | ✅ | ✅ | ✅ | ✅ | Docker source build |
-| linux-arm64 | ✅ | ✅ | ✅ | ✅ | Docker source build (QEMU) |
-| darwin-x64 | ✅ | ✅ | ✅ | ✅ | Native macOS build |
-| darwin-arm64 | ✅ | ✅ | ✅ | ✅ | Native macOS build |
-| win32-x64 | ✅ | ✅ | ✅ | ✅ | Official EDB binary |
+| Platform | 19.0.0-beta.1 | 18.4 | 17.10 | 16.14 | 15.18 | Method |
+|----------|---------------|------|-------|-------|-------|--------|
+| linux-x64 | ✅ | ✅ | ✅ | ✅ | ✅ | Docker source build |
+| linux-arm64 | ✅ | ✅ | ✅ | ✅ | ✅ | Docker source build (QEMU) |
+| darwin-x64 | ✅ | ✅ | ✅ | ✅ | ✅ | Native macOS build |
+| darwin-arm64 | ✅ | ✅ | ✅ | ✅ | ✅ | Native macOS build |
+| win32-x64 | ❌ | ✅ | ✅ | ✅ | ✅ | Official EDB binary (betas start at RC) |
 
 ## GitHub Actions
 

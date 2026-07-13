@@ -135,6 +135,9 @@ const SNAPSHOT: Record<string, Record<string, string>> = {
     '17.10.0': '17.10.0',
     '18.1.0': '18.1.0',
     '18.4.0': '18.4.0',
+    // Prerelease: resolves only by exact string. '19' is intentionally absent —
+    // it must NOT prefix-match into the beta (asserted in resolver.test.ts).
+    '19.0.0-beta.1': '19.0.0-beta.1',
   },
   'postgresql-documentdb': {
     '17': '17-0.107.0',

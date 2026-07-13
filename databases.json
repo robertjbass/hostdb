@@ -592,6 +592,16 @@
         "18": "18.4.0"
       },
       "versions": {
+        "19.0.0-beta.1": {
+          "releaseType": "beta",
+          "note": "PostgreSQL 19 Beta 1; prerelease - superseded at GA (~Sept/Oct 2026). No win32 build (EDB publishes beta binaries starting at RC).",
+          "platforms": [
+            "linux-x64",
+            "linux-arm64",
+            "darwin-x64",
+            "darwin-arm64"
+          ]
+        },
         "18.4.0": true,
         "18.1.0": true,
         "17.10.0": true,

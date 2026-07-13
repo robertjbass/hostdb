@@ -12,8 +12,8 @@ Pre-built database binaries for all major platforms, hosted on Cloudflare R2 via
 - **layerbase-desktop** (`~/dev/layerbase-desktop`) — Electron GUI over spindb.
 - **layerbase** (`~/dev/layerbase`) — web app at layerbase.com.
 
-**Ecosystem docs:** `~/dev/layerbase-architecture/` — shared architecture, cross-project rules, infrastructure inventory.
-**Ecosystem invariants:** `~/dev/layerbase-architecture/INVARIANTS.md` — non-negotiable rules. Read before architectural changes.
+**Ecosystem docs:** `~/dev/layerbase-cloud/` — shared architecture, cross-project rules, infrastructure inventory.
+**Ecosystem invariants:** `~/dev/layerbase-cloud/INVARIANTS.md` — non-negotiable rules. Read before architectural changes.
 
 ## Read Before You Edit
 

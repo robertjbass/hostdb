@@ -971,7 +971,8 @@
             "sha256": "77b205db26c12dc4e9b4e8bba9362a91c5c9a5fb46dcbcbdd83c707cf8188bf3",
             "size": 12746053
           }
-        }
+        },
+        "releaseType": "beta"
       },
       "18.4.0": {
         "version": "18.4.0",

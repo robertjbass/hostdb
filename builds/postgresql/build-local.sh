@@ -136,8 +136,13 @@ if ! docker buildx version &> /dev/null; then
 fi
 
 # Derive source version (PostgreSQL source uses 2-part versions like 18.1, not 18.1.0)
-# Strip trailing .0 if present
-SOURCE_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
+# Prereleases map to upstream's compact form: 19.0.0-beta.1 -> 19beta1
+# Otherwise strip trailing .0 (18.4.0 -> 18.4)
+if [[ "$VERSION" =~ ^([0-9]+)\.0\.0-(alpha|beta|rc)\.([0-9]+)$ ]]; then
+    SOURCE_VERSION="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+else
+    SOURCE_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
+fi
 
 # Create output directory
 OUTPUT_PATH="${OUTPUT_DIR}/postgresql-${VERSION}-${PLATFORM}"
