@@ -18,6 +18,9 @@ import {
   getReleaseInfo,
   getAvailablePlatforms,
   isVersionDeprecated,
+  getReleaseType,
+  isVersionPrerelease,
+  getPrereleaseVersions,
   getDatabaseEntry,
   compareVersions,
 } from '../lib/resolver.ts'
@@ -112,10 +115,7 @@ describe('resolveVersion — defaults policy', () => {
   })
 
   test('postgresql-documentdb 17 → compound version', () => {
-    assert.equal(
-      resolveVersion('postgresql-documentdb', '17'),
-      '17-0.107.0',
-    )
+    assert.equal(resolveVersion('postgresql-documentdb', '17'), '17-0.107.0')
   })
 })
 
@@ -170,10 +170,16 @@ describe('listVersions', () => {
 
   test('format=major-minor returns unique X.Y prefixes', () => {
     const pg = listVersions('postgresql', { format: 'major-minor' })
-    assert.deepEqual(
-      pg,
-      ['18.4', '18.1', '17.10', '17.7', '16.14', '16.11', '15.18', '15.15'],
-    )
+    assert.deepEqual(pg, [
+      '18.4',
+      '18.1',
+      '17.10',
+      '17.7',
+      '16.14',
+      '16.11',
+      '15.18',
+      '15.15',
+    ])
   })
 
   test('format=major returns unique X prefixes', () => {
@@ -192,7 +198,12 @@ describe('listVersions', () => {
 
 describe('getSupportedMajorVersions', () => {
   test('uses defaults block when present', () => {
-    assert.deepEqual(getSupportedMajorVersions('postgresql'), ['18', '17', '16', '15'])
+    assert.deepEqual(getSupportedMajorVersions('postgresql'), [
+      '18',
+      '17',
+      '16',
+      '15',
+    ])
     assert.deepEqual(getSupportedMajorVersions('mongodb'), ['8', '7'])
     assert.deepEqual(getSupportedMajorVersions('mariadb'), ['11', '10'])
   })
@@ -275,6 +286,60 @@ describe('getAvailablePlatforms', () => {
     const platforms = getAvailablePlatforms('clickhouse', '25.12.3.21')
     assert.ok(platforms.includes('linux-x64'))
     assert.ok(!platforms.includes('win32-x64'))
+  })
+})
+
+// ─── prerelease support ──────────────────────────────────────────────────────
+//
+// These cases depend on postgresql's `19.0.0-beta.1` entry (releaseType: beta),
+// added to databases.yml by the coordinating agent. Until databases.json is
+// regenerated (pnpm prep) they will fail — that's expected.
+
+describe('prerelease — postgresql 19.0.0-beta.1', () => {
+  test('exact version resolves to itself', () => {
+    assert.equal(resolveVersion('postgresql', '19.0.0-beta.1'), '19.0.0-beta.1')
+  })
+
+  test("'19' does not prefix-match into the beta", () => {
+    assert.equal(resolveVersion('postgresql', '19'), null)
+  })
+
+  test("'19.0' does not prefix-match into the beta", () => {
+    assert.equal(resolveVersion('postgresql', '19.0'), null)
+  })
+
+  test('listVersions excludes the beta by default', () => {
+    assert.ok(!listVersions('postgresql').includes('19.0.0-beta.1'))
+  })
+
+  test('listVersions includes the beta with includePrerelease', () => {
+    assert.ok(
+      listVersions('postgresql', { includePrerelease: true }).includes(
+        '19.0.0-beta.1',
+      ),
+    )
+  })
+
+  test('getEngineDefaults still returns GA 18.4.0 for both fields', () => {
+    const d = getEngineDefaults('postgresql')
+    assert.equal(d.defaultVersion, '18.4.0')
+    assert.equal(d.latestVersion, '18.4.0')
+  })
+
+  test("getSupportedMajorVersions does not include '19'", () => {
+    assert.ok(!getSupportedMajorVersions('postgresql').includes('19'))
+  })
+
+  test('getReleaseType / isVersionPrerelease / getPrereleaseVersions', () => {
+    assert.equal(getReleaseType('postgresql', '19.0.0-beta.1'), 'beta')
+    assert.equal(isVersionPrerelease('postgresql', '19.0.0-beta.1'), true)
+    assert.ok(getPrereleaseVersions('postgresql').includes('19.0.0-beta.1'))
+  })
+
+  test('getReleaseType is ga for a GA version and null for unknown', () => {
+    assert.equal(getReleaseType('postgresql', '18.4.0'), 'ga')
+    assert.equal(isVersionPrerelease('postgresql', '18.4.0'), false)
+    assert.equal(getReleaseType('postgresql', '99.99.99'), null)
   })
 })
 

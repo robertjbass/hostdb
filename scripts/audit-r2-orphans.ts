@@ -20,11 +20,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ListObjectsV2Command } from '@aws-sdk/client-s3'
-import {
-  loadR2Config,
-  createR2Client,
-  deleteFromR2,
-} from '../lib/r2.js'
+import { loadR2Config, createR2Client, deleteFromR2 } from '../lib/r2.js'
 import type { S3Client } from '@aws-sdk/client-s3'
 import type { ReleasesJson } from '../lib/databases.js'
 
@@ -174,7 +170,9 @@ async function main(): Promise<void> {
       for (const [prefix, group] of [...byPrefix.entries()].sort()) {
         console.log(`\n  ${prefix} (${group.length} objects):`)
         for (const o of group.slice(0, 10)) {
-          console.log(`    ${o.key}${o.size ? ` (${formatBytes(o.size)})` : ''}`)
+          console.log(
+            `    ${o.key}${o.size ? ` (${formatBytes(o.size)})` : ''}`,
+          )
         }
         if (group.length > 10)
           console.log(`    ... and ${group.length - 10} more`)
@@ -220,7 +218,9 @@ async function listAllR2Objects(
     for (const o of resp.Contents ?? []) {
       if (o.Key) out.push({ key: o.Key, size: o.Size })
     }
-    continuationToken = resp.IsTruncated ? resp.NextContinuationToken : undefined
+    continuationToken = resp.IsTruncated
+      ? resp.NextContinuationToken
+      : undefined
   } while (continuationToken)
   return out
 }

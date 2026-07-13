@@ -162,6 +162,11 @@
           "default": false,
           "description": "Whether this version has been deprecated. Deprecated versions retain their existing releases but are excluded from build workflows and not recommended for new installations."
         },
+        "releaseType": {
+          "type": "string",
+          "enum": ["alpha", "beta", "rc"],
+          "description": "Marks a prerelease (alpha/beta/rc). Absent means GA. Prerelease versions resolve ONLY by exact version string — never via prefix match or as a 'latest'/'default' pick — and are excluded from listVersions and getEngineDefaults unless a caller opts in. Prereleases are expected to be deprecated once the GA version ships."
+        },
         "note": {
           "type": "string",
           "description": "Version-specific notes"

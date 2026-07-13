@@ -50,6 +50,11 @@
           "type": "boolean",
           "description": "Whether this version has been deprecated. Deprecated versions retain their binaries but are not recommended for new installations."
         },
+        "releaseType": {
+          "type": "string",
+          "enum": ["alpha", "beta", "rc"],
+          "description": "Marks a prerelease (alpha/beta/rc), mirrored from databases.json. Absent means GA."
+        },
         "platforms": {
           "type": "object",
           "description": "Available platforms for this version",

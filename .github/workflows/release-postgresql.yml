@@ -8,6 +8,7 @@ on:
         required: true
         type: choice
         options:
+          - 19.0.0-beta.1
           - 18.4.0
           - 18.1.0
           - 17.10.0
@@ -110,48 +111,62 @@ jobs:
         run: |
           # databases.json uses 3-part versions (18.1.0) but PostgreSQL source uses 2-part (18.1)
           VERSION="${{ github.event.inputs.version }}"
-          # Remove trailing .0 if present (18.1.0 -> 18.1)
-          SOURCE_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
+          # Prereleases map to upstream's compact form (19.0.0-beta.1 -> 19beta1);
+          # otherwise remove trailing .0 (18.1.0 -> 18.1)
+          if [[ "$VERSION" =~ ^([0-9]+)\.0\.0-(alpha|beta|rc)\.([0-9]+)$ ]]; then
+            SOURCE_VERSION="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+          else
+            SOURCE_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
+          fi
           echo "source_version=$SOURCE_VERSION" >> $GITHUB_OUTPUT
           echo "Source version: $SOURCE_VERSION (from $VERSION)"
 
       - name: Set build matrix
         id: set-matrix
         run: |
+          VERSION="${{ github.event.inputs.version }}"
           PLATFORMS="${{ github.event.inputs.platforms }}"
+
+          # Full platform -> runner/build_type mapping
+          FULL_MATRIX='[
+            {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
+            {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
+            {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
+            {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "native"},
+            {"platform": "win32-x64", "runner": "ubuntu-latest", "build_type": "download"}
+          ]'
+
+          # Platforms available for this version: prefer the version-level
+          # `platforms` override (e.g. PG19 beta omits win32-x64), fall back to
+          # the engine-level list. Existing versions (value `true`) fall back
+          # to the engine list, so their behavior is unchanged.
+          ALLOWED=$(jq -c --arg v "$VERSION" '
+            .databases.postgresql as $pg
+            | (($pg.versions[$v] | objects | .platforms) // $pg.platforms)
+          ' databases.json)
+          echo "Platforms available for $VERSION: $ALLOWED"
+
           if [ "$PLATFORMS" = "all" ]; then
-            # All 5 platforms with their appropriate runners
-            MATRIX='[
-              {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
-              {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
-              {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
-              {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "native"},
-              {"platform": "win32-x64", "runner": "ubuntu-latest", "build_type": "download"}
-            ]'
+            # Build every platform available for this version
+            MATRIX=$(echo "$FULL_MATRIX" | jq -c --argjson allowed "$ALLOWED" \
+              '[ .[] | select(.platform as $p | $allowed | index($p)) ]')
           else
-            # Single platform - determine runner and build type
-            case "$PLATFORMS" in
-              linux-x64|linux-arm64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"docker\"}]"
-                ;;
-              darwin-x64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\", \"build_type\": \"native\"}]"
-                ;;
-              darwin-arm64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-14\", \"build_type\": \"native\"}]"
-                ;;
-              win32-x64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"download\"}]"
-                ;;
-              *)
-                echo "::error::Unsupported platform: $PLATFORMS"
-                echo "Valid platforms: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64, all"
-                exit 1
-                ;;
-            esac
+            # Single platform - must be available for this version
+            IS_ALLOWED=$(echo "$ALLOWED" | jq -r --arg p "$PLATFORMS" 'index($p) != null')
+            if [ "$IS_ALLOWED" != "true" ]; then
+              echo "::error::Platform '$PLATFORMS' is not available for version $VERSION"
+              echo "Available platforms: $ALLOWED"
+              exit 1
+            fi
+            MATRIX=$(echo "$FULL_MATRIX" | jq -c --arg p "$PLATFORMS" \
+              '[ .[] | select(.platform == $p) ]')
+            if [ "$MATRIX" = "[]" ]; then
+              echo "::error::Unsupported platform: $PLATFORMS"
+              echo "Valid platforms: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64, all"
+              exit 1
+            fi
           fi
-          # Compact the JSON for output
-          MATRIX=$(echo "$MATRIX" | jq -c .)
+
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
           echo "Building platforms: $MATRIX"
 
@@ -804,6 +819,8 @@ jobs:
         with:
           tag_name: postgresql-${{ github.event.inputs.version }}
           name: PostgreSQL ${{ github.event.inputs.version }}
+          # Mark alpha/beta/rc versions as GitHub prereleases
+          prerelease: ${{ contains(github.event.inputs.version, '-alpha.') || contains(github.event.inputs.version, '-beta.') || contains(github.event.inputs.version, '-rc.') }}
           body: |
             ## PostgreSQL ${{ github.event.inputs.version }}
 

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.35.0] - 2026-07-12
+
+### Added
+
+- **Per-version `releaseType` manifest field (`alpha` | `beta` | `rc`).** A version entry in `databases.yml` can now carry `release_type: beta` (snake_case in YAML, mirrored to `releaseType` in `databases.json`), and the value is propagated into `releases.json` by `scripts/build-releases-json.ts`. GA versions carry no field. The `databases.schema.json` and `releases.schema.json` schemas were updated in the same change.
+- **New prerelease API.** `getReleaseType(engine, version)` returns `'alpha' | 'beta' | 'rc' | 'ga' | null`; `isVersionPrerelease(engine, version)` returns a boolean; `getPrereleaseVersions(engine)` lists only the prerelease versions. `listVersions(engine, { includePrerelease })` now opts prerelease versions into the listing (excluded by default), and `getReleaseInfo` now includes `releaseType` in its return value.
+
+### Changed
+
+- **Prerelease resolution policy: exact-token only.** A prerelease version resolves only when the caller passes its exact token (e.g. `resolveVersion('postgresql', '19.0.0-beta.1')` → `'19.0.0-beta.1'`). Prereleases are never reached by prefix match (`'19'`, `'19.0'` → `null`), never returned as an engine's `latest`, and never used as a `defaults`-block fallback. This keeps `getEngineDefaults`, `getSupportedMajorVersions`, and the default/latest of an engine unaffected by an in-flight beta.
+- **PostgreSQL 19.0.0-beta.1 added on four platforms** (linux-x64, linux-arm64, darwin-x64, darwin-arm64). win32 is deferred to RC because EDB publishes prerelease Windows binaries starting at RC. Prerelease source-version mapping was added to the postgres build pipeline (`builds/postgresql/build-local.sh`, `sources.json`), and `release-postgresql.yml` now drives a per-version platform matrix so the beta builds only its four platforms.
+
 ## [0.34.1] - 2026-07-10
 
 ### Documentation

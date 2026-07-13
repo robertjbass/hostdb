@@ -50,10 +50,14 @@ export type PlatformConfig = {
 // A platform entry in the version platforms map: true (inherit) or config overrides
 export type PlatformEntry = true | PlatformConfig
 
+// Prerelease marker for a version. Absent = GA (generally available).
+export type ReleaseType = 'alpha' | 'beta' | 'rc'
+
 // Version config with overrides (when version entry is an object)
 export type VersionConfig = {
   enabled?: boolean
   deprecated?: boolean
+  releaseType?: ReleaseType
   note?: string
   dependencies?: Dependency[]
   platforms?: Platform[] | Record<string, PlatformEntry>
@@ -115,6 +119,7 @@ export type VersionRelease = {
   releaseTag: string
   releasedAt: string
   deprecated?: boolean
+  releaseType?: ReleaseType
   platforms: Partial<Record<Platform, PlatformAsset>>
 }
 
@@ -197,6 +202,12 @@ export function isVersionEnabled(entry: VersionEntry): boolean {
 export function isVersionDeprecated(entry: VersionEntry): boolean {
   if (typeof entry === 'boolean') return false
   return entry.deprecated === true
+}
+
+/** Get the release type of a version entry ('ga' when unmarked) */
+export function getVersionReleaseType(entry: VersionEntry): 'ga' | ReleaseType {
+  if (typeof entry === 'boolean') return 'ga'
+  return entry.releaseType ?? 'ga'
 }
 
 /** Get set of enabled version strings for a database */

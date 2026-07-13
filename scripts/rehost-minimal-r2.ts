@@ -182,7 +182,9 @@ async function main() {
       if (!args.noBackup) {
         console.log(`  - copy ${key} -> ${backupKey} (only if backup absent)`)
       }
-      console.log(`  - put  ${key} (overwrite, immutable cache, ${contentType})`)
+      console.log(
+        `  - put  ${key} (overwrite, immutable cache, ${contentType})`,
+      )
     }
     console.log(`  - purge CDN: ${url}`)
     return
@@ -228,7 +230,12 @@ async function main() {
           )
         } else {
           console.log(`\nBacking up ${key} -> ${backupKey} ...`)
-          await copyR2Object({ client, bucket, sourceKey: key, destKey: backupKey })
+          await copyR2Object({
+            client,
+            bucket,
+            sourceKey: key,
+            destKey: backupKey,
+          })
           console.log('  backed up.')
         }
       }

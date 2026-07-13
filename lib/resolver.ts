@@ -14,10 +14,14 @@
  *   2. Defaults — if the input matches a key in the engine's `defaults` block,
  *      return the explicit policy choice. Preserves LTS-vs-latest decisions
  *      that previously lived only as comments in spindb's hand-written MAPs.
- *   3. Major.minor prefix — pick the highest full version (including deprecated)
- *      that starts with the input prefix.
+ *   3. Major.minor prefix — pick the highest full version (including deprecated,
+ *      excluding prereleases) that starts with the input prefix.
  *   4. Major prefix — same, but only when no `defaults['X']` is declared.
  *   5. Otherwise null.
+ *
+ * Prereleases (alpha/beta/rc, marked via `releaseType`) never win an implicit
+ * match: they resolve only by exact version string (step 1) or as an explicit
+ * `defaults` target (step 2), never via prefix match or "latest".
  *
  * "Enabled" vs "deprecated":
  *   - `enabled: false`  → version is INVISIBLE to the resolver (skipped entirely).
@@ -32,12 +36,14 @@ import {
   loadReleasesJson,
   _resetLoaderCachesForTests,
   isVersionDeprecated as _isVersionDeprecated,
+  getVersionReleaseType as _getVersionReleaseType,
   isVersionEnabled,
   getVersionPlatforms,
   getVersionCliTools,
   type DatabaseEntry,
   type CliTools,
   type Platform,
+  type ReleaseType,
 } from './databases.js'
 
 // The loader functions cache their parsed result, so calling them on every
@@ -61,6 +67,10 @@ export const _resetCacheForTests = _resetLoaderCachesForTests
  *   - PostgreSQL-DocumentDB compound format (17-0.107.0)
  *
  * Returns positive if a > b, negative if a < b, 0 if equal.
+ *
+ * Prerelease ordinal comparison relies on dotted single-number segments in the
+ * suffix ('19.0.0-beta.2', not '19.0.0-beta2') — the suffix is compared
+ * recursively as its own version string.
  */
 export function compareVersions(a: string, b: string): number {
   // Compound format like '17-0.107.0' splits on '-' first.
@@ -101,10 +111,22 @@ function getAvailableFullVersions(engine: string): string[] {
   )
 }
 
+/**
+ * Whether a known version is a prerelease (alpha/beta/rc). Prereleases never win
+ * an implicit match: they resolve only by exact version string and are excluded
+ * from listVersions/getEngineDefaults unless explicitly opted in.
+ */
+function isPrerelease(entry: DatabaseEntry, version: string): boolean {
+  const ve = entry.versions[version]
+  if (ve === undefined) return false
+  return _getVersionReleaseType(ve) !== 'ga'
+}
+
 // ─── Public API ─────────────────────────────────────────────────────────────
 
 export type ListVersionsOptions = {
   format?: 'full' | 'major' | 'major-minor'
+  includePrerelease?: boolean
 }
 
 /**
@@ -168,8 +190,10 @@ export function resolveVersion(engine: string, version: string): string | null {
     return null
   }
 
+  // Prereleases never win an implicit prefix match — an exact ask (step 1) or an
+  // explicit `defaults` target (step 2) is the only way to resolve one.
   const matches = versions
-    .filter((v) => v.startsWith(version + '.'))
+    .filter((v) => v.startsWith(version + '.') && !isPrerelease(entry, v))
     .sort((a, b) => compareVersions(b, a))
   return matches[0] ?? null
 }
@@ -189,12 +213,19 @@ export function normalizeVersion(engine: string, version: string): string {
  * - 'full' (default): every full version, sorted descending.
  * - 'major-minor': every unique X.Y prefix among full versions, sorted descending.
  * - 'major': every unique X prefix, sorted descending.
+ *
+ * Prereleases are excluded from all three formats unless `includePrerelease` is set.
  */
 export function listVersions(
   engine: string,
   opts: ListVersionsOptions = {},
 ): string[] {
-  const versions = getAvailableFullVersions(engine)
+  const entry = getEntry(engine)
+  if (!entry) return []
+
+  const versions = getAvailableFullVersions(engine).filter(
+    (v) => opts.includePrerelease || !isPrerelease(entry, v),
+  )
   if (versions.length === 0) return []
 
   const sorted = [...versions].sort((a, b) => compareVersions(b, a))
@@ -272,7 +303,13 @@ export function getEngineDefaults(engine: string): {
   defaultVersion: string | null
   latestVersion: string | null
 } {
-  const versions = getAvailableFullVersions(engine)
+  const entry = getEntry(engine)
+  if (!entry) return { defaultVersion: null, latestVersion: null }
+
+  // Prereleases are never a "latest" or "default" pick.
+  const versions = getAvailableFullVersions(engine).filter(
+    (v) => !isPrerelease(entry, v),
+  )
   if (versions.length === 0)
     return { defaultVersion: null, latestVersion: null }
 
@@ -297,6 +334,42 @@ export function isVersionDeprecated(engine: string, version: string): boolean {
   const ve = entry.versions[version]
   if (ve === undefined) return false
   return _isVersionDeprecated(ve)
+}
+
+/**
+ * Get the release type of a specific version: 'ga' when unmarked, 'alpha' |
+ * 'beta' | 'rc' for prereleases, or null when the version is unknown.
+ */
+export function getReleaseType(
+  engine: string,
+  version: string,
+): 'ga' | ReleaseType | null {
+  const entry = getEntry(engine)
+  if (!entry) return null
+  const ve = entry.versions[version]
+  if (ve === undefined) return null
+  return _getVersionReleaseType(ve)
+}
+
+/**
+ * Whether a specific version is a prerelease (alpha/beta/rc). Unknown versions
+ * are not prereleases.
+ */
+export function isVersionPrerelease(engine: string, version: string): boolean {
+  const type = getReleaseType(engine, version)
+  return type !== null && type !== 'ga'
+}
+
+/**
+ * List an engine's enabled prerelease versions, sorted descending. Empty when
+ * the engine has none.
+ */
+export function getPrereleaseVersions(engine: string): string[] {
+  const entry = getEntry(engine)
+  if (!entry) return []
+  return getAvailableFullVersions(engine)
+    .filter((v) => isPrerelease(entry, v))
+    .sort((a, b) => compareVersions(b, a))
 }
 
 /**
@@ -341,6 +414,7 @@ export function getReleaseInfo(
   url: string
   sha256: string
   size: number
+  releaseType: 'ga' | ReleaseType
 } | null {
   const releaseDb = releases().databases[engine]
   if (!releaseDb) return null
@@ -348,12 +422,20 @@ export function getReleaseInfo(
   if (!versionRel) return null
   const asset = versionRel.platforms?.[platform]
   if (!asset) return null
+  // releases.json may lag databases.json, so read releaseType from the
+  // authoritative databases.json entry rather than the mirrored release field.
   return {
     url: asset.url,
     sha256: asset.sha256,
     size: asset.size,
+    releaseType: getReleaseType(engine, version) ?? 'ga',
   }
 }
 
 // Re-exports for type consumers
-export type { DatabaseEntry, CliTools, Platform } from './databases.js'
+export type {
+  DatabaseEntry,
+  CliTools,
+  Platform,
+  ReleaseType,
+} from './databases.js'

@@ -49,11 +49,14 @@ type PlatformAsset = {
   size: number
 }
 
+type ReleaseType = 'alpha' | 'beta' | 'rc'
+
 type VersionRelease = {
   version: string
   releaseTag: string
   releasedAt: string
   deprecated?: boolean
+  releaseType?: ReleaseType
   platforms: Partial<Record<Platform, PlatformAsset>>
 }
 
@@ -187,7 +190,9 @@ async function fetchWithRetry(
   let lastError: unknown
   for (let attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt++) {
     if (RETRY_DELAYS_MS[attempt] > 0) {
-      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]))
+      await new Promise((resolve) =>
+        setTimeout(resolve, RETRY_DELAYS_MS[attempt]),
+      )
     }
     try {
       return await fetch(url, {
@@ -263,10 +268,13 @@ async function downloadChecksums(
   // Try browser_download_url first - goes to CDN, no API rate limit. Wrapped so
   // a timeout / network error falls through to the API path instead of throwing.
   try {
-    const cdnResponse = await fetchWithRetry(checksumAsset.browser_download_url, {
-      headers: { 'User-Agent': 'hostdb-build-releases' },
-      redirect: 'follow',
-    })
+    const cdnResponse = await fetchWithRetry(
+      checksumAsset.browser_download_url,
+      {
+        headers: { 'User-Agent': 'hostdb-build-releases' },
+        redirect: 'follow',
+      },
+    )
     if (cdnResponse.ok) {
       return parseChecksums(await cdnResponse.text())
     }
@@ -400,13 +408,18 @@ async function main() {
 
   console.log(`\nProcessed ${processed} releases (${skipped} skipped)`)
 
-  // Mark deprecated versions from databases.json
+  // Mark deprecated + prerelease versions from databases.json
   const databasesPath = resolve(ROOT_DIR, 'databases.json')
   if (existsSync(databasesPath)) {
     const databasesJson = JSON.parse(readFileSync(databasesPath, 'utf-8')) as {
       databases: Record<
         string,
-        { versions: Record<string, boolean | { deprecated?: boolean }> }
+        {
+          versions: Record<
+            string,
+            boolean | { deprecated?: boolean; releaseType?: ReleaseType }
+          >
+        }
       >
     }
     for (const [dbId, versions] of Object.entries(manifest.databases)) {
@@ -414,12 +427,13 @@ async function main() {
       if (!dbConfig) continue
       for (const [version, release] of Object.entries(versions)) {
         const versionEntry = dbConfig.versions[version]
-        if (
-          versionEntry &&
-          typeof versionEntry === 'object' &&
-          versionEntry.deprecated === true
-        ) {
-          release.deprecated = true
+        if (versionEntry && typeof versionEntry === 'object') {
+          if (versionEntry.deprecated === true) {
+            release.deprecated = true
+          }
+          if (versionEntry.releaseType) {
+            release.releaseType = versionEntry.releaseType
+          }
         }
       }
     }

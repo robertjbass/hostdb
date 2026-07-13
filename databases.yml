@@ -13,7 +13,7 @@ databases:
     protocol: null
     note: Windows binaries unavailable. Require WSL.
     defaults:
-      "25": "25.12.3.21"
+      '25': '25.12.3.21'
     versions:
       25.12.3.21: true
     platforms:
@@ -47,7 +47,7 @@ databases:
     protocol: postgresql
     note: CockroachDB Software License restricts competing cloud services; fine for local dev
     defaults:
-      "25": "25.4.2"
+      '25': '25.4.2'
     versions:
       25.4.2: true
     platforms:
@@ -83,7 +83,7 @@ databases:
     protocol: null
     note: ''
     defaults:
-      "3": "3.5.1"
+      '3': '3.5.1'
     versions:
       3.5.1: true
     platforms:
@@ -117,7 +117,7 @@ databases:
     protocol: null
     note: ''
     defaults:
-      "1": "1.4.4"
+      '1': '1.4.4'
     versions:
       1.4.4: true
       1.4.3: true
@@ -152,8 +152,8 @@ databases:
     protocol: mongodb
     note: FerretDB v2 requires PostgreSQL-DocumentDB; v1 uses plain PostgreSQL
     defaults:
-      "1": "1.24.2"
-      "2": "2.7.0"
+      '1': '1.24.2'
+      '2': '2.7.0'
     versions:
       '2.7.0':
         platforms:
@@ -202,7 +202,7 @@ databases:
     protocol: null
     note: v3.0 is a Rust rewrite using Apache Arrow/DataFusion. Single binary with bundled Python runtime for plugin system. Most popular time-series database by adoption.
     defaults:
-      "3": "3.8.0"
+      '3': '3.8.0'
     versions:
       3.8.0: true
     platforms:
@@ -236,7 +236,7 @@ databases:
     protocol: sqlite
     note: Windows binaries unavailable. Require WSL.
     defaults:
-      "0": "0.24.32"
+      '0': '0.24.32'
     versions:
       0.24.32: true
     platforms:
@@ -271,8 +271,8 @@ databases:
     protocol: null
     note: ''
     defaults:
-      "10": "10.11.16"
-      "11": "11.8.6"
+      '10': '10.11.16'
+      '11': '11.8.6'
     versions:
       11.8.6: true
       11.8.5: true
@@ -315,7 +315,7 @@ databases:
     protocol: null
     note: ''
     defaults:
-      "1": "1.43.1"
+      '1': '1.43.1'
     versions:
       1.43.1: true
       1.33.1: true
@@ -350,8 +350,8 @@ databases:
     protocol: null
     note: SSPL restricts offering MongoDB as a competing managed database service (i.e., MongoDB Atlas competitors). Commercial use in applications, local dev, and internal use is fine. FerretDB available as fully open-source alternative.
     defaults:
-      "7": "7.0.34"
-      "8": "8.0.23"
+      '7': '7.0.34'
+      '8': '8.0.23'
     versions:
       8.2.9: true
       8.2.3: true
@@ -393,8 +393,8 @@ databases:
     protocol: null
     note: ''
     defaults:
-      "8": "8.4.9"
-      "9": "9.6.0"
+      '8': '8.4.9'
+      '9': '9.6.0'
     versions:
       9.6.0:
         note: mysqlpump removed in MySQL 9.0; 9.x uses mysqldump only
@@ -444,7 +444,7 @@ databases:
             - usql
       8.4.3:
         enabled: false
-        note: "Superseded by 8.4.9 (current 8.4 LTS patch, minimal build). Disabled from resolution so it is not selectable or resolvable; the existing ~953 MB R2 binary is retained (not deleted)."
+        note: 'Superseded by 8.4.9 (current 8.4 LTS patch, minimal build). Disabled from resolution so it is not selectable or resolvable; the existing ~953 MB R2 binary is retained (not deleted).'
       8.0.40:
         deprecated: true
         note: Deprecated; use 8.4.x LTS instead
@@ -483,11 +483,19 @@ databases:
     protocol: null
     note: ''
     defaults:
-      "15": "15.18.0"
-      "16": "16.14.0"
-      "17": "17.10.0"
-      "18": "18.4.0"
+      '15': '15.18.0'
+      '16': '16.14.0'
+      '17': '17.10.0'
+      '18': '18.4.0'
     versions:
+      19.0.0-beta.1:
+        release_type: beta
+        note: 'PostgreSQL 19 Beta 1; prerelease - superseded at GA (~Sept/Oct 2026). No win32 build (EDB publishes beta binaries starting at RC).'
+        platforms:
+          - linux-x64
+          - linux-arm64
+          - darwin-x64
+          - darwin-arm64
       18.4.0: true
       18.1.0: true
       17.10.0: true
@@ -533,7 +541,7 @@ databases:
     protocol: postgresql
     note: Backend for FerretDB v2 only; includes pg_cron, pgvector, PostGIS, rum extensions. Not available on Windows.
     defaults:
-      "17": "17-0.107.0"
+      '17': '17-0.107.0'
     versions:
       17-0.107.0: true
     platforms:
@@ -570,7 +578,7 @@ databases:
     protocol: null
     note: ''
     defaults:
-      "1": "1.16.3"
+      '1': '1.16.3'
     versions:
       1.16.3: true
     platforms:
@@ -608,7 +616,7 @@ databases:
         cascade_delete: false
         note: QuestDB uses PostgreSQL client tools (psql, pgcli) for its wire protocol; PostgreSQL remains installed as a standalone database when QuestDB is removed
     defaults:
-      "9": "9.2.3"
+      '9': '9.2.3'
     versions:
       9.2.3: true
     platforms:
@@ -649,8 +657,8 @@ databases:
     # network users. Worth a legal review before flipping. For now we're defaulting to 7.2.14
     # (BSD) so hostedServiceAllowed:true downstream is unambiguous.
     defaults:
-      "7": "7.2.14"
-      "8": "8.4.0"
+      '7': '7.2.14'
+      '8': '8.4.0'
     versions:
       8.4.0: true
       7.4.9:
@@ -695,7 +703,7 @@ databases:
     protocol: null
     note: ''
     defaults:
-      "3": "3.53.1"
+      '3': '3.53.1'
     versions:
       3.53.1: true
       3.51.2: true
@@ -731,7 +739,7 @@ databases:
     protocol: null
     note: Rust-based; single binary. License is BSL-1.1 (not Apache-2.0); prohibits competing DBaaS offerings. Converts to Apache-2.0 after 4 years per release. Fine for local dev and internal use.
     defaults:
-      "2": "2.3.2"
+      '2': '2.3.2'
     versions:
       2.3.2: true
     platforms:
@@ -765,7 +773,7 @@ databases:
     protocol: null
     note: Written in Zig; single binary with built-in REPL client. Uses a custom binary protocol (not HTTP/SQL). macOS uses a universal (fat) binary for both x64 and arm64.
     defaults:
-      "0": "0.16.70"
+      '0': '0.16.70'
     versions:
       0.16.70: true
     platforms:
@@ -799,13 +807,13 @@ databases:
     protocol: null
     note: Rewritten from Java to Rust in v3.0 (Dec 2024). Binaries distributed via Cloudsmith and GitHub Releases.
     defaults:
-      "3": "3.12.0"
+      '3': '3.12.0'
     versions:
       3.8.0:
         deprecated: true
       3.11.5:
         deprecated: true
-        note: "Deprecated; superseded by 3.12.0"
+        note: 'Deprecated; superseded by 3.12.0'
       3.12.0: true
     platforms:
       - linux-x64
@@ -838,8 +846,8 @@ databases:
     protocol: redis
     note: ''
     defaults:
-      "8": "8.0.9"
-      "9": "9.0.4"
+      '8': '8.0.9'
+      '9': '9.0.4'
     versions:
       9.0.4: true
       9.0.1: true
@@ -877,7 +885,7 @@ databases:
     protocol: null
     note: Go-based single binary (CGO_ENABLED=0). Linux from official releases; macOS/Windows cross-compiled from source.
     defaults:
-      "1": "1.35.7"
+      '1': '1.35.7'
     versions:
       1.35.7: true
     platforms:
