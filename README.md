@@ -1,5 +1,12 @@
 # hostdb
 
+<p align="center">
+  <a href="https://layerbase.com">
+    <img src="assets/layerbase-icon.svg" alt="Layerbase" width="20" height="20" align="top" />
+    Sponsored by <strong>Layerbase</strong>
+  </a>
+</p>
+
 Pre-built database binaries for all major platforms, distributed via Cloudflare R2 (mirrored from GitHub Releases). Also a **typed npm package** (`hostdb`) that bundles the registry offline so consumers can resolve versions and download URLs without a network round-trip to `registry.layerbase.host`.
 
 **Primary consumer:** [SpinDB](https://github.com/robertjbass/spindb) — a CLI tool for spinning up local database instances. SpinDB depends on `hostdb` as a pinned npm dependency; bumping `hostdb` is how SpinDB picks up new database versions.
