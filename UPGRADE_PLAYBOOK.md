@@ -3,7 +3,7 @@
 > `~/dev/layerbase-cloud/deploy/ENGINE-VERSION-UPDATE-RUNBOOK.md` (layerbase-cloud is the
 > ecosystem doc source of truth). **This copy may be outdated.** Read and edit the cloud
 > version; re-stamp this file from it after changes.
-> _Stamped: 2026-07-24._
+> _Stamped: 2026-07-24 (includes the DuckDB 1.5.5 release-ordering corrections)._
 
 ---
 
@@ -53,10 +53,11 @@ Every hop uses the same branching model: **feature -> dev -> main**, tests green
 | 1 | hostdb | `databases.yml`: add the version key. If it should be the default patch for its major, update the `defaults` block too. | manual |
 | 2 | hostdb | `builds/<engine>/sources.json`: add URLs + checksums for all platforms (mind per-engine platform/checksum quirks, Part D). | manual |
 | 3 | hostdb | `pnpm prep`: regenerates `databases.json`, syncs workflow dropdowns, populates checksums. | manual |
-| 4 | hostdb | **Bump `package.json` patch** + add `CHANGELOG.md` entry. Without the bump, `publish.yml` version-check fails. | manual |
-| 5 | hostdb | Commit to a feature branch (conventional commit, no AI attribution). | manual |
-| 6 | hostdb | `gh workflow run release-<engine>.yml --field version=<X> --field platforms=all` -> uploads to R2, mirrors GitHub Releases, rebuilds `releases.json`. | auto once fired |
-| 7 | hostdb | Merge feature -> dev -> main (all tests + `releases.json` drift gate + defaults-sync green). `publish.yml` publishes to npm via OIDC on push to main. | auto |
+| 4 | hostdb | **Bump `package.json`** + add `CHANGELOG.md` entry. **Patch** for a plain version add; **minor if you change the `defaults` block** (which version a bare major resolves to) - that is a defaults-policy change. If the default changes, also **update the engine's block in `tests/defaults-sync.test.ts`**, or `pnpm prep`'s test step fails. | manual |
+| 5 | hostdb | Commit + merge feature -> `dev` (green local `pnpm prep`). The new-version metadata + the `prep`-regenerated release dropdown must be on the ref you dispatch the release from in step 6. | manual |
+| 6 | hostdb | **Dispatch the release WITH `--ref`:** `gh workflow run release-<engine>.yml --ref dev --field version=<X> --field platforms=all`. The `version` input is a hardcoded dropdown that `prep` regenerated, and the `validate` job reads `databases.json`/`sources.json` on the dispatched ref - a default (main) dispatch rejects the new version ("not enabled"). This builds + repackages, creates the GitHub release, uploads to R2, and **commits `releases.json` to `main` directly as a github-actions[bot] commit.** | manual dispatch, auto |
+| 6b | hostdb | **Pull that bot commit back into `dev`:** `git fetch origin && git merge origin/main` on `dev` (or PR main->dev). Without it, `dev`'s `releases.json` lacks the new version and `publish.yml`'s `git diff --exit-code releases.json` drift gate fails the merge. | manual |
+| 7 | hostdb | Merge `dev -> main` (tests + drift gate + defaults-sync green). `publish.yml` publishes to npm via OIDC on push to main. **Never merge the version bump to main before step 6 has run** - nothing blocks it, but `pnpm test` still passes and it silently publishes a package whose `databases.json` advertises a version that R2 / `releases.json` lack (`getReleaseInfo` returns null for consumers). Release-first is mandatory. | auto |
 | 8 | verify | `npm view hostdb version` shows the new version. **Gate for step 9.** | manual |
 | 9 | spindb | `package.json`: exact-pin `"hostdb": "<new>"` (no caret/tilde). | manual |
 | 10 | spindb | `pnpm install && pnpm test:hostdb-sync && pnpm test:unit && pnpm test:cli` all green. Version-maps auto-rebuild; **no manual MAP edits.** | manual run |
@@ -191,11 +192,11 @@ Record the outcome (version string observed, screenshots) and, if green, note it
 
 ---
 
-## Part G - Worked example: "update DuckDB to 1.5.5"
+## Part G - Worked example: "update DuckDB to 1.5.5" (executed 2026-07-24)
 
-Reality check first: DuckDB is pinned at `1.4` everywhere today (cloud registry `supportedVersions: ['1.4']`); there is no 1.5 in the system. So this starts at hostdb step 1.
+DuckDB 1.5.5 was real upstream (published 2026-07-22). Before this, DuckDB was `1.4` everywhere (hostdb had 1.4.3 + 1.4.4, default 1.4.4). The actual steps run:
 
-1-8. hostdb: add `1.5.5` to `databases.yml` (DuckDB is a single-binary embedded engine, no server), URLs + checksums in `builds/duckdb/sources.json`, `pnpm prep`, patch-bump hostdb + CHANGELOG, run `release-duckdb.yml`, merge to main, verify `npm view hostdb version`.
+1-8. hostdb (`feat/duckdb-1.5.5` off `dev`): added `1.5.5: true` to `databases.yml` for all 5 platforms with hand-verified sha256s in `builds/duckdb/sources.json` (DuckDB is a single-binary embedded engine, no server); **shifted the `defaults` block major-1 from 1.4.4 to 1.5.5** (so this was a **minor bump 0.36.0**, not patch); updated the `duckdb` block in `tests/defaults-sync.test.ts` (`'1' -> '1.5.5'`, add `'1.5'`/`'1.5.5'`); `pnpm prep` (regenerated `databases.json` + the release-duckdb dropdown, populated checksums, 184 tests green); merged feature -> `dev`. Then dispatch **`gh workflow run release-duckdb.yml --ref dev --field version=1.5.5 --field platforms=all`** (the `--ref dev` is required - the dropdown only got 1.5.5 on `dev`); merge the bot's `releases.json` commit from `main` back into `dev`; then `dev -> main` publishes hostdb 0.36.0 to npm.
 9-13. spindb: exact-pin the new hostdb, `pnpm test:hostdb-sync`/`unit`/`cli`, bump spindb + CHANGELOG, `pnpm prep`, merge to main, verify `npm view spindb version`.
 14. cloud: this IS a new major.minor line, so add `1.5` to DuckDB's `supportedVersions` in `src/config/engine-registry.ts` (and set `defaultVersion` to `1.5` if it should be the new default); keep the three-file sync.
 15-16. cloud: bump `SPINDB_VERSION` in `Dockerfile.base`, merge feature -> dev -> main, let `build-images.yml`/`deploy.yml` roll, nudge the rollout sweep.
@@ -211,3 +212,4 @@ Reality check first: DuckDB is pinned at `1.4` everywhere today (cloud registry 
 | Date | Change | By |
 |---|---|---|
 | 2026-07-24 | Canonical runbook authored in layerbase-cloud (`deploy/ENGINE-VERSION-UPDATE-RUNBOOK.md`), unifying and superseding the former hostdb-owned playbook. Adds the web-app hop (`pnpm sync:engines`) and the formal Version Sunsetting Ceremony (Part B) plus the Playwright staging gate (Part E). This hostdb file is now a stamped copy of that source. | bob |
+| 2026-07-24 | Corrected the hostdb release ordering (steps 4-7) while executing the DuckDB 1.5.5 update: step 6 now requires `--ref <branch>`; new step 6b merges the release workflow's github-actions[bot] `releases.json` commit from `main` back into `dev` before the `dev -> main` PR; added the release-first hazard; noted a defaults-block change is a minor bump needing the `defaults-sync.test.ts` snapshot updated. | bob |
