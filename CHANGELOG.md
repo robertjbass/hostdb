@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.35.2] - 2026-07-24
+
+### Documentation
+
+- Restamp `UPGRADE_PLAYBOOK.md` as a copy of the new canonical engine-version-update runbook, which now lives in the layerbase-cloud repo (`deploy/ENGINE-VERSION-UPDATE-RUNBOOK.md`, the ecosystem doc source of truth). The playbook here now carries an outdated-warning banner pointing at the cloud original.
+
 ## [0.35.1] - 2026-07-13
 
 ### Documentation
