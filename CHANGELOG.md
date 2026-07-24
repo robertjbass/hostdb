@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.36.0] - 2026-07-24
+
+### Added
+
+- **DuckDB 1.5.5** (all 5 platforms: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64). Repackaged from the official DuckDB v1.5.5 GitHub release.
+
+### Changed
+
+- **DuckDB default shifted from 1.4.4 to 1.5.5** (latest over previous stable). The `defaults` block now resolves major `1` to `1.5.5`, so a bare `duckdb` request and `spindb create duckdb` now provision 1.5.5. The 1.4 line stays fully supported: `1.4` still resolves to `1.4.4`, and existing containers self-pin their stored full version, so nothing on 1.4 is disturbed. Minor bump per the defaults-policy rule.
+
 ## [0.35.2] - 2026-07-24
 
 ### Documentation
