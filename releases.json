@@ -100,6 +100,38 @@
       }
     },
     "duckdb": {
+      "1.5.5": {
+        "version": "1.5.5",
+        "releaseTag": "duckdb-1.5.5",
+        "releasedAt": "2026-07-24T07:07:42Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/duckdb-1.5.5/duckdb-1.5.5-darwin-arm64.tar.gz",
+            "sha256": "003a0b9d619709cd3c098fddee3f46253fba07dc28814105d8c7afa76a4725da",
+            "size": 17005713
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/duckdb-1.5.5/duckdb-1.5.5-darwin-x64.tar.gz",
+            "sha256": "325eba1657d8d7f3cce5ab4461946b5f76d893ac27afff9b1685b98ed97a1cfb",
+            "size": 18960866
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/duckdb-1.5.5/duckdb-1.5.5-linux-arm64.tar.gz",
+            "sha256": "ce9a85cdd583fb662fdf35a2a31fc171dc6cef7e5926a7b1a1a753dc33b93582",
+            "size": 19270110
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/duckdb-1.5.5/duckdb-1.5.5-linux-x64.tar.gz",
+            "sha256": "4bf36d5f518fc15361a4a02ce9f76dae1d20a2f02cb133b21e4bb18c9adef3a7",
+            "size": 21263366
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/duckdb-1.5.5/duckdb-1.5.5-win32-x64.zip",
+            "sha256": "f4cd7f1efda7e18c6ba6d3c4fe253bbb8a727228c8c6fc4680575f86ce86a4f6",
+            "size": 12922225
+          }
+        }
+      },
       "1.4.4": {
         "version": "1.4.4",
         "releaseTag": "duckdb-1.4.4",
