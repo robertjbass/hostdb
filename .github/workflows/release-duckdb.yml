@@ -8,9 +8,10 @@ on:
         required: true
         type: choice
         options:
+          - 1.5.5
           - 1.4.4
           - 1.4.3
-        default: 1.4.4
+        default: 1.5.5
       platforms:
         description: 'Platforms'
         required: true

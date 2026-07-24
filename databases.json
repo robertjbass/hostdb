@@ -137,9 +137,10 @@
       "protocol": null,
       "note": "",
       "defaults": {
-        "1": "1.4.4"
+        "1": "1.5.5"
       },
       "versions": {
+        "1.5.5": true,
         "1.4.4": true,
         "1.4.3": true
       },
