@@ -654,7 +654,7 @@
       "8.2.12": {
         "version": "8.2.12",
         "releaseTag": "mongodb-8.2.12",
-        "releasedAt": null,
+        "releasedAt": "2026-08-05T19:45:07Z",
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-darwin-arm64.tar.gz",
@@ -675,6 +675,11 @@
             "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-linux-x64.tar.gz",
             "sha256": "0802384593da6a8c10d20980bc3342a8bfd3a77639d6064e78dc6bb1e45dc83a",
             "size": 286384101
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-win32-x64.zip",
+            "sha256": "a97ba3851a93a63a5404ea6b9c080f3a9cbb9f47c6b629de05c172d1459d553b",
+            "size": 947994590
           }
         }
       },
@@ -904,6 +909,33 @@
       }
     },
     "mysql": {
+      "9.7.2": {
+        "version": "9.7.2",
+        "releaseTag": "mysql-9.7.2",
+        "releasedAt": null,
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-darwin-arm64.tar.gz",
+            "sha256": "ded60f3c84b62c23be80398a3e5339874940e88664ed54776d0559f650587400",
+            "size": 178260264
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-darwin-x64.tar.gz",
+            "sha256": "4e4dd59d89c33325cc947ea4197d7c9aac64e42491fa9ee56962d0f84744f0b8",
+            "size": 182634772
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-linux-x64.tar.gz",
+            "sha256": "dd9a2684eb1774de77d8e99d3f8205a1e721b1fe61dae11e871bc4e7ef6273fd",
+            "size": 147105830
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-win32-x64.zip",
+            "sha256": "635de4f1e4d8c819c47f615ecc08c8819f8e8e7cc19a2e33534e3144d1f106f6",
+            "size": 342699296
+          }
+        }
+      },
       "9.6.0": {
         "version": "9.6.0",
         "releaseTag": "mysql-9.6.0",
