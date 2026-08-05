@@ -66,6 +66,38 @@
       }
     },
     "couchdb": {
+      "3.5.2": {
+        "version": "3.5.2",
+        "releaseTag": "couchdb-3.5.2",
+        "releasedAt": "2026-08-05T19:39:58Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-darwin-arm64.tar.gz",
+            "sha256": "b64b4e85388c3055eccec4af308dcb5d2dc73fcf13799d2d03d098531ae1d3d6",
+            "size": 112594772
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-darwin-x64.tar.gz",
+            "sha256": "25f1d3d4c306392c1eb3ed931d22affee7a8b0956f80266614493c093692e9bb",
+            "size": 115155441
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-linux-arm64.tar.gz",
+            "sha256": "d6390b8de1af6722955e7438b6b89d2a570b3897649314a004b458de684f9fb1",
+            "size": 76363559
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-linux-x64.tar.gz",
+            "sha256": "f09fc5812fd987158005eca4921c889bd440285fc66e19a1765e0a3b6409b4e2",
+            "size": 76810679
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-win32-x64.zip",
+            "sha256": "e6fabda847ed5506d121009c102eb095f610dc33e556ddbd845c6b4ec25f5ee0",
+            "size": 116726640
+          }
+        }
+      },
       "3.5.1": {
         "version": "3.5.1",
         "releaseTag": "couchdb-3.5.1",
