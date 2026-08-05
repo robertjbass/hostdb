@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.37.0] - 2026-08-05
+
+### Added
+
+- **QuestDB 9.4.3** (all 5 platforms: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64). Repackaged from the official QuestDB 9.4.3 GitHub release: `-rt-` runtime bundles for linux-x64 and win32-x64, the `no-jre` package plus a bundled Adoptium Temurin JRE elsewhere, matching the 9.2.3 packaging.
+
+### Changed
+
+- **QuestDB default shifted from 9.2.3 to 9.4.3** (latest over previous stable). The `defaults` block now resolves major `9` to `9.4.3`, so a bare `questdb` request and `spindb create questdb` now provision 9.4.3. The 9.2 line stays fully supported: `9.2` still resolves to `9.2.3`, and existing containers self-pin their stored full version, so nothing on 9.2 is disturbed. Minor bump per the defaults-policy rule.
+
 ## [0.36.0] - 2026-07-24
 
 ### Added

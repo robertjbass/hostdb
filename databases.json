@@ -747,10 +747,11 @@
         }
       ],
       "defaults": {
-        "9": "9.2.3"
+        "9": "9.4.3"
       },
       "versions": {
-        "9.2.3": true
+        "9.2.3": true,
+        "9.4.3": true
       },
       "platforms": [
         "linux-x64",
