@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.0] - 2026-08-05
+
+Engine security + feature wave. Thirteen engines gain new versions in one release; no existing version was removed, and every prior version still resolves.
+
+### Security
+
+- **Valkey 9.0.5 and 8.0.10** (build-required, all 5 platforms). Fixes `CVE-2026-56684` (TLS use-after-free reachable by an authenticated client via `CLIENT KILL`) and `CVE-2026-63639` (corrupt stream RDB sharing a NACK across consumers, leading to RCE). Upstream advises applying as soon as possible.
+- **Redis 7.2.15, 8.4.5 and 7.4.10** (build-required on the 4 unix platforms; win32-x64 from the redis-windows msys2 zip). Fixes `CVE-2026-66373`: a crafted stream `RESTORE` payload makes two consumers share a NACK, a use-after-free leading to RCE. 7.2.15 stays BSD-3-Clause, so the managed-service-safe line takes the fix without a license change.
+- **MongoDB 8.0.28, 8.2.12 and 7.0.39** (url + sha256, all 5 platforms). Picks up the July 2026 MongoDB security batch, including `CVE-2026-13072` and `CVE-2026-13074`.
+- **MySQL 8.4.11 and 9.7.2** (url + sha256, all 5 platforms). Picks up the July 2026 Oracle Critical Patch Update for the MySQL Server tree, including `CVE-2026-60311`.
+- **MariaDB 11.8.8** (official archive.mariadb.org tarball for linux-x64 and win32-x64; build-required for linux-arm64, darwin-x64 and darwin-arm64). Picks up `CVE-2026-44171`.
+
+### Added
+
+- **TypeDB 3.12.1** (official repo.typedb.com archives, all 5 platforms).
+- **Meilisearch 1.52.0** (official community GitHub release binaries, all 5 platforms). The enterprise assets are deliberately not used.
+- **Qdrant 1.18.3** (official GitHub release archives, all 5 platforms). linux-arm64 continues to use the musl tarball while linux-x64 uses gnu, unchanged from 1.16.3.
+- **Weaviate 1.38.8** (official linux-x64 and linux-arm64 archives; darwin-x64, darwin-arm64 and win32-x64 stay cross-compiled from source).
+- **InfluxDB 3.10.5** (official InfluxData CDN archives for linux-x64, linux-arm64, darwin-arm64 and win32-x64). darwin-x64 stays build-required because upstream ships no macOS Intel build.
+- **SQLite 3.53.4** (build-required on linux-x64 and linux-arm64 from the amalgamation; official sqlite.org tools zips for darwin-x64, darwin-arm64 and win32-x64). SHA3-256 checksums, verified against the values published on sqlite.org.
+- **CouchDB 3.5.2** (docker-extract from `couchdb:3.5.2` for linux; Neighbourhoodie downloads for darwin and win32).
+
+### Changed
+
+Defaults shifted so a bare major resolves to the fixed or newest patch. Minor bump per the defaults-policy rule. Every superseded version stays supported and resolvable, and existing containers self-pin their stored full version, so nothing running is disturbed.
+
+- `valkey` `'9'` 9.0.4 to 9.0.5, `'8'` 8.0.9 to 8.0.10
+- `redis` `'7'` 7.2.14 to 7.2.15, `'8'` 8.4.0 to 8.4.5
+- `mongodb` `'8'` 8.0.23 to 8.0.28, `'7'` 7.0.34 to 7.0.39. `'8'` deliberately stays on the 8.0 LTS line and is NOT pointed at 8.2.x; the defaults entry exists precisely to stop a bare `'8'` prefix-matching into 8.2.
+- `mysql` `'8'` 8.4.9 to 8.4.11, `'9'` 9.6.0 to 9.7.2
+- `mariadb` `'11'` 11.8.6 to 11.8.8. The 10.11 line is untouched.
+- `typedb` `'3'` 3.12.0 to 3.12.1
+- `meilisearch` `'1'` 1.43.1 to 1.52.0
+- `qdrant` `'1'` 1.16.3 to 1.18.3
+- `weaviate` `'1'` 1.35.7 to 1.38.8
+- `influxdb` `'3'` 3.8.0 to 3.10.5
+- `sqlite` `'3'` 3.53.1 to 3.53.4
+- `couchdb` `'3'` 3.5.1 to 3.5.2
+
 ## [0.37.0] - 2026-08-05
 
 ### Added

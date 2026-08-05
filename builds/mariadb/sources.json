@@ -2,6 +2,29 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "mariadb",
   "versions": {
+    "11.8.8": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.8.8/bintar-linux-systemd-x86_64/mariadb-11.8.8-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "fbd4e8d05946c974b0560c94f01ce4c687291b6528074c2e001fb8f35c0d2762"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.8.8/winx64-packages/mariadb-11.8.8-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "20871a79964e1819ddaad9247b676b9d08c958c345e5e3d4748242b2b2965ff1"
+      }
+    },
     "11.8.6": {
       "linux-x64": {
         "url": "https://archive.mariadb.org/mariadb-11.8.6/bintar-linux-systemd-x86_64/mariadb-11.8.6-linux-systemd-x86_64.tar.gz",
@@ -152,6 +175,6 @@
     "darwin-x64": "Built from source natively on macos-13 (Intel) runner",
     "darwin-arm64": "Built from source natively on macos-14 (Apple Silicon) runner, or downloaded from MariaDB4j for 11.4.5",
     "win32-x64": "Official binary from archive.mariadb.org",
-    "coverage": "All 5 platforms × 3 versions = 15 binaries available via GitHub Releases"
+    "coverage": "All 5 platforms x 7 versions available via GitHub Releases"
   }
 }

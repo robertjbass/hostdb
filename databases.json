@@ -97,9 +97,10 @@
       "protocol": null,
       "note": "",
       "defaults": {
-        "3": "3.5.1"
+        "3": "3.5.2"
       },
       "versions": {
+        "3.5.2": true,
         "3.5.1": true
       },
       "platforms": [
@@ -246,9 +247,10 @@
       "protocol": null,
       "note": "v3.0 is a Rust rewrite using Apache Arrow/DataFusion. Single binary with bundled Python runtime for plugin system. Most popular time-series database by adoption.",
       "defaults": {
-        "3": "3.8.0"
+        "3": "3.10.5"
       },
       "versions": {
+        "3.10.5": true,
         "3.8.0": true
       },
       "platforms": [
@@ -329,9 +331,10 @@
       "note": "",
       "defaults": {
         "10": "10.11.16",
-        "11": "11.8.6"
+        "11": "11.8.8"
       },
       "versions": {
+        "11.8.8": true,
         "11.8.6": true,
         "11.8.5": true,
         "11.4.10": true,
@@ -380,9 +383,10 @@
       "protocol": null,
       "note": "",
       "defaults": {
-        "1": "1.43.1"
+        "1": "1.52.0"
       },
       "versions": {
+        "1.52.0": true,
         "1.43.1": true,
         "1.33.1": true
       },
@@ -421,14 +425,17 @@
       "protocol": null,
       "note": "SSPL restricts offering MongoDB as a competing managed database service (i.e., MongoDB Atlas competitors). Commercial use in applications, local dev, and internal use is fine. FerretDB available as fully open-source alternative.",
       "defaults": {
-        "7": "7.0.34",
-        "8": "8.0.23"
+        "7": "7.0.39",
+        "8": "8.0.28"
       },
       "versions": {
+        "8.2.12": true,
         "8.2.9": true,
         "8.2.3": true,
+        "8.0.28": true,
         "8.0.23": true,
         "8.0.17": true,
+        "7.0.39": true,
         "7.0.34": true,
         "7.0.28": true
       },
@@ -471,10 +478,25 @@
       "protocol": null,
       "note": "",
       "defaults": {
-        "8": "8.4.9",
-        "9": "9.6.0"
+        "8": "8.4.11",
+        "9": "9.7.2"
       },
       "versions": {
+        "9.7.2": {
+          "note": "Current 9.x innovation release; carries the July 2026 Oracle CPU fixes. mysqlpump removed in MySQL 9.0.",
+          "cliTools": {
+            "server": "mysqld",
+            "client": "mysql",
+            "utilities": [
+              "mysqldump",
+              "mysqladmin"
+            ],
+            "enhanced": [
+              "mycli",
+              "usql"
+            ]
+          }
+        },
         "9.6.0": {
           "note": "mysqlpump removed in MySQL 9.0; 9.x uses mysqldump only",
           "cliTools": {
@@ -509,6 +531,21 @@
         "9.1.0": {
           "deprecated": true,
           "note": "Deprecated; superseded by 9.6.0. mysqlpump removed in MySQL 9.0.",
+          "cliTools": {
+            "server": "mysqld",
+            "client": "mysql",
+            "utilities": [
+              "mysqldump",
+              "mysqladmin"
+            ],
+            "enhanced": [
+              "mycli",
+              "usql"
+            ]
+          }
+        },
+        "8.4.11": {
+          "note": "Current 8.4 LTS patch; carries the July 2026 Oracle CPU fixes. mysqlpump removed in 8.4.9 and later.",
           "cliTools": {
             "server": "mysqld",
             "client": "mysql",
@@ -700,9 +737,10 @@
       "protocol": null,
       "note": "",
       "defaults": {
-        "1": "1.16.3"
+        "1": "1.18.3"
       },
       "versions": {
+        "1.18.3": true,
         "1.16.3": true
       },
       "platforms": [
@@ -791,11 +829,15 @@
       "protocol": null,
       "note": "Redis 7.2.x is BSD-3-Clause licensed — fully open-source, safe to host as a managed service. The 7.4+ relicense (RSALv2/SSPLv1) restricts building competing managed services to Redis itself; AGPL-3.0 (8.0+) additionally requires source disclosure if you modify Redis and offer it as a network service. Commercial use in applications, local dev, and internal use is fine on all versions. Valkey is a BSD-licensed drop-in alternative for newer Redis features.",
       "defaults": {
-        "7": "7.2.14",
-        "8": "8.4.0"
+        "7": "7.2.15",
+        "8": "8.4.5"
       },
       "versions": {
+        "8.4.5": true,
         "8.4.0": true,
+        "7.4.10": {
+          "note": "Security patch for the 7.4 line (CVE-2026-66373). NOT deprecated only so the release workflow dropdown can build it; sync:versions skips deprecated versions. RSALv2/SSPLv1 still forbids offering Redis as a competing managed service, so use 7.2.15 (BSD) for managed-service use cases and 7.4.10 only for self-contained app use. Deprecate it in a follow-up policy commit once the binaries are on R2, exactly as 7.4.9 was handled in 0.32.0."
+        },
         "7.4.9": {
           "deprecated": true,
           "note": "Deprecated; RSALv2/SSPLv1 license forbids offering Redis as a competing managed service. Use 7.2.14 (BSD) for managed-service use cases, or stay on 7.4.9 only for self-contained app use."
@@ -804,8 +846,11 @@
           "deprecated": true,
           "note": "Deprecated; RSALv2/SSPLv1 license forbids offering Redis as a competing managed service. Use 7.2.14 (BSD) for managed-service use cases, or 7.4.9 if you need the latest 7.4 patch for self-contained app use."
         },
+        "7.2.15": {
+          "note": "Latest patch in the BSD-3-Clause 7.2.x line, the newest Redis version permissively licensed for self-hosting as a managed/DBaaS service. Fixes CVE-2026-66373 (crafted stream RESTORE payload shares a NACK across consumers, use-after-free to RCE). 7.4+ (RSALv2/SSPLv1) forbids competing managed services; 8.0+ AGPL-3.0 requires source disclosure to network users."
+        },
         "7.2.14": {
-          "note": "Latest patch in the BSD-3-Clause 7.2.x line — the newest Redis version permissively licensed for self-hosting as a managed/DBaaS service. 7.4+ (RSALv2/SSPLv1) forbids competing managed services; 8.0+ AGPL-3.0 requires source disclosure to network users."
+          "note": "Superseded by 7.2.15 (which carries the CVE-2026-66373 fix). Still BSD-3-Clause and still resolvable for reproducibility."
         }
       },
       "platforms": [
@@ -848,9 +893,10 @@
       "protocol": null,
       "note": "",
       "defaults": {
-        "3": "3.53.1"
+        "3": "3.53.4"
       },
       "versions": {
+        "3.53.4": true,
         "3.53.1": true,
         "3.51.2": true
       },
@@ -971,7 +1017,7 @@
       "protocol": null,
       "note": "Rewritten from Java to Rust in v3.0 (Dec 2024). Binaries distributed via Cloudsmith and GitHub Releases.",
       "defaults": {
-        "3": "3.12.0"
+        "3": "3.12.1"
       },
       "versions": {
         "3.8.0": {
@@ -979,9 +1025,10 @@
         },
         "3.11.5": {
           "deprecated": true,
-          "note": "Deprecated; superseded by 3.12.0"
+          "note": "Deprecated; superseded by 3.12.1"
         },
-        "3.12.0": true
+        "3.12.0": true,
+        "3.12.1": true
       },
       "platforms": [
         "linux-x64",
@@ -1018,12 +1065,14 @@
       "protocol": "redis",
       "note": "",
       "defaults": {
-        "8": "8.0.9",
-        "9": "9.0.4"
+        "8": "8.0.10",
+        "9": "9.0.5"
       },
       "versions": {
+        "9.0.5": true,
         "9.0.4": true,
         "9.0.1": true,
+        "8.0.10": true,
         "8.0.9": true,
         "8.0.6": true
       },
@@ -1065,9 +1114,10 @@
       "protocol": null,
       "note": "Go-based single binary (CGO_ENABLED=0). Linux from official releases; macOS/Windows cross-compiled from source.",
       "defaults": {
-        "1": "1.35.7"
+        "1": "1.38.8"
       },
       "versions": {
+        "1.38.8": true,
         "1.35.7": true
       },
       "platforms": [

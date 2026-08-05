@@ -2,6 +2,33 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "mysql",
   "versions": {
+    "9.7.2": {
+      "linux-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.7/mysql-9.7.2-linux-glibc2.28-x86_64-minimal.tar.xz",
+        "format": "tar.xz",
+        "sha256": "6fe0baf13792e56afa3d93d6a174b4d5700901db1c8d09665225423dc094d0bb"
+      },
+      "linux-arm64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.7/mysql-9.7.2-linux-glibc2.28-aarch64.tar.xz",
+        "format": "tar.xz",
+        "sha256": "1a9c8da6c0de200390c0aa38f456b975b6a54a88bd3ece9c6f71573ac391f991"
+      },
+      "darwin-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.7/mysql-9.7.2-macos15-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "c290b3ad553a1d4e9831c4bd94e0107a6dc793d2c2a6e5eb37c2943d6a6b8670"
+      },
+      "darwin-arm64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.7/mysql-9.7.2-macos15-arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "78bd464c0ff6aacee0a19d12bceff45bd57c62813c3e606b72fab2703d3867a6"
+      },
+      "win32-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-9.7/mysql-9.7.2-winx64.zip",
+        "format": "zip",
+        "sha256": "5592ea38e53edd67f5baa68303e7fcf2f0a40fc08978fdb4a7b0c38d12baea17"
+      }
+    },
     "9.6.0": {
       "linux-x64": {
         "url": "https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-linux-glibc2.28-x86_64-minimal.tar.xz",
@@ -54,6 +81,33 @@
         "url": "https://cdn.mysql.com/Downloads/MySQL-9.5/mysql-9.5.0-winx64.zip",
         "format": "zip",
         "sha256": "c45a838c5960f9e533b88a48c71779dd5a74d96d1e2473a54d8c97b636baa438"
+      }
+    },
+    "8.4.11": {
+      "linux-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.11-linux-glibc2.28-x86_64-minimal.tar.xz",
+        "format": "tar.xz",
+        "sha256": "383f54e124d5f325d67f0c6912a8f96814eedc761a17ea30112e52fa4cc6b143"
+      },
+      "linux-arm64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.11-linux-glibc2.28-aarch64.tar.xz",
+        "format": "tar.xz",
+        "sha256": "04b2f9791d314167a9eb83abcb476f45a7cd9e4aa88fa7a638cba40d1bc2a109"
+      },
+      "darwin-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.11-macos15-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "90e8aea10698d01b978f0179e72e8d5e2cbe9f9bd5771e88b0b75d7c82244d3f"
+      },
+      "darwin-arm64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.11-macos15-arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "b96e00493bc3499b9ffd7f08d65c5d64933af0383a8287d9873b64f94c2d6009"
+      },
+      "win32-x64": {
+        "url": "https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.11-winx64.zip",
+        "format": "zip",
+        "sha256": "a492371d687d2bab088b0062581144a0044b8964baefdf4faa579292b423d25c"
       }
     },
     "8.4.9": {
@@ -140,10 +194,10 @@
   },
   "notes": {
     "glibc": "Linux binaries require glibc 2.28+ (Ubuntu 20.04+, Debian 10+, RHEL 8+)",
-    "macos": "macOS binaries target macos14 (Sonoma) for 8.x versions; MySQL 9.5.0+ targets macos15 (Sequoia). Binaries may work on earlier macOS versions.",
+    "macos": "macOS binaries target macos14 (Sonoma) for MySQL 8.4.9 and earlier 8.x; MySQL 8.4.11, 9.5.0+ and 9.7.2 target macos15 (Sequoia). Binaries may work on earlier macOS versions.",
     "deprecated": "Versions 8.0.40, 9.1.0, and 9.5.0 are deprecated. Existing binaries are retained but no new builds will be triggered.",
     "cdn": "Use cdn.mysql.com/archives/ for direct downloads (dev.mysql.com redirects require auth)",
-    "minimal-builds": "linux-x64 (8.4.9, 9.6.0) uses MySQL's official -minimal tarball: test suite, debug binaries, and static libs removed, all CLI tools (mysqld/mysql/mysqldump/mysqladmin) retained. Cuts re-hosted size ~6x. Only x86_64 has a vendor -minimal (no aarch64/macOS/Windows). 8.4.3 has no minimal; 8.0.40/9.1.0/9.5.0 are deprecated. Validate any minimal swap with builds/mysql/test-roundtrip.sh before publishing.",
+    "minimal-builds": "linux-x64 (8.4.9, 8.4.11, 9.6.0, 9.7.2) uses MySQL's official -minimal tarball: test suite, debug binaries, and static libs removed, all CLI tools (mysqld/mysql/mysqldump/mysqladmin) retained. Cuts re-hosted size ~6x. Only x86_64 has a vendor -minimal (no aarch64/macOS/Windows). 8.4.3 has no minimal; 8.0.40/9.1.0/9.5.0 are deprecated. Validate any minimal swap with builds/mysql/test-roundtrip.sh before publishing.",
     "8.4.9-linux-x64-full-revert": "REVERT: set versions.8.4.9.linux-x64 back to url=https://cdn.mysql.com/Downloads/MySQL-8.4/mysql-8.4.9-linux-glibc2.28-x86_64.tar.xz sha256=4297fb5d7dfd3b2b2d405efcc44b834237cd5e0d5dbf9b2cb6e49f6b0152940b",
     "9.6.0-linux-x64-full-revert": "REVERT: set versions.9.6.0.linux-x64 back to url=https://cdn.mysql.com/Downloads/MySQL-9.6/mysql-9.6.0-linux-glibc2.28-x86_64.tar.xz sha256=92271b67eb88cd74931f6bfc1f79edcf6a285508fc437c80d704b16512486374"
   }

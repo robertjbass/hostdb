@@ -2,6 +2,32 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "couchdb",
   "versions": {
+    "3.5.2": {
+      "linux-x64": {
+        "sourceType": "docker-extract"
+      },
+      "linux-arm64": {
+        "sourceType": "docker-extract"
+      },
+      "darwin-x64": {
+        "url": "https://couchdb.neighbourhood.ie/downloads/3.5.2/mac/x86_64/Apache-CouchDB.zip",
+        "format": "zip",
+        "sourceType": "neighbourhoodie",
+        "sha256": "48bdcac0f91baa586887f10fee9ba1f09154cd1d34bd1cb9b108e27494489d0c"
+      },
+      "darwin-arm64": {
+        "url": "https://couchdb.neighbourhood.ie/downloads/3.5.2/mac/arm64/Apache-CouchDB.zip",
+        "format": "zip",
+        "sourceType": "neighbourhoodie",
+        "sha256": "a14d10427e9f637ab8b2161cb538484e3bbf383a87dcb68ffa1aa305ab58ddc9"
+      },
+      "win32-x64": {
+        "url": "https://couchdb.neighbourhood.ie/downloads/3.5.2/win/apache-couchdb-3.5.2.msi",
+        "format": "msi",
+        "sourceType": "neighbourhoodie",
+        "sha256": "2783f513748227392c7d909d76c939afe8062f5302a97fb6442a34aafe71ee6c"
+      }
+    },
     "3.5.1": {
       "linux-x64": {
         "sourceType": "docker-extract"

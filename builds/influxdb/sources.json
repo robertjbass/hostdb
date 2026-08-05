@@ -2,6 +2,36 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "influxdb",
   "versions": {
+    "3.10.5": {
+      "linux-x64": {
+        "url": "https://dl.influxdata.com/influxdb/releases/influxdb3-core-3.10.5_linux_amd64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "64a3f36f60998826f7a7d075b992158a0b41e45636d2bc052a129469f5ae9f4a",
+        "sourceType": "official"
+      },
+      "linux-arm64": {
+        "url": "https://dl.influxdata.com/influxdb/releases/influxdb3-core-3.10.5_linux_arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "efdbc63a766818046a1e07a20080377b0feb7c18d3ff9a39292beddc8f2bb379",
+        "sourceType": "official"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required",
+        "note": "No official macOS Intel binary. Build from source using cargo (Rust project)."
+      },
+      "darwin-arm64": {
+        "url": "https://dl.influxdata.com/influxdb/releases/influxdb3-core-3.10.5_darwin_arm64.tar.gz",
+        "format": "tar.gz",
+        "sha256": "4723dc749587f3afe9153fcff50ad27e46552115741fd45ff85a16b5187d10ac",
+        "sourceType": "official"
+      },
+      "win32-x64": {
+        "url": "https://dl.influxdata.com/influxdb/releases/influxdb3-core-3.10.5-windows_amd64.zip",
+        "format": "zip",
+        "sha256": "707e2bc8ec6bab8b2d10e417556886dd42033db0f359d87b92da736fcbe16c7e",
+        "sourceType": "official"
+      }
+    },
     "3.8.0": {
       "linux-x64": {
         "url": "https://dl.influxdata.com/influxdb/releases/influxdb3-core-3.8.0_linux_amd64.tar.gz",
