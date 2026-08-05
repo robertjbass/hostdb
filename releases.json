@@ -521,6 +521,38 @@
       }
     },
     "meilisearch": {
+      "1.52.0": {
+        "version": "1.52.0",
+        "releaseTag": "meilisearch-1.52.0",
+        "releasedAt": "2026-08-05T19:38:17Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/meilisearch-1.52.0/meilisearch-1.52.0-darwin-arm64.tar.gz",
+            "sha256": "55db287764826b1188e183be89fcc3e5971f32cd0875739ca46532df941411bd",
+            "size": 89609186
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/meilisearch-1.52.0/meilisearch-1.52.0-darwin-x64.tar.gz",
+            "sha256": "7a9dd59f36d48eff5ac57274cd3c1f4a1841c9634818892f8d3d0fe093c9141d",
+            "size": 90345166
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/meilisearch-1.52.0/meilisearch-1.52.0-linux-arm64.tar.gz",
+            "sha256": "d69e8f027083502507823dd6e12698cf18c2e1918df68321e4de8b26dc6cfe5c",
+            "size": 89819339
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/meilisearch-1.52.0/meilisearch-1.52.0-linux-x64.tar.gz",
+            "sha256": "3ce3d9b6e95cf9c16b1e30d997dc3591a512b45703c332705f0ef93f066aae19",
+            "size": 91379892
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/meilisearch-1.52.0/meilisearch-1.52.0-win32-x64.zip",
+            "sha256": "d912eb4dd0b526be9a6925fda54b2b5f11333ccc5e91da71de5502609da121b2",
+            "size": 89163096
+          }
+        }
+      },
       "1.43.1": {
         "version": "1.43.1",
         "releaseTag": "meilisearch-1.43.1",
@@ -1362,6 +1394,38 @@
       }
     },
     "qdrant": {
+      "1.18.3": {
+        "version": "1.18.3",
+        "releaseTag": "qdrant-1.18.3",
+        "releasedAt": "2026-08-05T19:37:54Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-darwin-arm64.tar.gz",
+            "sha256": "a7a7daeb95ba735aa1167c1970f2352603caf4ba62f051a47bc94411e852ed82",
+            "size": 27185838
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-darwin-x64.tar.gz",
+            "sha256": "a5721bc9216df904eff085cb7851c3b484070f75fbc53f077b6235b0e10b0337",
+            "size": 29206581
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-linux-arm64.tar.gz",
+            "sha256": "7b75fa7e569598c8cf87bae9718b0280ef38dc7ce5e0df9af48aeb204b071848",
+            "size": 28777265
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-linux-x64.tar.gz",
+            "sha256": "f27c41657edcda9421e2f2189674bbc12776c2b4c1c738250b8d4349abbbbab2",
+            "size": 30590098
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-win32-x64.zip",
+            "sha256": "b720f85054eb26c187daf4e966eb36f1b6d8247d2a8eea3d1ee99cbba590871e",
+            "size": 29317363
+          }
+        }
+      },
       "1.16.3": {
         "version": "1.16.3",
         "releaseTag": "qdrant-1.16.3",
@@ -1728,6 +1792,38 @@
       }
     },
     "typedb": {
+      "3.12.1": {
+        "version": "3.12.1",
+        "releaseTag": "typedb-3.12.1",
+        "releasedAt": "2026-08-05T19:38:14Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/typedb-3.12.1/typedb-3.12.1-darwin-arm64.tar.gz",
+            "sha256": "065f14208784d3322857b12f5858175ea7ae748daa9f8f1c9f4c890d58a8e083",
+            "size": 30390958
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.12.1/typedb-3.12.1-darwin-x64.tar.gz",
+            "sha256": "937295d5c7009bf835134e0202c67e6f99b041199f890c727d61c525ca9cb95b",
+            "size": 31840157
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/typedb-3.12.1/typedb-3.12.1-linux-arm64.tar.gz",
+            "sha256": "4c3ae8493bc41e7bcb4fde0fef8ad59b7ce99f1455dd90d1fc22b4f0f4284be4",
+            "size": 32442734
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.12.1/typedb-3.12.1-linux-x64.tar.gz",
+            "sha256": "e0c95001fa002a61d94be0f971eaaa551c941f73dabfba7ca852ea16fc8b604a",
+            "size": 33025458
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.12.1/typedb-3.12.1-win32-x64.zip",
+            "sha256": "d99bf416c6b2f4a7ad5fe24ad6716a86caac677f0944dab420763c0f6bd7583d",
+            "size": 28151377
+          }
+        }
+      },
       "3.12.0": {
         "version": "3.12.0",
         "releaseTag": "typedb-3.12.0",
@@ -1958,6 +2054,23 @@
       }
     },
     "weaviate": {
+      "1.38.8": {
+        "version": "1.38.8",
+        "releaseTag": "weaviate-1.38.8",
+        "releasedAt": "2026-08-05T19:38:19Z",
+        "platforms": {
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-linux-arm64.tar.gz",
+            "sha256": "28d755d1860551ab1e726d02516646a48ae67c937063faeced653c2a46728051",
+            "size": 67894995
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-linux-x64.tar.gz",
+            "sha256": "5b2fa7fe4ad849e86d5b4e64dec57a55aba8dee5adba748ce6aafc9d64707bbe",
+            "size": 71432473
+          }
+        }
+      },
       "1.35.7": {
         "version": "1.35.7",
         "releaseTag": "weaviate-1.35.7",
