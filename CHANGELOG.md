@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.1] - 2026-08-05
+
+Metadata-only republish of the 0.38.0 engine wave. No `databases.yml` change, no resolver change, no defaults change: every version resolves exactly as it does on 0.38.0.
+
+### Fixed
+
+- **`releases.json` in the published package now lists all 21 versions from the wave.** 0.38.0 reached `main` and published to npm while four release workflows were still building, so its bundled `releases.json` snapshot was missing `valkey 9.0.5`, `redis 8.4.5`, `influxdb 3.10.5` and `mariadb 11.8.8`. `getReleaseInfo` returned null for those, `valkey 9.0.5` (the CVE-2026-56684 / CVE-2026-63639 fix) among them, even though the binaries were on R2. This republish carries the complete snapshot. Release-before-publish ordering is the standing rule; see the engine-version runbook.
+- **Valkey Windows builds define `-D_GNU_SOURCE`.** Valkey 9.0.5 calls `asprintf()` in `valkey-benchmark.c`, which Cygwin's newlib headers gate behind `__GNU_VISIBLE`. Without it the call is an implicit declaration and a hard error, and it blocked the entire 9.0.5 release even though the other four platforms built clean. 9.0.5 now ships on all five platforms.
+- **Weaviate release builds use Go 1.26.** Weaviate 1.38.8's `go.mod` requires `go >= 1.26` while the workflow pinned 1.23. Because the cross-compile runs with `GOTOOLCHAIN=local`, Go did not auto-upgrade and the darwin-x64, darwin-arm64 and win32-x64 builds failed. The build script counts a failed cross-compile as a skipped platform, so the run still reported success and 1.38.8 first shipped with only its two linux platforms. It now ships on all five.
+
+### Known issue
+
+- A requested-but-unbuilt platform does not fail a release run: the per-engine build scripts report it as "skipped" and the workflow still concludes success. That is how the Weaviate gap above stayed invisible until `releases.json` was inspected by hand. Worth making a platform that was requested and did not build a hard failure.
+
 ## [0.38.0] - 2026-08-05
 
 Engine security + feature wave. Thirteen engines gain new versions in one release; no existing version was removed, and every prior version still resolves.
