@@ -8,9 +8,12 @@ on:
         required: true
         type: choice
         options:
+          - 8.4.5
           - 8.4.0
+          - 7.4.10
+          - 7.2.15
           - 7.2.14
-        default: 8.4.0
+        default: 8.4.5
       platforms:
         description: 'Platforms to build'
         required: true

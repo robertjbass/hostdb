@@ -2,6 +2,32 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "weaviate",
   "versions": {
+    "1.38.8": {
+      "linux-x64": {
+        "url": "https://github.com/weaviate/weaviate/releases/download/v1.38.8/weaviate-v1.38.8-linux-amd64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "17d0bb07bc60f3d48e707b008c12a12712a4c3b3a8729e16e516be47d0e2b9e9"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/weaviate/weaviate/releases/download/v1.38.8/weaviate-v1.38.8-linux-arm64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "454ecd799c170c5e75f86ba789e7e7ef5438b3c68c192b2cc3ad925c6f77e824"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required",
+        "note": "Cross-compile with Go: GOOS=darwin GOARCH=amd64 CGO_ENABLED=0"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required",
+        "note": "Cross-compile with Go: GOOS=darwin GOARCH=arm64 CGO_ENABLED=0"
+      },
+      "win32-x64": {
+        "sourceType": "build-required",
+        "note": "Cross-compile with Go: GOOS=windows GOARCH=amd64 CGO_ENABLED=0"
+      }
+    },
     "1.35.7": {
       "linux-x64": {
         "url": "https://github.com/weaviate/weaviate/releases/download/v1.35.7/weaviate-v1.35.7-linux-amd64.tar.gz",

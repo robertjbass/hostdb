@@ -8,13 +8,16 @@ on:
         required: true
         type: choice
         options:
+          - 8.2.12
           - 8.2.9
           - 8.2.3
+          - 8.0.28
           - 8.0.23
           - 8.0.17
+          - 7.0.39
           - 7.0.34
           - 7.0.28
-        default: 8.2.9
+        default: 8.2.12
       platforms:
         description: 'Platforms'
         required: true

@@ -2,6 +2,34 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "sqlite",
   "versions": {
+    "3.53.4": {
+      "linux-x64": {
+        "sourceType": "build-required",
+        "sourceUrl": "https://sqlite.org/2026/sqlite-amalgamation-3530400.zip",
+        "sha3_256": "628a44cfe82c66aed1ccbbe85a562d2e33ebe64b3288981ed76285612227934e",
+        "note": "Official binaries require GLIBC 2.38+; build from source for Ubuntu 20.04+ compatibility"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required",
+        "sourceUrl": "https://sqlite.org/2026/sqlite-amalgamation-3530400.zip",
+        "sha3_256": "628a44cfe82c66aed1ccbbe85a562d2e33ebe64b3288981ed76285612227934e"
+      },
+      "darwin-x64": {
+        "url": "https://sqlite.org/2026/sqlite-tools-osx-x64-3530400.zip",
+        "format": "zip",
+        "sha3_256": "3353bb4e5ac54f85c5b82012d30476d20539a9495abdd11a1707df578cff2d7e"
+      },
+      "darwin-arm64": {
+        "url": "https://sqlite.org/2026/sqlite-tools-osx-arm64-3530400.zip",
+        "format": "zip",
+        "sha3_256": "58d53e0eb69c17cabebed2754bf399e4d44939be42dcf194769c00078bfd776d"
+      },
+      "win32-x64": {
+        "url": "https://sqlite.org/2026/sqlite-tools-win-x64-3530400.zip",
+        "format": "zip",
+        "sha3_256": "88b4659fe747896b853af10157316b4ade143553efb89c1c8ca7423a278dcc8b"
+      }
+    },
     "3.53.1": {
       "linux-x64": {
         "sourceType": "build-required",
@@ -64,6 +92,6 @@
     "checksums": "SQLite uses SHA3-256 checksums (not SHA-256). The sha3_256 field contains these values.",
     "linux-builds": "Both linux-x64 and linux-arm64 are built from source on Ubuntu 20.04 for GLIBC 2.31 compatibility. Official binaries require GLIBC 2.38+ which breaks Ubuntu 22.04 and older.",
     "tools": "The tools package includes sqlite3 (CLI), sqldiff, sqlite3_analyzer, and sqlite3_rsync",
-    "version-format": "SQLite version 3.51.2 = 3510200 in filenames (MAJOR*1000000 + MINOR*10000 + PATCH*100)"
+    "version-format": "SQLite version 3.51.2 = 3510200 in filenames (MAJOR*1000000 + MINOR*10000 + PATCH*100); 3.53.4 = 3530400"
   }
 }

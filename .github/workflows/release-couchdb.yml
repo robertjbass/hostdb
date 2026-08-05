@@ -8,8 +8,9 @@ on:
         required: true
         type: choice
         options:
+          - 3.5.2
           - 3.5.1
-        default: 3.5.1
+        default: 3.5.2
       platforms:
         description: 'Platforms to build'
         required: true
