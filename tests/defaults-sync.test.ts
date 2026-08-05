@@ -151,9 +151,11 @@ const SNAPSHOT: Record<string, Record<string, string>> = {
     '1.16.3': '1.16.3',
   },
   questdb: {
-    '9': '9.2.3',
+    '9': '9.4.3',
     '9.2': '9.2.3',
+    '9.4': '9.4.3',
     '9.2.3': '9.2.3',
+    '9.4.3': '9.4.3',
   },
   redis: {
     // 0.32.0 policy change: '7' now resolves to 7.2.14 (BSD-3-Clause) instead of
