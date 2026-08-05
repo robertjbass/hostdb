@@ -1654,6 +1654,38 @@
       }
     },
     "redis": {
+      "8.4.5": {
+        "version": "8.4.5",
+        "releaseTag": "redis-8.4.5",
+        "releasedAt": "2026-08-05T20:25:36Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/redis-8.4.5/redis-8.4.5-darwin-arm64.tar.gz",
+            "sha256": "76c80800752574498e2ac745f0923a5c1799308a479c29180669741f18dae805",
+            "size": 4165270
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/redis-8.4.5/redis-8.4.5-darwin-x64.tar.gz",
+            "sha256": "8d404fcdee72ec81d1753a2d6a166cbfb483747042b930a4c5a9387f15450498",
+            "size": 4039476
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/redis-8.4.5/redis-8.4.5-linux-arm64.tar.gz",
+            "sha256": "e6dc2773de156cde9b97df2c5a2acc193a0d90e3fcc3c2a7f57204d9600247f9",
+            "size": 13826490
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/redis-8.4.5/redis-8.4.5-linux-x64.tar.gz",
+            "sha256": "b7753fce9408e1bbc687acef360637beb5681b4054671810af36d6a4c01b6320",
+            "size": 13744053
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/redis-8.4.5/redis-8.4.5-win32-x64.zip",
+            "sha256": "b1baa705b74c9eeedc9ac9737d9e4df74e4b9750d74829f23d50a8454a36c9c5",
+            "size": 12778127
+          }
+        }
+      },
       "8.4.0": {
         "version": "8.4.0",
         "releaseTag": "redis-8.4.0",
