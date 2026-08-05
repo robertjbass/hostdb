@@ -8,11 +8,13 @@ on:
         required: true
         type: choice
         options:
+          - 9.0.5
           - 9.0.4
           - 9.0.1
+          - 8.0.10
           - 8.0.9
           - 8.0.6
-        default: 9.0.4
+        default: 9.0.5
       platforms:
         description: 'Platforms to build'
         required: true

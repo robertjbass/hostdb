@@ -33,6 +33,38 @@
         "sourceType": "official",
         "sha256": "93164bfbe3a710c5f64dbc58bd7454c9b0c58fb144a0e2a0bdcaae7198feb279"
       }
+    },
+    "9.4.3": {
+      "linux-x64": {
+        "url": "https://github.com/questdb/questdb/releases/download/9.4.3/questdb-9.4.3-rt-linux-x86-64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "2324f5920d6476843df6c35ad975bed18bba10f3459f67fd243f48f15e438cd5"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/questdb/questdb/releases/download/9.4.3/questdb-9.4.3-no-jre-bin.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "7fc11a03b8e2ab85314226b7b10bed54dfefe1d87c7ec836e85c8ad6175e7d5c"
+      },
+      "darwin-x64": {
+        "url": "https://github.com/questdb/questdb/releases/download/9.4.3/questdb-9.4.3-no-jre-bin.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "7fc11a03b8e2ab85314226b7b10bed54dfefe1d87c7ec836e85c8ad6175e7d5c"
+      },
+      "darwin-arm64": {
+        "url": "https://github.com/questdb/questdb/releases/download/9.4.3/questdb-9.4.3-no-jre-bin.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "7fc11a03b8e2ab85314226b7b10bed54dfefe1d87c7ec836e85c8ad6175e7d5c"
+      },
+      "win32-x64": {
+        "url": "https://github.com/questdb/questdb/releases/download/9.4.3/questdb-9.4.3-rt-windows-x86-64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "ff8e0cade90559720c78660e1391b9dc95ec0d365dac496c00212ff3095d40f5"
+      }
     }
   },
   "notes": {

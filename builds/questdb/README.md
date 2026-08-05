@@ -9,6 +9,7 @@ Download and repackage QuestDB binaries for distribution via GitHub Releases.
 ## Supported Versions
 
 - 9.2.3
+- 9.4.3
 
 ## Supported Platforms
 
@@ -42,7 +43,7 @@ The bundled JRE is placed in `questdb/jre/` within the archive.
 pnpm download:questdb
 
 # Download specific version
-pnpm download:questdb -- --version 9.2.3
+pnpm download:questdb -- --version 9.4.3
 
 # Download for all platforms
 pnpm download:questdb -- --all-platforms

@@ -90,16 +90,16 @@ describe('resolveVersion — identity', () => {
 
 describe('resolveVersion — defaults policy', () => {
   // Multi-track engines where default differs from latest
-  test('MongoDB 8 → 8.0.23 (LTS, NOT latest 8.2.9)', () => {
-    assert.equal(resolveVersion('mongodb', '8'), '8.0.23')
+  test('MongoDB 8 → 8.0.28 (LTS, NOT latest 8.2.12)', () => {
+    assert.equal(resolveVersion('mongodb', '8'), '8.0.28')
   })
 
-  test('MariaDB 11 → 11.8.6 (latest, NOT LTS 11.4)', () => {
-    assert.equal(resolveVersion('mariadb', '11'), '11.8.6')
+  test('MariaDB 11 → 11.8.8 (latest, NOT LTS 11.4)', () => {
+    assert.equal(resolveVersion('mariadb', '11'), '11.8.8')
   })
 
-  test('MySQL 8 → 8.4.9 (LTS, NOT 8.0.40)', () => {
-    assert.equal(resolveVersion('mysql', '8'), '8.4.9')
+  test('MySQL 8 → 8.4.11 (LTS, NOT 8.0.40)', () => {
+    assert.equal(resolveVersion('mysql', '8'), '8.4.11')
   })
 
   test('FerretDB 1 / 2 dispatch to right tracks', () => {
@@ -134,8 +134,8 @@ describe('resolveVersion — major.minor prefix', () => {
     assert.equal(resolveVersion('mariadb', '11.4'), '11.4.10')
   })
 
-  test('MongoDB 8.2 → 8.2.9 (latest in 8.2 even though 8 default is 8.0)', () => {
-    assert.equal(resolveVersion('mongodb', '8.2'), '8.2.9')
+  test('MongoDB 8.2 → 8.2.12 (latest in 8.2 even though 8 default is 8.0)', () => {
+    assert.equal(resolveVersion('mongodb', '8.2'), '8.2.12')
   })
 
   test('Unknown major.minor returns null', () => {
@@ -154,7 +154,7 @@ describe('normalizeVersion', () => {
 
   test('returns resolved version on known', () => {
     assert.equal(normalizeVersion('postgresql', '17'), '17.10.0')
-    assert.equal(normalizeVersion('mongodb', '8'), '8.0.23')
+    assert.equal(normalizeVersion('mongodb', '8'), '8.0.28')
   })
 })
 
@@ -222,8 +222,8 @@ describe('getSupportedMajorVersions', () => {
 
 describe('getMajorDefault', () => {
   test('returns explicit default', () => {
-    assert.equal(getMajorDefault('mongodb', '8'), '8.0.23')
-    assert.equal(getMajorDefault('mariadb', '11'), '11.8.6')
+    assert.equal(getMajorDefault('mongodb', '8'), '8.0.28')
+    assert.equal(getMajorDefault('mariadb', '11'), '11.8.8')
   })
 
   test('returns null for undeclared major', () => {
@@ -236,8 +236,8 @@ describe('getMajorDefault', () => {
 describe('getEngineDefaults', () => {
   test('default differs from latest for MongoDB (LTS policy)', () => {
     const d = getEngineDefaults('mongodb')
-    assert.equal(d.defaultVersion, '8.0.23') // LTS
-    assert.equal(d.latestVersion, '8.2.9') // newest
+    assert.equal(d.defaultVersion, '8.0.28') // LTS
+    assert.equal(d.latestVersion, '8.2.12') // newest
   })
 
   test('default equals latest for single-track engines', () => {

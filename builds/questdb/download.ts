@@ -4,7 +4,7 @@
  *
  * Usage:
  *   pnpm download:questdb
- *   pnpm download:questdb -- --version 9.2.3
+ *   pnpm download:questdb -- --version 9.4.3
  *   pnpm download:questdb -- --all-platforms
  *
  * QuestDB distribution:
@@ -392,7 +392,7 @@ function parseArgs(): {
   outputDir: string
 } {
   const args = process.argv.slice(2)
-  let version = '9.2.3'
+  let version = '9.4.3'
   let platforms: Platform[] = []
   let outputDir = './dist'
   let allPlatforms = false
@@ -453,7 +453,7 @@ Usage: pnpm download:questdb [options]
 Downloads and bundles QuestDB with JRE for all platforms.
 
 Options:
-  --version VERSION    QuestDB version (default: 9.2.3)
+  --version VERSION    QuestDB version (default: 9.4.3)
   --platform PLATFORM  Target platform (default: current)
   --output DIR         Output directory (default: ./dist)
   --all-platforms      Download for all platforms
@@ -467,7 +467,7 @@ Notes:
 
 Examples:
   pnpm download:questdb
-  pnpm download:questdb -- --version 9.2.3 --platform linux-x64
+  pnpm download:questdb -- --version 9.4.3 --platform linux-x64
   pnpm download:questdb -- --all-platforms
 `)
         process.exit(0)
