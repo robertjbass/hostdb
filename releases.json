@@ -651,6 +651,33 @@
       }
     },
     "mongodb": {
+      "8.2.12": {
+        "version": "8.2.12",
+        "releaseTag": "mongodb-8.2.12",
+        "releasedAt": null,
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-darwin-arm64.tar.gz",
+            "sha256": "130df7743ec74a3a3ea15a59cc164f4a9ac1d62348e62666edeececf8c8ad7dd",
+            "size": 225252596
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-darwin-x64.tar.gz",
+            "sha256": "fcb636284141b0aff311c39f5b385f8943e56c5d9a4a66a7c534f43ee333da2d",
+            "size": 243120914
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-linux-arm64.tar.gz",
+            "sha256": "fb7ff058814e140b46f0e69721191e81c1c751e33f02bf3c11f434119a1b0712",
+            "size": 270951761
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-linux-x64.tar.gz",
+            "sha256": "0802384593da6a8c10d20980bc3342a8bfd3a77639d6064e78dc6bb1e45dc83a",
+            "size": 286384101
+          }
+        }
+      },
       "8.2.9": {
         "version": "8.2.9",
         "releaseTag": "mongodb-8.2.9",
@@ -1690,6 +1717,38 @@
       }
     },
     "sqlite": {
+      "3.53.4": {
+        "version": "3.53.4",
+        "releaseTag": "sqlite-3.53.4",
+        "releasedAt": "2026-08-05T19:44:20Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.4/sqlite-3.53.4-darwin-arm64.tar.gz",
+            "sha256": "3cf5f3e815dfdeba58306733e14a77b3cbc5a31b07feb6b6c7f434c810be0322",
+            "size": 4497033
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.4/sqlite-3.53.4-darwin-x64.tar.gz",
+            "sha256": "fe4b74c90f0a125bf74a8a249fbc791ab6282c9001617f17a9122721c0de1554",
+            "size": 4514437
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.4/sqlite-3.53.4-linux-arm64.tar.gz",
+            "sha256": "ed4b474cea9590f373afdc1592abc8b71f1c96d61d3fa6b876219708a0f4aed4",
+            "size": 971767
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.4/sqlite-3.53.4-linux-x64.tar.gz",
+            "sha256": "02aef93da59a25082c95cb32ee306941910bc33bddbce147b857eab4ffd6d910",
+            "size": 981900
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.4/sqlite-3.53.4-win32-x64.zip",
+            "sha256": "18dfafd1b9b04148f89fdc26b9794829ba01c4e556455c70d2224d5cafcbb572",
+            "size": 6576950
+          }
+        }
+      },
       "3.53.1": {
         "version": "3.53.1",
         "releaseTag": "sqlite-3.53.1",
