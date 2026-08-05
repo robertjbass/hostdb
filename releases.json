@@ -66,6 +66,38 @@
       }
     },
     "couchdb": {
+      "3.5.2": {
+        "version": "3.5.2",
+        "releaseTag": "couchdb-3.5.2",
+        "releasedAt": "2026-08-05T19:39:58Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-darwin-arm64.tar.gz",
+            "sha256": "b64b4e85388c3055eccec4af308dcb5d2dc73fcf13799d2d03d098531ae1d3d6",
+            "size": 112594772
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-darwin-x64.tar.gz",
+            "sha256": "25f1d3d4c306392c1eb3ed931d22affee7a8b0956f80266614493c093692e9bb",
+            "size": 115155441
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-linux-arm64.tar.gz",
+            "sha256": "d6390b8de1af6722955e7438b6b89d2a570b3897649314a004b458de684f9fb1",
+            "size": 76363559
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-linux-x64.tar.gz",
+            "sha256": "f09fc5812fd987158005eca4921c889bd440285fc66e19a1765e0a3b6409b4e2",
+            "size": 76810679
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-win32-x64.zip",
+            "sha256": "e6fabda847ed5506d121009c102eb095f610dc33e556ddbd845c6b4ec25f5ee0",
+            "size": 116726640
+          }
+        }
+      },
       "3.5.1": {
         "version": "3.5.1",
         "releaseTag": "couchdb-3.5.1",
@@ -264,6 +296,38 @@
       }
     },
     "influxdb": {
+      "3.10.5": {
+        "version": "3.10.5",
+        "releaseTag": "influxdb-3.10.5",
+        "releasedAt": "2026-08-05T21:33:48Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/influxdb-3.10.5/influxdb-3.10.5-darwin-arm64.tar.gz",
+            "sha256": "3fe69f5a427c49fabe2c9bee61d22f5ad00ba373b4406e3248a267e47bf5b048",
+            "size": 92547649
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/influxdb-3.10.5/influxdb-3.10.5-darwin-x64.tar.gz",
+            "sha256": "ac0c6d81c5e4f7d36cf8f54f0fe54c5927f1221640e0e8f0970e2339f607b9ba",
+            "size": 90683248
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/influxdb-3.10.5/influxdb-3.10.5-linux-arm64.tar.gz",
+            "sha256": "5f1f18b8cdd4c910545f38b2d11f844851228da8ce7b4a5d53b93ced591e3e2b",
+            "size": 98431599
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/influxdb-3.10.5/influxdb-3.10.5-linux-x64.tar.gz",
+            "sha256": "37a8f51a307b5d722d33f89a60c694e3d7a866ee0406d2325a6113683911ebbe",
+            "size": 107715721
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/influxdb-3.10.5/influxdb-3.10.5-win32-x64.zip",
+            "sha256": "4c40409fc0d01a462feed1b23ac8404b0e4e45e47284e76b43ed762c6d92a285",
+            "size": 96220090
+          }
+        }
+      },
       "3.8.0": {
         "version": "3.8.0",
         "releaseTag": "influxdb-3.8.0",
@@ -521,6 +585,38 @@
       }
     },
     "meilisearch": {
+      "1.52.0": {
+        "version": "1.52.0",
+        "releaseTag": "meilisearch-1.52.0",
+        "releasedAt": "2026-08-05T19:38:17Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/meilisearch-1.52.0/meilisearch-1.52.0-darwin-arm64.tar.gz",
+            "sha256": "55db287764826b1188e183be89fcc3e5971f32cd0875739ca46532df941411bd",
+            "size": 89609186
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/meilisearch-1.52.0/meilisearch-1.52.0-darwin-x64.tar.gz",
+            "sha256": "7a9dd59f36d48eff5ac57274cd3c1f4a1841c9634818892f8d3d0fe093c9141d",
+            "size": 90345166
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/meilisearch-1.52.0/meilisearch-1.52.0-linux-arm64.tar.gz",
+            "sha256": "d69e8f027083502507823dd6e12698cf18c2e1918df68321e4de8b26dc6cfe5c",
+            "size": 89819339
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/meilisearch-1.52.0/meilisearch-1.52.0-linux-x64.tar.gz",
+            "sha256": "3ce3d9b6e95cf9c16b1e30d997dc3591a512b45703c332705f0ef93f066aae19",
+            "size": 91379892
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/meilisearch-1.52.0/meilisearch-1.52.0-win32-x64.zip",
+            "sha256": "d912eb4dd0b526be9a6925fda54b2b5f11333ccc5e91da71de5502609da121b2",
+            "size": 89163096
+          }
+        }
+      },
       "1.43.1": {
         "version": "1.43.1",
         "releaseTag": "meilisearch-1.43.1",
@@ -587,6 +683,38 @@
       }
     },
     "mongodb": {
+      "8.2.12": {
+        "version": "8.2.12",
+        "releaseTag": "mongodb-8.2.12",
+        "releasedAt": "2026-08-05T19:45:07Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-darwin-arm64.tar.gz",
+            "sha256": "130df7743ec74a3a3ea15a59cc164f4a9ac1d62348e62666edeececf8c8ad7dd",
+            "size": 225252596
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-darwin-x64.tar.gz",
+            "sha256": "fcb636284141b0aff311c39f5b385f8943e56c5d9a4a66a7c534f43ee333da2d",
+            "size": 243120914
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-linux-arm64.tar.gz",
+            "sha256": "fb7ff058814e140b46f0e69721191e81c1c751e33f02bf3c11f434119a1b0712",
+            "size": 270951761
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-linux-x64.tar.gz",
+            "sha256": "0802384593da6a8c10d20980bc3342a8bfd3a77639d6064e78dc6bb1e45dc83a",
+            "size": 286384101
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.2.12/mongodb-8.2.12-win32-x64.zip",
+            "sha256": "a97ba3851a93a63a5404ea6b9c080f3a9cbb9f47c6b629de05c172d1459d553b",
+            "size": 947994590
+          }
+        }
+      },
       "8.2.9": {
         "version": "8.2.9",
         "releaseTag": "mongodb-8.2.9",
@@ -651,6 +779,38 @@
           }
         }
       },
+      "8.0.28": {
+        "version": "8.0.28",
+        "releaseTag": "mongodb-8.0.28",
+        "releasedAt": "2026-08-05T19:30:42Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-8.0.28/mongodb-8.0.28-darwin-arm64.tar.gz",
+            "sha256": "d5612d22bd9d13b91416640118995a02cb74831f9489037fcb184c813db0d309",
+            "size": 226366783
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.0.28/mongodb-8.0.28-darwin-x64.tar.gz",
+            "sha256": "e46dad133f60ec1bbfa86deb975b09577601a9d8697724de2634334bac50e55f",
+            "size": 243558189
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-8.0.28/mongodb-8.0.28-linux-arm64.tar.gz",
+            "sha256": "8bd461761912f294b91befe987671b791ef092181cf19dcc29e7e8345c953b01",
+            "size": 249487412
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.0.28/mongodb-8.0.28-linux-x64.tar.gz",
+            "sha256": "c9304f56881bd492398f96025996df436a2ece6b8cb827fbf3e33118a9b4c6a2",
+            "size": 262975031
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mongodb-8.0.28/mongodb-8.0.28-win32-x64.zip",
+            "sha256": "0592ceed687ae8cb8cf61f61ea8154bf909394989609ad3b63f61a7ac25e2bb7",
+            "size": 931722503
+          }
+        }
+      },
       "8.0.23": {
         "version": "8.0.23",
         "releaseTag": "mongodb-8.0.23",
@@ -712,6 +872,38 @@
             "url": "https://registry.layerbase.host/mongodb-8.0.17/mongodb-8.0.17-win32-x64.zip",
             "sha256": "6cf637aaa53b383a568d4b880620396948f6cc3ae2ea3ec0192e4fbab492f65c",
             "size": 919005550
+          }
+        }
+      },
+      "7.0.39": {
+        "version": "7.0.39",
+        "releaseTag": "mongodb-7.0.39",
+        "releasedAt": "2026-08-05T19:55:33Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-7.0.39/mongodb-7.0.39-darwin-arm64.tar.gz",
+            "sha256": "34084b2181d4f56bbe1d3a3a5d487db92b605de29c7e21a95d08cd7f94926675",
+            "size": 215424767
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mongodb-7.0.39/mongodb-7.0.39-darwin-x64.tar.gz",
+            "sha256": "ded41cde5d5e94f87369b0e873b36a75d85c483b3444b977e93ed03dad0ce8e6",
+            "size": 231363357
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mongodb-7.0.39/mongodb-7.0.39-linux-arm64.tar.gz",
+            "sha256": "d5440791c63ba38d93c33641a59aeeaa06a825c0dc5f1c66d852a1d9042eff89",
+            "size": 232335382
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mongodb-7.0.39/mongodb-7.0.39-linux-x64.tar.gz",
+            "sha256": "503c53ef9208e728704eb3022e1f6ad42efa5a3b8b6186085ea30082378d0d57",
+            "size": 244727080
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mongodb-7.0.39/mongodb-7.0.39-win32-x64.zip",
+            "sha256": "0ca39a7a16c77d30ea68b3faf09810d3990a42abff2599aa766329c1d605bd5e",
+            "size": 761965121
           }
         }
       },
@@ -781,6 +973,38 @@
       }
     },
     "mysql": {
+      "9.7.2": {
+        "version": "9.7.2",
+        "releaseTag": "mysql-9.7.2",
+        "releasedAt": "2026-08-05T19:48:25Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-darwin-arm64.tar.gz",
+            "sha256": "ded60f3c84b62c23be80398a3e5339874940e88664ed54776d0559f650587400",
+            "size": 178260264
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-darwin-x64.tar.gz",
+            "sha256": "4e4dd59d89c33325cc947ea4197d7c9aac64e42491fa9ee56962d0f84744f0b8",
+            "size": 182634772
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-linux-arm64.tar.gz",
+            "sha256": "1000ebb5764a81cc5118e22b1ea04acd7bf893784788919bec5ef4a9b03c7c71",
+            "size": 1069382733
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-linux-x64.tar.gz",
+            "sha256": "dd9a2684eb1774de77d8e99d3f8205a1e721b1fe61dae11e871bc4e7ef6273fd",
+            "size": 147105830
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-win32-x64.zip",
+            "sha256": "635de4f1e4d8c819c47f615ecc08c8819f8e8e7cc19a2e33534e3144d1f106f6",
+            "size": 342699296
+          }
+        }
+      },
       "9.6.0": {
         "version": "9.6.0",
         "releaseTag": "mysql-9.6.0",
@@ -878,6 +1102,38 @@
           }
         },
         "deprecated": true
+      },
+      "8.4.11": {
+        "version": "8.4.11",
+        "releaseTag": "mysql-8.4.11",
+        "releasedAt": "2026-08-05T19:31:52Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.11/mysql-8.4.11-darwin-arm64.tar.gz",
+            "sha256": "fe014f724ac1d441c3b60ea5825fc2d78b7d7b376739e85d3fe64cb6cd0eb713",
+            "size": 169005733
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.11/mysql-8.4.11-darwin-x64.tar.gz",
+            "sha256": "da7e7a6f2971f0628ef95a09132121c21c0d685f7a0a46a5be5ae6d2903dafb0",
+            "size": 173273952
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.11/mysql-8.4.11-linux-arm64.tar.gz",
+            "sha256": "8260fd7812be82fac75605bdadebe0538746db703063b74fd0d6fc8df51579e5",
+            "size": 906964514
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.11/mysql-8.4.11-linux-x64.tar.gz",
+            "sha256": "a7ec8e8f8da2abdff64eb280991928351df3697991a234893e50411bf409eefd",
+            "size": 142312102
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.11/mysql-8.4.11-win32-x64.zip",
+            "sha256": "3d147ea11dfdb63db3f5358642c8faf8daa6f4783c51b794e6117acfd1fdd70a",
+            "size": 281154744
+          }
+        }
       },
       "8.4.9": {
         "version": "8.4.9",
@@ -1298,6 +1554,38 @@
       }
     },
     "qdrant": {
+      "1.18.3": {
+        "version": "1.18.3",
+        "releaseTag": "qdrant-1.18.3",
+        "releasedAt": "2026-08-05T19:37:54Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-darwin-arm64.tar.gz",
+            "sha256": "a7a7daeb95ba735aa1167c1970f2352603caf4ba62f051a47bc94411e852ed82",
+            "size": 27185838
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-darwin-x64.tar.gz",
+            "sha256": "a5721bc9216df904eff085cb7851c3b484070f75fbc53f077b6235b0e10b0337",
+            "size": 29206581
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-linux-arm64.tar.gz",
+            "sha256": "7b75fa7e569598c8cf87bae9718b0280ef38dc7ce5e0df9af48aeb204b071848",
+            "size": 28777265
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-linux-x64.tar.gz",
+            "sha256": "f27c41657edcda9421e2f2189674bbc12776c2b4c1c738250b8d4349abbbbab2",
+            "size": 30590098
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-win32-x64.zip",
+            "sha256": "b720f85054eb26c187daf4e966eb36f1b6d8247d2a8eea3d1ee99cbba590871e",
+            "size": 29317363
+          }
+        }
+      },
       "1.16.3": {
         "version": "1.16.3",
         "releaseTag": "qdrant-1.16.3",
@@ -1398,6 +1686,38 @@
       }
     },
     "redis": {
+      "8.4.5": {
+        "version": "8.4.5",
+        "releaseTag": "redis-8.4.5",
+        "releasedAt": "2026-08-05T20:25:36Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/redis-8.4.5/redis-8.4.5-darwin-arm64.tar.gz",
+            "sha256": "76c80800752574498e2ac745f0923a5c1799308a479c29180669741f18dae805",
+            "size": 4165270
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/redis-8.4.5/redis-8.4.5-darwin-x64.tar.gz",
+            "sha256": "8d404fcdee72ec81d1753a2d6a166cbfb483747042b930a4c5a9387f15450498",
+            "size": 4039476
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/redis-8.4.5/redis-8.4.5-linux-arm64.tar.gz",
+            "sha256": "e6dc2773de156cde9b97df2c5a2acc193a0d90e3fcc3c2a7f57204d9600247f9",
+            "size": 13826490
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/redis-8.4.5/redis-8.4.5-linux-x64.tar.gz",
+            "sha256": "b7753fce9408e1bbc687acef360637beb5681b4054671810af36d6a4c01b6320",
+            "size": 13744053
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/redis-8.4.5/redis-8.4.5-win32-x64.zip",
+            "sha256": "b1baa705b74c9eeedc9ac9737d9e4df74e4b9750d74829f23d50a8454a36c9c5",
+            "size": 12778127
+          }
+        }
+      },
       "8.4.0": {
         "version": "8.4.0",
         "releaseTag": "redis-8.4.0",
@@ -1427,6 +1747,38 @@
             "url": "https://registry.layerbase.host/redis-8.4.0/redis-8.4.0-win32-x64.zip",
             "sha256": "80847d5e55488a74b1bd474978c516ae23bd0de604ec160549536c673ab5762e",
             "size": 12750074
+          }
+        }
+      },
+      "7.4.10": {
+        "version": "7.4.10",
+        "releaseTag": "redis-7.4.10",
+        "releasedAt": "2026-08-05T20:09:56Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.4.10/redis-7.4.10-darwin-arm64.tar.gz",
+            "sha256": "5d128eae514fbce8f514659f90be949c0c260f4bcc90dbd87aa7fcea52d40417",
+            "size": 3950619
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/redis-7.4.10/redis-7.4.10-darwin-x64.tar.gz",
+            "sha256": "105ea90df7c8e75ec64b453f8239eff3af8b4218e95e91c3acc7df21144b45b6",
+            "size": 3812742
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.4.10/redis-7.4.10-linux-arm64.tar.gz",
+            "sha256": "3d9a1fb554e3aacc96e8ca10d9fb9cdca1afa1f8c99067fe450675c5bb65f189",
+            "size": 12732738
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/redis-7.4.10/redis-7.4.10-linux-x64.tar.gz",
+            "sha256": "eee5d9e90318934787173b3c4ada76f7736d5a9cbd2ae58db53fcdb1b5b3c4fc",
+            "size": 12658561
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/redis-7.4.10/redis-7.4.10-win32-x64.zip",
+            "sha256": "7a950a52102fc3770907a931c464b5a43b762bfdf869f96c3cf7908db6107a4b",
+            "size": 11491889
           }
         }
       },
@@ -1496,6 +1848,38 @@
         },
         "deprecated": true
       },
+      "7.2.15": {
+        "version": "7.2.15",
+        "releaseTag": "redis-7.2.15",
+        "releasedAt": "2026-08-05T19:48:58Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.2.15/redis-7.2.15-darwin-arm64.tar.gz",
+            "sha256": "58477f7ec3781198f154578d11361db3b34e47c171280e212c30539db31d8023",
+            "size": 3885919
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.15/redis-7.2.15-darwin-x64.tar.gz",
+            "sha256": "17f853e0c82f547bcb0400937d6940f62a050dd39a6ba43c0b46feb688f375a1",
+            "size": 3748197
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.2.15/redis-7.2.15-linux-arm64.tar.gz",
+            "sha256": "8c19d9c63206e626882e551be290ecea20e5c1936148292af180ba6b1b89b81a",
+            "size": 12344504
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.15/redis-7.2.15-linux-x64.tar.gz",
+            "sha256": "c449b3ce2e70f6d6a6be6f1bfdab82f8e01b903f148408ee206d0562c1df4158",
+            "size": 12264573
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.15/redis-7.2.15-win32-x64.zip",
+            "sha256": "442d979f1a734af5befaf4790b758ac86b7e19c4df6b159c520e40af8eb27129",
+            "size": 10951980
+          }
+        }
+      },
       "7.2.14": {
         "version": "7.2.14",
         "releaseTag": "redis-7.2.14",
@@ -1530,6 +1914,38 @@
       }
     },
     "sqlite": {
+      "3.53.4": {
+        "version": "3.53.4",
+        "releaseTag": "sqlite-3.53.4",
+        "releasedAt": "2026-08-05T19:44:20Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.4/sqlite-3.53.4-darwin-arm64.tar.gz",
+            "sha256": "3cf5f3e815dfdeba58306733e14a77b3cbc5a31b07feb6b6c7f434c810be0322",
+            "size": 4497033
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.4/sqlite-3.53.4-darwin-x64.tar.gz",
+            "sha256": "fe4b74c90f0a125bf74a8a249fbc791ab6282c9001617f17a9122721c0de1554",
+            "size": 4514437
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.4/sqlite-3.53.4-linux-arm64.tar.gz",
+            "sha256": "ed4b474cea9590f373afdc1592abc8b71f1c96d61d3fa6b876219708a0f4aed4",
+            "size": 971767
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.4/sqlite-3.53.4-linux-x64.tar.gz",
+            "sha256": "02aef93da59a25082c95cb32ee306941910bc33bddbce147b857eab4ffd6d910",
+            "size": 981900
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/sqlite-3.53.4/sqlite-3.53.4-win32-x64.zip",
+            "sha256": "18dfafd1b9b04148f89fdc26b9794829ba01c4e556455c70d2224d5cafcbb572",
+            "size": 6576950
+          }
+        }
+      },
       "3.53.1": {
         "version": "3.53.1",
         "releaseTag": "sqlite-3.53.1",
@@ -1664,6 +2080,38 @@
       }
     },
     "typedb": {
+      "3.12.1": {
+        "version": "3.12.1",
+        "releaseTag": "typedb-3.12.1",
+        "releasedAt": "2026-08-05T19:38:14Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/typedb-3.12.1/typedb-3.12.1-darwin-arm64.tar.gz",
+            "sha256": "065f14208784d3322857b12f5858175ea7ae748daa9f8f1c9f4c890d58a8e083",
+            "size": 30390958
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.12.1/typedb-3.12.1-darwin-x64.tar.gz",
+            "sha256": "937295d5c7009bf835134e0202c67e6f99b041199f890c727d61c525ca9cb95b",
+            "size": 31840157
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/typedb-3.12.1/typedb-3.12.1-linux-arm64.tar.gz",
+            "sha256": "4c3ae8493bc41e7bcb4fde0fef8ad59b7ce99f1455dd90d1fc22b4f0f4284be4",
+            "size": 32442734
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.12.1/typedb-3.12.1-linux-x64.tar.gz",
+            "sha256": "e0c95001fa002a61d94be0f971eaaa551c941f73dabfba7ca852ea16fc8b604a",
+            "size": 33025458
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/typedb-3.12.1/typedb-3.12.1-win32-x64.zip",
+            "sha256": "d99bf416c6b2f4a7ad5fe24ad6716a86caac677f0944dab420763c0f6bd7583d",
+            "size": 28151377
+          }
+        }
+      },
       "3.12.0": {
         "version": "3.12.0",
         "releaseTag": "typedb-3.12.0",
@@ -1764,6 +2212,38 @@
       }
     },
     "valkey": {
+      "9.0.5": {
+        "version": "9.0.5",
+        "releaseTag": "valkey-9.0.5",
+        "releasedAt": "2026-08-05T20:34:01Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.5/valkey-9.0.5-darwin-arm64.tar.gz",
+            "sha256": "52751eead401c6ee70ec93bb09ae0a213a42c7fc505171d3e9af83ea6e9ffef7",
+            "size": 4069122
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.5/valkey-9.0.5-darwin-x64.tar.gz",
+            "sha256": "76536852b3bd9602f70ed392902fb89df5f34a7b345a7d7ea2afa44e7a78470d",
+            "size": 3956888
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.5/valkey-9.0.5-linux-arm64.tar.gz",
+            "sha256": "33b7e2fd7bd2316bc2f9424120f132fca81d6b461a90f75ef9a2162e25ba3ef3",
+            "size": 13750375
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.5/valkey-9.0.5-linux-x64.tar.gz",
+            "sha256": "dd5b91d72d6a1af7ccb70f8604e46b9a50125ea89a95527b884c82df273eb18d",
+            "size": 13707280
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/valkey-9.0.5/valkey-9.0.5-win32-x64.zip",
+            "sha256": "8c3281e6e5366d50016274c2929886ccebe78be2ec44e8df3807ab361cb36e0b",
+            "size": 19253511
+          }
+        }
+      },
       "9.0.4": {
         "version": "9.0.4",
         "releaseTag": "valkey-9.0.4",
@@ -1825,6 +2305,38 @@
             "url": "https://registry.layerbase.host/valkey-9.0.1/valkey-9.0.1-win32-x64.zip",
             "sha256": "98683ed78c091335b86f8e719460bdc834f320484d4a89c7fd3c2c91d325b36e",
             "size": 18574527
+          }
+        }
+      },
+      "8.0.10": {
+        "version": "8.0.10",
+        "releaseTag": "valkey-8.0.10",
+        "releasedAt": "2026-08-05T20:03:42Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/valkey-8.0.10/valkey-8.0.10-darwin-arm64.tar.gz",
+            "sha256": "c11d4345624743094a22b135b944fda61a2c1d56fd9dcaf8b1599bc9f1d4a7a0",
+            "size": 3959187
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/valkey-8.0.10/valkey-8.0.10-darwin-x64.tar.gz",
+            "sha256": "321fe268471dd725117f41a7411feac0e5c5c6bb4947442cc48cbc2ed97d4646",
+            "size": 3822665
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/valkey-8.0.10/valkey-8.0.10-linux-arm64.tar.gz",
+            "sha256": "ca57c431a585f491ec2b89eb438f78775ccd75b42777edc7d99090fea15901cf",
+            "size": 12822829
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/valkey-8.0.10/valkey-8.0.10-linux-x64.tar.gz",
+            "sha256": "f9579e5c4a9e0b69e022f8a168de6b768a7ee976b902779dc9e7d696f4197b29",
+            "size": 12740213
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/valkey-8.0.10/valkey-8.0.10-win32-x64.zip",
+            "sha256": "9adfb8f0cd1b42ee33f252cffbcb1e60a0a30b1005db082be8f6f85244ccefbf",
+            "size": 17158901
           }
         }
       },
@@ -1894,6 +2406,38 @@
       }
     },
     "weaviate": {
+      "1.38.8": {
+        "version": "1.38.8",
+        "releaseTag": "weaviate-1.38.8",
+        "releasedAt": "2026-08-05T19:38:19Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-darwin-arm64.tar.gz",
+            "sha256": "107cd173abe533bc3611954085d68a173eaff73cda88e1e91772107c4f38d808",
+            "size": 67880252
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-darwin-x64.tar.gz",
+            "sha256": "f2e830cc9c140d63e4fb9f0a594ddd88d65c4f7c6aa75c4ddc4f5f3f97c736ae",
+            "size": 70303384
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-linux-arm64.tar.gz",
+            "sha256": "119f1a71d978a1e2d6abfc8b2f9502256e5739089f9af7d3e6ded5fe341f22ae",
+            "size": 67894983
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-linux-x64.tar.gz",
+            "sha256": "b91f4f56b5b2dc45070e3d18d00de338dd3cfacf68abaca2a5caa67fe461611e",
+            "size": 71432475
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-win32-x64.zip",
+            "sha256": "9b97394aba70af8cd9d205251c91468d61082b29d31fa1d1618a361a48af31ec",
+            "size": 70232053
+          }
+        }
+      },
       "1.35.7": {
         "version": "1.35.7",
         "releaseTag": "weaviate-1.35.7",
