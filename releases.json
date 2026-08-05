@@ -912,7 +912,7 @@
       "9.7.2": {
         "version": "9.7.2",
         "releaseTag": "mysql-9.7.2",
-        "releasedAt": null,
+        "releasedAt": "2026-08-05T19:48:25Z",
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-darwin-arm64.tar.gz",
@@ -923,6 +923,11 @@
             "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-darwin-x64.tar.gz",
             "sha256": "4e4dd59d89c33325cc947ea4197d7c9aac64e42491fa9ee56962d0f84744f0b8",
             "size": 182634772
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-linux-arm64.tar.gz",
+            "sha256": "1000ebb5764a81cc5118e22b1ea04acd7bf893784788919bec5ef4a9b03c7c71",
+            "size": 1069382733
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/mysql-9.7.2/mysql-9.7.2-linux-x64.tar.gz",
@@ -1714,6 +1719,38 @@
           }
         },
         "deprecated": true
+      },
+      "7.2.15": {
+        "version": "7.2.15",
+        "releaseTag": "redis-7.2.15",
+        "releasedAt": "2026-08-05T19:48:58Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.2.15/redis-7.2.15-darwin-arm64.tar.gz",
+            "sha256": "58477f7ec3781198f154578d11361db3b34e47c171280e212c30539db31d8023",
+            "size": 3885919
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.15/redis-7.2.15-darwin-x64.tar.gz",
+            "sha256": "17f853e0c82f547bcb0400937d6940f62a050dd39a6ba43c0b46feb688f375a1",
+            "size": 3748197
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.2.15/redis-7.2.15-linux-arm64.tar.gz",
+            "sha256": "8c19d9c63206e626882e551be290ecea20e5c1936148292af180ba6b1b89b81a",
+            "size": 12344504
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.15/redis-7.2.15-linux-x64.tar.gz",
+            "sha256": "c449b3ce2e70f6d6a6be6f1bfdab82f8e01b903f148408ee206d0562c1df4158",
+            "size": 12264573
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.15/redis-7.2.15-win32-x64.zip",
+            "sha256": "442d979f1a734af5befaf4790b758ac86b7e19c4df6b159c520e40af8eb27129",
+            "size": 10951980
+          }
+        }
       },
       "7.2.14": {
         "version": "7.2.14",
