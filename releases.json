@@ -2379,15 +2379,30 @@
         "releaseTag": "weaviate-1.38.8",
         "releasedAt": "2026-08-05T19:38:19Z",
         "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-darwin-arm64.tar.gz",
+            "sha256": "107cd173abe533bc3611954085d68a173eaff73cda88e1e91772107c4f38d808",
+            "size": 67880252
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-darwin-x64.tar.gz",
+            "sha256": "f2e830cc9c140d63e4fb9f0a594ddd88d65c4f7c6aa75c4ddc4f5f3f97c736ae",
+            "size": 70303384
+          },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-linux-arm64.tar.gz",
-            "sha256": "28d755d1860551ab1e726d02516646a48ae67c937063faeced653c2a46728051",
-            "size": 67894995
+            "sha256": "119f1a71d978a1e2d6abfc8b2f9502256e5739089f9af7d3e6ded5fe341f22ae",
+            "size": 67894983
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-linux-x64.tar.gz",
-            "sha256": "5b2fa7fe4ad849e86d5b4e64dec57a55aba8dee5adba748ce6aafc9d64707bbe",
-            "size": 71432473
+            "sha256": "b91f4f56b5b2dc45070e3d18d00de338dd3cfacf68abaca2a5caa67fe461611e",
+            "size": 71432475
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/weaviate-1.38.8/weaviate-1.38.8-win32-x64.zip",
+            "sha256": "9b97394aba70af8cd9d205251c91468d61082b29d31fa1d1618a361a48af31ec",
+            "size": 70232053
           }
         }
       },
