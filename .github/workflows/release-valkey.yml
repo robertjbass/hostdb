@@ -316,7 +316,10 @@ jobs:
 
           # Build with TLS support and Windows-compatible flags
           # -Wno-char-subscripts suppresses warnings, -O0 helps compatibility
-          make -j$(nproc) BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0"
+          # -D_GNU_SOURCE exposes the GNU extensions Cygwin's newlib headers gate
+          # behind __GNU_VISIBLE. Valkey 9.0.5 calls asprintf() in valkey-benchmark.c,
+          # which is otherwise an implicit declaration and a hard error on Cygwin.
+          make -j$(nproc) BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0 -D_GNU_SOURCE"
 
           # Install
           make PREFIX="$(pwd)/../install/valkey" install
