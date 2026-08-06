@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.2] - 2026-08-06
+
+### Fixed
+
+- **QuestDB 9.4.3 now starts on `darwin-arm64`, `darwin-x64` and `linux-arm64`.** Those three platforms have no official QuestDB `-rt-` package, so hostdb repackages the `no-jre` tarball with an Adoptium Temurin JRE it bundles itself, and that JRE was pinned to the 21 line. QuestDB 9.4.x's `questdb.sh` passes `--sun-misc-unsafe-memory-access=allow`, a flag that only exists from JDK 24 on, so the JVM exited with `Unrecognized option` / `Could not create the Java Virtual Machine` before QuestDB ever started. The bundled JRE moves to the Temurin 25 LTS line (`api.adoptium.net/v3/binary/latest/25/ga/...`). `linux-x64` and `win32-x64` use QuestDB's own runtime bundles and were never affected.
+
 ## [0.38.1] - 2026-08-05
 
 Metadata-only republish of the 0.38.0 engine wave. No `databases.yml` change, no resolver change, no defaults change: every version resolves exactly as it does on 0.38.0.
