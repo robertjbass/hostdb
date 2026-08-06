@@ -114,7 +114,11 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.23'
+          # Must be >= the go directive in Weaviate's go.mod (1.26 as of 1.38.8).
+          # The cross-compile step runs with GOTOOLCHAIN=local, so an older Go here
+          # does not auto-upgrade: it fails the darwin/win32 builds with
+          # "go.mod requires go >= 1.26" while the workflow still reports success.
+          go-version: '1.26'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
