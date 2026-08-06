@@ -9,7 +9,7 @@
  *
  * QuestDB distribution:
  * - Linux x64, Windows x64: Official -rt- packages with bundled JRE
- * - Linux ARM64, macOS: No-JRE package + bundled Adoptium Temurin JRE 21
+ * - Linux ARM64, macOS: No-JRE package + bundled Adoptium Temurin JRE 25
  */
 
 import {
@@ -54,14 +54,16 @@ const PLATFORMS_NEEDING_JRE: Platform[] = [
   'darwin-arm64',
 ]
 
-// Adoptium JRE download URLs (using latest JRE 21 LTS)
+// Adoptium JRE download URLs (using latest JRE 25 LTS)
+// QuestDB 9.4.x passes --sun-misc-unsafe-memory-access=allow, a JDK 24+ flag,
+// so a JRE 21 bundle fails to start with "Unrecognized option".
 const JRE_URLS: Record<string, string> = {
   'linux-arm64':
-    'https://api.adoptium.net/v3/binary/latest/21/ga/linux/aarch64/jre/hotspot/normal/eclipse',
+    'https://api.adoptium.net/v3/binary/latest/25/ga/linux/aarch64/jre/hotspot/normal/eclipse',
   'darwin-x64':
-    'https://api.adoptium.net/v3/binary/latest/21/ga/mac/x64/jre/hotspot/normal/eclipse',
+    'https://api.adoptium.net/v3/binary/latest/25/ga/mac/x64/jre/hotspot/normal/eclipse',
   'darwin-arm64':
-    'https://api.adoptium.net/v3/binary/latest/21/ga/mac/aarch64/jre/hotspot/normal/eclipse',
+    'https://api.adoptium.net/v3/binary/latest/25/ga/mac/aarch64/jre/hotspot/normal/eclipse',
 }
 
 function isValidPlatform(value: string): value is Platform {
@@ -265,12 +267,12 @@ async function downloadAndExtractJre(
     throw new Error(`No JRE URL for platform: ${platform}`)
   }
 
-  const jreDownloadPath = join(downloadDir, `jre-21-${platform}.tar.gz`)
+  const jreDownloadPath = join(downloadDir, `jre-25-${platform}.tar.gz`)
 
   if (existsSync(jreDownloadPath)) {
     logInfo(`Using cached JRE download: ${basename(jreDownloadPath)}`)
   } else {
-    logInfo('=== Downloading Adoptium JRE 21 ===')
+    logInfo('=== Downloading Adoptium JRE 25 ===')
     await downloadFile(jreUrl, jreDownloadPath)
   }
 
@@ -280,7 +282,7 @@ async function downloadAndExtractJre(
   mkdirSync(jreExtractDir, { recursive: true })
   extractTarGz(jreDownloadPath, jreExtractDir)
 
-  // Find the JRE directory (format: jdk-21.x.x+y-jre on Linux, or jdk-21.x.x+y-jre/Contents/Home on macOS)
+  // Find the JRE directory (format: jdk-25.x.x+y-jre on Linux, or jdk-25.x.x+y-jre/Contents/Home on macOS)
   const jreDir = findDirectory(jreExtractDir, 'jdk-')
   if (!jreDir) {
     throw new Error('Could not find extracted JRE directory')
@@ -354,7 +356,7 @@ async function repackage(
     version,
     platform,
     source: 'official',
-    jre_bundled: jreDir ? 'adoptium-21' : 'included',
+    jre_bundled: jreDir ? 'adoptium-25' : 'included',
     rehosted_by: 'hostdb',
     rehosted_at: new Date().toISOString(),
   }
@@ -463,7 +465,7 @@ Platforms: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
 
 Notes:
   - Linux x64 and Windows x64 use official -rt- packages (JRE included)
-  - Linux ARM64 and macOS use no-JRE package + bundled Adoptium JRE 21
+  - Linux ARM64 and macOS use no-JRE package + bundled Adoptium JRE 25
 
 Examples:
   pnpm download:questdb

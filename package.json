@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.38.1",
+  "version": "0.38.2",
   "description": "Pre-built database binaries for multiple platforms, plus a typed registry library for resolving versions and download URLs offline.",
   "private": false,
   "type": "module",
