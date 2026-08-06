@@ -69,7 +69,7 @@
   },
   "notes": {
     "source": "Official QuestDB releases from GitHub",
-    "jre-bundling": "QuestDB only provides runtime packages (-rt-) for Linux x64 and Windows x64. Other platforms use the no-JRE package bundled with Adoptium Temurin JRE 21 LTS.",
+    "jre-bundling": "QuestDB only provides runtime packages (-rt-) for Linux x64 and Windows x64. Other platforms use the no-JRE package bundled with Adoptium Temurin JRE 25 LTS. QuestDB 9.4.x passes --sun-misc-unsafe-memory-access=allow, which requires JDK 24 or newer.",
     "linux-arm64": "Uses no-jre package + bundled Adoptium JRE",
     "darwin-x64": "Uses no-jre package + bundled Adoptium JRE",
     "darwin-arm64": "Uses no-jre package + bundled Adoptium JRE"

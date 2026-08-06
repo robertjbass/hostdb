@@ -24,17 +24,19 @@ Download and repackage QuestDB binaries for distribution via GitHub Releases.
 | Source | Platforms | Format | Notes |
 |--------|-----------|--------|-------|
 | Official `-rt-` package | linux-x64, win32-x64 | tar.gz | JRE included by QuestDB |
-| Official no-JRE + Adoptium JRE 21 | linux-arm64, darwin-x64, darwin-arm64 | tar.gz | Bundled by hostdb |
+| Official no-JRE + Adoptium JRE 25 | linux-arm64, darwin-x64, darwin-arm64 | tar.gz | Bundled by hostdb |
 
 ### JRE Bundling
 
 QuestDB only provides runtime packages (`-rt-`) for Linux x64 and Windows x64. For other platforms, we:
 
 1. Download the official `no-jre` package from QuestDB GitHub releases
-2. Download Adoptium Temurin JRE 21 LTS for the target platform
+2. Download Adoptium Temurin JRE 25 LTS for the target platform
 3. Bundle them together into a single archive
 
 The bundled JRE is placed in `questdb/jre/` within the archive.
+
+The JRE line must be 24 or newer: QuestDB 9.4.x's `questdb.sh` passes `--sun-misc-unsafe-memory-access=allow`, a flag that only exists from JDK 24 on. A JRE 21 bundle makes the JVM exit with `Unrecognized option` before QuestDB starts.
 
 ## Usage
 
