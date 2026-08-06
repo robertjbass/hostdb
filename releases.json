@@ -1659,27 +1659,27 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/questdb-9.4.3/questdb-9.4.3-darwin-arm64.tar.gz",
-            "sha256": "f0f2cde9f823d5621dce8d636b080bca25196188030bdd20bc36346e8634b0f2",
-            "size": 80988883
+            "sha256": "f3b2d595fefcb2f536fc0ce213004b387bf792b58f2959b85a493ac427307f18",
+            "size": 89153331
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/questdb-9.4.3/questdb-9.4.3-darwin-x64.tar.gz",
-            "sha256": "1ed050455b1c322d3ac58ba726989ca136dfe1bb3b698fb446bd1cca0a57da47",
-            "size": 74846907
+            "sha256": "a3e6975f40526284a45e171389df762d5b074488b337a7b10ce5b1695bf63c33",
+            "size": 74827524
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/questdb-9.4.3/questdb-9.4.3-linux-arm64.tar.gz",
-            "sha256": "4b1f31b4c33b13647780e89e9cdf6bee6147804e2d4b99633defbabbc20cad74",
-            "size": 84189951
+            "sha256": "1f4437cf5e2f3ef172de41700ca0be60b0e1581c99555a586eef4364118c399d",
+            "size": 93647774
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/questdb-9.4.3/questdb-9.4.3-linux-x64.tar.gz",
-            "sha256": "121ec6e483537cf122bd8c8a7c9c9f96362160165792d03b30991e3bec5324ce",
-            "size": 93623630
+            "sha256": "3696d07ef8119bfe57086fef6bd444c67785416ba701e0cac5f4260ce19b0ea5",
+            "size": 93623569
           },
           "win32-x64": {
             "url": "https://registry.layerbase.host/questdb-9.4.3/questdb-9.4.3-win32-x64.zip",
-            "sha256": "28053619c636e97803c6a0f2232292dfa6587a101d1c4b5b6d979485fd939610",
+            "sha256": "cfb361ca1c994de34725af4a40d01dd22d1444a6738c1104f4e3f9adaffb9795",
             "size": 85106066
           }
         }
