@@ -8,11 +8,12 @@ Download and repackage Qdrant binaries for distribution via GitHub Releases.
 
 ## Supported Versions
 
+- 1.18.3
 - 1.16.3
 
 ## Supported Platforms
 
-- `linux-x64` - Linux x86_64 (glibc)
+- `linux-x64` - Linux x86_64 (musl, static; 1.16.3 uses glibc)
 - `linux-arm64` - Linux ARM64 (musl)
 - `darwin-x64` - macOS Intel
 - `darwin-arm64` - macOS Apple Silicon
@@ -22,13 +23,18 @@ Download and repackage Qdrant binaries for distribution via GitHub Releases.
 
 | Platform | Source | Format | Notes |
 |----------|--------|--------|-------|
-| linux-x64 | Official | tar.gz | glibc build |
+| linux-x64 | Official | tar.gz | musl (static) build from 1.18.3 on; 1.16.3 uses the glibc build |
 | linux-arm64 | Official | tar.gz | musl build |
 | darwin-x64 | Official | tar.gz | |
 | darwin-arm64 | Official | tar.gz | |
 | win32-x64 | Official | zip | MSVC build |
 
 All binaries are downloaded from official Qdrant GitHub releases.
+
+**linux-x64 uses the musl (static) asset from 1.18.3 on.** Upstream builds the
+`x86_64-unknown-linux-gnu` asset for 1.18.3 against glibc 2.38, so it fails to
+exec on Ubuntu 22.04 (glibc 2.35), which hostdb supports. The musl asset is
+statically linked and runs on every supported Linux baseline.
 
 ## Usage
 

@@ -6,21 +6,25 @@ Apache CouchDB binaries for all 5 platforms.
 
 | Platform | Source | Notes |
 |----------|--------|-------|
-| `linux-x64` | Docker extraction | Extracted from official `couchdb` Docker image |
-| `linux-arm64` | Docker extraction | Extracted from official `couchdb` Docker image (QEMU) |
+| `linux-x64` | Docker build | Apache apt package `couchdb=<version>~jammy`, unpacked on `ubuntu:22.04` |
+| `linux-arm64` | Docker build | Apache apt package `couchdb=<version>~jammy`, unpacked on `ubuntu:22.04` (QEMU) |
 | `darwin-x64` | Neighbourhoodie | Official macOS x86_64 binary |
 | `darwin-arm64` | Neighbourhoodie | Official macOS Apple Silicon binary |
 | `win32-x64` | Neighbourhoodie | MSI installer, extracted for portable use |
 
 ## Binary Sources
 
-### Linux (Docker Extraction)
+### Linux (Docker build from the Apache apt repository)
 
-CouchDB does not provide standalone Linux binaries - only .deb/.rpm packages that require system installation. Instead, we extract the complete CouchDB installation from the official Docker image, which includes all dependencies (Erlang, ICU, OpenSSL, etc.) pre-configured.
+CouchDB does not provide standalone Linux binaries - only .deb/.rpm packages that require system installation. `builds/couchdb/Dockerfile` downloads the official Apache package (`couchdb=<version>~jammy`) inside an `ubuntu:22.04` container and unpacks it with `dpkg-deb -x` (no maintainer scripts), then normalizes the tree for relocatable use.
 
-**Docker Image:** [`couchdb`](https://hub.docker.com/_/couchdb) (official)
+**Repository:** `https://apache.jfrog.io/artifactory/couchdb-deb` (`jammy` suite, key from `https://couchdb.apache.org/repo/keys.asc`)
 
-**Extraction Path:** `/opt/couchdb` in the Docker image
+**Extraction Path:** `/opt/couchdb` inside the unpacked package
+
+**Why not the official `couchdb` Docker image?** It tracks Debian stable and moved from bookworm to trixie at 3.5.2. Only `/opt/couchdb` was ever copied out, so the bundled Erlang runtime kept its link to the image's system libraries: the 3.5.2 extract needed `GLIBC_2.38` (dead on Ubuntu 22.04, glibc 2.35) and `OPENSSL_3.4.0` in `crypto.so` (dead on Ubuntu 24.04, OpenSSL 3.0, where CouchDB aborted with `{undef,{crypto,info_fips,[]}}`). Building against the `jammy` package pins the toolchain to our oldest supported Linux baseline.
+
+**Normalization applied after unpacking:** the FHS symlinks `data -> /var/lib/couchdb` and `var/log -> /var/log/couchdb` become real in-tree directories (`database_dir` defaults to `./data`; a dangling symlink makes `mem3` fail to create `_nodes` and the node dies with `{case_clause,{not_found,no_db_file}}`), the package's `10-filelog.ini` default is dropped, `10-docker-default.ini` (`bind_address = any`) is restored for parity with earlier tarballs, and the packaged `-name` is stripped from `vm.args`.
 
 ### macOS & Windows (Neighbourhoodie)
 
@@ -69,8 +73,8 @@ pnpm download:couchdb -- --all-platforms --build-fallback
 | `darwin-x64` | Download + repackage | 1-2 minutes |
 | `darwin-arm64` | Download + repackage | 1-2 minutes |
 | `win32-x64` | MSI extract | 2-3 minutes |
-| `linux-x64` | Docker pull + extract | 2-3 minutes |
-| `linux-arm64` | Docker pull + extract (QEMU) | 5-10 minutes |
+| `linux-x64` | Package download + unpack | 2-3 minutes |
+| `linux-arm64` | Package download + unpack (QEMU) | 5-10 minutes |
 
 ## Archive Structure
 
