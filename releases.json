@@ -73,27 +73,27 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-darwin-arm64.tar.gz",
-            "sha256": "b64b4e85388c3055eccec4af308dcb5d2dc73fcf13799d2d03d098531ae1d3d6",
-            "size": 112594772
+            "sha256": "e997ba0ac0f6ec4f31f2ce0e8909889feaa0a47e874d7a8f5f3c796bafb5625d",
+            "size": 112595407
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-darwin-x64.tar.gz",
-            "sha256": "25f1d3d4c306392c1eb3ed931d22affee7a8b0956f80266614493c093692e9bb",
-            "size": 115155441
+            "sha256": "1c9044df1365d4332224dea7448d06bd0d795002a483a1a13b3ec4ef86d31d75",
+            "size": 115152253
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-linux-arm64.tar.gz",
-            "sha256": "d6390b8de1af6722955e7438b6b89d2a570b3897649314a004b458de684f9fb1",
-            "size": 76363559
+            "sha256": "8174f4193f2c18d1d02af1f8206fa0a4e27174d305e15583e73c7edbc6607490",
+            "size": 76277502
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-linux-x64.tar.gz",
-            "sha256": "f09fc5812fd987158005eca4921c889bd440285fc66e19a1765e0a3b6409b4e2",
-            "size": 76810679
+            "sha256": "1ce8be6a0333c371d5c6f6546ae2ae5ff744197d791f2b3562ef3e75e1bdd3ad",
+            "size": 76673428
           },
           "win32-x64": {
             "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-win32-x64.zip",
-            "sha256": "e6fabda847ed5506d121009c102eb095f610dc33e556ddbd845c6b4ec25f5ee0",
+            "sha256": "a9653891a852803b0c1c68fcb5c1bbb27a67d9de2aa25f5cf4ea510838ac05f1",
             "size": 116726640
           }
         }
@@ -1593,27 +1593,27 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-darwin-arm64.tar.gz",
-            "sha256": "a7a7daeb95ba735aa1167c1970f2352603caf4ba62f051a47bc94411e852ed82",
-            "size": 27185838
+            "sha256": "ac63f092d7f4cd6a61e62cdec2cc632e45f13eeca1b8f77e76e0e28edb7e1f36",
+            "size": 27185842
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-darwin-x64.tar.gz",
-            "sha256": "a5721bc9216df904eff085cb7851c3b484070f75fbc53f077b6235b0e10b0337",
-            "size": 29206581
+            "sha256": "9b263d0cef0a2150ffcb7b05e4f07e797aab77ef7c5098fd824d6ba864df1b58",
+            "size": 29206582
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-linux-arm64.tar.gz",
-            "sha256": "7b75fa7e569598c8cf87bae9718b0280ef38dc7ce5e0df9af48aeb204b071848",
-            "size": 28777265
+            "sha256": "18c00798c9a7f93ca04cd90a9329c5487336a178f7feeb3cc1cda371fef266a3",
+            "size": 28777181
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-linux-x64.tar.gz",
-            "sha256": "f27c41657edcda9421e2f2189674bbc12776c2b4c1c738250b8d4349abbbbab2",
-            "size": 30590098
+            "sha256": "904740fee81963ca37b0aa54b9d7c1ed4f5982a7c4e96e552773bb31605b6a21",
+            "size": 30745105
           },
           "win32-x64": {
             "url": "https://registry.layerbase.host/qdrant-1.18.3/qdrant-1.18.3-win32-x64.zip",
-            "sha256": "b720f85054eb26c187daf4e966eb36f1b6d8247d2a8eea3d1ee99cbba590871e",
+            "sha256": "cf54ec6de662291e9e3f2780fd7ad1935e6f2d75f760a4e2cf01c3ea53161d2e",
             "size": 29317363
           }
         }
