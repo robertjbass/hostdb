@@ -198,7 +198,10 @@
               "cascadeDelete": true,
               "note": "FerretDB v2 uses postgresql-documentdb as its backend; removing FerretDB also removes postgresql-documentdb"
             }
-          ]
+          ],
+          "retiredPlatforms": {
+            "win32-x64": "Released 2026-01-23 before v2's hard dependency on postgresql-documentdb was accounted for. That backend has no working Windows build (its win32 bundle ships pgvector only, no documentdb extension), so a Windows FerretDB v2 has nothing to run against. Dropped from the supported list on 2026-02-15; the artifact stays on R2 because published URLs are immutable."
+          }
         },
         "1.24.2": {
           "dependencies": [
@@ -695,7 +698,11 @@
         "17": "17-0.107.0"
       },
       "versions": {
-        "17-0.107.0": true
+        "17-0.107.0": {
+          "retiredPlatforms": {
+            "win32-x64": "Released 2026-01-23 as a PostgreSQL bundle carrying pgvector only. The documentdb extension (plus pg_cron, rum, PostGIS) has no Windows build, so the artifact cannot serve the one purpose this engine has, backing FerretDB v2. Dropped from the supported list on 2026-02-15; the artifact stays on R2 because published URLs are immutable. Reviving Windows means Phase 3 of builds/postgresql-documentdb/WINDOWS_PLAN.md, not re-enabling this platform."
+          }
+        }
       },
       "platforms": [
         "linux-x64",
@@ -836,7 +843,8 @@
         "8.4.5": true,
         "8.4.0": true,
         "7.4.10": {
-          "note": "Security patch for the 7.4 line (CVE-2026-66373). NOT deprecated only so the release workflow dropdown can build it; sync:versions skips deprecated versions. RSALv2/SSPLv1 still forbids offering Redis as a competing managed service, so use 7.2.15 (BSD) for managed-service use cases and 7.4.10 only for self-contained app use. Deprecate it in a follow-up policy commit once the binaries are on R2, exactly as 7.4.9 was handled in 0.32.0."
+          "deprecated": true,
+          "note": "Deprecated; RSALv2/SSPLv1 license forbids offering Redis as a competing managed service. Carries the CVE-2026-66373 fix for the 7.4 line, so use 7.2.15 (BSD) for managed-service use cases, or stay on 7.4.10 only for self-contained app use."
         },
         "7.4.9": {
           "deprecated": true,

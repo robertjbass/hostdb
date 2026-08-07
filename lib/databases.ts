@@ -62,6 +62,18 @@ export type VersionConfig = {
   dependencies?: Dependency[]
   platforms?: Platform[] | Record<string, PlatformEntry>
   cliTools?: CliTools
+  /**
+   * Platforms that were released once and are no longer supported, mapped to
+   * the reason. Deliberately separate from `platforms`: the artifact still
+   * exists on R2 (published URLs are immutable), so the registry has to be able
+   * to say "this release entry is expected" without offering the platform.
+   *
+   * Declaring one here is what stops `pnpm prep` reporting the leftover release
+   * entry as an orphan. prep also verifies each declaration still matches
+   * reality, so a retirement cannot outlive the artifact or contradict
+   * `platforms`.
+   */
+  retiredPlatforms?: Partial<Record<Platform, string>>
 }
 
 // A version entry is either a simple boolean or a config object
@@ -239,6 +251,23 @@ export function getVersionPlatforms(
 
   const { list } = getVersionPlatformsRaw(versionEntry)
   return list.length > 0 ? [...list] : [...engine.platforms]
+}
+
+/**
+ * Get the retired platforms for a version, mapped to the reason each was
+ * dropped. A retired platform has a release artifact but is not offered to
+ * consumers; see `VersionConfig.retiredPlatforms`.
+ *
+ * Internal to the repo tooling (not re-exported from lib/index.ts): consumers
+ * read `platforms`, which already excludes these.
+ */
+export function getRetiredPlatforms(
+  engine: DatabaseEntry,
+  version: string,
+): Partial<Record<Platform, string>> {
+  const versionEntry = engine.versions[version]
+  if (!versionEntry || typeof versionEntry === 'boolean') return {}
+  return versionEntry.retiredPlatforms ?? {}
 }
 
 /**

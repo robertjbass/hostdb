@@ -152,6 +152,22 @@ versions:
 
 `pnpm prep` regenerates `databases.json` (workflow dropdowns auto-skip deprecated). Existing binaries stay on R2 — deprecation is UI-only and consumers can still download.
 
+### Retire a platform that was already released
+
+Dropping a platform from a version's `platforms` list does not remove its release: R2 URLs are immutable and `releases.json` is regenerated from the GitHub releases, so the artifact stays listed forever. `pnpm prep` would report that leftover entry as an orphaned release on every run.
+
+Record the drop instead:
+
+```yaml
+versions:
+  2.7.0:
+    platforms: [linux-x64, linux-arm64, darwin-x64, darwin-arm64]
+    retired_platforms:
+      win32-x64: Why it was dropped, when, and what would have to change to revive it.
+```
+
+The platform stays out of `platforms`, so consumers are never offered it; the entry tells prep the release is expected. `tests/retired-platforms.test.ts` keeps the list honest: a retirement whose release no longer exists, or one that contradicts `platforms`, fails CI, as does a released platform that is in neither list. **Never silence an orphaned-release warning any other way** - hand-editing `releases.json` does not survive the next `pnpm prep`, and `publish.yml` aborts on the diff.
+
 ### Version-level `cli_tools` overrides
 
 When a vendor removes/adds binaries between versions (e.g., MySQL removed `mysqlpump` in 9.0):
