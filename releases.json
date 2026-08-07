@@ -73,27 +73,27 @@
         "platforms": {
           "darwin-arm64": {
             "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-darwin-arm64.tar.gz",
-            "sha256": "b64b4e85388c3055eccec4af308dcb5d2dc73fcf13799d2d03d098531ae1d3d6",
-            "size": 112594772
+            "sha256": "e997ba0ac0f6ec4f31f2ce0e8909889feaa0a47e874d7a8f5f3c796bafb5625d",
+            "size": 112595407
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-darwin-x64.tar.gz",
-            "sha256": "25f1d3d4c306392c1eb3ed931d22affee7a8b0956f80266614493c093692e9bb",
-            "size": 115155441
+            "sha256": "1c9044df1365d4332224dea7448d06bd0d795002a483a1a13b3ec4ef86d31d75",
+            "size": 115152253
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-linux-arm64.tar.gz",
-            "sha256": "d6390b8de1af6722955e7438b6b89d2a570b3897649314a004b458de684f9fb1",
-            "size": 76363559
+            "sha256": "8174f4193f2c18d1d02af1f8206fa0a4e27174d305e15583e73c7edbc6607490",
+            "size": 76277502
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-linux-x64.tar.gz",
-            "sha256": "f09fc5812fd987158005eca4921c889bd440285fc66e19a1765e0a3b6409b4e2",
-            "size": 76810679
+            "sha256": "1ce8be6a0333c371d5c6f6546ae2ae5ff744197d791f2b3562ef3e75e1bdd3ad",
+            "size": 76673428
           },
           "win32-x64": {
             "url": "https://registry.layerbase.host/couchdb-3.5.2/couchdb-3.5.2-win32-x64.zip",
-            "sha256": "e6fabda847ed5506d121009c102eb095f610dc33e556ddbd845c6b4ec25f5ee0",
+            "sha256": "a9653891a852803b0c1c68fcb5c1bbb27a67d9de2aa25f5cf4ea510838ac05f1",
             "size": 116726640
           }
         }
