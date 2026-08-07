@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.3] - 2026-08-06
+
+Linux packaging fixes for two engines in the 0.38.0 wave. Both were caught by spindb's full engine matrix (robertjbass/spindb#268), both are repackages of the same upstream version, and no `databases.yml` entry, default or resolver behaviour changes.
+
+### Fixed
+
+- **Qdrant 1.18.3 `linux-x64` now runs on Ubuntu 22.04.** Upstream builds `qdrant-x86_64-unknown-linux-gnu.tar.gz` for 1.18.3 against a newer glibc than 1.16.3 was: the binary imports `GLIBC_2.38`, so on Ubuntu 22.04 (glibc 2.35) it never execs, failing at spindb's post-download `qdrant --version` verification with ``version `GLIBC_2.38' not found``. Ubuntu 24.04 (glibc 2.39) was unaffected, which is why only half the matrix went red. `linux-x64` now uses upstream's `qdrant-x86_64-unknown-linux-musl.tar.gz`, the same static musl asset `linux-arm64` has always used. Verified in `ubuntu:22.04`: the musl binary is `static-pie linked`, starts, and answers `/healthz`, `/` and `/collections`. 1.16.3 keeps the gnu asset (it only needs `GLIBC_2.34`).
+- **CouchDB 3.5.2 `linux-x64` / `linux-arm64` now start on Ubuntu 22.04 and 24.04.** `builds/couchdb/Dockerfile` copied `/opt/couchdb` out of the official `couchdb:<version>` image but not the system libraries the bundled Erlang runtime links against, so the extracted tree silently inherited that image's base distro. The 3.5.2 image moved from Debian 12 (bookworm, glibc 2.36 / OpenSSL 3.0) to Debian 13 (trixie, glibc 2.41 / OpenSSL 3.5), which broke both supported baselines in different ways: on 22.04 `beam.smp` needs `GLIBC_2.38` and never execs, and on 24.04 it execs but `crypto.so` needs `OPENSSL_3.4.0`, so the crypto NIF fails to load and the node aborts with `{application_start_failure,config,{undef,{crypto,info_fips,[]}}}`. CI only saw "start timeout, then ECONNREFUSED" because `couchdb.log` was never dumped. Linux packaging now builds from the official Apache CouchDB apt repository (`couchdb=<version>~jammy`) inside `ubuntu:22.04` - our oldest supported Linux target - and unpacks the package with `dpkg-deb -x` so no maintainer script can bake a debconf admin password, node name or Erlang cookie into a redistributable tarball. Verified in `ubuntu:22.04` and `ubuntu:24.04` (x64) and `ubuntu:22.04` (arm64): CouchDB 3.5.2 starts and answers `GET /` on 5984. Rebuilding 3.5.1 through the new path was also verified and yields the same `erts-14.2.5.12` the shipping 3.5.1 tarball has.
+
+### Changed
+
+- **CouchDB Linux trees are normalized after unpacking**, so the tarball keeps the shape the working 3.5.1 artifact had. The package's FHS symlinks (`data -> /var/lib/couchdb`, `var/log -> /var/log/couchdb`) become real in-tree directories - `database_dir` defaults to `./data`, and with a dangling symlink `mem3` cannot create `_nodes` and the node dies with `{case_clause,{not_found,no_db_file}}`. The package's `10-filelog.ini` (which pins logging to `/var/log/couchdb`) is dropped, `etc/default.d/10-docker-default.ini` (`bind_address = any`) is restored, and the packaged `-name` line is stripped from `vm.args` so the node name comes from the caller. spindb generates its own `local.ini` and `vm.args`, so none of this changes how a spindb container is configured.
+
+### Note
+
+- The wave's other url-sourced `linux-x64` binaries were swept for the same glibc hazard (`objdump -T`, highest imported symbol version): influxdb 3.10.5 `2.18`, typedb 3.12.1 `2.25`, mysql 9.7.2 `2.28`, qdrant 1.16.3 `2.34`, meilisearch 1.52.0 `2.35`, mongodb 8.2.12 `2.35`, weaviate 1.38.8 none (static). All run on Ubuntu 22.04 today, and all of those engines passed spindb's 22.04 matrix. Meilisearch and MongoDB sit exactly at the 2.35 ceiling, so they are the two most likely to trip this next.
+
 ## [0.38.2] - 2026-08-06
 
 ### Fixed

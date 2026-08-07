@@ -57,9 +57,9 @@
   },
   "notes": {
     "neighbourhoodie": "Official binaries hosted by Neighbourhoodie (https://neighbourhood.ie/couchdb-support/download-binaries)",
-    "docker-extract": "Extracted from official Apache CouchDB Docker image (couchdb:VERSION)",
-    "linux-x64": "Extracted from official Docker image couchdb:VERSION on linux/amd64",
-    "linux-arm64": "Extracted from official Docker image couchdb:VERSION on linux/arm64",
+    "docker-extract": "Packaged inside a Docker build from the official Apache CouchDB apt repository (couchdb=VERSION~jammy). The couchdb:VERSION Docker image is NOT used: it tracks Debian stable and moved to trixie at 3.5.2, whose glibc/OpenSSL the extracted tree then requires.",
+    "linux-x64": "builds/couchdb/Dockerfile, ubuntu:22.04 (jammy) base on linux/amd64",
+    "linux-arm64": "builds/couchdb/Dockerfile, ubuntu:22.04 (jammy) base on linux/arm64",
     "darwin-x64": "Downloaded from Neighbourhoodie (macOS x86_64)",
     "darwin-arm64": "Downloaded from Neighbourhoodie (macOS Apple Silicon)",
     "win32-x64": "MSI installer downloaded from Neighbourhoodie, extracted for portable use"
