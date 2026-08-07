@@ -198,7 +198,10 @@
               "cascadeDelete": true,
               "note": "FerretDB v2 uses postgresql-documentdb as its backend; removing FerretDB also removes postgresql-documentdb"
             }
-          ]
+          ],
+          "retiredPlatforms": {
+            "win32-x64": "Released 2026-01-23 before v2's hard dependency on postgresql-documentdb was accounted for. That backend has no working Windows build (its win32 bundle ships pgvector only, no documentdb extension), so a Windows FerretDB v2 has nothing to run against. Dropped from the supported list on 2026-02-15; the artifact stays on R2 because published URLs are immutable."
+          }
         },
         "1.24.2": {
           "dependencies": [
@@ -695,7 +698,11 @@
         "17": "17-0.107.0"
       },
       "versions": {
-        "17-0.107.0": true
+        "17-0.107.0": {
+          "retiredPlatforms": {
+            "win32-x64": "Released 2026-01-23 as a PostgreSQL bundle carrying pgvector only. The documentdb extension (plus pg_cron, rum, PostGIS) has no Windows build, so the artifact cannot serve the one purpose this engine has, backing FerretDB v2. Dropped from the supported list on 2026-02-15; the artifact stays on R2 because published URLs are immutable. Reviving Windows means Phase 3 of builds/postgresql-documentdb/WINDOWS_PLAN.md, not re-enabling this platform."
+          }
+        }
       },
       "platforms": [
         "linux-x64",
