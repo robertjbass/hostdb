@@ -10,7 +10,6 @@ on:
         options:
           - 8.4.5
           - 8.4.0
-          - 7.4.10
           - 7.2.15
           - 7.2.14
         default: 8.4.5
@@ -386,6 +385,16 @@ jobs:
         run: |
           chmod +x builds/common/validate-binaries.sh
           ./builds/common/validate-binaries.sh redis ./release-assets
+
+      - name: Check GLIBC floor (Linux artifacts)
+        run: |
+          chmod +x builds/common/check-glibc-floor.sh
+          ./builds/common/check-glibc-floor.sh redis ./release-assets
+
+      - name: Check platform coverage
+        run: |
+          chmod +x builds/common/check-platform-coverage.sh
+          ./builds/common/check-platform-coverage.sh redis "${{ github.event.inputs.version }}" "${{ github.event.inputs.platforms }}" ./release-assets
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

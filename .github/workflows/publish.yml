@@ -3,6 +3,11 @@ name: Publish to npm
 on:
   push:
     branches: [main]
+  # Manual re-fire. A push event that GitHub swallows (or a run cancelled mid
+  # flight) used to leave the only recovery as an empty commit to main. The
+  # version guard below publishes only when package.json is newer than npm, so
+  # dispatching this by hand is a no-op when there is nothing to publish.
+  workflow_dispatch:
 
 jobs:
   publish:

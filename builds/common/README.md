@@ -32,6 +32,48 @@ The script:
     ./builds/common/validate-binaries.sh <database-id> ./release-assets
 ```
 
+### `check-glibc-floor.sh <database> <release-assets-dir>`
+
+Fails a release whose Linux artifacts need a newer glibc than hostdb's oldest supported target.
+
+Two 2026-08 releases shipped green and only failed two repos downstream, in spindb's Ubuntu 22.04 CI: qdrant 1.18.3 (upstream gnu build referenced `GLIBC_2.38`) and couchdb 3.5.2 (docker-extract followed the upstream image from bookworm to trixie and inherited glibc 2.41). Nothing in the pipeline looked at what the binaries actually require.
+
+For every `linux-x64` / `linux-arm64` archive the script extracts the tree, finds every ELF file by magic bytes, reads the highest `GLIBC_x.y.z` symbol version each one references (`readelf -V`, falling back to `objdump -T`), and fails if anything exceeds the floor.
+
+**The floor is a single constant, `GLIBC_FLOOR`, at the top of the script.** It is `2.35`: Ubuntu 22.04 (jammy), the base image every `builds/*/Dockerfile` uses. Change it there and nowhere else. When the check fires, fix the build - use a musl/static upstream asset, or pin the docker base to `ubuntu:22.04` - rather than raising the floor.
+
+Static binaries (musl, Go, Zig) reference no GLIBC versions and pass trivially. Non-ELF payloads (jars, scripts, `.a` archives, data files) are skipped, so JVM engines like QuestDB and TypeDB pass with nothing to inspect. darwin and win32 archives are not examined.
+
+**Used by:** all 22 release workflows, in the `release` job right after "Validate required binaries":
+
+```yaml
+- name: Check GLIBC floor (Linux artifacts)
+  run: |
+    chmod +x builds/common/check-glibc-floor.sh
+    ./builds/common/check-glibc-floor.sh <database-id> ./release-assets
+```
+
+### `check-platform-coverage.sh <database> <version> <requested-platforms> <release-assets-dir>`
+
+Fails a release that silently shipped fewer platforms than were asked for.
+
+Every engine's `download.ts` loops over platforms and counts a failed download, a missing cross-compiler, or a build error as a "skip", then exits 0. As long as one platform produced a tarball the release completed green: weaviate 1.38.8 shipped 2 of 5 platforms that way and the release run said nothing.
+
+A platform is EXPECTED only when the engine declares it for that version in **both** `databases.json` (the registry platform list, resolved the same way `getVersionPlatforms()` does) and `builds/<db>/sources.json` (the build recipe). Engines with no win32 build by design, such as libsql and postgresql, simply do not declare it, so `all` never expects one. Anything expected that produced no artifact is a hard failure. The skip is driven by the declared platform list, never by the build outcome.
+
+`<requested-platforms>` is the workflow's `platforms` input verbatim: the literal `all`, or a comma/space separated list. Built platforms are read from artifact filenames, so compound versions like `postgresql-documentdb 17-0.107.0` work.
+
+Covered by `tests/platform-coverage.test.ts`. `HOSTDB_ROOT` overrides the repo root the script reads its JSON from.
+
+**Used by:** all 22 release workflows, immediately after the GLIBC floor check:
+
+```yaml
+- name: Check platform coverage
+  run: |
+    chmod +x builds/common/check-platform-coverage.sh
+    ./builds/common/check-platform-coverage.sh <database-id> "${{ github.event.inputs.version }}" "${{ github.event.inputs.platforms }}" ./release-assets
+```
+
 ### `fix-macos-dylibs.sh <package-root>`
 
 macOS source builds that link against Homebrew (OpenSSL, pcre2, etc.) produce binaries with absolute paths like `/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib`. These break on any Mac without those exact Homebrew packages installed.

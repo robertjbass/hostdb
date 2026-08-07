@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.38.4] - 2026-08-07
+
+Release-pipeline hardening from the 0.38.x engine wave. Every problem the wave hit (qdrant's glibc, couchdb's drifting base image, weaviate shipping 2 of 5 platforms, a swallowed publish push) got through because nothing in the pipeline was looking for it. No engine version, default, or resolver behaviour changes, and no artifact was rebuilt.
+
+### Added
+
+- **GLIBC floor check on every release.** `builds/common/check-glibc-floor.sh` extracts each `linux-x64` / `linux-arm64` artifact, finds every ELF file by magic bytes, reads the highest `GLIBC_x.y.z` symbol version it references (`readelf -V`, falling back to `objdump -T`), and fails the release if anything exceeds the floor. The floor is one constant at the top of the script, `GLIBC_FLOOR="2.35"`, matching Ubuntu 22.04 (jammy), the oldest supported Linux target and the base image every `builds/*/Dockerfile` uses. This is what qdrant 1.18.3 (`GLIBC_2.38`, from the upstream gnu build) and couchdb 3.5.2 (glibc 2.41, inherited by a docker-extract that followed the upstream image to trixie) both needed: they shipped green in 0.38.0 and only failed two repos downstream, in spindb's Ubuntu 22.04 CI. Static binaries (musl, Go, Zig) reference no GLIBC versions and pass trivially; non-ELF payloads such as the QuestDB and TypeDB jars are skipped. Wired into all 22 release workflows next to the existing binary validation. Validated against real artifacts: upstream `qdrant-x86_64-unknown-linux-gnu.tar.gz` for 1.18.3 fails at `GLIBC_2.38`, the musl tarball we actually ship passes with no GLIBC references, and couchdb 3.5.2 passes at exactly `2.35`.
+- **Platform coverage check on every release.** `builds/common/check-platform-coverage.sh` compares the platforms a run requested against the artifacts it produced, and fails when one is missing. Closes the known issue filed in 0.38.1. Covered by `tests/platform-coverage.test.ts`.
+
+### Changed
+
+- **A requested platform that does not build now fails the release.** Every engine's `download.ts` counts a failed download, a missing cross-compiler, or a build error as a "skipped" platform and still exits 0, so a run stayed green as long as one platform produced a tarball. Weaviate 1.38.8 shipped 2 of 5 platforms that way and nothing in the run said so. A platform is expected only when the engine declares it for that version in both `databases.json` and `builds/<db>/sources.json`, so engines with no win32 build by design (libsql, postgresql) still pass; the skip is driven by the declared platform list, never by the build outcome.
+- **`postgresql-documentdb` Linux builds moved from `debian:bookworm` to `ubuntu:22.04`.** Same base-image-drift class that broke couchdb: a tag that tracks "stable" is a moving target, and bookworm's glibc 2.36 is already above the floor. The dependency bundler copies host libraries into the package, and the published 17-0.107.0 `linux-x64` tarball carries a `lib/libexpat.so.1` requiring `GLIBC_2.36`, so it cannot load on Ubuntu 22.04. Every apt dependency resolves on jammy (verified on both `linux/amd64` and `linux/arm64`: GEOS 3.10.2, PROJ 8.2.1, cmake 3.22, gcc 11), libbson and the Intel decimal math library were already built from source, and the latter already tracks the `ubuntu/jammy` branch. `DEBIAN_FRONTEND=noninteractive` was added so tzdata cannot stall the build. **No documentdb artifact was rebuilt here**; the next documentdb release is the first jammy build.
+- **`publish.yml` accepts `workflow_dispatch`.** A push event that GitHub swallows used to leave an empty commit to `main` as the only way to re-fire the publish. The job's existing version guard publishes only when `package.json` is newer than npm, so a manual dispatch is a no-op when there is nothing to publish.
+
+### Deprecated
+
+- **Redis 7.4.10.** Now carries `deprecated: true`, the follow-up its 0.38.0 note promised once the binaries were on R2, exactly as 7.4.9 was handled in 0.32.0. The whole 7.4+ line is RSALv2/SSPLv1, which forbids offering Redis as a competing managed service, so it is desktop/local use only. Deprecation does not remove anything: 7.4.10 still resolves and its binaries stay on R2. `sync:versions` drops deprecated versions from the release-workflow dropdown, so 7.4.10 leaves the `release-redis` picker. Use 7.2.15 (BSD-3-Clause, and it carries the same CVE-2026-66373 fix) for managed-service use cases.
+
 ## [0.38.3] - 2026-08-06
 
 Linux packaging fixes for two engines in the 0.38.0 wave. Both were caught by spindb's full engine matrix (robertjbass/spindb#268), both are repackages of the same upstream version, and no `databases.yml` entry, default or resolver behaviour changes.
