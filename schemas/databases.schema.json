@@ -186,9 +186,30 @@
         "cliTools": {
           "$ref": "#/definitions/CliTools",
           "description": "Override engine-level CLI tools (full replacement)"
+        },
+        "retiredPlatforms": {
+          "$ref": "#/definitions/RetiredPlatforms"
         }
       },
       "additionalProperties": false
+    },
+    "RetiredPlatforms": {
+      "type": "object",
+      "description": "Platforms that were released for this version and are no longer supported, mapped to the reason. The artifact stays on R2 (published URLs are immutable) but the platform is absent from platforms, so consumers are never offered it. Declaring one here is what tells pnpm prep the leftover releases.json entry is expected rather than an orphan; prep fails the declaration if the platform is also listed in platforms or no longer has a release.",
+      "propertyNames": {
+        "enum": [
+          "linux-x64",
+          "linux-arm64",
+          "darwin-x64",
+          "darwin-arm64",
+          "win32-x64"
+        ]
+      },
+      "additionalProperties": {
+        "type": "string",
+        "description": "Why the platform was retired, including when and what would have to change to revive it"
+      },
+      "minProperties": 1
     },
     "Dependency": {
       "type": "object",

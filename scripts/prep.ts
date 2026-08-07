@@ -25,6 +25,7 @@ import {
   isVersionEnabled,
   isVersionDeprecated,
   getVersionPlatforms,
+  getRetiredPlatforms,
   type Platform,
   type DatabasesJson,
   type ReleasesJson,
@@ -102,6 +103,8 @@ type Discrepancy = {
     | 'orphaned-version'
     | 'missing-platform'
     | 'orphaned-platform'
+    | 'stale-retirement'
+    | 'conflicting-retirement'
   database: string
   version?: string
   platform?: string
@@ -214,16 +217,59 @@ function findDiscrepancies(): Discrepancy[] {
 
       // Get effective platforms for orphan check
       const enabledPlatforms = getVersionPlatforms(dbEntry, version)
+      const retiredPlatforms = getRetiredPlatforms(dbEntry, version)
 
-      // Check for orphaned platforms
+      // Check for orphaned platforms. A platform declared in
+      // `retired_platforms` is a known, documented leftover: the artifact is
+      // published and immutable, so its release entry is expected.
       for (const platform of Object.keys(release.platforms)) {
-        if (!enabledPlatforms.includes(platform as Platform)) {
+        if (enabledPlatforms.includes(platform as Platform)) continue
+        if (retiredPlatforms[platform as Platform]) continue
+
+        discrepancies.push({
+          type: 'orphaned-platform',
+          database: dbId,
+          version,
+          platform,
+          message: `Platform '${platform}' is released but not enabled in databases.json for ${dbId} ${version}`,
+        })
+      }
+    }
+  }
+
+  // Verify every retirement still describes reality. Without this the
+  // suppression list would be a place to silence warnings forever; instead a
+  // retirement that no longer matches a released artifact, or that contradicts
+  // the supported-platform list, is itself reported.
+  for (const [dbId, dbEntry] of Object.entries(databases.databases)) {
+    for (const version of Object.keys(dbEntry.versions)) {
+      const retiredPlatforms = getRetiredPlatforms(dbEntry, version)
+      if (Object.keys(retiredPlatforms).length === 0) continue
+
+      const enabledPlatforms = getVersionPlatforms(dbEntry, version)
+      const releasedPlatforms = Object.keys(
+        releases.databases[dbId]?.[version]?.platforms ?? {},
+      )
+
+      for (const platform of Object.keys(retiredPlatforms)) {
+        if (enabledPlatforms.includes(platform as Platform)) {
           discrepancies.push({
-            type: 'orphaned-platform',
+            type: 'conflicting-retirement',
             database: dbId,
             version,
             platform,
-            message: `Platform '${platform}' is released but not enabled in databases.json`,
+            message: `Platform '${platform}' is listed in both platforms and retired_platforms for ${dbId} ${version}`,
+          })
+          continue
+        }
+
+        if (!releasedPlatforms.includes(platform)) {
+          discrepancies.push({
+            type: 'stale-retirement',
+            database: dbId,
+            version,
+            platform,
+            message: `Platform '${platform}' is marked retired for ${dbId} ${version} but has no release; drop the retired_platforms entry`,
           })
         }
       }
@@ -411,6 +457,9 @@ ${colors.yellow}Checks:${colors.reset}
   if (discrepancies.length > 0) {
     const missingD = discrepancies.filter((d) => d.type.startsWith('missing-'))
     const orphaned = discrepancies.filter((d) => d.type.startsWith('orphaned-'))
+    const retirements = discrepancies.filter((d) =>
+      d.type.endsWith('-retirement'),
+    )
 
     if (missingD.length > 0) {
       logWarning(`Found ${missingD.length} missing release(s):`)
@@ -426,6 +475,13 @@ ${colors.yellow}Checks:${colors.reset}
       }
     }
 
+    if (retirements.length > 0) {
+      logWarning(`Found ${retirements.length} stale platform retirement(s):`)
+      for (const d of retirements) {
+        log(`  ${colors.dim}- ${d.message}${colors.reset}`)
+      }
+    }
+
     log('')
     log(`${colors.yellow}To resolve:${colors.reset}`)
     if (missingD.length > 0) {
@@ -435,6 +491,12 @@ ${colors.yellow}Checks:${colors.reset}
     if (orphaned.length > 0) {
       log(`  - Add the version to databases.json`)
       log(`  - Or delete the orphaned GitHub release`)
+      log(
+        `  - Or, if the platform was dropped on purpose, record it under retired_platforms in databases.yml`,
+      )
+    }
+    if (retirements.length > 0) {
+      log(`  - Remove the retired_platforms entry in databases.yml`)
     }
     log('')
 
