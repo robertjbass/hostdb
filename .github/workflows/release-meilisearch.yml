@@ -178,6 +178,16 @@ jobs:
           chmod +x builds/common/validate-binaries.sh
           ./builds/common/validate-binaries.sh meilisearch ./release-assets
 
+      - name: Check GLIBC floor (Linux artifacts)
+        run: |
+          chmod +x builds/common/check-glibc-floor.sh
+          ./builds/common/check-glibc-floor.sh meilisearch ./release-assets
+
+      - name: Check platform coverage
+        run: |
+          chmod +x builds/common/check-platform-coverage.sh
+          ./builds/common/check-platform-coverage.sh meilisearch "${{ github.event.inputs.version }}" "${{ github.event.inputs.platforms }}" ./release-assets
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:

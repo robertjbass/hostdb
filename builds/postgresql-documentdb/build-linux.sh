@@ -122,6 +122,9 @@ POSTGIS_VERSION="$8"
 echo "[INFO] Building PostgreSQL ${PG_SOURCE_VERSION} from source..."
 
 # Install build dependencies
+# noninteractive keeps tzdata (pulled in transitively by libgdal-dev) from
+# stopping the build on its geographic-area prompt.
+export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq \
     build-essential \
@@ -558,13 +561,35 @@ chmod +x "${TEMP_DIR}/build-inside-docker.sh"
 # Run the build inside Docker
 log_info "Starting Docker build for ${PLATFORM}..."
 
+# Base image: ubuntu:22.04 (jammy, glibc 2.35), hostdb's oldest supported Linux
+# target and the same base builds/couchdb, builds/postgresql and builds/mariadb
+# build on.
+#
+# Changed from debian:bookworm 2026-08-07. Two reasons:
+#
+#  1. Base-image drift. CouchDB 3.5.2 shipped broken because its extract
+#     followed the upstream image from bookworm to trixie and inherited
+#     glibc 2.41. A distro tag that tracks "stable" is a moving target;
+#     ubuntu:22.04 names one release and stays on it.
+#  2. bookworm is already above the floor. Its glibc is 2.36, and the
+#     dependency bundler copies host libraries into the package: the shipped
+#     17-0.107.0 linux-x64 tarball carries a lib/libexpat.so.1 that requires
+#     GLIBC_2.36, so it cannot load on Ubuntu 22.04. builds/common/check-glibc-floor.sh
+#     now fails a release for exactly that.
+#
+# Every apt dependency below exists in jammy, libbson and the Intel decimal
+# math library are already built from source (the latter from the ubuntu/jammy
+# branch), so nothing here depended on bookworm.
+#
+# NOTE: the currently published 17-0.107.0 artifacts were NOT rebuilt when this
+# changed. The next documentdb release is the first build on jammy.
 CONTAINER_NAME="hostdb-pg-build-$$"
 docker run --rm \
     --name "${CONTAINER_NAME}" \
     --platform "${DOCKER_PLATFORM}" \
     -v "${TEMP_DIR}:/input:ro" \
     -v "${OUTPUT_DIR}:/host-output" \
-    debian:bookworm \
+    ubuntu:22.04 \
     /bin/bash -c "
         set -e  # Exit on error in inline script too
         mkdir -p /build /output

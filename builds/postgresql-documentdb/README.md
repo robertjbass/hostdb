@@ -10,8 +10,8 @@ This package bundles PostgreSQL 17 with the DocumentDB extension and several sup
 
 | Platform | Source | Notes |
 |----------|--------|-------|
-| linux-x64 | Docker | Extract from ghcr.io/ferretdb/postgres-documentdb |
-| linux-arm64 | Docker | Extract from ghcr.io/ferretdb/postgres-documentdb |
+| linux-x64 | Build | Source build inside an `ubuntu:22.04` container |
+| linux-arm64 | Build | Source build inside an `ubuntu:22.04` container (QEMU) |
 | darwin-x64 | Build | Native build on macOS Intel |
 | darwin-arm64 | Build | Native build on macOS Apple Silicon |
 | win32-x64 | Build | Stretch goal - hybrid download + source build |
@@ -113,19 +113,32 @@ macOS binaries must be fully relocatable — no hardcoded Homebrew paths. The bu
 
 **Important**: The bundling step must scan both `lib/*.dylib` and `lib/postgresql/*.dylib`. Extension dylibs in `lib/postgresql/` (like `pg_documentdb_core.dylib`) may reference Homebrew libraries (e.g. `libbson2.2.dylib` from `mongo-c-driver`, `libpcre2-8.0.dylib` from `pcre2`) that are not dependencies of any `bin/` binary. If the `lib/postgresql/` subdirectory is not included in the scan, these transitive dependencies will be missing from the bundle, causing `dlopen` failures at runtime.
 
-## Docker Extraction (Linux)
+## Linux builds (Docker)
 
-For Linux, binaries are extracted from the official FerretDB Docker image:
+Linux binaries are **built from source** inside a container by `build-linux.sh`,
+not extracted from `ghcr.io/ferretdb/postgres-documentdb`. Extracting that image
+would give a tree wired to the image's own PostgreSQL layout and system
+libraries; building from source is what makes the package relocatable.
 
 ```bash
-# Pull the image
-docker pull --platform linux/amd64 ghcr.io/ferretdb/postgres-documentdb:17-0.107.0
-
-# Extract (handled by download.ts)
-docker create --name temp-pg ghcr.io/ferretdb/postgres-documentdb:17-0.107.0
-docker cp temp-pg:/usr/lib/postgresql/17 ./postgresql-documentdb
-docker rm temp-pg
+# Handled by download.ts -> build-linux.sh
+./build-linux.sh 17-0.107.0 linux-x64 ./dist
 ```
+
+**Base image: `ubuntu:22.04` (jammy, glibc 2.35).** It was `debian:bookworm`
+until 2026-08-07. Two reasons for the move:
+
+- A "stable" distro tag is a moving target. CouchDB 3.5.2 shipped broken when
+  its base followed the upstream image from bookworm to trixie and inherited
+  glibc 2.41. `ubuntu:22.04` names one release and stays on it.
+- bookworm's glibc is 2.36, already above hostdb's 2.35 floor. The dependency
+  bundler copies host libraries into the package, and the published 17-0.107.0
+  linux-x64 tarball carries a `lib/libexpat.so.1` that needs `GLIBC_2.36`, so it
+  cannot load on Ubuntu 22.04. `builds/common/check-glibc-floor.sh` now fails a
+  release for that.
+
+The published 17-0.107.0 artifacts were not rebuilt when the base changed; the
+next release is the first jammy build.
 
 ## Usage with FerretDB
 
