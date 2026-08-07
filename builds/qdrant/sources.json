@@ -4,9 +4,9 @@
   "versions": {
     "1.18.3": {
       "linux-x64": {
-        "url": "https://github.com/qdrant/qdrant/releases/download/v1.18.3/qdrant-x86_64-unknown-linux-gnu.tar.gz",
+        "url": "https://github.com/qdrant/qdrant/releases/download/v1.18.3/qdrant-x86_64-unknown-linux-musl.tar.gz",
         "format": "tar.gz",
-        "sha256": "60663a254cf421dba4db45710872895cd3a714fe1e6978f7927923b5cfae4718",
+        "sha256": "b4faedcdf8c9577bf1c8f2ab9b454636b87e056c116c99d49bd4f9fb2e634285",
         "sourceType": "official"
       },
       "linux-arm64": {
@@ -69,7 +69,7 @@
   },
   "notes": {
     "source": "Official Qdrant GitHub releases: https://github.com/qdrant/qdrant/releases",
-    "linux-x64": "Using glibc build (linux-gnu) for broader compatibility",
+    "linux-x64": "1.18.3+ uses the static musl build. Upstream's linux-gnu asset for 1.18.3 is linked against GLIBC_2.38, so it cannot run on Ubuntu 22.04 (glibc 2.35), which is a supported target. 1.16.3 predates that and stays on linux-gnu.",
     "linux-arm64": "Only musl build available for ARM64",
     "naming": "Qdrant uses Rust target triple naming: {arch}-{vendor}-{os}[-{env}]"
   }
