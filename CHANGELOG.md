@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.39.0] - 2026-08-12
+
+### Added
+
+- **TypeDB 3.12.2** for all 5 platforms (official Cloudsmith archives). Upstream patch within the 3.12 line: parsing/translation/compile query caches, type renames via `redefine ... label ...`, HTTP `given` API fixes, and full error detail in the admin tool's RPC failures.
+
+### Changed
+
+- **TypeDB default for the `3` major is now `3.12.2`** (was `3.12.1`) - the defaults-block change is why this is a minor bump, per the release policy. `3.12.0` and `3.12.1` remain enabled and resolvable.
+
 ## [0.38.4] - 2026-08-07
 
 Release-pipeline hardening from the 0.38.x engine wave. Every problem the wave hit (qdrant's glibc, couchdb's drifting base image, weaviate shipping 2 of 5 platforms, a swallowed publish push) got through because nothing in the pipeline was looking for it. No engine version, default, or resolver behaviour changes, and no artifact was rebuilt.
