@@ -24,31 +24,23 @@ Databases with binaries already built and released.
 | Meilisearch | 52K | MIT | All 5 | Search |
 | CockroachDB | 31K | CCL | All 5 | Distributed SQL |
 | SurrealDB | 31K | BSL-1.1 | All 5 | Multi-model |
+| Weaviate | 15K | BSD-3-Clause | All 5 | Vector |
+| QuestDB | 15K | Apache-2.0 | All 5 | Time-series |
+| TypeDB | - | MPL-2.0 | All 5 | Graph |
+| InfluxDB | - | Apache-2.0 AND MIT | All 5 | Time-series |
+| TigerBeetle | 10K | Apache-2.0 | All 5 | Financial Ledger |
+| LibSQL | - | MIT | 4 (no Win) | Embedded SQL |
 
 ## Priority Queue (Next to Implement)
 
-### Quick Wins (Single Cross-Platform Binaries)
+Empty. Every entry that was queued here has since shipped (Weaviate) or been
+decided against (TimescaleDB, Milvus, Chroma — see
+[PROSPECTS.md](PROSPECTS.md#unsupported)).
 
-| # | Database | Stars | Binary | Why Quick |
-|---|----------|-------|--------|-----------|
-| 1 | **Weaviate** | 15K | Go | All 5 platforms, binary on GitHub releases |
-
-### Then: Popular + Not Painful
-
-| # | Database | Stars | Difficulty | Why This Order |
-|---|----------|-------|------------|----------------|
-| 4 | **TimescaleDB** | 18K | Medium | PG extension - we already have PostgreSQL builds |
-| 5 | **Milvus** | 42K | High | Most stars, but needs etcd/minio, Linux-focused packaging |
-| 6 | **Chroma** | 26K | Highest | Python-based - requires bundling runtime |
-
-### Reference Links
-
-- [CockroachDB Releases](https://www.cockroachlabs.com/docs/releases/) - official binaries
-- [SurrealDB 2.0 Announcement](https://surrealdb.com/blog/surrealdb-delivers-future-ready-database-technology-for-developers-and-enterprises-with-release-of-surrealdb-2-0)
-- [Weaviate Binary Install](https://forum.weaviate.io/t/how-to-run-weaviate-using-a-binary/100)
-- [TimescaleDB Releases](https://github.com/timescale/timescaledb/releases)
-- [Milvus Standalone Binary](https://milvus.io/docs/install_standalone-binary.md)
-- [Chroma PyPI](https://pypi.org/project/chromadb/)
+**[PROSPECTS.md](PROSPECTS.md) is the authoritative list** of what we plan to add
+and what we have evaluated and rejected, with the reasoning and re-open criteria
+for each. Check it before investigating any new engine — several have already
+been decided.
 
 ---
 
@@ -102,12 +94,16 @@ Databases without redistributable binaries.
 
 Databases previously considered but removed.
 
+Historical record. Two entries were later reversed — libSQL and InfluxDB are both
+supported today (see the Supported table above); the rows are kept to show the
+decision was revisited, not to suggest they are still out.
+
 | Database | Reason |
 |----------|--------|
-| libSQL | Development stalled (last release Feb 2025), uncertain future |
+| libSQL | ~~Development stalled (last release Feb 2025), uncertain future~~ — **reversed, now supported** |
 | RocksDB | Embedded library, not standalone - doesn't fit hostdb's purpose |
 | FoundationDB | Niche (Apple ecosystem), complex cluster setup |
-| InfluxDB | Covered by QuestDB/TimescaleDB; v3 pivoted to cloud-first |
+| InfluxDB | ~~Covered by QuestDB/TimescaleDB; v3 pivoted to cloud-first~~ — **reversed, now supported** |
 | KeyDB | Valkey won the Redis-fork war (Linux Foundation backing, 3x stars) |
 
 ## Unknown (Worth Researching Later)
