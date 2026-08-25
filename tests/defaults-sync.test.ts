@@ -168,10 +168,13 @@ const SNAPSHOT: Record<string, Record<string, string>> = {
   },
   questdb: {
     '9': '9.4.3',
+    '10': '10.0.1',
     '9.2': '9.2.3',
     '9.4': '9.4.3',
+    '10.0': '10.0.1',
     '9.2.3': '9.2.3',
     '9.4.3': '9.4.3',
+    '10.0.1': '10.0.1',
   },
   redis: {
     // 0.32.0 policy change: '7' now resolves to the 7.2.x line (BSD-3-Clause) instead of
