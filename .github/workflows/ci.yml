@@ -96,7 +96,7 @@ jobs:
 
           const checks = [
             ['engine count', listEngines().length === 22],
-            ['resolve postgres 18', resolveVersion('postgresql', '18') === '18.4.0'],
+            ['resolve postgres 18', resolveVersion('postgresql', '18') === '18.6.0'],
             ['resolve mongodb LTS', resolveVersion('mongodb', '8') === '8.0.28'],
             ['compound version', resolveVersion('postgresql-documentdb', '17') === '17-0.107.0'],
             ['loadDatabasesJson', Object.keys(loadDatabasesJson().databases).length === 22],
