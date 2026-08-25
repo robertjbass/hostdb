@@ -1266,6 +1266,33 @@
       }
     },
     "postgresql": {
+      "19.0.0-beta.3": {
+        "version": "19.0.0-beta.3",
+        "releaseTag": "postgresql-19.0.0-beta.3",
+        "releasedAt": "2026-08-25T22:54:07Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/postgresql-19.0.0-beta.3/postgresql-19.0.0-beta.3-darwin-arm64.tar.gz",
+            "sha256": "739bba0e372e2d6107ed815dfbede51f4f0b7bd5bc91b2690b9bba7b9e00c51b",
+            "size": 29651325
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/postgresql-19.0.0-beta.3/postgresql-19.0.0-beta.3-darwin-x64.tar.gz",
+            "sha256": "63a1f8737d9297a42c74b688b658cfa7198e028c5b7eb3f304c34762eb707731",
+            "size": 29430585
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/postgresql-19.0.0-beta.3/postgresql-19.0.0-beta.3-linux-arm64.tar.gz",
+            "sha256": "25235053291d63c1d0a4c9cf4d8b1b99d13d860b01380c5102dc109f6a1478be",
+            "size": 12565426
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/postgresql-19.0.0-beta.3/postgresql-19.0.0-beta.3-linux-x64.tar.gz",
+            "sha256": "7eeba8fb824e7772f2dffaecb618b42b1a6d97f55307cb41a7b0c7a3cd4c9d20",
+            "size": 12769576
+          }
+        }
+      },
       "19.0.0-beta.1": {
         "version": "19.0.0-beta.1",
         "releaseTag": "postgresql-19.0.0-beta.1",
