@@ -45,17 +45,6 @@ Databases we intend to add to hostdb. Listed roughly by priority/readiness.
 - **Why:** Distributed SQL with MySQL wire protocol compatibility and horizontal scalability. Can run standalone with UniStore (without TiKV/PD).
 - **Notes:** No native Windows binary. macOS binaries only available via TiUP package manager, not direct download.
 
-### TimescaleDB
-
-- **Type:** Time-series
-- **License:** Apache-2.0 / TSL
-- **Repo:** https://github.com/timescale/timescaledb
-- **Platforms:** linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
-- **Version:** 2.24.0
-- **Why:** Time-series database built on PostgreSQL. Dual-licensed: core is Apache-2.0, advanced features under TSL which restricts competing DBaaS.
-- **Dependencies:** PostgreSQL extension, not standalone.
-- **Notes:** TSL restricts offering as a competing managed database service.
-
 ### RocksDB
 
 - **Type:** Embedded KV
@@ -150,3 +139,17 @@ Databases we've evaluated and decided not to add, with reasoning.
 - **License:** Apache-2.0
 - **Repo:** https://github.com/milvus-io/milvus
 - **Why not:** Docker-only distribution. No native binaries for any platform. Complex multi-component architecture requiring etcd + MinIO — even "standalone" mode needs both running alongside the server. CGO dependencies (C++ FAISS/Knowhere vector index libraries) prevent pure Go cross-compilation. GitHub releases contain only Docker Compose files. Linux-only even in Docker.
+- **Re-reviewed 2026-08-14 — decision unchanged.** Beyond the packaging problem, the multi-component architecture is a downstream blocker: every spindb engine is a single supervised server process, so Milvus would force a multi-process orchestration concept into spindb's lifecycle (start/stop/status/branch) that no other engine needs. Docker-only distribution is also a direct contradiction of spindb's "local databases without Docker" premise. The vector slot is already covered by Qdrant and Weaviate. Do not re-investigate unless Milvus ships single-binary native releases with embedded metadata/object storage.
+
+### TimescaleDB
+
+- **Type:** Time-series
+- **License:** Apache-2.0 (core) / TSL (advanced features)
+- **Repo:** https://github.com/timescale/timescaledb
+- **Platforms:** linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64
+- **Version:** 2.24.0
+- **Why not (decided 2026-08-14):** Three reasons, in order of weight.
+  1. **Licensing is asymmetric across the ecosystem.** Core is Apache-2.0, but the features people actually adopt Timescale for — columnar compression, continuous aggregates, hyperfunctions — are TSL, which bars offering the software as a competing managed database service. That is fine for local spindb/desktop use and a direct problem for layerbase-cloud, which is exactly such a service. Timescale would be the first engine needing `hostedServiceAllowed: false` on the build users actually want, which means two divergent artifacts (Apache-2.0-only for cloud, full community for local) — cost we are not taking on for one engine.
+  2. **It is a PostgreSQL extension, not a database.** Shipping it as its own engine means a duplicate PostgreSQL binary matrix per version plus spindb's full 20+ file engine checklist, for something that is not a server. The correct shape is a generalized "PostgreSQL extension flavors" mechanism (`spindb create postgresql --extensions ...`), generalizing the existing `postgresql-documentdb` one-off. If that mechanism is ever built, pgvector and PostGIS are the higher-demand first flavors — Timescale would follow, under the constraint in (1).
+  3. **Non-trivial downstream work past the binary.** Hypertable dumps require bracketing `pg_restore` with `timescaledb_pre_restore()` / `timescaledb_post_restore()` and a version-matched extension on the target, so spindb's restore path needs real engine-specific handling, not just a download-path change.
+- **Re-open only if:** the extension-flavor mechanism lands in spindb for pgvector/PostGIS first, *or* the TSL terms change such that a managed service can offer the full community build. Re-verify licensing before any re-evaluation — Timescale rebranded to TigerData and moved licensing terms around in 2025.
