@@ -520,8 +520,16 @@ databases:
       '15': '15.18.0'
       '16': '16.14.0'
       '17': '17.10.0'
-      '18': '18.4.0'
+      '18': '18.6.0'
     versions:
+      19.0.0-beta.3:
+        release_type: beta
+        note: 'PostgreSQL 19 Beta 3; prerelease - superseded at GA (~Sept/Oct 2026). Carries the Aug 2026 security fixes (28 CVEs). No win32 build (EDB publishes beta binaries starting at RC). NOT binary-compatible with beta.1 data dirs (catalog version can change between betas).'
+        platforms:
+          - linux-x64
+          - linux-arm64
+          - darwin-x64
+          - darwin-arm64
       19.0.0-beta.1:
         release_type: beta
         note: 'PostgreSQL 19 Beta 1; prerelease - superseded at GA (~Sept/Oct 2026). No win32 build (EDB publishes beta binaries starting at RC).'
@@ -530,6 +538,7 @@ databases:
           - linux-arm64
           - darwin-x64
           - darwin-arm64
+      18.6.0: true
       18.4.0: true
       18.1.0: true
       17.10.0: true

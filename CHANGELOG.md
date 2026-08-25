@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.41.0] - 2026-08-25
+
+### Added
+
+- **PostgreSQL 18.6.0** (linux-x64, linux-arm64, darwin-x64, darwin-arm64 built from source; win32-x64 from EDB). Upstream 2026-08-13 security release fixing 28 CVEs across the supported lines, including CVE-2026-14664 (regexp heap overflow), CVE-2026-16239 (cursor type confusion), CVE-2026-19385 (pg_dump heap overflow), and CVE-2026-15741 (EXTRACT deparse SQLi). 18.5 was skipped upstream due to a regression, so 18.6 is the next release after 18.4 on the 18 line.
+- **PostgreSQL 19.0.0-beta.3** on the same 4 platforms as beta.1 (no win32 until EDB publishes RC binaries). Carries the same Aug 2026 security fixes. NOT binary-compatible with beta.1 data dirs - catalog version can change between betas, so beta.1 databases need dump/restore, never a binary swap.
+
+### Changed
+
+- **PostgreSQL default for the `18` major is now `18.6.0`** (was `18.4.0`) - the defaults-block change is why this is a minor bump, per the release policy. `18.1.0` and `18.4.0` remain enabled and resolvable.
+
 ## [0.40.0] - 2026-08-25
 
 ### Added

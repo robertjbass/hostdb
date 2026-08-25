@@ -8,7 +8,9 @@ on:
         required: true
         type: choice
         options:
+          - 19.0.0-beta.3
           - 19.0.0-beta.1
+          - 18.6.0
           - 18.4.0
           - 18.1.0
           - 17.10.0
@@ -17,7 +19,7 @@ on:
           - 16.11.0
           - 15.18.0
           - 15.15.0
-        default: 18.4.0
+        default: 19.0.0-beta.3
       platforms:
         description: 'Platforms to build'
         required: true
