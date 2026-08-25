@@ -167,7 +167,7 @@ jobs:
           retention-days: 1
 
   release:
-    needs: [ build-download, build-source ]
+    needs: [build-download, build-source]
     if: always() && (needs.build-download.result == 'success' || needs.build-download.result == 'skipped') && (needs.build-source.result == 'success' || needs.build-source.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:

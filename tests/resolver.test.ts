@@ -111,7 +111,7 @@ describe('resolveVersion — defaults policy', () => {
     assert.equal(resolveVersion('postgresql', '15'), '15.18.0')
     assert.equal(resolveVersion('postgresql', '16'), '16.14.0')
     assert.equal(resolveVersion('postgresql', '17'), '17.10.0')
-    assert.equal(resolveVersion('postgresql', '18'), '18.4.0')
+    assert.equal(resolveVersion('postgresql', '18'), '18.6.0')
   })
 
   test('postgresql-documentdb 17 → compound version', () => {
@@ -163,14 +163,15 @@ describe('normalizeVersion', () => {
 describe('listVersions', () => {
   test('format=full returns all full versions sorted descending', () => {
     const pg = listVersions('postgresql', { format: 'full' })
-    assert.ok(pg.includes('18.4.0'))
+    assert.ok(pg.includes('18.6.0'))
     assert.ok(pg.includes('15.15.0'))
-    assert.equal(pg[0], '18.4.0') // highest first
+    assert.equal(pg[0], '18.6.0') // highest first
   })
 
   test('format=major-minor returns unique X.Y prefixes', () => {
     const pg = listVersions('postgresql', { format: 'major-minor' })
     assert.deepEqual(pg, [
+      '18.6',
       '18.4',
       '18.1',
       '17.10',
@@ -242,8 +243,8 @@ describe('getEngineDefaults', () => {
 
   test('default equals latest for single-track engines', () => {
     const d = getEngineDefaults('postgresql')
-    assert.equal(d.defaultVersion, '18.4.0')
-    assert.equal(d.latestVersion, '18.4.0')
+    assert.equal(d.defaultVersion, '18.6.0')
+    assert.equal(d.latestVersion, '18.6.0')
   })
 })
 
@@ -320,10 +321,10 @@ describe('prerelease — postgresql 19.0.0-beta.1', () => {
     )
   })
 
-  test('getEngineDefaults still returns GA 18.4.0 for both fields', () => {
+  test('getEngineDefaults still returns GA 18.6.0 for both fields', () => {
     const d = getEngineDefaults('postgresql')
-    assert.equal(d.defaultVersion, '18.4.0')
-    assert.equal(d.latestVersion, '18.4.0')
+    assert.equal(d.defaultVersion, '18.6.0')
+    assert.equal(d.latestVersion, '18.6.0')
   })
 
   test("getSupportedMajorVersions does not include '19'", () => {

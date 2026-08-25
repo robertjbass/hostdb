@@ -134,7 +134,7 @@ const SNAPSHOT: Record<string, Record<string, string>> = {
     '15': '15.18.0',
     '16': '16.14.0',
     '17': '17.10.0',
-    '18': '18.4.0',
+    '18': '18.6.0',
     '15.15': '15.15.0',
     '15.18': '15.18.0',
     '16.11': '16.11.0',
@@ -143,6 +143,7 @@ const SNAPSHOT: Record<string, Record<string, string>> = {
     '17.10': '17.10.0',
     '18.1': '18.1.0',
     '18.4': '18.4.0',
+    '18.6': '18.6.0',
     '15.15.0': '15.15.0',
     '15.18.0': '15.18.0',
     '16.11.0': '16.11.0',
@@ -151,9 +152,11 @@ const SNAPSHOT: Record<string, Record<string, string>> = {
     '17.10.0': '17.10.0',
     '18.1.0': '18.1.0',
     '18.4.0': '18.4.0',
+    '18.6.0': '18.6.0',
     // Prerelease: resolves only by exact string. '19' is intentionally absent —
     // it must NOT prefix-match into the beta (asserted in resolver.test.ts).
     '19.0.0-beta.1': '19.0.0-beta.1',
+    '19.0.0-beta.3': '19.0.0-beta.3',
   },
   'postgresql-documentdb': {
     '17': '17-0.107.0',
