@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.40.0] - 2026-08-25
+
+### Added
+
+- **QuestDB 10.0.1** for all 5 platforms (upstream patch release of the 10.0 line, published 2026-08-24). Official -rt- runtime archives for linux-x64 and win32-x64; no-JRE archive + bundled Adoptium Temurin JRE 25 for linux-arm64, darwin-x64, darwin-arm64. Launcher JVM flags verified against JRE 25: identical flag set to 9.4.x (--sun-misc-unsafe-memory-access=allow, --enable-native-access, add-opens/add-exports), no new flags.
+
+### Changed
+
+- **QuestDB gains a `10` defaults entry resolving to `10.0.1`** - the defaults-block change is why this is a minor bump, per the release policy. The `9` major still resolves to `9.4.3`; `9.2.3` and `9.4.3` remain enabled and resolvable.
+
 ## [0.39.0] - 2026-08-12
 
 ### Added
