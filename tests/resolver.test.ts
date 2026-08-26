@@ -108,9 +108,9 @@ describe('resolveVersion — defaults policy', () => {
   })
 
   test('PostgreSQL each major → its single track default', () => {
-    assert.equal(resolveVersion('postgresql', '15'), '15.18.0')
-    assert.equal(resolveVersion('postgresql', '16'), '16.14.0')
-    assert.equal(resolveVersion('postgresql', '17'), '17.10.0')
+    assert.equal(resolveVersion('postgresql', '15'), '15.19.0')
+    assert.equal(resolveVersion('postgresql', '16'), '16.15.0')
+    assert.equal(resolveVersion('postgresql', '17'), '17.11.0')
     assert.equal(resolveVersion('postgresql', '18'), '18.6.0')
   })
 
@@ -153,7 +153,7 @@ describe('normalizeVersion', () => {
   })
 
   test('returns resolved version on known', () => {
-    assert.equal(normalizeVersion('postgresql', '17'), '17.10.0')
+    assert.equal(normalizeVersion('postgresql', '17'), '17.11.0')
     assert.equal(normalizeVersion('mongodb', '8'), '8.0.28')
   })
 })
@@ -174,10 +174,13 @@ describe('listVersions', () => {
       '18.6',
       '18.4',
       '18.1',
+      '17.11',
       '17.10',
       '17.7',
+      '16.15',
       '16.14',
       '16.11',
+      '15.19',
       '15.18',
       '15.15',
     ])

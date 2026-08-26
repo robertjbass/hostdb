@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.42.0] - 2026-08-26
+
+### Added
+
+- **PostgreSQL 17.11.0, 16.15.0, and 15.19.0** on all 5 platforms (linux-x64, darwin-x64, darwin-arm64 built from source; linux-arm64 from Percona; win32-x64 from EDB). These are the old-major half of the upstream 2026-08-13 security release, the same 28-CVE batch that 18.6.0 carried in 0.41.0: CVE-2026-14664 (regexp heap overflow), CVE-2026-16239 (cursor type confusion), CVE-2026-19385 (pg_dump heap overflow), and CVE-2026-15741 (EXTRACT deparse SQLi), among others. The 15/16/17 lines were deferred out of the 0.41.0 wave and were still resolving to the pre-CVE May 2026 patches.
+
+### Changed
+
+- **PostgreSQL defaults for the `15`, `16`, and `17` majors are now `15.19.0`, `16.15.0`, and `17.11.0`** (were `15.18.0`, `16.14.0`, `17.10.0`) - the defaults-block change is why this is a minor bump, per the release policy. The `18` default is unchanged at `18.6.0`. `15.15.0`, `15.18.0`, `16.11.0`, `16.14.0`, `17.7.0`, and `17.10.0` remain enabled and resolvable.
+- `linux-arm64` for the three new versions is sourced from Percona rather than a QEMU source build, matching the existing `15.18.0` / `16.14.0` / `16.11.0` / `15.15.0` / `17.7.0` entries. Percona published aarch64 tarballs for all three, so the build-required fallback used for `17.10.0` / `18.4.0` / `18.6.0` is not needed here.
+
 ## [0.41.0] - 2026-08-25
 
 ### Added
