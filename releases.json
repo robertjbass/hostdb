@@ -1514,6 +1514,38 @@
           }
         }
       },
+      "16.15.0": {
+        "version": "16.15.0",
+        "releaseTag": "postgresql-16.15.0",
+        "releasedAt": "2026-08-26T09:15:45Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/postgresql-16.15.0/postgresql-16.15.0-darwin-arm64.tar.gz",
+            "sha256": "ba09311c5d6e4b297a9987c00938653ef9992ea27748e99699f9d9a2c877c49d",
+            "size": 28190866
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/postgresql-16.15.0/postgresql-16.15.0-darwin-x64.tar.gz",
+            "sha256": "6e5b946c144acc9751da4e7b22437331c9e4e9d2e2f109f8c0e599ad3f88537c",
+            "size": 27935832
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/postgresql-16.15.0/postgresql-16.15.0-linux-arm64.tar.gz",
+            "sha256": "c627d30ff4b428324e40ed87366212b23eead22323e07ab0a5e1f19f70d7a5aa",
+            "size": 137277312
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/postgresql-16.15.0/postgresql-16.15.0-linux-x64.tar.gz",
+            "sha256": "16df5b0773c5c559e89ea347d9c207603404b53563e1d5bf56bbefbe4ceaa687",
+            "size": 11172195
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/postgresql-16.15.0/postgresql-16.15.0-win32-x64.zip",
+            "sha256": "a214dbb0f53bcdf96801e6df88c4e7358f48a91c52deb7dfad2cac415e4fa5f0",
+            "size": 327946158
+          }
+        }
+      },
       "16.14.0": {
         "version": "16.14.0",
         "releaseTag": "postgresql-16.14.0",
