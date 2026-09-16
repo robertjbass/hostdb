@@ -140,6 +140,12 @@ curl -X POST http://admin:password@127.0.0.1:5984/mydb \
 curl http://admin:password@127.0.0.1:5984/mydb/_all_docs
 ```
 
+## Known Limitations
+
+- **`bin/couchjs` in the Linux tarball has never been runnable** (confirmed on 3.5.1 and 3.5.2). It is dynamically linked against `libmozjs-78.so.0`, which the artifact does not ship: the `jammy` .deb declares a dependency on the system `libmozjs-78-0` package, and the export stage copies only `/opt/couchdb`. Anything that invokes the SpiderMonkey query server from the tarball fails with a missing-shared-object error at exec time. The Dockerfile's verification block only does `test -f` on key paths and never execs `couchjs`, which is why this went unnoticed.
+  - Options: (a) ship `libmozjs-78.so.0` inside the tarball and reach it with an RPATH or a wrapper script, or (b) stop advertising `bin/couchjs` as usable and document the bundled QuickJS query server (`lib/couch_quickjs-*/priv/couchjs_mainjs`) as the supported one. spindb 0.69.4 already switched to QuickJS.
+  - Whichever option lands, the Dockerfile verification should actually exec the chosen query server so a broken link fails the build.
+
 ## License
 
 Apache CouchDB is licensed under [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0).
