@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.42.2] - 2026-09-16
+
+Documentation-only release. No engine version, default, resolver, or build change, and no artifact was rebuilt. The bundled `releases.json` snapshot does move: 0.42.1 published to npm at 18:42 UTC on 2026-09-09 while the PostgreSQL re-release runs from that afternoon were still finishing, so the published snapshot predates the corrected `linux-x64` checksum committed at 19:07 UTC. This republish carries it.
+
+### Documentation
+
+- `builds/couchdb/README.md` gains a "Known Limitations" section recording the unrunnable `bin/couchjs` in the Linux CouchDB tarball, the two options for fixing it, and the verification gap that hid it.
+
+### Known issue
+
+- **`bin/couchjs` in the Linux CouchDB tarball has never been runnable** (confirmed on 3.5.1 and 3.5.2). It is dynamically linked against `libmozjs-78.so.0`, which the artifact does not ship: the `jammy` .deb declares a dependency on the system `libmozjs-78-0` package, and the export stage copies only `/opt/couchdb`, so anything invoking the SpiderMonkey query server from the tarball fails with a missing-shared-object error at exec time. The Dockerfile's verification block only does `test -f` on key paths and never execs `couchjs`, which is why it went unnoticed. Nothing downstream is blocked: spindb 0.69.4 switched to the bundled QuickJS query server (`lib/couch_quickjs-*/priv/couchjs_mainjs`). The fix is either shipping `libmozjs-78.so.0` inside the tarball behind an RPATH or wrapper, or dropping `bin/couchjs` from what the tarball advertises and documenting QuickJS as the supported query server; either way the Dockerfile verification should exec the chosen query server so a broken link fails the build.
+
 ## [0.42.1] - 2026-09-09
 
 ### Fixed
