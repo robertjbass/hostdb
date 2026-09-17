@@ -391,6 +391,38 @@
       }
     },
     "mariadb": {
+      "11.8.9": {
+        "version": "11.8.9",
+        "releaseTag": "mariadb-11.8.9",
+        "releasedAt": "2026-09-17T21:10:04Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mariadb-11.8.9/mariadb-11.8.9-darwin-arm64.tar.gz",
+            "sha256": "78907953ac6aaaf04b83e86d2a68f4633747ad689dbe0d4af0e67b291489df67",
+            "size": 82478589
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/mariadb-11.8.9/mariadb-11.8.9-darwin-x64.tar.gz",
+            "sha256": "e1a177c2f9aa53ee2f2bc57c459245f06f783a5314e1cc1f3985815228ca96bc",
+            "size": 84840563
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mariadb-11.8.9/mariadb-11.8.9-linux-arm64.tar.gz",
+            "sha256": "9eb6e8a3e50d90b8161affca7502800d6e88bf8ea7e803357b0fbcd87b9e9ea1",
+            "size": 92221450
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mariadb-11.8.9/mariadb-11.8.9-linux-x64.tar.gz",
+            "sha256": "40883a2f2fbd51608d63ac760718b00ef3f73981627e21c8290214ea2a06a5a5",
+            "size": 410414661
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mariadb-11.8.9/mariadb-11.8.9-win32-x64.zip",
+            "sha256": "ee24ed6208a54371a218eaca1624a9ebb53cefd5103d7ca2b5c9b3067bfde899",
+            "size": 96779701
+          }
+        }
+      },
       "11.8.8": {
         "version": "11.8.8",
         "releaseTag": "mariadb-11.8.8",
