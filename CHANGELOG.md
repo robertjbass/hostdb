@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.0] - 2026-09-17
+
+### Added
+
+- **MariaDB 10.11.19, 11.4.13, and 11.8.9** on all 5 platforms (linux-x64 and win32-x64 from the official archive.mariadb.org tarballs; linux-arm64, darwin-x64, darwin-arm64 built from source). These are the August 2026 quarterly maintenance releases for the three LTS lines we host, and each line was one to three patches behind.
+- **MariaDB 12.3.3** on all 5 platforms - a new major.minor line and the newest LTS, superseding the 11.8 line as the most current long-term-support track.
+- **MariaDB 13.0.2** on all 5 platforms - a new major.minor line and the current GA rolling release (2026-09-15). Rolling releases get a shorter support window than an LTS line; it is hosted alongside the LTS tracks, not as a replacement for them.
+
+### Changed
+
+- **MariaDB defaults for the `10` and `11` majors are now `10.11.19` and `11.8.9`** (were `10.11.16` and `11.8.8`), and the block gains **`12` -> `12.3.3`** and **`13` -> `13.0.2`**. The defaults-block change is why this is a minor bump, per the release policy. `10.11.15`, `10.11.16`, `11.4.5`, `11.4.10`, `11.8.5`, `11.8.6`, and `11.8.8` all remain enabled and resolvable, so `11.4` still resolves within its own line (now `11.4.13`) and no existing pin moves.
+- `getSupportedMajorVersions('mariadb')` now returns `['13', '12', '11', '10']`, since it reads the keys of the defaults block.
+- **The re-hosted MariaDB archives no longer carry the bundled DuckDB or VIDEX storage engines on any platform.** The official linux-x64 bintar ships `lib/plugin/ha_duckdb.so` from 11.8.9 on (106 MB) and `lib/plugin/ha_videx.so` from 12.3.3 on, and the win32-x64 zip ships `lib/plugin/ha_videx.dll` from 12.3.3 on; the official-archive repack now deletes those plus their `mariadb-test/plugin/` suites, matching the source builds, which already pass `-DPLUGIN_DUCKDB=NO -DPLUGIN_VIDEX=NO`. The DuckDB engine is gamma maturity upstream, VIDEX makes outbound HTTP calls to an external cost-estimation service, and neither has ever been exercised by a backup or restore path. Nothing else in the archives changes, and versions that never shipped the plugins (10.11.x, 11.4.x) are unaffected.
+
 ## [0.42.2] - 2026-09-16
 
 Documentation-only release. No engine version, default, resolver, or build change, and no artifact was rebuilt. The bundled `releases.json` snapshot does move: 0.42.1 published to npm at 18:42 UTC on 2026-09-09 while the PostgreSQL re-release runs from that afternoon were still finishing, so the published snapshot predates the corrected `linux-x64` checksum committed at 19:07 UTC. This republish carries it.

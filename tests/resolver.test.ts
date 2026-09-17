@@ -94,8 +94,8 @@ describe('resolveVersion — defaults policy', () => {
     assert.equal(resolveVersion('mongodb', '8'), '8.0.28')
   })
 
-  test('MariaDB 11 → 11.8.8 (latest, NOT LTS 11.4)', () => {
-    assert.equal(resolveVersion('mariadb', '11'), '11.8.8')
+  test('MariaDB 11 → 11.8.9 (latest, NOT LTS 11.4)', () => {
+    assert.equal(resolveVersion('mariadb', '11'), '11.8.9')
   })
 
   test('MySQL 8 → 8.4.11 (LTS, NOT 8.0.40)', () => {
@@ -130,8 +130,8 @@ describe('resolveVersion — major.minor prefix', () => {
     assert.equal(resolveVersion('postgresql', '17.10'), '17.10.0')
   })
 
-  test('MariaDB 11.4 → 11.4.10', () => {
-    assert.equal(resolveVersion('mariadb', '11.4'), '11.4.10')
+  test('MariaDB 11.4 → 11.4.13', () => {
+    assert.equal(resolveVersion('mariadb', '11.4'), '11.4.13')
   })
 
   test('MongoDB 8.2 → 8.2.12 (latest in 8.2 even though 8 default is 8.0)', () => {
@@ -209,7 +209,12 @@ describe('getSupportedMajorVersions', () => {
       '15',
     ])
     assert.deepEqual(getSupportedMajorVersions('mongodb'), ['8', '7'])
-    assert.deepEqual(getSupportedMajorVersions('mariadb'), ['11', '10'])
+    assert.deepEqual(getSupportedMajorVersions('mariadb'), [
+      '13',
+      '12',
+      '11',
+      '10',
+    ])
   })
 
   test('every engine returns at least one major', () => {
@@ -227,7 +232,7 @@ describe('getSupportedMajorVersions', () => {
 describe('getMajorDefault', () => {
   test('returns explicit default', () => {
     assert.equal(getMajorDefault('mongodb', '8'), '8.0.28')
-    assert.equal(getMajorDefault('mariadb', '11'), '11.8.8')
+    assert.equal(getMajorDefault('mariadb', '11'), '11.8.9')
   })
 
   test('returns null for undeclared major', () => {

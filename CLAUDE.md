@@ -218,7 +218,7 @@ MySQL **8.4.9** and **9.6.0** `linux-x64` are re-hosted as MySQL's official `-mi
 
 ### MariaDB
 
-Three versions are hosted: 10.11, 11.4, 11.8 — all LTS. **Do not consolidate.** The 10.x → 11.x jump had breaking changes; users need 10.11 to match production. 11.4 is the first 11.x LTS; 11.8 has a different EOL than 11.4. All three are independently justified.
+Five lines are hosted: 10.11, 11.4, 11.8, 12.3 (all LTS) and 13.0 (GA rolling release). **Do not consolidate.** The 10.x to 11.x jump had breaking changes; users need 10.11 to match production. 11.4 is the first 11.x LTS; 11.8 has a different EOL than 11.4; 12.3 is the newest LTS. 13.0 is a rolling release with a shorter support window, hosted alongside the LTS tracks rather than replacing them. Every line is independently justified.
 
 ### FerretDB
 

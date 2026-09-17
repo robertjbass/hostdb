@@ -2,6 +2,8 @@
 
 Last audited: 2026-03-11
 
+Last updated: 2026-09-17 (MariaDB lines checked off; not a full re-audit)
+
 ## Prioritized Upgrade Plan
 
 Ordered by impact. Work through top-to-bottom.
@@ -16,7 +18,7 @@ Ordered by impact. Work through top-to-bottom.
 
 - [ ] **SQLite 3.51.2 → 3.52.0** — Fixes 15-year-old corruption bug. Single-binary engine, trivially updated.
 - [ ] **DuckDB 1.4.3 → 1.5.0** — Hot engine, rapidly growing user base. New minor release (March 9, 2026). Also patch 1.4.3 → 1.4.4 in existing line.
-- [ ] **MariaDB 10.11.15→10.11.16, 11.4.5→11.4.10, 11.8.5→11.8.6** — LTS maintenance patches across all 3 lines.
+- [x] **MariaDB 10.11.x, 11.4.x, 11.8.x** - done 2026-09-17 (hostdb 0.43.0), now at 10.11.19 / 11.4.13 / 11.8.9, the Aug 2026 quarterly maintenance patches.
 
 ### Tier 3 — New Major Versions
 
@@ -36,7 +38,7 @@ Ordered by impact. Work through top-to-bottom.
 - [ ] **CockroachDB 26.1.0** — New Innovation release
 - [ ] **Valkey 8.1.6** — New minor line (not yet hosted)
 - [ ] **Redis 8.6.0** — New minor line (not yet hosted)
-- [ ] **MariaDB 12.x** — New rolling release series (12.2.2 stable GA)
+- [x] **MariaDB 12.x / 13.x** - done 2026-09-17 (hostdb 0.43.0): 12.3.3 added as the newest LTS line and 13.0.2 as the current GA rolling release.
 
 ---
 

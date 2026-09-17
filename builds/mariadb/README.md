@@ -33,6 +33,8 @@ MariaDB Foundation provides binary tarballs for Linux x64 and Windows x64 only.
 - Linux: `https://archive.mariadb.org/mariadb-{VERSION}/bintar-linux-systemd-x86_64/mariadb-{VERSION}-linux-systemd-x86_64.tar.gz`
 - Windows: `https://archive.mariadb.org/mariadb-{VERSION}/winx64-packages/mariadb-{VERSION}-winx64.zip`
 
+**Stripped on repack:** the bundled DuckDB (`lib/plugin/ha_duckdb.so`, 11.8.9+) and VIDEX (`lib/plugin/ha_videx.{so,dll}`, 12.3.3+) storage engines plus their `mariadb-test/plugin/` suites are deleted before the archive is re-created, because the DuckDB engine is pre-stable, no backup/restore path has been validated against either engine's tables, and the source builds already pass `-DPLUGIN_DUCKDB=NO -DPLUGIN_VIDEX=NO` so all 5 platforms match. The exclusion list lives in [`plugin-exclusions.ts`](./plugin-exclusions.ts); a stripped plugin found outside a listed path fails the repack instead of being deleted, and versions that ship neither (10.11.x, 11.4.x) are a no-op.
+
 ### MariaDB4j (Maven Central)
 
 [MariaDB4j](https://github.com/MariaDB4j/MariaDB4j) provides pre-built macOS ARM64 binaries packaged as Maven JARs.
@@ -125,27 +127,36 @@ dist/
 
 Repackaged archives contain:
 - MariaDB binaries in a `mariadb/` directory
-- `.hostdb-metadata.json` with provenance information
+- `.hostdb-metadata.json` with provenance information, including `stripped_plugins` listing the DuckDB/VIDEX artifacts removed from the official archive
 
 ## Supported Versions
 
-| Version | Type | Support Until |
-|---------|------|---------------|
-| 11.8.5 | LTS | June 2028 |
-| 11.4.5 | LTS | May 2029 |
-| 10.6.24 | LTS | July 2026 |
+Five release lines are hosted. Do not consolidate them: the 10.x to 11.x jump had
+breaking changes, each LTS line has its own EOL, and 13.0 is a rolling release
+with a shorter support window that sits alongside the LTS tracks.
+
+| Line | Type | Hosted versions | Default for its major |
+|------|------|-----------------|-----------------------|
+| 13.0 | GA rolling release | 13.0.2 | 13.0.2 |
+| 12.3 | LTS (newest) | 12.3.3 | 12.3.3 |
+| 11.8 | LTS | 11.8.9, 11.8.8, 11.8.6, 11.8.5 | 11.8.9 (also the `11` default) |
+| 11.4 | LTS | 11.4.13, 11.4.10, 11.4.5 | 11.4.13 |
+| 10.11 | LTS | 10.11.19, 10.11.16, 10.11.15 | 10.11.19 (also the `10` default) |
 
 ## Platform Coverage
 
-**Full coverage: 5 platforms × 3 versions = 15 binaries**
+**Full coverage: 5 platforms on every hosted version.**
 
-| Platform | 11.8.5 | 11.4.5 | 10.6.24 | Method |
-|----------|--------|--------|---------|--------|
-| linux-x64 | ✅ | ✅ | ✅ | Official binary |
-| linux-arm64 | ✅ | ✅ | ✅ | Docker source build |
-| darwin-x64 | ✅ | ✅ | ✅ | Native macOS build (macos-13) |
-| darwin-arm64 | ✅ | ✅ | ✅ | Native macOS build (macos-14) |
-| win32-x64 | ✅ | ✅ | ✅ | Official binary |
+| Platform | Method |
+|----------|--------|
+| linux-x64 | Official binary |
+| linux-arm64 | Docker source build |
+| darwin-x64 | Native macOS build (macos-13) |
+| darwin-arm64 | Native macOS build (macos-14) |
+| win32-x64 | Official binary |
+
+The one exception is `darwin-arm64` for 11.4.5, which comes from a MariaDB4j
+Maven JAR instead of a source build.
 
 ## GitHub Actions
 

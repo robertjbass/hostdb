@@ -36,6 +36,10 @@ import { createHash } from 'node:crypto'
 import { resolve, dirname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { execSync, execFileSync, spawnSync } from 'node:child_process'
+import {
+  findStalePluginLoadDirectives,
+  planPluginRemovals,
+} from './plugin-exclusions.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -215,6 +219,61 @@ async function calculateSha256(filePath: string): Promise<string> {
   })
 }
 
+function formatMegabytes(bytes: number): string {
+  return `${(bytes / 1024 / 1024).toFixed(1)}MB`
+}
+
+// Runs whether or not anything was removed: an archive that never shipped the
+// plugin binary but still loads it from a config is just as unstartable.
+function assertNoStalePluginLoads({ rootDir }: { rootDir: string }): void {
+  const stale = findStalePluginLoadDirectives({ rootDir })
+  if (stale.length > 0) {
+    throw new Error(
+      `A shipped config loads a plugin this archive does not carry, the server would fail to start: ${stale.join('; ')}`,
+    )
+  }
+}
+
+/**
+ * Remove the bundled DuckDB and VIDEX plugins from an extracted official
+ * archive. See plugin-exclusions.ts for why they are not re-hosted. A version
+ * whose archive carries neither (10.11.x, 11.4.x, older patches) is a no-op.
+ */
+function stripBundledPlugins({ rootDir }: { rootDir: string }): string[] {
+  const { removals, unexpected } = planPluginRemovals({ rootDir })
+
+  if (unexpected.length > 0) {
+    throw new Error(
+      `Archive names a stripped plugin outside the exclusion list, refusing to guess: ${unexpected.join(', ')}. Add the path to BUNDLED_PLUGIN_EXCLUSIONS in builds/mariadb/plugin-exclusions.ts if it should be removed.`,
+    )
+  }
+
+  if (removals.length === 0) {
+    assertNoStalePluginLoads({ rootDir })
+    logInfo('No bundled DuckDB/VIDEX plugin artifacts in this archive')
+    return []
+  }
+
+  let totalBytes = 0
+  for (const removal of removals) {
+    rmSync(resolve(rootDir, removal.path), { recursive: true, force: true })
+    totalBytes += removal.bytes
+    const detail =
+      removal.kind === 'directory'
+        ? `${removal.entries} entries, ${formatMegabytes(removal.bytes)}`
+        : formatMegabytes(removal.bytes)
+    logInfo(`Stripped ${removal.path} (${detail})`)
+  }
+
+  assertNoStalePluginLoads({ rootDir })
+
+  logSuccess(
+    `Stripped ${removals.length} bundled plugin artifact(s), ${formatMegabytes(totalBytes)} reclaimed`,
+  )
+
+  return removals.map((removal) => removal.path)
+}
+
 /**
  * Repackage official MariaDB tarball/zip
  */
@@ -251,6 +310,8 @@ function repackageOfficial(
 
   const extractedPath = resolve(tempDir, mariadbDir)
 
+  const strippedPlugins = stripBundledPlugins({ rootDir: extractedPath })
+
   // Add metadata file
   const metadata = {
     name: 'mariadb',
@@ -260,6 +321,7 @@ function repackageOfficial(
     sourceUrl: 'https://archive.mariadb.org/',
     rehosted_by: 'hostdb',
     rehosted_at: new Date().toISOString(),
+    stripped_plugins: strippedPlugins,
   }
   writeFileSync(
     resolve(extractedPath, '.hostdb-metadata.json'),
