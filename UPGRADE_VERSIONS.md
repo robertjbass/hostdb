@@ -2,6 +2,8 @@
 
 Last audited: 2026-03-11
 
+Last updated: 2026-09-17 (MariaDB lines checked off; not a full re-audit)
+
 ## Prioritized Upgrade Plan
 
 Ordered by impact. Work through top-to-bottom.

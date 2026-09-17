@@ -223,6 +223,17 @@ function formatMegabytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)}MB`
 }
 
+// Runs whether or not anything was removed: an archive that never shipped the
+// plugin binary but still loads it from a config is just as unstartable.
+function assertNoStalePluginLoads({ rootDir }: { rootDir: string }): void {
+  const stale = findStalePluginLoadDirectives({ rootDir })
+  if (stale.length > 0) {
+    throw new Error(
+      `A shipped config loads a plugin this archive does not carry, the server would fail to start: ${stale.join('; ')}`,
+    )
+  }
+}
+
 /**
  * Remove the bundled DuckDB and VIDEX plugins from an extracted official
  * archive. See plugin-exclusions.ts for why they are not re-hosted. A version
@@ -238,6 +249,7 @@ function stripBundledPlugins({ rootDir }: { rootDir: string }): string[] {
   }
 
   if (removals.length === 0) {
+    assertNoStalePluginLoads({ rootDir })
     logInfo('No bundled DuckDB/VIDEX plugin artifacts in this archive')
     return []
   }
@@ -253,12 +265,7 @@ function stripBundledPlugins({ rootDir }: { rootDir: string }): string[] {
     logInfo(`Stripped ${removal.path} (${detail})`)
   }
 
-  const stale = findStalePluginLoadDirectives({ rootDir })
-  if (stale.length > 0) {
-    throw new Error(
-      `Stripped a plugin that a shipped config still loads, the server would fail to start: ${stale.join('; ')}`,
-    )
-  }
+  assertNoStalePluginLoads({ rootDir })
 
   logSuccess(
     `Stripped ${removals.length} bundled plugin artifact(s), ${formatMegabytes(totalBytes)} reclaimed`,
