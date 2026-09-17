@@ -2,6 +2,75 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "mariadb",
   "versions": {
+    "13.0.2": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-13.0.2/bintar-linux-systemd-x86_64/mariadb-13.0.2-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "e1b15581cfb2441fb7f3df2cc559998980406999e4c4a150ca303289f58b673c"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-13.0.2/winx64-packages/mariadb-13.0.2-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "ba9cefd6674b3f2f7bc67334c05305dc7c919643d76836e10767e70db0b5fb74"
+      }
+    },
+    "12.3.3": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-12.3.3/bintar-linux-systemd-x86_64/mariadb-12.3.3-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "a12bf7bce08a896cdd01f174f04b4ce1d5da43ec250a5e7fceb9972119514329"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-12.3.3/winx64-packages/mariadb-12.3.3-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "4b5706b47148b47c8f36963c8352d1ddee37a1287b4690428f631a74b09b85a0"
+      }
+    },
+    "11.8.9": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.8.9/bintar-linux-systemd-x86_64/mariadb-11.8.9-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "32f8871a2aa38b36aa418b7f4abc6fc0c6ef1ba5a45798cacb2afa52c8a6113b"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.8.9/winx64-packages/mariadb-11.8.9-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "830c46727d9278eae212ae3eca44eeb9e71b2a68704e95f344a64fba7b1963f5"
+      }
+    },
     "11.8.8": {
       "linux-x64": {
         "url": "https://archive.mariadb.org/mariadb-11.8.8/bintar-linux-systemd-x86_64/mariadb-11.8.8-linux-systemd-x86_64.tar.gz",
@@ -71,6 +140,29 @@
         "sha256": "75332dc1f437d9ecee253c2d751d02a69628b109ddd031006f8a8d9ba59dbe0d"
       }
     },
+    "11.4.13": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.4.13/bintar-linux-systemd-x86_64/mariadb-11.4.13-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "3cebf63914df3154b7cb6d548337eb2be42c773aeb641110446b72e2746cfed7"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.4.13/winx64-packages/mariadb-11.4.13-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "d62986d433eeebfde218560b276103831604a61e929e87f1a17f5aebd80257e2"
+      }
+    },
     "11.4.10": {
       "linux-x64": {
         "url": "https://archive.mariadb.org/mariadb-11.4.10/bintar-linux-systemd-x86_64/mariadb-11.4.10-linux-systemd-x86_64.tar.gz",
@@ -118,6 +210,29 @@
         "format": "zip",
         "sourceType": "official",
         "sha256": "b7c11d38657f16b837e68199d73670510aadb78f42dfa5d5fdea31a7aab342e3"
+      }
+    },
+    "10.11.19": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-10.11.19/bintar-linux-systemd-x86_64/mariadb-10.11.19-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "7efb257927f31f4422f496246b32590d0b7617f3d9dd900e575de761b302d919"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-10.11.19/winx64-packages/mariadb-10.11.19-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "398ea30e5036010bbebe01d2b1804280424dcc2626e36d8e95155c04d25a0490"
       }
     },
     "10.11.16": {
@@ -175,6 +290,6 @@
     "darwin-x64": "Built from source natively on macos-13 (Intel) runner",
     "darwin-arm64": "Built from source natively on macos-14 (Apple Silicon) runner, or downloaded from MariaDB4j for 11.4.5",
     "win32-x64": "Official binary from archive.mariadb.org",
-    "coverage": "All 5 platforms x 7 versions available via GitHub Releases"
+    "coverage": "All 5 platforms x 12 versions available via GitHub Releases"
   }
 }

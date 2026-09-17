@@ -276,14 +276,21 @@ databases:
     protocol: null
     note: ''
     defaults:
-      '10': '10.11.16'
-      '11': '11.8.8'
+      '10': '10.11.19'
+      '11': '11.8.9'
+      '12': '12.3.3'
+      '13': '13.0.2'
     versions:
+      13.0.2: true
+      12.3.3: true
+      11.8.9: true
       11.8.8: true
       11.8.6: true
       11.8.5: true
+      11.4.13: true
       11.4.10: true
       11.4.5: true
+      10.11.19: true
       10.11.16: true
       10.11.15: true
     platforms:

@@ -8,14 +8,19 @@ on:
         required: true
         type: choice
         options:
+          - 13.0.2
+          - 12.3.3
+          - 11.8.9
           - 11.8.8
           - 11.8.6
           - 11.8.5
+          - 11.4.13
           - 11.4.10
           - 11.4.5
+          - 10.11.19
           - 10.11.16
           - 10.11.15
-        default: 11.8.8
+        default: 13.0.2
       platforms:
         description: 'Platforms to build'
         required: true
@@ -320,6 +325,8 @@ jobs:
             -DPLUGIN_CONNECT=NO \
             -DPLUGIN_OQGRAPH=NO \
             -DPLUGIN_COLUMNSTORE=NO \
+            -DPLUGIN_DUCKDB=NO \
+            -DPLUGIN_VIDEX=NO \
             -DPLUGIN_S3=NO \
             -DCOMPILATION_COMMENT="hostdb build" \
             -DCOMPILATION_COMMENT_SERVER="Built by hostdb for spindb"

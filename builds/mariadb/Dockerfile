@@ -70,6 +70,30 @@ WORKDIR /build/mariadb-src
 # - Disable features not needed for embedded/dev use
 # - CMAKE_POLICY_VERSION_MINIMUM fixes compatibility with older wsrep-lib CMakeLists.txt
 #   that specify cmake_minimum_required < 3.5 (CMake 4.0+ removed support for < 3.5)
+#
+# The PLUGIN_*=NO list must stay exhaustive for every heavy or network-fetching
+# engine the server tree carries. MariaDB's cmake/plugin.cmake gives a plugin
+# with no DEFAULT/DISABLED keyword the default value DYNAMIC, so a newly added
+# storage engine is built unless we opt out by name. Passing a name that does
+# not exist in a given version is harmless (an unused cache variable warning),
+# which is why these are unconditional across all versions we build.
+#
+# - PLUGIN_DUCKDB: storage/duckdb appeared in 11.8.9 / 11.4.13 / 12.3.3 / 13.0.2.
+#   It is MODULE_ONLY with no DISABLED keyword, so it defaults to DYNAMIC on
+#   64-bit Linux x86_64/aarch64 with a C++17 compiler, and its cmake then builds
+#   the whole bundled DuckDB (storage/duckdb/cmake/duckdb.cmake drives an
+#   ExternalProject over the ~16k-file third_parties/duckdb submodule that the
+#   source tarball ships, plus the icu/parquet/json extensions). That would
+#   dwarf the server build itself and blow the linux-arm64 QEMU time budget.
+# - PLUGIN_COLUMNSTORE: the columnstore submodule is shipped in the source
+#   tarball, and storage/columnstore/CMakeLists.txt only returns early when this
+#   is NO or the submodule is absent. Its own cmake will download and build
+#   Boost and Thrift when the system ones are too old. The macOS build already
+#   passes this; keep the Linux build explicit rather than relying on a
+#   toolchain accident.
+# - PLUGIN_VIDEX: new in 12.3.x / 13.0.x. Small, but it links libcurl and speaks
+#   HTTP to an external cost-estimation service, which is not something we want
+#   in a shipped binary without asking for it.
 RUN cmake . \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
     -DCMAKE_BUILD_TYPE=Release \
@@ -90,6 +114,9 @@ RUN cmake . \
     -DPLUGIN_OQGRAPH=NO \
     -DPLUGIN_CASSANDRA=NO \
     -DPLUGIN_S3=NO \
+    -DPLUGIN_COLUMNSTORE=NO \
+    -DPLUGIN_DUCKDB=NO \
+    -DPLUGIN_VIDEX=NO \
     -DCOMPILATION_COMMENT="hostdb build" \
     -DCOMPILATION_COMMENT_SERVER="Built by hostdb for spindb"
 
