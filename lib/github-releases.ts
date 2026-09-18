@@ -27,7 +27,11 @@ export type ReleaseDraftState = {
 
 /** True when a release is a draft, or has never been published. */
 export function isDraftRelease(release: ReleaseDraftState): boolean {
-  return release.draft === true || release.published_at == null
+  return (
+    release.draft === true ||
+    release.published_at === null ||
+    release.published_at === undefined
+  )
 }
 
 /**

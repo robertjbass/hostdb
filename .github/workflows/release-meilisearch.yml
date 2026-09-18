@@ -212,10 +212,14 @@ jobs:
       - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Bound through env: a workflow input is attacker-controlled text,
+          # and an expression splices it into the script before bash sees it.
+          VERSION: ${{ github.event.inputs.version }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           mkdir -p ./release-notes
           cat >./release-notes/body.md <<'RELEASE_NOTES'
-          ## Meilisearch ${{ github.event.inputs.version }}
+          ## Meilisearch __VERSION__
 
           Meilisearch binaries repackaged for hostdb.
 
@@ -229,17 +233,31 @@ jobs:
           ### Usage
           ```bash
           # Download URL pattern
-          https://github.com/${{ github.repository }}/releases/download/meilisearch-${{ github.event.inputs.version }}/meilisearch-${{ github.event.inputs.version }}-<platform>.tar.gz
+          https://github.com/__REPOSITORY__/releases/download/meilisearch-__VERSION__/meilisearch-__VERSION__-<platform>.tar.gz
           ```
 
           ### Checksums
           See `checksums.txt` for SHA256 checksums.
           RELEASE_NOTES
 
+          # The notes are written with placeholders so the heredoc carries no
+          # expression at all; fill them in from the env bindings above.
+          python3 - <<'FILL_PLACEHOLDERS'
+          import os
+
+          path = './release-notes/body.md'
+          with open(path, encoding='utf-8') as handle:
+              body = handle.read()
+          body = body.replace('__VERSION__', os.environ['VERSION'])
+          body = body.replace('__REPOSITORY__', os.environ['REPOSITORY'])
+          with open(path, 'w', encoding='utf-8') as handle:
+              handle.write(body)
+          FILL_PLACEHOLDERS
+
           chmod +x builds/common/publish-release.sh
           ./builds/common/publish-release.sh \
-            --tag "meilisearch-${{ github.event.inputs.version }}" \
-            --title "Meilisearch ${{ github.event.inputs.version }}" \
+            --tag "meilisearch-$VERSION" \
+            --title "Meilisearch $VERSION" \
             --notes-file ./release-notes/body.md \
             --assets-dir ./release-assets
 

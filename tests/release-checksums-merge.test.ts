@@ -62,9 +62,16 @@ const EXISTING_RELEASE_CHECKSUMS = [
 function runMerge({
   freshChecksums,
   existing,
+  failingStub,
 }: {
   freshChecksums: string
   existing: string | null
+  /**
+   * Replaces the stub body entirely, to drive a failure that is NOT a
+   * not-found: an auth error, a 5xx, a network blip. `$STATE_FILE` is a scratch
+   * path the stub can use to count its own invocations.
+   */
+  failingStub?: string
 }): { status: number; stdout: string; merged: string } {
   const dir = mkdtempSync(join(tmpdir(), 'hostdb-merge-'))
   try {
@@ -76,29 +83,43 @@ function runMerge({
     if (existing !== null) writeFileSync(existingPath, existing)
 
     // Stub gh: `gh release download <tag> --pattern checksums.txt --output X`.
-    // Copies the fixture to whatever path follows --output, or exits 1 when the
-    // release has no checksums.txt, which is what the real gh does.
+    // Copies the fixture to whatever path follows --output, or reports the
+    // not-found the real gh reports when the release has no checksums.txt.
     spawnSync('mkdir', ['-p', binDir])
+    const notFoundStub = [
+      '#!/usr/bin/env bash',
+      'echo "release not found" >&2',
+      'exit 1',
+      '',
+    ].join('\n')
     const stub =
-      existing === null
-        ? '#!/usr/bin/env bash\nexit 1\n'
-        : [
-            '#!/usr/bin/env bash',
-            'out=""',
-            'while [[ $# -gt 0 ]]; do',
-            '  if [[ "$1" == "--output" ]]; then out="$2"; shift; fi',
-            '  shift',
-            'done',
-            `cp ${JSON.stringify(existingPath)} "$out"`,
-            '',
-          ].join('\n')
+      failingStub !== undefined
+        ? failingStub
+        : existing === null
+          ? notFoundStub
+          : [
+              '#!/usr/bin/env bash',
+              'out=""',
+              'while [[ $# -gt 0 ]]; do',
+              '  if [[ "$1" == "--output" ]]; then out="$2"; shift; fi',
+              '  shift',
+              'done',
+              `cp ${JSON.stringify(existingPath)} "$out"`,
+              '',
+            ].join('\n')
     const ghPath = join(binDir, 'gh')
     writeFileSync(ghPath, stub)
     chmodSync(ghPath, 0o755)
 
     const result = spawnSync('bash', [SCRIPT, 'postgresql-18.6.0', freshPath], {
       encoding: 'utf-8',
-      env: { ...process.env, PATH: `${binDir}:${process.env.PATH ?? ''}` },
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH ?? ''}`,
+        STATE_FILE: join(dir, 'attempts.txt'),
+        // Exercise the retry path without waiting out the real backoff.
+        MERGE_RETRY_DELAYS: '0 0',
+      },
     })
 
     return {
@@ -173,6 +194,76 @@ describe('merge-release-checksums.sh', () => {
     assert.equal(status, 0)
     assert.deepEqual(parseChecksums(merged), {
       'postgresql-18.6.0-linux-x64.tar.gz': SHA_NEW_LINUX_X64,
+    })
+  })
+
+  test('an asset-level not-found is also treated as nothing to merge', () => {
+    const { status, stdout } = runMerge({
+      freshChecksums: `${SHA_NEW_LINUX_X64}  postgresql-18.6.0-linux-x64.tar.gz\n`,
+      existing: null,
+      failingStub: [
+        '#!/usr/bin/env bash',
+        'echo "no assets match the file pattern" >&2',
+        'exit 1',
+        '',
+      ].join('\n'),
+    })
+
+    assert.equal(status, 0)
+    assert.match(stdout, /nothing to merge/)
+  })
+
+  test('a non-not-found failure fails the step instead of dropping platforms', () => {
+    const { status, stdout, merged } = runMerge({
+      freshChecksums: `${SHA_NEW_LINUX_X64}  postgresql-18.6.0-linux-x64.tar.gz\n`,
+      existing: null,
+      failingStub: [
+        '#!/usr/bin/env bash',
+        'echo "HTTP 401: Bad credentials" >&2',
+        'exit 1',
+        '',
+      ].join('\n'),
+    })
+
+    assert.notEqual(status, 0)
+    assert.match(stdout, /could not read the existing checksums\.txt/)
+    // two retries before giving up, so a blip is not mistaken for a new release
+    assert.equal(stdout.match(/retrying in/g)?.length, 2)
+    // the freshly built file is left exactly as it was, never half-merged
+    assert.deepEqual(parseChecksums(merged), {
+      'postgresql-18.6.0-linux-x64.tar.gz': SHA_NEW_LINUX_X64,
+    })
+  })
+
+  test('a transient failure that clears on retry still merges', () => {
+    const { status, merged } = runMerge({
+      freshChecksums: `${SHA_NEW_LINUX_X64}  postgresql-18.6.0-linux-x64.tar.gz\n`,
+      existing: EXISTING_RELEASE_CHECKSUMS,
+      failingStub: [
+        '#!/usr/bin/env bash',
+        'attempts="$(cat "$STATE_FILE" 2>/dev/null || echo 0)"',
+        'attempts=$((attempts + 1))',
+        'echo "$attempts" >"$STATE_FILE"',
+        'if [[ "$attempts" -eq 1 ]]; then',
+        '  echo "HTTP 502: Bad gateway" >&2',
+        '  exit 1',
+        'fi',
+        'out=""',
+        'while [[ $# -gt 0 ]]; do',
+        '  if [[ "$1" == "--output" ]]; then out="$2"; shift; fi',
+        '  shift',
+        'done',
+        `cat >"$out" <<'EXISTING'
+${EXISTING_RELEASE_CHECKSUMS}EXISTING`,
+        '',
+      ].join('\n'),
+    })
+
+    assert.equal(status, 0)
+    assert.deepEqual(parseChecksums(merged), {
+      'postgresql-18.6.0-linux-x64.tar.gz': SHA_NEW_LINUX_X64,
+      'postgresql-18.6.0-darwin-arm64.tar.gz': SHA_DARWIN_ARM64,
+      'postgresql-18.6.0-linux-arm64.tar.gz': SHA_LINUX_ARM64,
     })
   })
 })

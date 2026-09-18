@@ -153,9 +153,13 @@ done
 # Looked up through the list endpoint rather than /releases/tags/<tag> because
 # the latter does not return drafts, and a re-run after a failed upload has to
 # find the draft the previous run left behind.
+# The tag is filtered with an external `jq --arg` rather than gh's `--jq`, which
+# takes only a literal program: splicing the tag into that program would let a
+# crafted tag rewrite the filter. `jq -s` joins the paginated pages.
 EXISTING="$(
-  gh api "repos/$REPO/releases?per_page=100" --paginate \
-    --jq "[.[] | select(.tag_name == \"$TAG\")][0] // empty" 2>/dev/null || true
+  gh api "repos/$REPO/releases?per_page=100" --paginate 2>/dev/null \
+    | jq -s -c --arg tag "$TAG" '[.[][] | select(.tag_name == $tag)][0] // empty' \
+    || true
 )"
 
 PUBLISH_AT_END="true"
@@ -182,6 +186,11 @@ else
   if [[ "$WAS_DRAFT" == "true" ]]; then
     echo "Release $TAG already exists as a draft; reusing it"
   else
+    # Known trade-off, deliberately kept: a partial-platform re-dispatch onto an
+    # already published release replaces its assets IN PLACE, so a run that dies
+    # mid-upload leaves the release in a mixed state until it is repeated. This
+    # is the behavior action-gh-release had too. Staging the re-run in a
+    # temporary release and swapping the assets over is the future fix.
     echo "Release $TAG is already published; updating it in place"
     PUBLISH_AT_END="false"
   fi
@@ -224,7 +233,7 @@ if [[ -z "$REMOTE" || "$REMOTE" == "null" ]]; then
   # Still a draft, so the tag endpoint cannot see it. Fall back to the list.
   REMOTE="$(
     gh api "repos/$REPO/releases?per_page=100" --paginate \
-      --jq "[.[] | select(.tag_name == \"$TAG\")][0].assets // empty"
+      | jq -s -c --arg tag "$TAG" '[.[][] | select(.tag_name == $tag)][0].assets // empty'
   )"
 fi
 

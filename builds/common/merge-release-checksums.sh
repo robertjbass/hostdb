@@ -24,6 +24,7 @@
 #
 # Env:
 #   GH_TOKEN / GITHUB_TOKEN - passed through to `gh` for the download.
+#   MERGE_RETRY_DELAYS      - test-only override for the retry backoff seconds.
 
 set -euo pipefail
 
@@ -43,19 +44,51 @@ echo "Merging checksums for release $TAG"
 echo "Newly built:"
 cat "$NEW_FILE"
 
-# A first-ever release has no checksums.txt to merge - not an error.
-if gh release download "$TAG" \
-  --pattern checksums.txt \
-  --output "$EXISTING_FILE" \
-  --clobber 2>/dev/null; then
-  echo ""
-  echo "Existing checksums on $TAG:"
-  cat "$EXISTING_FILE"
-else
-  echo ""
-  echo "No existing checksums.txt on $TAG (new release), nothing to merge"
-  : >"$EXISTING_FILE"
-fi
+# A first-ever release has no checksums.txt to merge - not an error. Anything
+# else (auth, rate limit, a 5xx, a network blip) IS an error: treating it as
+# "nothing to merge" is how a partial-platform re-run would publish a
+# checksums.txt holding only the platforms it rebuilt, which is the exact
+# regression this script exists to prevent. So only a genuine not-found
+# proceeds with an empty file; every other failure retries, then fails the step.
+DOWNLOAD_ATTEMPTS=3
+# Whitespace-separated, overridable so the retry path can be tested quickly.
+read -r -a RETRY_DELAYS <<<"${MERGE_RETRY_DELAYS:-5 15}"
+
+NOT_FOUND_PATTERN='release not found|no assets match|no asset found|HTTP 404'
+ERR_FILE="$WORK_DIR/gh-stderr.txt"
+
+attempt=1
+while true; do
+  if gh release download "$TAG" \
+    --pattern checksums.txt \
+    --output "$EXISTING_FILE" \
+    --clobber 2>"$ERR_FILE"; then
+    echo ""
+    echo "Existing checksums on $TAG:"
+    cat "$EXISTING_FILE"
+    break
+  fi
+
+  if grep -qiE "$NOT_FOUND_PATTERN" "$ERR_FILE"; then
+    echo ""
+    echo "No existing checksums.txt on $TAG (new release), nothing to merge"
+    : >"$EXISTING_FILE"
+    break
+  fi
+
+  if [[ $attempt -ge $DOWNLOAD_ATTEMPTS ]]; then
+    echo "ERROR: could not read the existing checksums.txt of $TAG" >&2
+    echo "  refusing to merge, a partial checksums.txt would drop platforms" >&2
+    cat "$ERR_FILE" >&2
+    exit 1
+  fi
+
+  delay="${RETRY_DELAYS[$((attempt - 1))]}"
+  echo "  checksums download failed, retrying in ${delay}s" >&2
+  cat "$ERR_FILE" >&2
+  sleep "$delay"
+  attempt=$((attempt + 1))
+done
 
 # New lines first so a rebuilt platform's checksum wins; existing lines are kept
 # only for filenames the new file does not mention. The filename is the last
