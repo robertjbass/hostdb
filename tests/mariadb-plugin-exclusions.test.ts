@@ -14,12 +14,17 @@
 
 import { test, describe } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import {
   BUNDLED_PLUGIN_EXCLUSIONS,
   classifyArchivePath,
   normalizeArchivePath,
 } from '../builds/mariadb/plugin-exclusions.ts'
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
 describe('classifyArchivePath', () => {
   test('strips every listed exclusion path', () => {
@@ -109,6 +114,73 @@ describe('classifyArchivePath', () => {
       assert.equal(classifyArchivePath(path), 'keep')
     }
   })
+})
+
+/**
+ * The source builds (linux-arm64 via Docker, both darwin platforms natively)
+ * pass -DPLUGIN_DUCKDB=NO -DPLUGIN_VIDEX=NO, which stops the engines from being
+ * built - but `make install` still copies their mariadb-test suites. Both
+ * packaging steps delete those two directories by hand, because neither a
+ * Dockerfile RUN nor a workflow shell step can call the module above. These
+ * assertions are what keeps the hand-written copies honest: add a directory
+ * exclusion and this fails until both packaging steps carry it.
+ */
+describe('source-build packaging strips the same directories', () => {
+  const directoryExclusions = BUNDLED_PLUGIN_EXCLUSIONS.filter(
+    (exclusion) => exclusion.kind === 'directory',
+  )
+
+  const packagingSteps = [
+    {
+      label: 'builds/mariadb/Dockerfile',
+      text: readFileSync(
+        join(ROOT, 'builds', 'mariadb', 'Dockerfile'),
+        'utf-8',
+      ),
+    },
+    {
+      label: '.github/workflows/release-mariadb.yml (macOS packaging)',
+      text: readFileSync(
+        join(ROOT, '.github', 'workflows', 'release-mariadb.yml'),
+        'utf-8',
+      ),
+    },
+  ]
+
+  /** Every `rm -rf ...` command in the file, backslash continuations joined. */
+  function removalCommands(text: string): string {
+    const joined = text.replace(/\\\n\s*/g, ' ')
+    return joined
+      .split('\n')
+      .filter((line) => line.includes('rm -rf'))
+      .join('\n')
+  }
+
+  test('the module lists the two directories the packaging steps remove', () => {
+    assert.deepEqual(
+      directoryExclusions.map((exclusion) => exclusion.path),
+      ['mariadb-test/plugin/duckdb', 'mariadb-test/plugin/videx'],
+    )
+  })
+
+  for (const step of packagingSteps) {
+    test(`${step.label} removes every directory exclusion`, () => {
+      const removals = removalCommands(step.text)
+      for (const exclusion of directoryExclusions) {
+        assert.ok(
+          removals.includes(`/${exclusion.path}`),
+          `${step.label} should rm -rf ${exclusion.path}`,
+        )
+      }
+    })
+
+    test(`${step.label} points at the exclusion module`, () => {
+      assert.ok(
+        step.text.includes('builds/mariadb/plugin-exclusions.ts'),
+        `${step.label} should name the module its paths are mirrored from`,
+      )
+    })
+  }
 })
 
 describe('normalizeArchivePath', () => {

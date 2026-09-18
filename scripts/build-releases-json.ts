@@ -25,6 +25,7 @@ import {
   checksumsFromPublishedPlatforms,
 } from '../lib/checksums.js'
 import { getDownloadUrl } from '../lib/registry.js'
+import { selectPublishedReleases } from '../lib/github-releases.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT_DIR = resolve(__dirname, '..')
@@ -79,6 +80,9 @@ type GitHubAsset = {
 type GitHubRelease = {
   tag_name: string
   published_at: string
+  // Present on the API response; a draft is filtered out before the manifest
+  // ever sees it (see lib/github-releases.ts).
+  draft?: boolean
   assets: GitHubAsset[]
 }
 
@@ -216,6 +220,7 @@ async function fetchAllReleases(): Promise<Map<string, GitHubRelease>> {
   const releases = new Map<string, GitHubRelease>()
   let page = 1
   const perPage = 100
+  let draftsSkipped = 0
 
   console.log(`Fetching releases from GitHub for ${REPO}...`)
 
@@ -232,9 +237,17 @@ async function fetchAllReleases(): Promise<Map<string, GitHubRelease>> {
     const batch = (await response.json()) as GitHubRelease[]
     if (batch.length === 0) break
 
-    for (const release of batch) {
+    // The list includes DRAFTS for a token with write access, and the manifest
+    // job holds one. A draft carries only the assets uploaded so far, so
+    // counting it snapshots a half-finished release into releases.json.
+    const { published, skippedDraftTags } = selectPublishedReleases(batch)
+    for (const release of published) {
       releases.set(release.tag_name, release)
     }
+    for (const tag of skippedDraftTags) {
+      console.log(`  Skipping draft release: ${tag}`)
+    }
+    draftsSkipped += skippedDraftTags.length
 
     console.log(`  Page ${page}: ${batch.length} releases`)
 
@@ -242,7 +255,10 @@ async function fetchAllReleases(): Promise<Map<string, GitHubRelease>> {
     page++
   }
 
-  console.log(`  Total: ${releases.size} releases`)
+  console.log(
+    `  Total: ${releases.size} releases` +
+      (draftsSkipped > 0 ? ` (${draftsSkipped} drafts skipped)` : ''),
+  )
   return releases
 }
 

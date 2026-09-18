@@ -200,36 +200,66 @@ jobs:
           chmod +x builds/common/merge-release-checksums.sh
           ./builds/common/merge-release-checksums.sh "questdb-${{ github.event.inputs.version }}" ./release-assets/checksums.txt
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: questdb-${{ github.event.inputs.version }}
-          name: QuestDB ${{ github.event.inputs.version }}
-          body: |
-            ## QuestDB ${{ github.event.inputs.version }}
+      # action-gh-release uploaded all six assets CONCURRENTLY with no per-file
+      # retry and published the release before anything was verified. On the
+      # 2026-09-17 MariaDB wave that step failed or stalled on 5 of 8 attempts
+      # ("Error saving asset", "Headers Timeout Error", "Error creating asset
+      # temp dir", and a 46-minute stall on the 450 MB linux-x64 archive that a
+      # hand-run `gh release upload` then finished in 44 seconds). The release
+      # is now created as a DRAFT, every asset is uploaded one at a time with
+      # retries, checksums.txt goes last, the upload is verified against it, and
+      # only then is the release published.
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Bound through env: a workflow input is attacker-controlled text,
+          # and an expression splices it into the script before bash sees it.
+          VERSION: ${{ github.event.inputs.version }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          mkdir -p ./release-notes
+          cat >./release-notes/body.md <<'RELEASE_NOTES'
+          ## QuestDB __VERSION__
 
-            QuestDB binaries repackaged for hostdb.
+          QuestDB binaries repackaged for hostdb.
 
-            ### Platforms
-            - `linux-x64` - Linux x86_64
-            - `linux-arm64` - Linux ARM64
-            - `darwin-x64` - macOS x86_64
-            - `darwin-arm64` - macOS Apple Silicon
-            - `win32-x64` - Windows x64
+          ### Platforms
+          - `linux-x64` - Linux x86_64
+          - `linux-arm64` - Linux ARM64
+          - `darwin-x64` - macOS x86_64
+          - `darwin-arm64` - macOS Apple Silicon
+          - `win32-x64` - Windows x64
 
-            ### Usage
-            ```bash
-            # Download URL pattern
-            https://github.com/${{ github.repository }}/releases/download/questdb-${{ github.event.inputs.version }}/questdb-${{ github.event.inputs.version }}-<platform>.tar.gz
-            ```
+          ### Usage
+          ```bash
+          # Download URL pattern
+          https://github.com/__REPOSITORY__/releases/download/questdb-__VERSION__/questdb-__VERSION__-<platform>.tar.gz
+          ```
 
-            ### Checksums
-            See `checksums.txt` for SHA256 checksums.
-          files: |
-            release-assets/*.tar.gz
-            release-assets/*.zip
-            release-assets/checksums.txt
-          fail_on_unmatched_files: false
+          ### Checksums
+          See `checksums.txt` for SHA256 checksums.
+          RELEASE_NOTES
+
+          # The notes are written with placeholders so the heredoc carries no
+          # expression at all; fill them in from the env bindings above.
+          python3 - <<'FILL_PLACEHOLDERS'
+          import os
+
+          path = './release-notes/body.md'
+          with open(path, encoding='utf-8') as handle:
+              body = handle.read()
+          body = body.replace('__VERSION__', os.environ['VERSION'])
+          body = body.replace('__REPOSITORY__', os.environ['REPOSITORY'])
+          with open(path, 'w', encoding='utf-8') as handle:
+              handle.write(body)
+          FILL_PLACEHOLDERS
+
+          chmod +x builds/common/publish-release.sh
+          ./builds/common/publish-release.sh \
+            --tag "questdb-$VERSION" \
+            --title "QuestDB $VERSION" \
+            --notes-file ./release-notes/body.md \
+            --assets-dir ./release-assets
 
   upload-to-r2:
     needs: release

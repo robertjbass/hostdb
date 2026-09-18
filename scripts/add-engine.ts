@@ -500,36 +500,60 @@ jobs:
       - name: List release assets
         run: ls -la ./release-assets/
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${dbKey}-\${{ github.event.inputs.version }}
-          name: ${db.displayName} \${{ github.event.inputs.version }}
-          body: |
-            ## ${db.displayName} \${{ github.event.inputs.version }}
+      # Assets are uploaded one at a time, with retries, to a DRAFT release and
+      # verified against checksums.txt before it is published. See
+      # builds/common/publish-release.sh for why concurrent uploads were dropped.
+      - name: Publish release
+        env:
+          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          # Bound through env: a workflow input is attacker-controlled text,
+          # and an expression splices it into the script before bash sees it.
+          VERSION: \${{ github.event.inputs.version }}
+          REPOSITORY: \${{ github.repository }}
+        run: |
+          mkdir -p ./release-notes
+          cat >./release-notes/body.md <<'RELEASE_NOTES'
+          ## ${db.displayName} __VERSION__
 
-            ${db.displayName} binaries repackaged for hostdb.
+          ${db.displayName} binaries repackaged for hostdb.
 
-            ### Platforms
-            - \`linux-x64\` - Linux x86_64
-            - \`linux-arm64\` - Linux ARM64
-            - \`darwin-x64\` - macOS x86_64
-            - \`darwin-arm64\` - macOS Apple Silicon
-            - \`win32-x64\` - Windows x64
+          ### Platforms
+          - \`linux-x64\` - Linux x86_64
+          - \`linux-arm64\` - Linux ARM64
+          - \`darwin-x64\` - macOS x86_64
+          - \`darwin-arm64\` - macOS Apple Silicon
+          - \`win32-x64\` - Windows x64
 
-            ### Usage
-            \`\`\`bash
-            # Download URL pattern
-            https://github.com/\${{ github.repository }}/releases/download/${dbKey}-\${{ github.event.inputs.version }}/${dbKey}-\${{ github.event.inputs.version }}-<platform>.tar.gz
-            \`\`\`
+          ### Usage
+          \`\`\`bash
+          # Download URL pattern
+          https://github.com/__REPOSITORY__/releases/download/${dbKey}-__VERSION__/${dbKey}-__VERSION__-<platform>.tar.gz
+          \`\`\`
 
-            ### Checksums
-            See \`checksums.txt\` for SHA256 checksums.
-          files: |
-            release-assets/*.tar.gz
-            release-assets/*.zip
-            release-assets/checksums.txt
-          fail_on_unmatched_files: false
+          ### Checksums
+          See \`checksums.txt\` for SHA256 checksums.
+          RELEASE_NOTES
+
+          # The notes are written with placeholders so the heredoc carries no
+          # expression at all; fill them in from the env bindings above.
+          python3 - <<'FILL_PLACEHOLDERS'
+          import os
+
+          path = './release-notes/body.md'
+          with open(path, encoding='utf-8') as handle:
+              body = handle.read()
+          body = body.replace('__VERSION__', os.environ['VERSION'])
+          body = body.replace('__REPOSITORY__', os.environ['REPOSITORY'])
+          with open(path, 'w', encoding='utf-8') as handle:
+              handle.write(body)
+          FILL_PLACEHOLDERS
+
+          chmod +x builds/common/publish-release.sh
+          ./builds/common/publish-release.sh \\
+            --tag "${dbKey}-$VERSION" \\
+            --title "${db.displayName} $VERSION" \\
+            --notes-file ./release-notes/body.md \\
+            --assets-dir ./release-assets
 
   update-releases:
     needs: release
