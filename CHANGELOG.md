@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.1] - 2026-09-18
+
+Release-tooling hardening from the 2026-09-17 MariaDB wave. No engine version, default, resolver or binary change, and nothing already published moves: `releases.json` and `databases.json` are byte-identical to 0.43.0. The patch bump is so consumers pick up the corrected manifest-build behavior along with the rest of the package.
+
+### Fixed
+
+- **A release's assets are now uploaded one at a time, with retries, to a draft release that is verified before it is published.** `softprops/action-gh-release@v2` uploads every asset concurrently, has no per-file retry, and publishes the release before anything is checked: on the MariaDB wave that step failed or stalled on 5 of 8 attempts (`Error saving asset`, `Headers Timeout Error`, `Error creating asset temp dir`, and a 46-minute stall on the 450 MB `linux-x64` archive that a hand-run `gh release upload` then finished in 44 seconds). All 22 `release-<engine>.yml` workflows now call `builds/common/publish-release.sh`, which creates the release as a **draft**, uploads each asset sequentially with `gh release upload --clobber` (3 attempts, 5s then 15s backoff) and `checksums.txt` last, verifies that every asset is attached, in state `uploaded` and the right size (comparing the API's `digest` field against `checksums.txt` where it is exposed), and only then publishes. A re-dispatch against an already-published release updates it in place and is never demoted back to a draft. Every pre-upload validation step is unchanged, the job still needs nothing beyond `contents: write`, and this retires the last `softprops/action-gh-release@v2` usage in the repo.
+- **The manifest builder ignores draft releases.** `build-releases-json.ts` fetches the release list with a write-scoped token, which includes drafts, so the `update-releases` job that ran while the MariaDB 12.3.3 release was still uploading snapshotted `12.3.3` with 3 platforms and `releasedAt: null` into `main` and R2. The next manifest run healed it, but in between a consumer resolving those platforms got nothing. Drafts are now filtered out before the manifest sees them (`lib/github-releases.ts`, covered by `tests/github-releases-draft-skip.test.ts`), which makes a half-uploaded release harmless however it arises.
+- **Source-built MariaDB archives no longer ship the DuckDB and VIDEX test suites.** `linux-arm64` and both darwin platforms pass `-DPLUGIN_DUCKDB=NO -DPLUGIN_VIDEX=NO`, so neither engine is built, but `make install` still copied `mariadb-test/plugin/duckdb/` and `mariadb-test/plugin/videx/` (text only, ~1 MB) - the two directories the official-archive repack strips. Both packaging steps now delete them, so all five platforms match; `tests/mariadb-plugin-exclusions.test.ts` asserts the hand-written paths stay in sync with `BUNDLED_PLUGIN_EXCLUSIONS`. Existing published archives are unchanged; the next MariaDB build carries the fix.
+
 ## [0.43.0] - 2026-09-17
 
 ### Added

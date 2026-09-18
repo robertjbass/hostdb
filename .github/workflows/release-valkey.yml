@@ -468,46 +468,58 @@ jobs:
           chmod +x builds/common/merge-release-checksums.sh
           ./builds/common/merge-release-checksums.sh "valkey-${{ github.event.inputs.version }}" ./release-assets/checksums.txt
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: valkey-${{ github.event.inputs.version }}
-          name: Valkey ${{ github.event.inputs.version }}
-          body: |
-            ## Valkey ${{ github.event.inputs.version }}
+      # action-gh-release uploaded all six assets CONCURRENTLY with no per-file
+      # retry and published the release before anything was verified. On the
+      # 2026-09-17 MariaDB wave that step failed or stalled on 5 of 8 attempts
+      # ("Error saving asset", "Headers Timeout Error", "Error creating asset
+      # temp dir", and a 46-minute stall on the 450 MB linux-x64 archive that a
+      # hand-run `gh release upload` then finished in 44 seconds). The release
+      # is now created as a DRAFT, every asset is uploaded one at a time with
+      # retries, checksums.txt goes last, the upload is verified against it, and
+      # only then is the release published.
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p ./release-notes
+          cat >./release-notes/body.md <<'RELEASE_NOTES'
+          ## Valkey ${{ github.event.inputs.version }}
 
-            Valkey binaries for hostdb - all 5 platforms.
+          Valkey binaries for hostdb - all 5 platforms.
 
-            Valkey is a Linux Foundation-backed fork of Redis with BSD-3-Clause license.
+          Valkey is a Linux Foundation-backed fork of Redis with BSD-3-Clause license.
 
-            ### Available Platforms
-            | Platform | Source |
-            |----------|--------|
-            | `linux-x64` | Built from source (Docker) |
-            | `linux-arm64` | Built from source (Docker + QEMU) |
-            | `darwin-x64` | Built from source (native macOS) |
-            | `darwin-arm64` | Built from source (native macOS) |
-            | `win32-x64` | Built from source (native Windows + MSYS2) |
+          ### Available Platforms
+          | Platform | Source |
+          |----------|--------|
+          | `linux-x64` | Built from source (Docker) |
+          | `linux-arm64` | Built from source (Docker + QEMU) |
+          | `darwin-x64` | Built from source (native macOS) |
+          | `darwin-arm64` | Built from source (native macOS) |
+          | `win32-x64` | Built from source (native Windows + MSYS2) |
 
-            ### Usage
-            ```bash
-            # Download URL pattern
-            https://github.com/${{ github.repository }}/releases/download/valkey-${{ github.event.inputs.version }}/valkey-${{ github.event.inputs.version }}-<platform>.tar.gz
-            ```
+          ### Usage
+          ```bash
+          # Download URL pattern
+          https://github.com/${{ github.repository }}/releases/download/valkey-${{ github.event.inputs.version }}/valkey-${{ github.event.inputs.version }}-<platform>.tar.gz
+          ```
 
-            ### Checksums
-            See `checksums.txt` for SHA256 checksums.
+          ### Checksums
+          See `checksums.txt` for SHA256 checksums.
 
-            ### License
-            Valkey is licensed under BSD-3-Clause, making it safe for commercial use.
+          ### License
+          Valkey is licensed under BSD-3-Clause, making it safe for commercial use.
 
-            ### Sources
-            - **Official Source**: [github.com/valkey-io/valkey](https://github.com/valkey-io/valkey)
-          files: |
-            release-assets/*.tar.gz
-            release-assets/*.zip
-            release-assets/checksums.txt
-          fail_on_unmatched_files: false
+          ### Sources
+          - **Official Source**: [github.com/valkey-io/valkey](https://github.com/valkey-io/valkey)
+          RELEASE_NOTES
+
+          chmod +x builds/common/publish-release.sh
+          ./builds/common/publish-release.sh \
+            --tag "valkey-${{ github.event.inputs.version }}" \
+            --title "Valkey ${{ github.event.inputs.version }}" \
+            --notes-file ./release-notes/body.md \
+            --assets-dir ./release-assets
 
   # Update the releases manifest
   upload-to-r2:

@@ -126,6 +126,16 @@ RUN make -j$(nproc)
 # Install to /opt/mariadb
 RUN make install
 
+# Drop the test suites of the two plugins this build excludes.
+# -DPLUGIN_DUCKDB=NO / -DPLUGIN_VIDEX=NO stop the ENGINES from being built, but
+# `make install` still copies their mariadb-test suites (text only, ~1 MB), so
+# without this the source builds ship something the repacked official archives
+# strip. These two paths mirror the `directory` entries of
+# BUNDLED_PLUGIN_EXCLUSIONS in builds/mariadb/plugin-exclusions.ts - keep them
+# in sync; tests/mariadb-plugin-exclusions.test.ts asserts they match.
+RUN rm -rf /opt/mariadb/mariadb-test/plugin/duckdb \
+    /opt/mariadb/mariadb-test/plugin/videx
+
 # =============================================================================
 # Stage 2: Package
 # =============================================================================

@@ -23,7 +23,7 @@ The script:
 - Hyphen-to-underscore: `typedb-console` → `typedb_console`, `typedb_console_bin`
 - Searches recursively through the entire extracted archive (handles `bin/`, root, and custom paths like TypeDB's `server/` and `console/`).
 
-**Used by:** all 21 release workflows. Add a "Validate required binaries" step in each workflow's `release` job, after artifact preparation and before "Create Release":
+**Used by:** all 22 release workflows. Add a "Validate required binaries" step in each workflow's `release` job, after artifact preparation and before "Publish release":
 
 ```yaml
 - name: Validate required binaries
@@ -72,6 +72,48 @@ Covered by `tests/platform-coverage.test.ts`. `HOSTDB_ROOT` overrides the repo r
   run: |
     chmod +x builds/common/check-platform-coverage.sh
     ./builds/common/check-platform-coverage.sh <database-id> "${{ github.event.inputs.version }}" "${{ github.event.inputs.platforms }}" ./release-assets
+```
+
+### `merge-release-checksums.sh <release-tag> <checksums-file>`
+
+Merges the `checksums.txt` already attached to a release UNDER the freshly built one, so a partial-platform dispatch does not wipe the checksums of platforms it did not rebuild. `releases.json` is derived from `checksums.txt`, so an unmerged partial upload silently drops every untouched platform from the manifest (postgresql 18.6.0 and 18.4.0, 2026-09-09). A rebuilt platform's new line wins; a brand new release has nothing to merge. Covered by `tests/release-checksums-merge.test.ts`.
+
+**Used by:** all 22 release workflows, immediately after the platform-coverage check and before the release is published.
+
+### `publish-release.sh --tag <tag> --title <title> --notes-file <file> --assets-dir <dir> [--target <sha>] [--prerelease true|false]`
+
+Creates the GitHub Release and uploads its assets. Replaces `softprops/action-gh-release@v2`, which uploaded every asset CONCURRENTLY with no per-file retry and published the release before anything was verified. On the 2026-09-17 MariaDB wave that step failed or stalled on 5 of 8 attempts: "Error saving asset", "Headers Timeout Error", "Error creating asset temp dir", and one 46-minute stall on the 450 MB `linux-x64` archive that a hand-run `gh release upload` then finished in 44 seconds.
+
+The sequence:
+
+1. Create the release as a **draft** if it does not exist (same tag, title, notes and target as before), or adopt the existing one. An already-published release is updated in place and never demoted back to a draft.
+2. Upload each asset **sequentially** with `gh release upload --clobber`, 3 attempts per file with a 5s then 15s backoff. `checksums.txt` goes **last**, so a partial run can never leave a checksums file describing assets that are not on the release.
+3. Verify: every uploaded asset is attached, in state `uploaded`, and the same size as the local file. Where the API exposes the asset `digest` field, it is compared against `checksums.txt`; where it does not, the size comparison stands in and the script says so.
+4. Publish with `gh release edit --draft=false`.
+
+**Why a draft matters:** a draft has no git tag and is invisible to the unauthenticated API, so a run that dies midway leaves nothing for a consumer, or for `build-releases-json.ts`, to snapshot. A draft counted mid-upload is exactly how `releases.json` briefly recorded mariadb 12.3.3 with 3 platforms and `releasedAt: null`. `lib/github-releases.ts` closes the same gap from the manifest side.
+
+Needs `GH_TOKEN` with `contents: write`, which is all the `release` job grants.
+
+**Used by:** all 22 release workflows, as the final step of the `release` job:
+
+```yaml
+- name: Publish release
+  env:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: |
+    mkdir -p ./release-notes
+    cat >./release-notes/body.md <<'RELEASE_NOTES'
+    ## <Display Name> ${{ github.event.inputs.version }}
+    ...
+    RELEASE_NOTES
+
+    chmod +x builds/common/publish-release.sh
+    ./builds/common/publish-release.sh \
+      --tag "<database-id>-${{ github.event.inputs.version }}" \
+      --title "<Display Name> ${{ github.event.inputs.version }}" \
+      --notes-file ./release-notes/body.md \
+      --assets-dir ./release-assets
 ```
 
 ### `fix-macos-dylibs.sh <package-root>`

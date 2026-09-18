@@ -500,36 +500,42 @@ jobs:
       - name: List release assets
         run: ls -la ./release-assets/
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${dbKey}-\${{ github.event.inputs.version }}
-          name: ${db.displayName} \${{ github.event.inputs.version }}
-          body: |
-            ## ${db.displayName} \${{ github.event.inputs.version }}
+      # Assets are uploaded one at a time, with retries, to a DRAFT release and
+      # verified against checksums.txt before it is published. See
+      # builds/common/publish-release.sh for why concurrent uploads were dropped.
+      - name: Publish release
+        env:
+          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p ./release-notes
+          cat >./release-notes/body.md <<'RELEASE_NOTES'
+          ## ${db.displayName} \${{ github.event.inputs.version }}
 
-            ${db.displayName} binaries repackaged for hostdb.
+          ${db.displayName} binaries repackaged for hostdb.
 
-            ### Platforms
-            - \`linux-x64\` - Linux x86_64
-            - \`linux-arm64\` - Linux ARM64
-            - \`darwin-x64\` - macOS x86_64
-            - \`darwin-arm64\` - macOS Apple Silicon
-            - \`win32-x64\` - Windows x64
+          ### Platforms
+          - \`linux-x64\` - Linux x86_64
+          - \`linux-arm64\` - Linux ARM64
+          - \`darwin-x64\` - macOS x86_64
+          - \`darwin-arm64\` - macOS Apple Silicon
+          - \`win32-x64\` - Windows x64
 
-            ### Usage
-            \`\`\`bash
-            # Download URL pattern
-            https://github.com/\${{ github.repository }}/releases/download/${dbKey}-\${{ github.event.inputs.version }}/${dbKey}-\${{ github.event.inputs.version }}-<platform>.tar.gz
-            \`\`\`
+          ### Usage
+          \`\`\`bash
+          # Download URL pattern
+          https://github.com/\${{ github.repository }}/releases/download/${dbKey}-\${{ github.event.inputs.version }}/${dbKey}-\${{ github.event.inputs.version }}-<platform>.tar.gz
+          \`\`\`
 
-            ### Checksums
-            See \`checksums.txt\` for SHA256 checksums.
-          files: |
-            release-assets/*.tar.gz
-            release-assets/*.zip
-            release-assets/checksums.txt
-          fail_on_unmatched_files: false
+          ### Checksums
+          See \`checksums.txt\` for SHA256 checksums.
+          RELEASE_NOTES
+
+          chmod +x builds/common/publish-release.sh
+          ./builds/common/publish-release.sh \\
+            --tag "${dbKey}-\${{ github.event.inputs.version }}" \\
+            --title "${db.displayName} \${{ github.event.inputs.version }}" \\
+            --notes-file ./release-notes/body.md \\
+            --assets-dir ./release-assets
 
   update-releases:
     needs: release
