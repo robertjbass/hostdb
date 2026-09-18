@@ -360,7 +360,10 @@ jobs:
             --assets-dir ./release-assets
 
   upload-to-r2:
+    # A single-platform dispatch skips one build job, so the default success()
+    # gate would see a skipped ancestor and skip this job, stranding the release.
     needs: release
+    if: always() && needs.release.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -384,7 +387,10 @@ jobs:
         run: pnpm tsx scripts/upload-to-r2.ts --tag "sqlite-${{ github.event.inputs.version }}" --force
 
   update-releases:
+    # Same skipped-ancestor rule as upload-to-r2: gate explicitly or a
+    # single-platform dispatch never rebuilds releases.json.
     needs: upload-to-r2
+    if: always() && needs.upload-to-r2.result == 'success'
     # releases.json is one shared file committed to main and pushed to R2, and
     # each run rebuilds the WHOLE manifest, so two of these at once is
     # last-writer-wins: the loser's version silently disappears from the
