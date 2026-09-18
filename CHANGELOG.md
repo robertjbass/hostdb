@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.43.2] - 2026-09-18
+
+Release-tooling fix only. No engine version, default, resolver or binary change, and nothing already published moves: `releases.json` and `databases.json` are byte-identical to 0.43.1. The patch bump follows the 0.43.1 precedent for tooling-only fixes.
+
+### Fixed
+
+- **A single-platform re-dispatch of the SQLite or InfluxDB release workflow created the GitHub release and then silently stopped, never reaching R2 or `releases.json`.** Both workflows split the build across two jobs that are each gated on the `platforms` input, so a single-platform run skips one of them by design and `release` survives only because it carries `if: always() && ...`. `upload-to-r2` and `update-releases` carried no `if:` of their own, and GitHub's implicit `success()` gate treats a skipped ancestor exactly like a failed one, so both jobs skipped with no error anywhere: the release existed, the binaries never shipped, and the manifest never learned about them. Both jobs now gate explicitly on the result of the job they need, and `release-clickhouse.yml` gets the same explicit gates so the three conditional-build workflows read alike. `tests/workflow-job-gates.test.ts` pins the guards and asserts, across every workflow in the repo, that any job downstream of an `always()`-gated job carries its own `if:`. The single-build-job workflows were never affected.
+
 ## [0.43.1] - 2026-09-18
 
 Release-tooling hardening from the 2026-09-17 MariaDB wave. No engine version, default, resolver or binary change, and nothing already published moves: `releases.json` and `databases.json` are byte-identical to 0.43.0. The patch bump is so consumers pick up the corrected manifest-build behavior along with the rest of the package.
