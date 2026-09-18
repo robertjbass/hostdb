@@ -149,6 +149,11 @@ mkdir -p "$STAGE_DIR"
 # public release is exactly as it was.
 STAGED_SWAP="false"
 SWAP_TOUCHED="false"
+# Set while an asset's previous copy has been renamed aside but its verified
+# replacement has not yet taken the public name. If the swap fails in that
+# window the public name is absent rather than still holding the old asset, so
+# the failure report has to name the retired copy.
+RETIRED_PENDING=""
 
 cleanup_staging_assets() {
   local list id
@@ -461,6 +466,11 @@ report_swap_failure() {
   for ((i = failed_index; i < ${#ASSETS[@]}; i++)); do
     echo "    $(basename "${ASSETS[$i]}")" >&2
   done
+  if [[ -n "$RETIRED_PENDING" ]]; then
+    echo "  superseded asset left behind by the failed swap:" >&2
+    echo "    $RETIRED_PENDING" >&2
+    echo "    that public name is absent until the swap is finished" >&2
+  fi
   echo "  verified replacements for those remain under ${STAGING_SUFFIX} names" >&2
   echo "  re-run this workflow to finish the swap" >&2
   exit 1
@@ -492,12 +502,14 @@ if [[ "$STAGED_SWAP" == "true" ]]; then
         report_swap_failure "$idx"
       fi
       SWAP_TOUCHED="true"
+      RETIRED_PENDING="${name}${RETIRED_SUFFIX}"
     fi
 
     if ! rename_asset "$staging_id" "$name"; then
       report_swap_failure "$idx"
     fi
     SWAP_TOUCHED="true"
+    RETIRED_PENDING=""
     echo "  $name swapped in"
 
     if [[ -n "$old_id" ]]; then

@@ -54,7 +54,15 @@ DOWNLOAD_ATTEMPTS=3
 # Whitespace-separated, overridable so the retry path can be tested quickly.
 read -r -a RETRY_DELAYS <<<"${MERGE_RETRY_DELAYS:-5 15}"
 
-NOT_FOUND_PATTERN='release not found|no assets match|no asset found|HTTP 404'
+# Only the diagnostics `gh` prints for a missing RELEASE or a missing ASSET,
+# verified against gh 2.97.0: `gh release download <missing-tag>` prints
+# "release not found", and `--pattern` matching nothing prints "no assets match
+# the file pattern" ("no asset found" covers the older wording). A bare
+# "HTTP 404" is deliberately NOT here: the API answers 404 for a repository the
+# token cannot see and for a bad endpoint too, so matching it would turn an auth
+# or context failure into "nothing to merge" and publish a checksums.txt holding
+# only the platforms this run rebuilt - the exact regression above.
+NOT_FOUND_PATTERN='release not found|no assets match|no asset found'
 ERR_FILE="$WORK_DIR/gh-stderr.txt"
 
 attempt=1

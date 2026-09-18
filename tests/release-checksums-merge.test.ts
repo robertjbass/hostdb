@@ -235,6 +235,33 @@ describe('merge-release-checksums.sh', () => {
     })
   })
 
+  test('a generic 404 is not read as "no existing checksums"', () => {
+    // The API answers 404 for a repository the token cannot see, and for an
+    // endpoint that does not exist, not only for a missing release. Classifying
+    // a bare HTTP 404 as "nothing to merge" is how a partial-platform re-run
+    // would publish a checksums.txt holding only the platforms it rebuilt.
+    const { status, stdout, merged } = runMerge({
+      freshChecksums: `${SHA_NEW_LINUX_X64}  postgresql-18.6.0-linux-x64.tar.gz\n`,
+      existing: null,
+      failingStub: [
+        '#!/usr/bin/env bash',
+        'echo "gh: HTTP 404: Not Found (https://api.github.com/repos/robertjbass/hostdb/releases/tags/postgresql-18.6.0)" >&2',
+        'exit 1',
+        '',
+      ].join('\n'),
+    })
+
+    assert.notEqual(status, 0)
+    assert.doesNotMatch(stdout, /nothing to merge/)
+    assert.match(stdout, /could not read the existing checksums\.txt/)
+    // retried rather than accepted at face value
+    assert.equal(stdout.match(/retrying in/g)?.length, 2)
+    // the freshly built file is left exactly as it was, never half-merged
+    assert.deepEqual(parseChecksums(merged), {
+      'postgresql-18.6.0-linux-x64.tar.gz': SHA_NEW_LINUX_X64,
+    })
+  })
+
   test('a transient failure that clears on retry still merges', () => {
     const { status, merged } = runMerge({
       freshChecksums: `${SHA_NEW_LINUX_X64}  postgresql-18.6.0-linux-x64.tar.gz\n`,

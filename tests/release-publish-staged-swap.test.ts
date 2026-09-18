@@ -110,7 +110,11 @@ if [[ "$sub" == "api" ]]; then
         exit 0
       fi
       if [[ "$method" == "PATCH" ]]; then
-        if [[ "\${GH_PATCH_FAILS:-}" == "1" ]]; then
+        patches="$(cat "$GH_STATE/patch-count" 2>/dev/null || echo 0)"
+        patches=$((patches + 1))
+        echo "$patches" >"$GH_STATE/patch-count"
+        if [[ "\${GH_PATCH_FAILS:-}" == "1" ]] \\
+          || [[ "$patches" == "\${GH_PATCH_FAIL_AT:-}" ]]; then
           echo "gh: Validation Failed (HTTP 422)" >&2
           exit 1
         fi
@@ -183,11 +187,14 @@ function runPublish({
   published,
   badDigestFor,
   patchFails,
+  patchFailAt,
 }: {
   /** Seed an already-published release carrying the previous asset set. */
   published: boolean
   badDigestFor?: string
   patchFails?: boolean
+  /** Fail only the Nth PATCH (1-based), to break the swap part-way through. */
+  patchFailAt?: number
 }): RunResult {
   const dir = mkdtempSync(join(tmpdir(), 'hostdb-publish-'))
   try {
@@ -280,6 +287,7 @@ function runPublish({
           PUBLISH_RETRY_DELAYS: '0 0',
           ...(badDigestFor ? { GH_BAD_DIGEST_FOR: badDigestFor } : {}),
           ...(patchFails ? { GH_PATCH_FAILS: '1' } : {}),
+          ...(patchFailAt ? { GH_PATCH_FAIL_AT: String(patchFailAt) } : {}),
         },
       },
     )
@@ -431,6 +439,50 @@ describe('publish-release.sh on an already published release', () => {
       arm64?.digest,
       `sha256:${sha256('the previously published linux-arm64 archive\n')}`,
     )
+  })
+
+  test('a swap that fails part-way reports what moved and keeps the staging assets', () => {
+    // The 4th PATCH: linux-arm64 is fully swapped, and linux-x64's previous
+    // asset has already been renamed aside, so the failure lands with a public
+    // name absent rather than still holding the old asset.
+    const { status, output, calls, state } = runPublish({
+      published: true,
+      patchFailAt: 4,
+    })
+
+    assert.notEqual(status, 0)
+    assert.match(output, /the asset swap on .* failed part-way/)
+
+    // the report separates what is now public from what is not
+    const swapped = output.slice(
+      output.indexOf('swapped (now public):'),
+      output.indexOf('NOT swapped'),
+    )
+    const notSwapped = output.slice(output.indexOf('NOT swapped'))
+    assert.match(swapped, new RegExp(ARM64.replace(/\./g, '\\.')))
+    assert.doesNotMatch(swapped, new RegExp(X64.replace(/\./g, '\\.')))
+    assert.match(notSwapped, new RegExp(`\\s${X64.replace(/\./g, '\\.')}\\n`))
+    assert.match(notSwapped, /\schecksums\.txt\n/)
+
+    // the superseded asset the failed swap left behind is named
+    assert.match(output, /superseded asset left behind by the failed swap/)
+    assert.match(
+      output,
+      new RegExp(`${X64}${RETIRED_SUFFIX}`.replace(/\./g, '\\.')),
+    )
+
+    // the verified replacements stay on the release; nothing is cleaned up
+    assert.doesNotMatch(output, /Removing the staging assets/)
+    assert.doesNotMatch(output, /was left untouched/)
+    const remaining = state?.assets.map((asset) => asset.name) ?? []
+    assert.ok(remaining.includes(`${X64}${STAGING_SUFFIX}`))
+    assert.ok(remaining.includes(`checksums.txt${STAGING_SUFFIX}`))
+    // only the already-swapped asset's previous copy was deleted
+    assert.deepEqual(deletedIds(calls), ['10'])
+
+    // checksums.txt is swapped last, so the old one is still the public file
+    assert.ok(remaining.includes('checksums.txt'))
+    assert.ok(remaining.includes(ARM64))
   })
 })
 
