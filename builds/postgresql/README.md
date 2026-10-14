@@ -50,6 +50,13 @@ download` step of `.github/workflows/release-postgresql.yml`; keep them in sync.
 - ICU support (`--with-icu`)
 - UUID support (`--with-uuid=e2fs`) - required for the `uuid-ossp` extension
 - All contrib modules (pg_stat_statements, uuid-ossp, etc.)
+- Candidate PostgreSQL 18.6.0 and 19.0.0-beta.3 Linux x64 builds additionally include checksum-pinned pg_cron 1.6.8. These cover the current Cloud new-database choices (18 and opt-in 19 beta 3). Other versions and platforms require separate qualification. The packager verifies the library, control file and install/upgrade SQL. The release workflow runs `smoke-pg-cron.sh` against each candidate archive in an unprivileged, network-isolated container before upload; SpinDB and Cloud own scheduler configuration and lifecycle safety.
+
+The pg_cron candidate does not update any published URL or checksum. Follow the
+artifact refresh runbook and preserve old extension-capable artifacts for rollback.
+Never replace a shared library under a running PostgreSQL process. pg_net is a
+separate feasibility effort and is not included in this build.
+
 
 **`uuid-ossp` is load-bearing, not optional.** `contrib/uuid-ossp` only compiles
 when `configure` ran with `--with-uuid=<lib>`; without it `make install` skips

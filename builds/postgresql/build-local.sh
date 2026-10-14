@@ -211,6 +211,16 @@ else
     exit 1
 fi
 
+# pg_cron is currently scoped to managed Linux x64 qualification.
+if [[ "$PLATFORM" == "linux-x64" && ( "$VERSION" == "18.6.0" || "$VERSION" == "19.0.0-beta.3" ) ]]; then
+    for EXTENSION_FILE in lib/pg_cron.so share/extension/pg_cron.control share/extension/pg_cron--1.0.sql share/extension/pg_cron--1.5--1.6.sql; do
+        if [[ ! -s "${OUTPUT_PATH}/postgresql/${EXTENSION_FILE}" ]]; then
+            log_error "pg_cron file missing: ${EXTENSION_FILE}. Rebuild with the pinned pg_cron source recipe."
+            exit 1
+        fi
+    done
+fi
+
 # Create tarball
 TARBALL="${OUTPUT_DIR}/postgresql-${VERSION}-${PLATFORM}.tar.gz"
 log_info "Creating tarball: ${TARBALL}"
