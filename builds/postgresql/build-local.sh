@@ -225,7 +225,7 @@ fi
 TARBALL="${OUTPUT_DIR}/postgresql-${VERSION}-${PLATFORM}.tar.gz"
 log_info "Creating tarball: ${TARBALL}"
 
-tar -czvf "${TARBALL}" -C "${OUTPUT_PATH}" postgresql
+COPYFILE_DISABLE=1 tar -czvf "${TARBALL}" -C "${OUTPUT_PATH}" postgresql
 
 # Show tarball info
 TARBALL_SIZE=$(du -h "${TARBALL}" | cut -f1)
