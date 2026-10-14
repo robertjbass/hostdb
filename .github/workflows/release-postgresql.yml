@@ -8,8 +8,8 @@ on:
         required: true
         type: choice
         options:
-          - 19.0.0-beta.3+cron.1
-          - 18.6.0+cron.1
+          - 19.0.0-beta.3-cron.1
+          - 18.6.0-cron.1
           - 19.0.0-beta.3
           - 19.0.0-beta.1
           - 18.6.0
@@ -81,7 +81,7 @@ jobs:
           echo "✓ Version $VERSION is enabled in databases.json"
 
       - name: Refuse published pg_cron artifact revisions
-        if: contains(github.event.inputs.version, '+cron.')
+        if: contains(github.event.inputs.version, '-cron.')
         env:
           PG_VERSION: ${{ github.event.inputs.version }}
         run: |
@@ -89,7 +89,7 @@ jobs:
           STATUS=$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' --head "$URL")
           case "$STATUS" in
             404) ;;
-            200) echo "::error::Artifact revision already exists. Choose a new +cron revision; published archives are immutable."; exit 1 ;;
+            200) echo "::error::Artifact revision already exists. Choose a new -cron revision; published archives are immutable."; exit 1 ;;
             *) echo "::error::Could not verify artifact absence (HTTP $STATUS). Refusing publication."; exit 1 ;;
           esac
 
@@ -135,7 +135,7 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           # Prereleases map to upstream's compact form (19.0.0-beta.1 -> 19beta1);
           # otherwise remove trailing .0 (18.1.0 -> 18.1)
-          UPSTREAM_VERSION="${VERSION%%+*}"
+          UPSTREAM_VERSION="${VERSION%-cron.*}"
           if [[ "$UPSTREAM_VERSION" =~ ^([0-9]+)\.0\.0-(alpha|beta|rc)\.([0-9]+)$ ]]; then
             SOURCE_VERSION="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
           else
@@ -398,7 +398,7 @@ jobs:
           ls -la ./dist/
 
       - name: Verify managed pg_cron artifact
-        if: matrix.platform == 'linux-x64' && (github.event.inputs.version == '18.6.0+cron.1' || github.event.inputs.version == '19.0.0-beta.3+cron.1')
+        if: matrix.platform == 'linux-x64' && (github.event.inputs.version == '18.6.0-cron.1' || github.event.inputs.version == '19.0.0-beta.3-cron.1')
         timeout-minutes: 10
         env:
           PG_VERSION: ${{ github.event.inputs.version }}
@@ -947,11 +947,12 @@ jobs:
 
           chmod +x builds/common/publish-release.sh
           ./builds/common/publish-release.sh \
+            --target "${{ github.sha }}" \
             --tag "postgresql-$VERSION" \
             --title "PostgreSQL $VERSION" \
             --notes-file ./release-notes/body.md \
             --assets-dir ./release-assets \
-            --prerelease "${{ contains(github.event.inputs.version, '-alpha.') || contains(github.event.inputs.version, '-beta.') || contains(github.event.inputs.version, '-rc.') }}"
+            --prerelease "${{ contains(github.event.inputs.version, '-alpha.') || contains(github.event.inputs.version, '-beta.') || contains(github.event.inputs.version, '-rc.') || contains(github.event.inputs.version, '-cron.') }}"
 
   # Update the releases manifest
   upload-to-r2:
@@ -960,7 +961,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ contains(github.event.inputs.version, '-cron.') && github.ref_name || 'main' }}
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
         with:
@@ -978,7 +979,7 @@ jobs:
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         run: |
           VERSION="${{ github.event.inputs.version }}"
-          if [[ "$VERSION" == *+cron.* ]]; then
+          if [[ "$VERSION" == *-cron.* ]]; then
             pnpm tsx scripts/upload-to-r2.ts --tag "postgresql-$VERSION"
           else
             pnpm tsx scripts/upload-to-r2.ts --tag "postgresql-$VERSION" --force
@@ -986,7 +987,8 @@ jobs:
 
   update-releases:
     needs: upload-to-r2
-    # releases.json is one shared file committed to main and pushed to R2, and
+    # Cron previews commit the manifest to the dispatch branch; other releases
+    # use main. The public manifest is shared and pushed to R2, and
     # each run rebuilds the WHOLE manifest, so two of these at once is
     # last-writer-wins: the loser's version silently disappears from the
     # manifest. Serialize repo-wide across every engine.
@@ -1006,7 +1008,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ contains(github.event.inputs.version, '-cron.') && github.ref_name || 'main' }}
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
         with:
@@ -1024,11 +1026,14 @@ jobs:
         run: pnpm tsx scripts/build-releases-json.ts --upload-r2
 
       - name: Commit and push
+        env:
+          MANIFEST_BRANCH: ${{ contains(github.event.inputs.version, '-cron.') && github.ref_name || 'main' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add releases.json databases.json
           git diff --staged --quiet && echo "No changes" && exit 0
           git commit -m "chore: update releases.json"
-          git pull --rebase origin main
-          git push
+          git fetch origin "$MANIFEST_BRANCH"
+          git merge --no-edit "origin/$MANIFEST_BRANCH"
+          git push origin "HEAD:$MANIFEST_BRANCH"
