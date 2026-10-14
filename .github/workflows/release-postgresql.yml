@@ -1034,6 +1034,6 @@ jobs:
           git add releases.json databases.json
           git diff --staged --quiet && echo "No changes" && exit 0
           git commit -m "chore: update releases.json"
-          git fetch origin "$MANIFEST_BRANCH"
+          git fetch origin "+refs/heads/$MANIFEST_BRANCH:refs/remotes/origin/$MANIFEST_BRANCH"
           git merge --no-edit "origin/$MANIFEST_BRANCH"
           git push origin "HEAD:$MANIFEST_BRANCH"
