@@ -84,6 +84,16 @@ RUN make install
 # Build and install contrib modules (pg_stat_statements, etc.)
 RUN cd contrib && make -j$(nproc) && make install
 
+# Managed new-database versions on Linux x64. Other platforms need qualification.
+RUN if [ "$TARGETARCH" = "amd64" ] && { [ "$FULL_VERSION" = "18.6.0+cron.1" ] || [ "$FULL_VERSION" = "19.0.0-beta.3+cron.1" ]; }; then \
+      curl -fsSL https://codeload.github.com/citusdata/pg_cron/tar.gz/refs/tags/v1.6.8 \
+        -o /build/pg-cron.tar.gz \
+      && echo 'c19ab9bb35406c60fb51ecda993737c083850abe424acb6c1030439d00a1f8e4  /build/pg-cron.tar.gz' | sha256sum -c - \
+      && tar -xzf /build/pg-cron.tar.gz -C /build \
+      && make -C /build/pg_cron-1.6.8 -j2 PG_CONFIG=/opt/postgresql/bin/pg_config \
+      && make -C /build/pg_cron-1.6.8 install PG_CONFIG=/opt/postgresql/bin/pg_config; \
+    fi
+
 # =============================================================================
 # Stage 2: Package
 # =============================================================================
@@ -147,6 +157,14 @@ RUN test -f /opt/postgresql/lib/pg_stat_statements.so \
 RUN test -f /opt/postgresql/lib/uuid-ossp.so \
     && test -f /opt/postgresql/share/extension/uuid-ossp.control \
     && echo "uuid-ossp verification passed"
+
+# Verify the Linux x64 scheduler files before exporting the artifact.
+RUN if [ "$TARGETARCH" = "amd64" ] && { [ "$FULL_VERSION" = "18.6.0+cron.1" ] || [ "$FULL_VERSION" = "19.0.0-beta.3+cron.1" ]; }; then \
+      test -s /opt/postgresql/lib/pg_cron.so \
+      && test -s /opt/postgresql/share/extension/pg_cron.control \
+      && test -s /opt/postgresql/share/extension/pg_cron--1.0.sql \
+      && test -s /opt/postgresql/share/extension/pg_cron--1.5--1.6.sql; \
+    fi
 
 # =============================================================================
 # Stage 3: Export (scratch image for minimal output)
