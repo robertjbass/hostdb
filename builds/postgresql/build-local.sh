@@ -138,10 +138,11 @@ fi
 # Derive source version (PostgreSQL source uses 2-part versions like 18.1, not 18.1.0)
 # Prereleases map to upstream's compact form: 19.0.0-beta.1 -> 19beta1
 # Otherwise strip trailing .0 (18.4.0 -> 18.4)
-if [[ "$VERSION" =~ ^([0-9]+)\.0\.0-(alpha|beta|rc)\.([0-9]+)$ ]]; then
+UPSTREAM_VERSION="${VERSION%%+*}"
+if [[ "$UPSTREAM_VERSION" =~ ^([0-9]+)\.0\.0-(alpha|beta|rc)\.([0-9]+)$ ]]; then
     SOURCE_VERSION="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
 else
-    SOURCE_VERSION=$(echo "$VERSION" | sed 's/\.0$//')
+    SOURCE_VERSION=$(echo "$UPSTREAM_VERSION" | sed 's/\.0$//')
 fi
 
 # Create output directory
@@ -212,7 +213,7 @@ else
 fi
 
 # pg_cron is currently scoped to managed Linux x64 qualification.
-if [[ "$PLATFORM" == "linux-x64" && ( "$VERSION" == "18.6.0" || "$VERSION" == "19.0.0-beta.3" ) ]]; then
+if [[ "$PLATFORM" == "linux-x64" && ( "$VERSION" == "18.6.0+cron.1" || "$VERSION" == "19.0.0-beta.3+cron.1" ) ]]; then
     for EXTENSION_FILE in lib/pg_cron.so share/extension/pg_cron.control share/extension/pg_cron--1.0.sql share/extension/pg_cron--1.5--1.6.sql; do
         if [[ ! -s "${OUTPUT_PATH}/postgresql/${EXTENSION_FILE}" ]]; then
             log_error "pg_cron file missing: ${EXTENSION_FILE}. Rebuild with the pinned pg_cron source recipe."
