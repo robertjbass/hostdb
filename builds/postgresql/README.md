@@ -50,9 +50,9 @@ download` step of `.github/workflows/release-postgresql.yml`; keep them in sync.
 - ICU support (`--with-icu`)
 - UUID support (`--with-uuid=e2fs`) - required for the `uuid-ossp` extension
 - All contrib modules (pg_stat_statements, uuid-ossp, etc.)
-- Candidate immutable artifacts `18.6.0+cron.1` and `19.0.0-beta.3+cron.1` for Linux x64 additionally include checksum-pinned pg_cron 1.6.8. These cover the current Cloud new-database choices (18 and opt-in 19 beta 3). Other versions and platforms require separate qualification. The packager verifies the library, control file and install/upgrade SQL. The release workflow runs `smoke-pg-cron.sh` against each candidate archive in an unprivileged, network-isolated container before upload; SpinDB and Cloud own scheduler configuration and lifecycle safety.
+- Candidate immutable artifacts `18.6.0-cron.1` and `19.0.0-beta.3-cron.1` for Linux x64 additionally include checksum-pinned pg_cron 1.6.8. These cover the current Cloud new-database choices (18 and opt-in 19 beta 3). Other versions and platforms require separate qualification. The packager verifies the library, control file and install/upgrade SQL. The release workflow runs `smoke-pg-cron.sh` against each candidate archive in an unprivileged, network-isolated container before upload; SpinDB and Cloud own scheduler configuration and lifecycle safety.
 
-The pg_cron candidate never replaces a published archive. The `+cron.1` build
+The pg_cron candidate never replaces a published archive. The `-cron.1` build
 metadata is part of the release tag, URL, manifest version and installed cache
 directory; the upstream sources remain 18.6 and 19beta3. These are explicitly
 selected artifact previews, excluded from shorthand defaults. Old versions keep

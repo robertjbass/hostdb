@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- The immutable PostgreSQL 18.6.0+cron.1 and 19.0.0-beta.3+cron.1 Linux x64 artifact previews include checksum-pinned pg_cron 1.6.8 and verify its library, control file and SQL installation scripts. Other platforms remain unchanged. This build change does not replace existing published artifacts or enable scheduling in managed databases.
+- The immutable PostgreSQL 18.6.0-cron.1 and 19.0.0-beta.3-cron.1 Linux x64 artifact previews include checksum-pinned pg_cron 1.6.8 and verify its library, control file and SQL installation scripts. Other platforms remain unchanged. This build change does not replace existing published artifacts or enable scheduling in managed databases.
 - Gate both managed PostgreSQL artifacts on real pg_cron execution, restart and stopped-interval checks in the release workflow before upload.
 - A disposable real-binary smoke script checks minutely SQL execution, coexistence with pg_stat_statements and uuid-ossp, restart persistence and behavior across a stopped interval. Managed hibernation, branch/restore safety and resource qualification remain separate release gates.
 

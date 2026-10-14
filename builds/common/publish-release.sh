@@ -326,7 +326,9 @@ done
 echo ""
 echo "Verifying uploaded assets"
 
-REMOTE="$(gh api "repos/$REPO/releases/tags/$TAG" --jq '.assets' 2>/dev/null || true)"
+if ! REMOTE="$(gh api "repos/$REPO/releases/tags/$TAG" --jq '.assets' 2>/dev/null)"; then
+  REMOTE=""
+fi
 if [[ -z "$REMOTE" || "$REMOTE" == "null" ]]; then
   # Still a draft, so the tag endpoint cannot see it. Fall back to the list.
   REMOTE="$(
