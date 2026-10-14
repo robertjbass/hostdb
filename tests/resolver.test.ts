@@ -366,3 +366,12 @@ describe('getDatabaseEntry', () => {
     assert.equal(getDatabaseEntry('not-real'), null)
   })
 })
+
+test('pg_cron revisions are explicit and never change PostgreSQL shorthand defaults', () => {
+  assert.equal(resolveVersion('postgresql', '18'), '18.6.0')
+  for (const version of ['18.6.0-cron.1', '19.0.0-beta.3-cron.1']) {
+    assert.equal(resolveVersion('postgresql', version), version)
+    assert.equal(isVersionPrerelease('postgresql', version), true)
+    assert.ok(!listVersions('postgresql').includes(version))
+  }
+})

@@ -98,6 +98,7 @@ if [[ "$sub" == "api" ]]; then
     *releases/tags/*)
       if [[ ! -f "$STATE" ]] || [[ "$(jq -r '.draft' "$STATE")" == "true" ]]; then
         echo "gh: Not Found (HTTP 404)" >&2
+        echo '{"message":"Not Found","status":"404"}'
         exit 1
       fi
       if [[ -n "$jqprog" ]]; then jq -r "$jqprog" "$STATE"; else jq -c '.' "$STATE"; fi
