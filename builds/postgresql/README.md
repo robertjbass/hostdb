@@ -97,12 +97,14 @@ process: move the old directory aside instead of overwriting it.
 Order matters. `upload-to-r2` and `update-releases` always check out `main`, and
 `update-releases` regenerates `databases.json` and `releases.json` from it and
 publishes both to R2, so a dispatch must never run while `main` lags `dev`. A
-package version bump on `main` publishes to npm immediately, so the bump must
-come after the rebuild or npm ships the old checksums (0.42.1, then 0.42.2).
+package version bump on `main` publishes to npm immediately, and every release
+PR to `main` needs a bump to pass `version-check.yml`, so this takes two patch
+releases: the first ships the code with unchanged checksums, the second ships
+the rebuilt checksums.
 
-1. Merge the code change to `main` WITHOUT a `package.json` bump. `publish.yml`
-   skips (version not newer than npm); `version-check.yml` reports a failure on
-   that release PR, which is expected. Confirm `main` has
+1. Release the code change to `main` with a patch bump (0.44.1). Its npm
+   snapshot carries the unchanged pre-rebuild checksums, which still match the
+   live archives at that point. Confirm `main` has
    `builds/postgresql/pg-cron.sh` and the deprecated `-cron.1` entries.
 2. Keep each current archive, under its own name, for comparison and rollback:
    `for v in 18.6.0 19.0.0-beta.3; do curl -fsSL -o "old-$v.tgz" "https://registry.layerbase.host/postgresql-$v/postgresql-$v-linux-x64.tar.gz"; done`
@@ -126,8 +128,8 @@ come after the rebuild or npm ships the old checksums (0.42.1, then 0.42.2).
      (`rehosted_at`) besides the added pg_cron files. The build has been
      byte-reproducible, so any other changed file is unexpected rebuild noise
      to explain before step 5.
-5. Merge `main` into `dev`, bump `package.json` to the next patch in a PR to
-   `dev`, then release `dev` to `main`. `publish.yml` regenerates `releases.json`
+5. Merge `main` into `dev`, bump `package.json` to the next patch (0.44.2) in a
+   PR to `dev`, then release `dev` to `main`. `publish.yml` regenerates `releases.json`
    from the live releases, refuses on drift and publishes.
 6. Downstream: bump the hostdb pin in spindb, then spindb in Cloud and Desktop,
    and re-warm every shared binary store: move the existing
