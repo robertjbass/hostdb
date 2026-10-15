@@ -1437,6 +1437,7 @@
             "size": 12810945
           }
         },
+        "deprecated": true,
         "releaseType": "beta"
       },
       "19.0.0-beta.3": {
@@ -1506,6 +1507,7 @@
             "size": 12316220
           }
         },
+        "deprecated": true,
         "releaseType": "beta"
       },
       "18.6.0": {

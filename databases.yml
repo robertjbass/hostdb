@@ -530,13 +530,15 @@ databases:
       '18': '18.6.0'
     versions:
       18.6.0-cron.1:
+        deprecated: true
         release_type: beta
-        note: 'Opt-in Linux x64 artifact preview of PostgreSQL 18.6 with pg_cron. Immutable build revision; does not replace 18.6.0 or change shorthand defaults.'
+        note: 'Deprecated; pg_cron now ships inside the standard 18.6.0 linux-x64 build. Kept resolvable and downloadable so existing installs keep working; not offered for new installs or release dispatches.'
         platforms:
           - linux-x64
       19.0.0-beta.3-cron.1:
+        deprecated: true
         release_type: beta
-        note: 'Opt-in Linux x64 artifact preview of PostgreSQL 19 beta 3 with pg_cron. Immutable build revision; does not replace 19.0.0-beta.3.'
+        note: 'Deprecated; pg_cron now ships inside the standard 19.0.0-beta.3 linux-x64 build. Kept resolvable and downloadable so existing installs keep working; not offered for new installs or release dispatches.'
         platforms:
           - linux-x64
       19.0.0-beta.3:
