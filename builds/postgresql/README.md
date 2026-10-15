@@ -92,6 +92,54 @@ are never refreshed by spindb (it caches by directory), so shared binary stores
 must be re-warmed. Never replace a shared library under a running PostgreSQL
 process: move the old directory aside instead of overwriting it.
 
+### Rebuilding an archive in place for pg_cron (operator steps)
+
+Order matters. `upload-to-r2` and `update-releases` always check out `main`, and
+`update-releases` regenerates `databases.json` and `releases.json` from it and
+publishes both to R2, so a dispatch must never run while `main` lags `dev`. A
+package version bump on `main` publishes to npm immediately, so the bump must
+come after the rebuild or npm ships the old checksums (0.42.1, then 0.42.2).
+
+1. Merge the code change to `main` WITHOUT a `package.json` bump. `publish.yml`
+   skips (version not newer than npm); `version-check.yml` reports a failure on
+   that release PR, which is expected. Confirm `main` has
+   `builds/postgresql/pg-cron.sh` and the deprecated `-cron.1` entries.
+2. Keep the current archive for comparison and rollback:
+   `curl -fsSL -o old.tgz https://registry.layerbase.host/postgresql-18.6.0/postgresql-18.6.0-linux-x64.tar.gz`
+3. Dispatch from `main`, one version at a time:
+   `gh workflow run release-postgresql.yml --repo robertjbass/hostdb --ref main -f version=18.6.0 -f platforms=linux-x64`
+   and watch it (`gh run watch`). It builds, runs the pg_cron smoke gate,
+   merges the release's existing checksums, swaps only the linux-x64 asset,
+   overwrites R2 with `--force` (CDN purge) and commits `releases.json` to
+   `main`. Then repeat with `-f version=19.0.0-beta.3`.
+4. Verify each version:
+   - `git diff <pre-dispatch main>..origin/main -- releases.json` changes only
+     that version's linux-x64 `sha256` and `size`.
+   - The live URL serves the new bytes and the sha256 matches `releases.json`
+     and the release's `checksums.txt`.
+   - `diff <(tar -tzf old.tgz | sort) <(tar -tzf new.tgz | sort)` adds exactly
+     `lib/pg_cron.so`, `share/extension/pg_cron.control` and the eight
+     `share/extension/pg_cron--*.sql` files, and removes nothing.
+   - Extract both; `diff -rq` reports only `.hostdb-metadata.json`
+     (`rehosted_at`) besides the added pg_cron files. The build has been
+     byte-reproducible, so any other changed file is unexpected rebuild noise
+     to explain before step 5.
+5. Merge `main` into `dev`, bump `package.json` to the next patch in a PR to
+   `dev`, then release `dev` to `main`. `publish.yml` regenerates `releases.json`
+   from the live releases, refuses on drift and publishes.
+6. Downstream: bump the hostdb pin in spindb, then spindb in Cloud and Desktop,
+   and re-warm every shared binary store: move the existing
+   `postgresql-<version>-linux-x64` directory aside (never overwrite it under a
+   running server), download the version again, confirm `lib/pg_cron.so`, and
+   delete the moved copy once databases are proven up.
+
+Rollback: put the kept `old.tgz` back on the same R2 key with
+`pnpm tsx scripts/rehost-minimal-r2.ts --tag postgresql-<version> --file old.tgz`
+(it backs up the current object and purges the CDN; see
+`REPLACE_BINARY_PLAYBOOK.md`). The GitHub release asset, its `checksums.txt`
+and `releases.json` keep describing the rebuilt archive until they are restored
+the same way the playbook describes.
+
 The `18.6.0-cron.1` and `19.0.0-beta.3-cron.1` linux-x64 archives published in
 hostdb 0.44.0 were the preview of this change. They are `deprecated: true`:
 still resolvable and downloadable at their URLs so existing installs keep
