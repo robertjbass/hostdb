@@ -2,9 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.44.2] - Unreleased
+## [0.44.2] - 2026-10-15
 
-Published only after both archives below have been rebuilt and the release workflow has committed their new checksums, so the npm snapshot carries the rebuilt checksums. See the operator steps in `builds/postgresql/README.md`.
+Carries the rebuilt checksums: both archives below were rebuilt by the release workflow from `main` and verified against the previous archives (only the ten pg_cron files are added; `.hostdb-metadata.json` changes only `rehosted_at`). 18.6.0 linux-x64 sha256 `39587b9250117a21f846feaa1ddbe8fff6a9e39a34f7f2d2cdf991e3e8c26306`; 19.0.0-beta.3 linux-x64 sha256 `b096a0df769931f03b8a1d2be11ec5f695b16fee5a4b03cbaa2cce4b7ecd1344`.
 
 ### Changed
 
