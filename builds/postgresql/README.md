@@ -104,8 +104,8 @@ come after the rebuild or npm ships the old checksums (0.42.1, then 0.42.2).
    skips (version not newer than npm); `version-check.yml` reports a failure on
    that release PR, which is expected. Confirm `main` has
    `builds/postgresql/pg-cron.sh` and the deprecated `-cron.1` entries.
-2. Keep the current archive for comparison and rollback:
-   `curl -fsSL -o old.tgz https://registry.layerbase.host/postgresql-18.6.0/postgresql-18.6.0-linux-x64.tar.gz`
+2. Keep each current archive, under its own name, for comparison and rollback:
+   `for v in 18.6.0 19.0.0-beta.3; do curl -fsSL -o "old-$v.tgz" "https://registry.layerbase.host/postgresql-$v/postgresql-$v-linux-x64.tar.gz"; done`
 3. Dispatch from `main`, one version at a time:
    `gh workflow run release-postgresql.yml --repo robertjbass/hostdb --ref main -f version=18.6.0 -f platforms=linux-x64`
    and watch it (`gh run watch`). It builds, runs the pg_cron smoke gate,
@@ -115,9 +115,9 @@ come after the rebuild or npm ships the old checksums (0.42.1, then 0.42.2).
 4. Verify each version:
    - `git diff <pre-dispatch main>..origin/main -- releases.json` changes only
      that version's linux-x64 `sha256` and `size`.
-   - The live URL serves the new bytes and the sha256 matches `releases.json`
-     and the release's `checksums.txt`.
-   - `diff <(tar -tzf old.tgz | sort) <(tar -tzf new.tgz | sort)` adds exactly
+   - Download the live URL to `new-<version>.tgz`; its sha256 matches
+     `releases.json` and the release's `checksums.txt`.
+   - `diff <(tar -tzf old-<version>.tgz | sort) <(tar -tzf new-<version>.tgz | sort)` adds exactly
      `lib/pg_cron.so`, `share/extension/pg_cron.control` and the eight
      `share/extension/pg_cron--*.sql` files, and removes nothing.
    - Extract both; `diff -rq` reports only `.hostdb-metadata.json`
@@ -133,8 +133,12 @@ come after the rebuild or npm ships the old checksums (0.42.1, then 0.42.2).
    running server), download the version again, confirm `lib/pg_cron.so`, and
    delete the moved copy once databases are proven up.
 
-Rollback: put the kept `old.tgz` back on the same R2 key with
-`pnpm tsx scripts/rehost-minimal-r2.ts --tag postgresql-<version> --file old.tgz`
+Rollback: the old archive has no `pg_cron.so`, and a server that lists
+`pg_cron` in `shared_preload_libraries` refuses to start without it. Before any
+server restarts on a restored archive, pause its pg_cron jobs and remove
+`pg_cron` from `shared_preload_libraries` (leave the `cron` schema in place for
+later recovery). Then put the matching kept archive back on its R2 key with
+`pnpm tsx scripts/rehost-minimal-r2.ts --tag postgresql-<version> --file old-<version>.tgz`
 (it backs up the current object and purges the CDN; see
 `REPLACE_BINARY_PLAYBOOK.md`). The GitHub release asset, its `checksums.txt`
 and `releases.json` keep describing the rebuilt archive until they are restored
