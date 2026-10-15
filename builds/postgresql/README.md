@@ -50,22 +50,113 @@ download` step of `.github/workflows/release-postgresql.yml`; keep them in sync.
 - ICU support (`--with-icu`)
 - UUID support (`--with-uuid=e2fs`) - required for the `uuid-ossp` extension
 - All contrib modules (pg_stat_statements, uuid-ossp, etc.)
-- Candidate immutable artifacts `18.6.0-cron.1` and `19.0.0-beta.3-cron.1` for Linux x64 additionally include checksum-pinned pg_cron 1.6.8. These cover the current Cloud new-database choices (18 and opt-in 19 beta 3). Other versions and platforms require separate qualification. The packager verifies the library, control file and install/upgrade SQL. The release workflow runs `smoke-pg-cron.sh` against each candidate archive in an unprivileged, network-isolated container before upload; SpinDB and Cloud own scheduler configuration and lifecycle safety.
+- pg_cron 1.6.8 (checksum-pinned) in linux-x64 builds of PostgreSQL 18 and newer
 
-The pg_cron candidate never replaces a published archive. The `-cron.1` build
-metadata is part of the release tag, URL, manifest version and installed cache
-directory; the upstream sources remain 18.6 and 19beta3. These are explicitly
-selected artifact previews, excluded from shorthand defaults. Old versions keep
-their old artifacts on every platform. Publish only the Linux x64 revisions,
-record their checksums, then publish the hostdb snapshot before updating SpinDB.
-Do not refresh existing same-version directories or overwrite running libraries.
-A changed artifact needs a new revision. The release workflow refuses an existing
-revision URL and uploads revisions without `--force`. Preserve extension-capable
-revisions for rollback; a fallback to an extension-free artifact pauses jobs and
-removes only the pg_cron preload, retaining its catalog for later recovery.
-Never replace a shared library under a running PostgreSQL process. pg_net is a
-separate feasibility effort and is not included in this build.
+**pg_cron is part of the standard build, not a separate artifact.**
+`pg-cron.sh` is the one copy of the recipe: `applies <version> <platform>`
+decides the scope, `install` builds the pinned source against the fresh
+`pg_config`, and `verify` asserts the library, control file and install/upgrade
+SQL. The Dockerfile (builder and packager stages), `build-local.sh` and the
+release workflow all call it, so changing the scope or the pin is a one-file
+edit. For every build it scopes in, the release workflow also runs
+`smoke-pg-cron.sh` against the finished archive in an unprivileged,
+network-isolated container before upload (real scheduled SQL, coexistence with
+pg_stat_statements and uuid-ossp, restart persistence, no catch-up burst after a
+stopped interval). The extension is inert until a server lists it in
+`shared_preload_libraries`; spindb and Cloud own that configuration and the
+scheduler lifecycle. pg_net is a separate feasibility effort and is not included.
 
+Scope is linux-x64 only:
+
+- **linux-arm64** builds 18.6.0 and 19.0.0-beta.3 from the same Dockerfile, so
+  turning it on is a one-line scope change, but the smoke gate is timing-based
+  (scheduled ticks, a 125 second stopped interval) and would run under QEMU
+  emulation on the amd64 runner, and the 15/16/17 arm64 archives are Percona
+  repacks that cannot carry it. Nothing that runs on arm64 needs it yet.
+- **darwin** is built inline in the workflow and needs its own recipe:
+  `PG_LDFLAGS="-undefined dynamic_lookup"` (see the documentdb build) plus the
+  ad hoc re-signing loop extended to `lib/*.so`, since `install_name_tool`
+  invalidates the signature and arm64 refuses to load unsigned modified code.
+- **win32-x64** is the EDB binary and is never built here.
+
+PostgreSQL 15, 16 and 17 are out of scope because Cloud does not offer them for
+new databases; adding them is a change to `PG_CRON_MIN_MAJOR` plus a rebuild of
+each archive.
+
+Including pg_cron changes an existing version's archive, so an affected version
+is rebuilt in place like the 2026-09-09 `uuid-ossp` rebuild: dispatch the
+release workflow from an up-to-date `main` for that version and platform (the
+upload step runs `upload-to-r2.ts --force`, which overwrites and purges the CDN),
+then ship the new checksums in a hostdb patch release. Existing extracted copies
+are never refreshed by spindb (it caches by directory), so shared binary stores
+must be re-warmed. Never replace a shared library under a running PostgreSQL
+process: move the old directory aside instead of overwriting it.
+
+### Rebuilding an archive in place for pg_cron (operator steps)
+
+Order matters. `upload-to-r2` and `update-releases` always check out `main`, and
+`update-releases` regenerates `databases.json` and `releases.json` from it and
+publishes both to R2, so a dispatch must never run while `main` lags `dev`. A
+package version bump on `main` publishes to npm immediately, so the bump must
+come after the rebuild or npm ships the old checksums (0.42.1, then 0.42.2).
+
+1. Merge the code change to `main` WITHOUT a `package.json` bump. `publish.yml`
+   skips (version not newer than npm); `version-check.yml` reports a failure on
+   that release PR, which is expected. Confirm `main` has
+   `builds/postgresql/pg-cron.sh` and the deprecated `-cron.1` entries.
+2. Keep each current archive, under its own name, for comparison and rollback:
+   `for v in 18.6.0 19.0.0-beta.3; do curl -fsSL -o "old-$v.tgz" "https://registry.layerbase.host/postgresql-$v/postgresql-$v-linux-x64.tar.gz"; done`
+3. Dispatch from `main`, one version at a time:
+   `gh workflow run release-postgresql.yml --repo robertjbass/hostdb --ref main -f version=18.6.0 -f platforms=linux-x64`
+   and watch it (`gh run watch`). Always pass `-f platforms=linux-x64`: the
+   default (`all`) rebuilds and swaps every platform of that version, including
+   the re-signed darwin archives. It builds, runs the pg_cron smoke gate,
+   merges the release's existing checksums, swaps only the linux-x64 asset,
+   overwrites R2 with `--force` (CDN purge) and commits `releases.json` to
+   `main`. Then repeat with `-f version=19.0.0-beta.3`.
+4. Verify each version:
+   - `git diff <pre-dispatch main>..origin/main -- releases.json` changes only
+     that version's linux-x64 `sha256` and `size`.
+   - Download the live URL to `new-<version>.tgz`; its sha256 matches
+     `releases.json` and the release's `checksums.txt`.
+   - `diff <(tar -tzf old-<version>.tgz | sort) <(tar -tzf new-<version>.tgz | sort)` adds exactly
+     `lib/pg_cron.so`, `share/extension/pg_cron.control` and the eight
+     `share/extension/pg_cron--*.sql` files, and removes nothing.
+   - Extract both; `diff -rq` reports only `.hostdb-metadata.json`
+     (`rehosted_at`) besides the added pg_cron files. The build has been
+     byte-reproducible, so any other changed file is unexpected rebuild noise
+     to explain before step 5.
+5. Merge `main` into `dev`, bump `package.json` to the next patch in a PR to
+   `dev`, then release `dev` to `main`. `publish.yml` regenerates `releases.json`
+   from the live releases, refuses on drift and publishes.
+6. Downstream: bump the hostdb pin in spindb, then spindb in Cloud and Desktop,
+   and re-warm every shared binary store: move the existing
+   `postgresql-<version>-linux-x64` directory aside (never overwrite it under a
+   running server), download the version again, confirm `lib/pg_cron.so`, and
+   delete the moved copy once databases are proven up.
+
+Rollback: the old archive has no `pg_cron.so`, and a server that lists
+`pg_cron` in `shared_preload_libraries` refuses to start without it. Before any
+server restarts on a restored archive, pause its pg_cron jobs and remove
+`pg_cron` from `shared_preload_libraries` (leave the `cron` schema in place for
+later recovery). Then put the matching kept archive back on its R2 key with
+`pnpm tsx scripts/rehost-minimal-r2.ts --tag postgresql-<version> --file old-<version>.tgz --filename postgresql-<version>-linux-x64.tar.gz`
+(without `--filename` the key comes from the local file name, so the upload
+lands on `old-<version>.tgz` and the live archive is left unchanged). Run it
+with `--dry-run` first: the script backs up the current object to
+`_backup/<key>` only when no backup exists yet, so an older backup (for example
+from the 2026-09-09 rebuild) may already be there; see
+`REPLACE_BINARY_PLAYBOOK.md`. It purges the CDN. The GitHub release asset, its `checksums.txt`
+and `releases.json` keep describing the rebuilt archive until they are restored
+the same way the playbook describes.
+
+The `18.6.0-cron.1` and `19.0.0-beta.3-cron.1` linux-x64 archives published in
+hostdb 0.44.0 were the preview of this change. They are `deprecated: true`:
+still resolvable and downloadable at their URLs so existing installs keep
+working, but hidden from new-install pickers and from the release workflow's
+version list. Each one is byte-identical to the pre-rebuild standard archive plus
+the ten pg_cron files, apart from `.hostdb-metadata.json`, which is what the
+in-place rebuild should produce too.
 
 **`uuid-ossp` is load-bearing, not optional.** `contrib/uuid-ossp` only compiles
 when `configure` ran with `--with-uuid=<lib>`; without it `make install` skips

@@ -367,11 +367,14 @@ describe('getDatabaseEntry', () => {
   })
 })
 
-test('pg_cron revisions are explicit and never change PostgreSQL shorthand defaults', () => {
+test('retired pg_cron revisions stay resolvable for existing installs but are never offered', () => {
   assert.equal(resolveVersion('postgresql', '18'), '18.6.0')
   for (const version of ['18.6.0-cron.1', '19.0.0-beta.3-cron.1']) {
+    // Existing installs re-resolve and re-download by exact version.
     assert.equal(resolveVersion('postgresql', version), version)
-    assert.equal(isVersionPrerelease('postgresql', version), true)
+    assert.ok(getReleaseInfo('postgresql', version, 'linux-x64'))
+    // New-install pickers hide deprecated versions.
+    assert.equal(isVersionDeprecated('postgresql', version), true)
     assert.ok(!listVersions('postgresql').includes(version))
   }
 })

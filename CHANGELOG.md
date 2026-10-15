@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.44.0] - Unreleased
+## [0.44.1] - Unreleased
+
+The package version moves to 0.44.1 in a follow-up commit, only after the two archives below have been rebuilt and the release workflow has committed their new checksums, so the npm snapshot never carries the pre-rebuild checksums (the 0.42.1 to 0.42.2 lesson). See the operator steps in `builds/postgresql/README.md`.
+
+### Changed
+
+- **pg_cron 1.6.8 now ships inside the standard PostgreSQL build** instead of as separate `-cron.N` artifacts. `builds/postgresql/pg-cron.sh` is the single recipe (scope, pinned source and checksum, expected files); the Dockerfile, `build-local.sh` and `release-postgresql.yml` all call it. Scope is linux-x64 builds of PostgreSQL 18 and newer; linux-arm64, darwin and win32-x64 are unchanged, and so are 15, 16 and 17. The release gate that runs a real scheduled job, a restart and a stopped interval against the finished archive now runs for every build in scope.
+- **PostgreSQL 18.6.0 and 19.0.0-beta.3 `linux-x64` are rebuilt in place with pg_cron.** Same URL, new sha256 and size. The archives gain `lib/pg_cron.so`, `share/extension/pg_cron.control` and eight `share/extension/pg_cron--*.sql` scripts and are otherwise unchanged. The extension stays inert until a server lists it in `shared_preload_libraries`. The other platforms of both versions, and the published 18.4.0 and 18.1.0 archives, are not rebuilt.
+
+### Deprecated
+
+- **`18.6.0-cron.1` and `19.0.0-beta.3-cron.1` are `deprecated: true`.** They still resolve by exact version and their archives stay on R2, so anything that already installed them keeps working, but new-install pickers hide them and the release workflow no longer lists them. The `-cron.N` revision handling (published-revision refusal, dispatch-branch manifest commits, no-`--force` upload) is removed from the release workflow.
+
+## [0.44.0] - 2026-10-14
 
 ### Added
 
