@@ -108,7 +108,9 @@ come after the rebuild or npm ships the old checksums (0.42.1, then 0.42.2).
    `for v in 18.6.0 19.0.0-beta.3; do curl -fsSL -o "old-$v.tgz" "https://registry.layerbase.host/postgresql-$v/postgresql-$v-linux-x64.tar.gz"; done`
 3. Dispatch from `main`, one version at a time:
    `gh workflow run release-postgresql.yml --repo robertjbass/hostdb --ref main -f version=18.6.0 -f platforms=linux-x64`
-   and watch it (`gh run watch`). It builds, runs the pg_cron smoke gate,
+   and watch it (`gh run watch`). Always pass `-f platforms=linux-x64`: the
+   default (`all`) rebuilds and swaps every platform of that version, including
+   the re-signed darwin archives. It builds, runs the pg_cron smoke gate,
    merges the release's existing checksums, swaps only the linux-x64 asset,
    overwrites R2 with `--force` (CDN purge) and commits `releases.json` to
    `main`. Then repeat with `-f version=19.0.0-beta.3`.
@@ -138,9 +140,13 @@ Rollback: the old archive has no `pg_cron.so`, and a server that lists
 server restarts on a restored archive, pause its pg_cron jobs and remove
 `pg_cron` from `shared_preload_libraries` (leave the `cron` schema in place for
 later recovery). Then put the matching kept archive back on its R2 key with
-`pnpm tsx scripts/rehost-minimal-r2.ts --tag postgresql-<version> --file old-<version>.tgz`
-(it backs up the current object and purges the CDN; see
-`REPLACE_BINARY_PLAYBOOK.md`). The GitHub release asset, its `checksums.txt`
+`pnpm tsx scripts/rehost-minimal-r2.ts --tag postgresql-<version> --file old-<version>.tgz --filename postgresql-<version>-linux-x64.tar.gz`
+(without `--filename` the key comes from the local file name, so the upload
+lands on `old-<version>.tgz` and the live archive is left unchanged). Run it
+with `--dry-run` first: the script backs up the current object to
+`_backup/<key>` only when no backup exists yet, so an older backup (for example
+from the 2026-09-09 rebuild) may already be there; see
+`REPLACE_BINARY_PLAYBOOK.md`. It purges the CDN. The GitHub release asset, its `checksums.txt`
 and `releases.json` keep describing the rebuilt archive until they are restored
 the same way the playbook describes.
 
