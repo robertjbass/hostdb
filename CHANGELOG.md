@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.44.3] - 2026-10-19
+
+Recipe, release-tooling and metadata change only. No published archive changes in this release: `releases.json` checksums are identical to 0.44.2, and the PostgreSQL 18.6.0 and 19.0.0-beta.3 linux-x64 archives are rebuilt in place with PostGIS only after this code is on `main` (the release workflow checks out `main`); their checksums ship in 0.44.4.
+
+### Added
+
+- **Core PostGIS recipe for the standard PostgreSQL build, linux-x64.** `builds/postgresql/postgis.sh` is the single recipe (scope, every pinned source and its sha256, configure flags, expected files), called by the Dockerfile, `build-local.sh` and `release-postgresql.yml`. PostgreSQL 18 gets PostGIS 3.6.4; PostgreSQL 19 gets PostGIS 3.7.0rc2, the only line that supports 19, on a branch that becomes the 19 GA recipe by swapping in the 3.7.0 final pin. Both build GEOS 3.14.1 and PROJ 9.8.1 (`-DENABLE_CURL=OFF -DENABLE_TIFF=OFF -DBUILD_TESTING=OFF`) from source and bundle json-c, protobuf-c, SQLite and (3.7 only) libgmp from Ubuntu 22.04 into `lib/`, plus PROJ's data (`share/proj/proj.db`) into `share/proj/`, all resolved through the existing `$ORIGIN` RPATH rewrite. No raster/GDAL, topology, tiger geocoder, address_standardizer or SFCGAL. A new in-scope major without a PostGIS line fails the build rather than shipping without PostGIS.
+- **`licenses/` and `SOURCES.txt` inside every PostGIS-carrying archive**: PostgreSQL `COPYRIGHT`, PostGIS `LICENSE.TXT` and `COPYING`, GEOS and PROJ `COPYING`, the json-c, protobuf-c, SQLite (and GMP) license texts, and for each component its version, upstream URL, mirror URL and sha256.
+- **PostGIS release gate.** `postgis.sh verify` runs in the Docker packager stage and the workflow (capability files, licenses, every bundled library resolving inside the archive, absence of raster/topology/GDAL), and `smoke-postgis.sh` runs the extracted archive mounted at a relocated path with `PROJ_DATA` unset: `postgis_full_version()` with the pinned GEOS/PROJ and `proj.db` resolved inside the archive, geometry and geography round trips, `ST_Transform(4326 -> 3857)`, `ST_AsMVT`, `ST_GeomFromGeoJSON`, a GiST index, `pg_dump`/`pg_restore` of a geometry table, and a pg_cron job calling PostGIS.
+- **PostGIS source mirror.** A `mirror-postgis-sources` job publishes the exact verified source tarballs (and the Ubuntu GMP source package for 3.7) as a `sources-postgis-<version>` GitHub release and uploads them to `https://registry.layerbase.host/sources-postgis-<version>/` without `--force`, before the archive is released. `build-releases-json.ts` skips `sources-` tags and `audit-r2-orphans.ts` never offers them for deletion.
+- **`dry_run` input on `release-postgresql.yml`.** A dry run builds, runs every smoke gate and the asset checks, and publishes nothing: the mirror, release, R2 upload and manifest jobs are all gated on it, and `tests/postgresql-postgis.test.ts` pins the gates. Lets a branch prove a recipe in CI without touching the live archive.
+
+### Fixed
+
+- **postgresql-documentdb license metadata.** The engine was labeled `Apache-2.0` ("fully permissive") while its archives bundle PostGIS (GPL-2.0-or-later) and GEOS (LGPL-2.1). `databases.yml`, the release notes and `builds/postgresql-documentdb/README.md` now state the bundle's combined SPDX expression (`MIT AND Apache-2.0 AND BSD-3-Clause AND PostgreSQL AND GPL-2.0-or-later AND LGPL-2.1-only AND BSD-2-Clause`); DocumentDB itself is MIT at the pinned tag. No consumer parses the field (`hostedServiceAllowed` and `commercialUse` are unchanged). The source release for the already-published archives is an operator step described in that README.
+
 ## [0.44.2] - 2026-10-15
 
 Carries the rebuilt checksums: both archives below were rebuilt by the release workflow from `main` and verified against the previous archives (only the ten pg_cron files are added; `.hostdb-metadata.json` changes only `rehosted_at`). 18.6.0 linux-x64 sha256 `39587b9250117a21f846feaa1ddbe8fff6a9e39a34f7f2d2cdf991e3e8c26306`; 19.0.0-beta.3 linux-x64 sha256 `b096a0df769931f03b8a1d2be11ec5f695b16fee5a4b03cbaa2cce4b7ecd1344`.

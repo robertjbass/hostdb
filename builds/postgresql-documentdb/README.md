@@ -156,4 +156,45 @@ next release is the first jammy build.
 
 ## License
 
-Apache-2.0 - Fully permissive for commercial use.
+The archive is a bundle, so no single license covers it. `databases.yml`
+records the combined SPDX expression:
+`MIT AND Apache-2.0 AND BSD-3-Clause AND PostgreSQL AND GPL-2.0-or-later AND LGPL-2.1-only AND BSD-2-Clause`.
+
+| Component | License |
+| --- | --- |
+| DocumentDB (FerretDB fork) | MIT; vendored libbson and CRoaring are Apache-2.0, Intel RDFP math and PCRE2 are BSD-3-Clause (see `licenses/` in the DocumentDB source) |
+| PostgreSQL, pg_cron, pgvector, rum | PostgreSQL License |
+| PostGIS (3.5.1 Linux, 3.5.2 macOS) | GPL-2.0-or-later |
+| GEOS | LGPL-2.1 |
+| PROJ | MIT |
+| GDAL and other Ubuntu 22.04 runtime libraries (Linux archives only) | MIT and the licenses of the respective Ubuntu packages |
+
+Commercial use is allowed. Redistributing the archive (as the registry does
+for CLI and Desktop users) carries the GPL and LGPL obligations of PostGIS and
+GEOS: ship their license texts and make their source available. The published
+`17-0.107.0` archives do not yet contain license files; the PostGIS sources
+for them are to be published as the `sources-documentdb-17-0.107.0` release
+(see "Source availability for the published archives" below), and
+`licenses/` plus `SOURCES.txt` move inside the archives at the next
+DocumentDB/FerretDB paired rebuild.
+
+### Source availability for the published archives
+
+An operator publishes the PostGIS 3.5.1 (Linux) and 3.5.2 (macOS) source
+tarballs plus the license texts as the assets of a dedicated
+`sources-documentdb-17-0.107.0` GitHub release, then mirrors them to
+`https://registry.layerbase.host/sources-documentdb-17-0.107.0/<file>`:
+
+```bash
+gh release create sources-documentdb-17-0.107.0 --repo robertjbass/hostdb \
+  --latest=false --title "Sources: sources-documentdb-17-0.107.0" \
+  --notes "PostGIS sources and license texts for the postgresql-documentdb 17-0.107.0 archives." \
+  postgis-3.5.1.tar.gz postgis-3.5.2.tar.gz LICENSES.tar.gz SHA256SUMS
+gh workflow run reupload-r2.yml --repo robertjbass/hostdb --ref main \
+  -f tags=sources-documentdb-17-0.107.0
+```
+
+The tarballs come from `https://download.osgeo.org/postgis/source/`; check
+each against its published `.md5` before uploading. `sources-` tags are skipped
+by `build-releases-json.ts` and are never offered for deletion by
+`audit-r2-orphans.ts`, so the objects stay as long as the archives do.

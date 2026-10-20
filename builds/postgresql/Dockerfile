@@ -96,6 +96,24 @@ RUN set -e; \
       bash /build/pg-cron.sh install /opt/postgresql/bin/pg_config /build; \
     fi
 
+# PostGIS (core only) ships inside the standard build for the versions and
+# platforms that builds/postgresql/postgis.sh scopes in. That script is the only
+# copy of the pinned sources and checksums (PostGIS, GEOS, PROJ, the GMP source
+# package), the configure flags and the expected files. It runs after
+# PostgreSQL is fully installed and only adds files: it builds GEOS and PROJ in
+# /opt/postgis-deps (never copied into the archive), installs PostGIS into
+# /opt/postgresql, copies the runtime libraries it needs into lib/ and PROJ's
+# data (share/proj/proj.db) into share/proj/, and writes licenses/ and
+# SOURCES.txt. The packager stage below rewrites every lib/ RPATH to $ORIGIN.
+COPY builds/postgresql/postgis.sh /build/postgis.sh
+RUN set -e; \
+    PLATFORM="linux-x64"; \
+    if [ "$TARGETARCH" = "arm64" ]; then PLATFORM="linux-arm64"; fi; \
+    POSTGIS=$(bash /build/postgis.sh applies "$FULL_VERSION" "$PLATFORM"); \
+    if [ "$POSTGIS" = "yes" ]; then \
+      bash /build/postgis.sh install /opt/postgresql/bin/pg_config /build/postgis /build/postgresql-src; \
+    fi
+
 # =============================================================================
 # Stage 2: Package
 # =============================================================================
@@ -170,6 +188,19 @@ RUN set -e; \
       bash /tmp/pg-cron.sh verify /opt/postgresql; \
     fi; \
     rm /tmp/pg-cron.sh
+
+# Verify PostGIS wherever postgis.sh scopes it in, after the RPATH rewrite and
+# the metadata file exist: capability files, licenses, every bundled library
+# resolving inside /opt/postgresql/lib, and no raster, topology or GDAL.
+COPY builds/postgresql/postgis.sh /tmp/postgis.sh
+RUN set -e; \
+    PLATFORM="linux-x64"; \
+    if [ "$TARGETARCH" = "arm64" ]; then PLATFORM="linux-arm64"; fi; \
+    POSTGIS=$(bash /tmp/postgis.sh applies "$FULL_VERSION" "$PLATFORM"); \
+    if [ "$POSTGIS" = "yes" ]; then \
+      bash /tmp/postgis.sh verify /opt/postgresql; \
+    fi; \
+    rm /tmp/postgis.sh
 
 # =============================================================================
 # Stage 3: Export (scratch image for minimal output)

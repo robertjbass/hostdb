@@ -459,7 +459,16 @@ jobs:
           - **rum** - RUM index access method
 
           ### License
-          Apache-2.0 - Fully permissive for commercial use.
+          This archive is a bundle, so no single license covers it:
+          - DocumentDB: MIT (vendored libbson and CRoaring are Apache-2.0, Intel RDFP math and PCRE2 are BSD-3-Clause)
+          - PostgreSQL, pg_cron, pgvector, rum: PostgreSQL License
+          - PostGIS: GPL-2.0-or-later
+          - GEOS: LGPL-2.1
+          - PROJ: MIT
+          - Linux archives also carry GDAL (MIT) and other Ubuntu 22.04 runtime libraries
+
+          Combined SPDX expression: `MIT AND Apache-2.0 AND BSD-3-Clause AND PostgreSQL AND GPL-2.0-or-later AND LGPL-2.1-only AND BSD-2-Clause`.
+          Commercial use is allowed; redistributing the archive carries the GPL and LGPL obligations of PostGIS and GEOS, including making their source available.
 
           ### Available Platforms
           | Platform | Extensions | Source |

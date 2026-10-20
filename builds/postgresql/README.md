@@ -51,6 +51,9 @@ download` step of `.github/workflows/release-postgresql.yml`; keep them in sync.
 - UUID support (`--with-uuid=e2fs`) - required for the `uuid-ossp` extension
 - All contrib modules (pg_stat_statements, uuid-ossp, etc.)
 - pg_cron 1.6.8 (checksum-pinned) in linux-x64 builds of PostgreSQL 18 and newer
+- Core PostGIS (checksum-pinned, with GEOS, PROJ and `share/proj/proj.db`
+  bundled) in linux-x64 builds of PostgreSQL 18 (PostGIS 3.6) and 19 (PostGIS
+  3.7); see "PostGIS" below
 
 **pg_cron is part of the standard build, not a separate artifact.**
 `pg-cron.sh` is the one copy of the recipe: `applies <version> <platform>`
@@ -179,6 +182,149 @@ macOS uses the same `e2fs` option** - the Apple SDK ships `uuid/uuid.h` and
 > missing it, which is why the gap showed up on some platform/version pairs and
 > not others.
 
+### PostGIS (linux-x64, PostgreSQL 18 and 19)
+
+`postgis.sh` is the one copy of the PostGIS recipe, the same pattern as
+`pg-cron.sh`: `applies <version> <platform>` decides the scope, `pins <version>`
+prints the component versions and the source-mirror tag, `fetch-sources`
+downloads and sha256-checks every pinned tarball, `install` builds into the
+fresh PostgreSQL, `verify` checks the finished tree and `manifest` lists every
+path PostGIS owns. The Dockerfile (builder and packager stages),
+`build-local.sh`, `smoke-postgis.sh` and the release workflow all call it, so a
+pin or scope change is a one-file edit.
+
+| PostgreSQL | PostGIS | GEOS | PROJ | Extra bundled runtime |
+| --- | --- | --- | --- | --- |
+| 18.x | 3.6.4 | 3.14.1 | 9.8.1 | json-c, protobuf-c, SQLite (Ubuntu 22.04) |
+| 19.x | 3.7.0rc2 (only line supporting 19) | 3.14.1 | 9.8.1 | the same plus libgmp |
+
+Scope and exclusions:
+
+- **Core `postgis` only.** Configured `--without-raster --without-topology
+  --without-sfcgal` (3.6 also `--without-address-standardizer
+  --without-tiger`; 3.7 moved both to separate repositories), so there is no
+  GDAL, topology, tiger geocoder, address_standardizer or SFCGAL. `verify`
+  fails if any of their control files, modules or a `libgdal` is present.
+- **linux-x64 only**, like pg_cron. Every Cloud box is x86_64; darwin and
+  Windows come later for Desktop and the CLI.
+- **A new major fails closed.** `applies` errors for an in-scope major with no
+  PostGIS line (PostgreSQL 20), so a new major cannot ship without PostGIS by
+  accident. At PostgreSQL 19 GA, replace `POSTGIS_37_VERSION` and
+  `POSTGIS_37_SHA256` with the 3.7.0 final release; the 3.7 branch is
+  otherwise the GA recipe.
+
+How the archive is assembled (all inside `postgis.sh install`, after
+PostgreSQL itself is installed, so the PostgreSQL files are untouched):
+
+1. GEOS and PROJ are built from source into `/opt/postgis-deps`, which never
+   reaches the archive. PROJ is built `-DENABLE_CURL=OFF -DENABLE_TIFF=OFF
+   -DBUILD_TESTING=OFF`, so `ST_Transform` never fetches grids.
+2. PostGIS is built against them and installed into `/opt/postgresql`
+   (`lib/postgis-3.so`, `share/extension/postgis*`, `share/contrib/postgis-*`,
+   and the `shp2pgsql`/`pgsql2shp` loaders).
+3. Every library `postgis-3.so` needs that is not already a PostgreSQL
+   dependency is copied into `lib/` under its soname, transitively; the
+   packager stage's existing `$ORIGIN` RPATH rewrite then covers them.
+4. PROJ's data directory is copied to `share/proj/` (it holds `proj.db`).
+5. `licenses/` (PostgreSQL, PostGIS, GEOS, PROJ, json-c, protobuf-c, SQLite,
+   and GMP for 3.7) and `SOURCES.txt` (each component's version, upstream URL,
+   mirror URL and sha256) are written at the archive root.
+6. The install refuses to finish if it removed or modified any pre-existing
+   file, or added a path `manifest` does not name, so the manifest is exactly
+   what the rebuild adds.
+
+**How PROJ finds `proj.db` without `PROJ_DATA`.** PROJ searches, in order,
+`PROJ_DATA`, then `../share/proj` relative to the directory of the loaded
+`libproj.so` (found with `dladdr`), then its compiled-in data directory. The
+archive puts `libproj.so.*` in `lib/` and the data in `share/proj/`, so the
+second rule finds it wherever the archive is extracted, and the compiled-in
+`/opt/postgis-deps/share/proj` never exists at runtime. `install` refuses a
+PROJ build without `HAVE_LIBDL` (no `dladdr`), and the smoke gate proves the
+lookup: it mounts the archive at `/relocated/postgresql` with `PROJ_DATA`,
+`PROJ_LIB` and `LD_LIBRARY_PATH` unset and requires `postgis_full_version()`
+to report `DATABASE_PATH=/relocated/postgresql/share/proj/proj.db`.
+
+**The release gate.** For every build in scope the workflow runs `postgis.sh
+verify` and `smoke-postgis.sh` (unprivileged, `--network none --read-only`):
+extension availability, `postgis_full_version()` with the pinned GEOS and PROJ
+and no GDAL, geometry and geography round trips, `ST_Transform(4326 -> 3857)`
+and back, `ST_AsMVT`, `ST_GeomFromGeoJSON`, a GiST index that matches a
+sequential scan, `pg_dump`/`pg_restore` of a geometry table, and a pg_cron job
+that calls PostGIS from a background worker. Nothing is uploaded unless both
+pass.
+
+**Source availability.** PostGIS is GPL-2.0-or-later and GEOS LGPL-2.1, and
+the registry distributes the archive to CLI and Desktop users, so the exact
+source tarballs the build verified are mirrored before the archive is
+published: the `mirror-postgis-sources` job publishes them as the
+`sources-postgis-<postgis-version>` GitHub release and uploads them to
+`https://registry.layerbase.host/sources-postgis-<postgis-version>/<file>`
+(without `--force`; a published source is never replaced, and a re-run only
+adds missing assets after checking existing ones byte for byte). `SOURCES.txt`
+in each archive points there. `sources-` tags never enter `releases.json`
+(`build-releases-json.ts` skips them) and `audit-r2-orphans.ts` never offers
+them for deletion. For PostGIS 3.7 the Ubuntu GMP source package is mirrored
+too, and `install` refuses a builder whose `libgmp10` differs from the pinned
+source.
+
+### Dry run: proving a recipe on a branch
+
+The release workflow has a `dry_run` input. A dry run builds, runs every smoke
+gate and the release job's asset checks (`dry-run-checks`), and publishes
+nothing: `mirror-postgis-sources`, `release`, `upload-to-r2` and
+`update-releases` each carry `if: ${{ !inputs.dry_run }}`
+(`tests/postgresql-postgis.test.ts` pins this). It is safe to dispatch from any
+branch:
+
+```bash
+gh workflow run release-postgresql.yml --repo robertjbass/hostdb \
+  --ref feat/postgis-linux-x64 -f version=18.6.0 -f platforms=linux-x64 -f dry_run=true
+```
+
+The built archives are kept as run artifacts for a day for inspection.
+
+### Rebuilding an archive in place for PostGIS (operator steps)
+
+The same procedure as "Rebuilding an archive in place for pg_cron" above,
+with PostGIS paths. In short:
+
+1. Release the code to `main` with a patch bump (0.44.3); its npm snapshot
+   keeps the unchanged checksums, which still match the live archives.
+2. Keep the current archives for comparison and rollback:
+   `for v in 18.6.0 19.0.0-beta.3; do curl -fsSL -o "old-$v.tgz" "https://registry.layerbase.host/postgresql-$v/postgresql-$v-linux-x64.tar.gz"; done`
+3. Optionally prove the build first with a dry run from `main` (`-f
+   dry_run=true`). Then dispatch the real run, one version per dispatch,
+   always with `-f platforms=linux-x64`:
+   `gh workflow run release-postgresql.yml --repo robertjbass/hostdb --ref main -f version=18.6.0 -f platforms=linux-x64`
+   and the same with `-f version=19.0.0-beta.3` (a separate go/no-go: if only
+   the 19 beta fails, 18.6.0 ships alone and the beta keeps its current
+   archive). Each run mirrors the sources, then swaps the linux-x64 asset,
+   overwrites R2 with `--force` and commits `releases.json` to `main`.
+4. Verify each version:
+   - `releases.json` on `main` changes only that version's linux-x64 `sha256`
+     and `size`; the live URL's sha256 matches it and `checksums.txt`.
+   - `diff <(tar -tzf old-<v>.tgz | sort) <(tar -tzf new-<v>.tgz | sort)`
+     adds only paths that `postgis.sh manifest` lists for the new tree
+     (`lib/postgis-3.so`, `share/extension/postgis*`, `share/contrib/postgis-*`,
+     the loaders, the bundled `lib/lib*.so.*`, `share/proj/`, `licenses/`,
+     `SOURCES.txt`) and removes nothing.
+   - Extract both; `diff -rq` reports nothing else changed except
+     `.hostdb-metadata.json`. Any other changed file is a stop.
+   - `https://registry.layerbase.host/sources-postgis-<postgis-version>/` serves
+     every file `SOURCES.txt` names.
+   - Update `PLATFORM_DIVERGENCES.md` from the listing of the published archive.
+5. Ship the new checksums in the next patch release (0.44.4), exactly as step
+   5 of the pg_cron procedure.
+6. Downstream: Cloud refreshes every shared binary store (move the old
+   directory aside, never overwrite it under a running server) and checks
+   `lib/postgis-3.so` plus `share/proj/proj.db`.
+
+Rollback: a database that ran `CREATE EXTENSION postgis` cannot start its
+PostGIS functions or restore its dumps on the old archive. Restore the kept
+archive only for versions where no database has enabled PostGIS, with the
+`rehost-minimal-r2.ts` procedure described for pg_cron above. Leave the
+`sources-postgis-*` release and objects in place.
+
 ### EnterpriseDB Windows Binaries
 
 Windows binaries are downloaded from EnterpriseDB's download portal. EDB uses non-predictable file IDs for downloads.
@@ -251,7 +397,9 @@ The release workflow builds all platforms in parallel:
 
 1. Go to Actions → "Release PostgreSQL" → Run workflow
 2. Select version and platforms (default: all)
-3. Click "Run workflow"
+3. Tick `dry_run` to build and smoke-test without publishing anything (see
+   "Dry run: proving a recipe on a branch")
+4. Click "Run workflow"
 
 ### Partial-platform re-releases
 
