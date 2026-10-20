@@ -181,7 +181,11 @@ DocumentDB/FerretDB paired rebuild.
 ### Source availability for the published archives
 
 An operator publishes the PostGIS 3.5.1 (Linux) and 3.5.2 (macOS) source
-tarballs plus the license texts as the assets of a dedicated
+tarballs, the GEOS source matching each archive (macOS bundles Homebrew's
+GEOS 3.14.1, so the upstream `geos-3.14.1.tar.bz2`; the Linux archives bundle
+the build image's distribution GEOS package, so its distribution source
+package, as must any other LGPL library the Linux archives bundle alongside
+GDAL) and the license texts as the assets of a dedicated
 `sources-documentdb-17-0.107.0` GitHub release, then mirrors them to
 `https://registry.layerbase.host/sources-documentdb-17-0.107.0/<file>`:
 
@@ -189,12 +193,15 @@ tarballs plus the license texts as the assets of a dedicated
 gh release create sources-documentdb-17-0.107.0 --repo robertjbass/hostdb \
   --latest=false --title "Sources: sources-documentdb-17-0.107.0" \
   --notes "PostGIS sources and license texts for the postgresql-documentdb 17-0.107.0 archives." \
-  postgis-3.5.1.tar.gz postgis-3.5.2.tar.gz LICENSES.tar.gz SHA256SUMS
+  postgis-3.5.1.tar.gz postgis-3.5.2.tar.gz geos-3.14.1.tar.bz2 \
+  <linux-geos-source-package-files> LICENSES.tar.gz SHA256SUMS
 gh workflow run reupload-r2.yml --repo robertjbass/hostdb --ref main \
   -f tags=sources-documentdb-17-0.107.0
 ```
 
-The tarballs come from `https://download.osgeo.org/postgis/source/`; check
-each against its published `.md5` before uploading. `sources-` tags are skipped
+The PostGIS and GEOS tarballs come from `https://download.osgeo.org/`;
+check each against its published `.md5` (GEOS: the GitHub release digest)
+before uploading. Identify the Linux GEOS package from the archive's
+`lib/libgeos*` and the build image before choosing its source package. `sources-` tags are skipped
 by `build-releases-json.ts` and are never offered for deletion by
 `audit-r2-orphans.ts`, so the objects stay as long as the archives do.

@@ -730,7 +730,7 @@
       "commercialUse": true,
       "hostedServiceAllowed": true,
       "protocol": "postgresql",
-      "note": "Backend for FerretDB v2 only; includes pg_cron, pgvector, PostGIS, rum extensions. Not available on Windows. The archives bundle PostGIS (GPL-2.0-or-later) and GEOS (LGPL-2.1) alongside DocumentDB (MIT, with vendored Apache-2.0 and BSD-3-Clause code), PostgreSQL, pg_cron, pgvector and rum (PostgreSQL License) and PROJ (MIT); the license field is the combined expression, not DocumentDB's alone.",
+      "note": "Backend for FerretDB v2 only; includes pg_cron, pgvector, PostGIS, rum extensions. Not available on Windows. The archives bundle PostGIS (GPL-2.0-or-later) and GEOS (LGPL-2.1) alongside DocumentDB (MIT, with vendored Apache-2.0 and BSD-3-Clause code), PostgreSQL, pg_cron, pgvector and rum (PostgreSQL License) and PROJ (MIT); the Linux archives also bundle GDAL (MIT) and other distribution runtime libraries. The license field is the combined expression, not DocumentDB's alone.",
       "defaults": {
         "17": "17-0.107.0"
       },
