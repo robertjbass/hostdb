@@ -132,6 +132,15 @@ async function downloadAsset(repo: string, assetId: number): Promise<Buffer> {
   return Buffer.from(arrayBuffer)
 }
 
+function contentTypeFor(name: string): string {
+  if (name === 'checksums.txt' || name === 'SHA256SUMS') return 'text/plain'
+  if (name.endsWith('.zip')) return 'application/zip'
+  if (name.endsWith('.bz2')) return 'application/x-bzip2'
+  if (name.endsWith('.xz')) return 'application/x-xz'
+  if (name.endsWith('.dsc')) return 'text/plain'
+  return 'application/gzip'
+}
+
 async function main() {
   const { tag, force } = parseArgs()
   const repo = 'robertjbass/hostdb'
@@ -172,12 +181,7 @@ async function main() {
 
     const data = await downloadAsset(repo, asset.id)
 
-    const contentType =
-      asset.name === 'checksums.txt'
-        ? 'text/plain'
-        : asset.name.endsWith('.zip')
-          ? 'application/zip'
-          : 'application/gzip'
+    const contentType = contentTypeFor(asset.name)
 
     await uploadToR2({
       client,

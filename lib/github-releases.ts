@@ -56,3 +56,19 @@ export function selectPublishedReleases<T extends ReleaseDraftState>(
 
   return { published, skippedDraftTags }
 }
+
+/**
+ * Tag prefix of the source-mirror releases (`sources-postgis-3.6.4`, ...).
+ *
+ * The release workflows publish the exact third-party source tarballs bundled
+ * into an archive (GPL/LGPL Corresponding Source) as their own GitHub release
+ * and mirror it to R2 at `<registry>/<tag>/<file>`. Such a release carries no
+ * platform archive, so the manifest never describes it, and its R2 objects are
+ * retained for as long as any archive that names them is published.
+ */
+export const SOURCE_MIRROR_TAG_PREFIX = 'sources-'
+
+/** True for a source-mirror release tag or an R2 key under one. */
+export function isSourceMirrorTag(tagOrKey: string): boolean {
+  return tagOrKey.startsWith(SOURCE_MIRROR_TAG_PREFIX)
+}

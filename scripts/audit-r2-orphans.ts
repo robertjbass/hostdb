@@ -23,6 +23,7 @@ import { ListObjectsV2Command } from '@aws-sdk/client-s3'
 import { loadR2Config, createR2Client, deleteFromR2 } from '../lib/r2.js'
 import type { S3Client } from '@aws-sdk/client-s3'
 import type { ReleasesJson } from '../lib/databases.js'
+import { isSourceMirrorTag } from '../lib/github-releases.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
@@ -106,7 +107,10 @@ function loadReferencedKeys(): Set<string> {
 function isExpectedCompanionArtifact(key: string): boolean {
   // Per-release checksums files: <engine>-<version>/checksums.txt and
   // <engine>-<version>/checksums-macos.txt (PostgreSQL native macOS builds).
-  return /\/checksums(-[a-z0-9]+)?\.txt$/.test(key)
+  // Source mirrors (sources-<name>-<version>/...) are the Corresponding Source
+  // of published archives and must be kept as long as those archives are, so
+  // they are never offered for deletion.
+  return /\/checksums(-[a-z0-9]+)?\.txt$/.test(key) || isSourceMirrorTag(key)
 }
 
 async function main(): Promise<void> {
