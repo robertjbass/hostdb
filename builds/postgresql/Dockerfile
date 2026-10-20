@@ -132,6 +132,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g \
     libuuid1 \
     patchelf \
+    binutils \
     file \
     && rm -rf /var/lib/apt/lists/*
 

@@ -94,7 +94,7 @@ After the rebuild these rows change to:
 | Version | linux-x64 | linux-arm64 | darwin-* | win32-x64 |
 | --- | --- | --- | --- | --- |
 | 18.6.0 | core `postgis` 3.6.4 (GEOS 3.14.1, PROJ 9.8.1 with bundled `share/proj/proj.db`, json-c, protobuf-c, SQLite); no raster, topology, tiger geocoder, address_standardizer or SFCGAL | no (Cloud runs x86_64 only) | no (later, Desktop/CLI) | no (later) |
-| 19.0.0-beta.3 | core `postgis` 3.7.0rc2, same components plus libgmp, same exclusions | no | no | not built |
+| 19.0.0-beta.3 | core `postgis` 3.7.0rc2, same components and exclusions (libgmp only if the build links GMP code, which only topology uses) | no | no | not built |
 
 The same rebuild adds `licenses/` and `SOURCES.txt` to those two linux-x64
 archives, so their "License files in archive" cells flip to `yes` at the same

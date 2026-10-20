@@ -196,7 +196,7 @@ pin or scope change is a one-file edit.
 | PostgreSQL | PostGIS | GEOS | PROJ | Extra bundled runtime |
 | --- | --- | --- | --- | --- |
 | 18.x | 3.6.4 | 3.14.1 | 9.8.1 | json-c, protobuf-c, SQLite (Ubuntu 22.04) |
-| 19.x | 3.7.0rc2 (only line supporting 19) | 3.14.1 | 9.8.1 | the same plus libgmp |
+| 19.x | 3.7.0rc2 (only line supporting 19) | 3.14.1 | 9.8.1 | the same; libgmp only if linked (see below) |
 
 Scope and exclusions:
 
@@ -266,6 +266,16 @@ in each archive points there. `sources-` tags never enter `releases.json`
 them for deletion. For PostGIS 3.7 the Ubuntu GMP source package is mirrored
 too, and `install` refuses a builder whose `libgmp10` differs from the pinned
 source.
+
+**GMP in PostGIS 3.7.** 3.7 configure requires libgmp, but only
+`liblwgeom/topo/lwgeom_topo.c` uses it, and liblwgeom is linked statically.
+Built `--without-topology` against PostgreSQL 19 (whose `LDFLAGS` carry
+`-Wl,--as-needed`), `postgis-3.so` pulls in no GMP code and does not NEED
+libgmp, so nothing GMP is bundled, licensed or listed in `SOURCES.txt`. The
+check is on the binary, not the version: `install` and `verify` run `nm -D
+--undefined-only` on `postgis-3.so` and every bundled library, and any object
+with undefined `__gmp*` symbols must NEED libgmp and resolve it from the
+archive's `lib/`, with the GMP licenses present.
 
 ### Dry run: proving a recipe on a branch
 

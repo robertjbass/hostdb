@@ -408,6 +408,23 @@ bundle_runtime_libs() {
     done
 }
 
+# True when the ELF object has undefined GMP symbols, i.e. needs libgmp at
+# load time. In PostGIS 3.7 only liblwgeom/topo/lwgeom_topo.c uses GMP, and
+# liblwgeom is linked statically, so postgis-3.so carries GMP code only when it
+# pulls in that member. Built --without-topology against PostgreSQL 19, whose
+# LDFLAGS add -Wl,--as-needed, it does not, and libgmp is then not NEEDED.
+uses_gmp() {
+    local out
+    if ! out=$(nm -D --undefined-only "$1"); then
+        die "nm failed on ${1}; binutils is required to verify the GMP dependency."
+    fi
+    grep -Eq '[[:space:]]U[[:space:]]+__gmp' <<<"$out"
+}
+
+gmp_bundled() {
+    compgen -G "${1}/lib/libgmp.so.*" >/dev/null
+}
+
 copy_license() {
     local src="$1" dest="$2"
     if [[ ! -s "$src" ]]; then
@@ -443,7 +460,7 @@ write_licenses_and_sources() {
     copy_license /usr/share/doc/libjson-c5/copyright "${licenses}/json-c/copyright"
     copy_license /usr/share/doc/libprotobuf-c1/copyright "${licenses}/protobuf-c/copyright"
     copy_license /usr/share/doc/libsqlite3-0/copyright "${licenses}/sqlite/copyright"
-    if [[ "$POSTGIS_NEEDS_GMP" == "yes" ]]; then
+    if gmp_bundled "$prefix"; then
         copy_license /usr/share/doc/libgmp10/copyright "${licenses}/gmp/copyright"
         copy_license /usr/share/common-licenses/LGPL-3 "${licenses}/gmp/COPYING.LESSERv3"
         copy_license /usr/share/common-licenses/GPL-3 "${licenses}/gmp/COPYINGv3"
@@ -465,6 +482,9 @@ write_licenses_and_sources() {
         echo "  Upstream: https://ftp.postgresql.org/pub/source/"
         echo
         while read -r file url sha; do
+            if [[ "$file" == gmp_* ]] && ! gmp_bundled "$prefix"; then
+                continue
+            fi
             case "$file" in
                 postgis-*) echo "PostGIS ${POSTGIS_VERSION}"; echo "  License:  GPL-2.0-or-later (licenses/postgis/)" ;;
                 geos-*) echo "GEOS ${GEOS_VERSION}"; echo "  License:  LGPL-2.1 (licenses/geos/COPYING)" ;;
@@ -483,7 +503,7 @@ write_licenses_and_sources() {
             echo "  License:  see licenses/$(license_dir_of "$pkg")/copyright"
             echo
         done
-        if [[ "$POSTGIS_NEEDS_GMP" == "yes" ]]; then
+        if gmp_bundled "$prefix"; then
             echo "libgmp10 ${GMP_DEB_VERSION} (Ubuntu 22.04 binary package, bundled as-is; source package mirrored above)"
             echo
         fi
@@ -535,8 +555,21 @@ install_postgis() {
 
     build_postgis "$pg_config" "${src}/postgis-${POSTGIS_VERSION}"
     bundle_runtime_libs "$prefix"
-    if [[ "$POSTGIS_NEEDS_GMP" == "yes" ]] && ! compgen -G "${prefix}/lib/libgmp.so.*" >/dev/null; then
-        die "postgis-3.so does not link libgmp, which PostGIS ${POSTGIS_VERSION} requires."
+    # The invariant is load-time, not version-based: if any shipped object has
+    # undefined GMP symbols, libgmp must be bundled (bundle_runtime_libs copies
+    # it only when it is NEEDED). An object that uses GMP without NEEDing it
+    # would fail to load, so that is refused too.
+    local gmp_target
+    for gmp_target in "${prefix}/lib/postgis-3.so" "${prefix}"/lib/lib*.so.*; do
+        [[ -f "$gmp_target" ]] || continue
+        if uses_gmp "$gmp_target" && ! gmp_bundled "$prefix"; then
+            die "${gmp_target#"${prefix}/"} uses GMP symbols but libgmp is not NEEDED or not bundled."
+        fi
+    done
+    if gmp_bundled "$prefix"; then
+        echo "libgmp is bundled: postgis-3.so or a bundled library needs it."
+    else
+        echo "No shipped object references GMP, so libgmp is not bundled."
     fi
     mkdir -p "${prefix}/share/proj"
     cp -R "${DEPS_PREFIX}/share/proj/." "${prefix}/share/proj/"
@@ -600,9 +633,8 @@ verify() {
         licenses/sqlite/copyright
     )
     local bundled=(libgeos_c.so libgeos.so libproj.so libjson-c.so libprotobuf-c.so libsqlite3.so)
-    if [[ "$POSTGIS_NEEDS_GMP" == "yes" ]]; then
+    if gmp_bundled "$root"; then
         required+=(licenses/gmp/copyright licenses/gmp/COPYING.LESSERv3 licenses/gmp/COPYINGv2)
-        bundled+=(libgmp.so)
     fi
 
     for file in "${required[@]}"; do
@@ -649,6 +681,15 @@ verify() {
         targets+=("$target")
     done < <(find "${root}/lib" -maxdepth 1 -type f -regextype posix-extended -regex '.*/lib(geos|geos_c|proj|json-c|protobuf-c|sqlite3|gmp)\.so\..*' | LC_ALL=C sort)
     for target in "${targets[@]}"; do
+        if uses_gmp "$target"; then
+            if ! gmp_bundled "$root"; then
+                echo "${target#"${root}/"} uses GMP symbols but no libgmp is bundled in lib/." >&2
+                failed=1
+            elif ! grep -Eq '\(NEEDED\).*libgmp\.so' <<<"$(readelf -d "$target")"; then
+                echo "${target#"${root}/"} uses GMP symbols but does not list libgmp as NEEDED." >&2
+                failed=1
+            fi
+        fi
         if ! out=$(env -u LD_LIBRARY_PATH ldd "$target" 2>&1); then
             echo "ldd failed on ${target}: ${out}" >&2
             exit 1
