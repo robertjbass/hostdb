@@ -25,7 +25,10 @@ import {
   checksumsFromPublishedPlatforms,
 } from '../lib/checksums.js'
 import { getDownloadUrl } from '../lib/registry.js'
-import { selectPublishedReleases } from '../lib/github-releases.js'
+import {
+  isSourceMirrorTag,
+  selectPublishedReleases,
+} from '../lib/github-releases.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT_DIR = resolve(__dirname, '..')
@@ -428,6 +431,8 @@ async function main() {
     const results = await Promise.all(
       batch.map(async (tag) => {
         const ghRelease = ghReleases.get(tag) as GitHubRelease
+        // Source mirrors carry upstream tarballs, never a platform archive.
+        if (isSourceMirrorTag(tag)) return null
         const parsed = parseReleaseTag(tag)
         if (!parsed) {
           console.warn(`  Skipping unparseable tag: ${tag}`)

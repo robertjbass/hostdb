@@ -35,6 +35,17 @@ on:
           - 'darwin-x64'
           - 'darwin-arm64'
           - 'win32-x64'
+      dry_run:
+        description: 'Build and smoke-test only: no GitHub release, no R2 upload, no releases.json change'
+        required: false
+        default: false
+        type: boolean
+
+# Every job that publishes anything (mirror-postgis-sources, release,
+# upload-to-r2, update-releases) carries `if: ${{ !inputs.dry_run }}`, so a
+# dry run stops after the build, the smoke gates and dry-run-checks. The
+# negation fails closed: anything but a real boolean false skips publishing.
+# tests/postgresql-postgis.test.ts pins these gates.
 
 # Prevent concurrent runs that could conflict when updating releases.json
 concurrency:
@@ -409,6 +420,43 @@ jobs:
             --mount "type=bind,src=$FIXTURE_ROOT/postgresql,dst=/opt/postgresql,readonly" \
             --mount "type=bind,src=$PWD/builds/postgresql/smoke-pg-cron.sh,dst=/smoke.sh,readonly" \
             pg-cron-smoke bash /smoke.sh
+
+      # PostGIS ships inside the standard build wherever postgis.sh scopes it
+      # in. The archive is mounted away from /opt/postgresql with PROJ_DATA
+      # unset, so the smoke proves the relocated archive resolves its own
+      # libraries and finds share/proj/proj.db relative to lib/libproj.so.
+      - name: Verify PostGIS in the archive
+        if: matrix.build_type == 'docker' && steps.check-download.outputs.has_url != 'true'
+        timeout-minutes: 15
+        env:
+          PG_VERSION: ${{ github.event.inputs.version }}
+          PLATFORM: ${{ matrix.platform }}
+          SOURCE_VERSION: ${{ needs.prepare.outputs.source_version }}
+        run: |
+          POSTGIS=$(./builds/postgresql/postgis.sh applies "$PG_VERSION" "$PLATFORM")
+          if [ "$POSTGIS" != "yes" ]; then
+            echo "PostGIS is not part of PostgreSQL $PG_VERSION on $PLATFORM; nothing to verify."
+            exit 0
+          fi
+          PINS=$(./builds/postgresql/postgis.sh pins "$PG_VERSION")
+          EXPECTED_POSTGIS=$(sed -n 's/^POSTGIS=//p' <<<"$PINS")
+          EXPECTED_GEOS=$(sed -n 's/^GEOS=//p' <<<"$PINS")
+          EXPECTED_PROJ=$(sed -n 's/^PROJ=//p' <<<"$PINS")
+          docker buildx build --platform linux/amd64 --target packager --load \
+            --build-arg SOURCE_VERSION="$SOURCE_VERSION" --build-arg FULL_VERSION="$PG_VERSION" \
+            -t postgis-smoke -f builds/postgresql/Dockerfile .
+          FIXTURE_ROOT=$(mktemp -d)
+          trap 'rm -rf "$FIXTURE_ROOT"; docker image rm postgis-smoke' EXIT
+          tar -xzf "dist/postgresql-${PG_VERSION}-linux-x64.tar.gz" -C "$FIXTURE_ROOT"
+          chmod -R a+rX "$FIXTURE_ROOT"
+          ./builds/postgresql/postgis.sh verify "$FIXTURE_ROOT/postgresql"
+          echo "PostGIS manifest: $(./builds/postgresql/postgis.sh manifest "$FIXTURE_ROOT/postgresql" | wc -l) paths"
+          docker run --rm --network none --read-only --user 65534:65534 \
+            --memory 1g --cpus 0.5 --tmpfs /tmp:rw,exec,size=256m \
+            -e EXPECTED_POSTGIS="$EXPECTED_POSTGIS" -e EXPECTED_GEOS="$EXPECTED_GEOS" -e EXPECTED_PROJ="$EXPECTED_PROJ" \
+            --mount "type=bind,src=$FIXTURE_ROOT/postgresql,dst=/relocated/postgresql,readonly" \
+            --mount "type=bind,src=$PWD/builds/postgresql/smoke-postgis.sh,dst=/smoke-postgis.sh,readonly" \
+            postgis-smoke bash /smoke-postgis.sh /relocated/postgresql
 
       # For Windows: download official EDB binary
       - name: Download for Windows (official EDB binary)
@@ -806,9 +854,184 @@ jobs:
             dist/checksums.txt
           retention-days: 1
 
+  # A dry run (inputs.dry_run) ends here: the same asset checks the release job
+  # runs, with nothing published.
+  dry-run-checks:
+    needs: build
+    if: ${{ inputs.dry_run }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          pattern: postgresql-${{ github.event.inputs.version }}-*
+
+      - name: Collect assets
+        run: |
+          mkdir -p ./release-assets
+          find ./artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec mv {} ./release-assets/ \;
+          find ./artifacts -name "checksums.txt" -exec cat {} \; > ./release-assets/checksums.txt
+          shopt -s nullglob
+          FILES=(./release-assets/*.tar.gz ./release-assets/*.zip)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "ERROR: No artifacts were created for any platform"
+            exit 1
+          fi
+          ls -la ./release-assets/
+          cat ./release-assets/checksums.txt
+
+      - name: Validate required binaries
+        run: |
+          chmod +x builds/common/validate-binaries.sh
+          ./builds/common/validate-binaries.sh postgresql ./release-assets
+
+      - name: Check GLIBC floor (Linux artifacts)
+        run: |
+          chmod +x builds/common/check-glibc-floor.sh
+          ./builds/common/check-glibc-floor.sh postgresql ./release-assets
+
+      - name: Check platform coverage
+        run: |
+          chmod +x builds/common/check-platform-coverage.sh
+          ./builds/common/check-platform-coverage.sh postgresql "${{ github.event.inputs.version }}" "${{ github.event.inputs.platforms }}" ./release-assets
+
+      - name: Report (nothing published)
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          echo "Dry run of PostgreSQL $VERSION complete. Nothing was published:"
+          echo "no GitHub release, no R2 upload, no releases.json change."
+          if [ -f "./release-assets/postgresql-${VERSION}-linux-x64.tar.gz" ]; then
+            ROOT=$(mktemp -d)
+            tar -xzf "./release-assets/postgresql-${VERSION}-linux-x64.tar.gz" -C "$ROOT"
+            if [ "$(./builds/postgresql/postgis.sh applies "$VERSION" linux-x64)" = "yes" ]; then
+              echo "PostGIS manifest of the linux-x64 archive:"
+              ./builds/postgresql/postgis.sh manifest "$ROOT/postgresql"
+              cat "$ROOT/postgresql/SOURCES.txt"
+            fi
+          fi
+
+  # Mirror the exact PostGIS, GEOS, PROJ (and, for PostGIS 3.7, GMP) source
+  # tarballs the build verified to a dedicated `sources-postgis-<version>`
+  # GitHub release and to R2, so every archive's SOURCES.txt points at a
+  # Corresponding Source that exists before the archive is published. Runs
+  # before `release`; a no-op when PostGIS is not in this run's scope. Never
+  # runs on a dry run, and never replaces an asset that already exists.
+  mirror-postgis-sources:
+    needs: [prepare, build]
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Decide scope
+        id: scope
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+          MATRIX: ${{ needs.prepare.outputs.matrix }}
+        run: |
+          if ! jq -e 'map(.platform) | index("linux-x64") != null' <<<"$MATRIX" >/dev/null; then
+            echo "This run does not build linux-x64; no PostGIS sources to mirror."
+            echo "applies=no" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          APPLIES=$(./builds/postgresql/postgis.sh applies "$VERSION" linux-x64)
+          echo "applies=$APPLIES" >> "$GITHUB_OUTPUT"
+          if [ "$APPLIES" = "yes" ]; then
+            TAG=$(./builds/postgresql/postgis.sh pins "$VERSION" | sed -n 's/^MIRROR_TAG=//p')
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+            echo "Mirroring PostGIS sources for PostgreSQL $VERSION to $TAG"
+          else
+            echo "PostGIS is not part of PostgreSQL $VERSION; nothing to mirror."
+          fi
+
+      - name: Fetch and verify the pinned sources
+        if: steps.scope.outputs.applies == 'yes'
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          ./builds/postgresql/postgis.sh fetch-sources "$VERSION" dist/sources
+          (cd dist/sources && sha256sum -- * > SHA256SUMS)
+          cat dist/sources/SHA256SUMS
+
+      - name: Publish the sources release
+        if: steps.scope.outputs.applies == 'yes'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.scope.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "$TAG exists; adding only missing assets and checking the rest byte for byte."
+            EXISTING=$(gh release view "$TAG" --json assets --jq '.assets[].name')
+            for f in dist/sources/*; do
+              name=$(basename "$f")
+              if grep -qxF "$name" <<<"$EXISTING"; then
+                published=$(gh release download "$TAG" --pattern "$name" --output - | sha256sum | cut -d' ' -f1)
+                local_sum=$(sha256sum "$f" | cut -d' ' -f1)
+                if [ "$published" != "$local_sum" ]; then
+                  echo "::error::$TAG already has $name with sha256 $published, but the pinned file is $local_sum. Published sources are immutable; investigate before re-running."
+                  exit 1
+                fi
+              else
+                gh release upload "$TAG" "$f"
+              fi
+            done
+          else
+            {
+              echo "Corresponding Source for the PostGIS build in the hostdb PostgreSQL archives."
+              echo
+              echo "Byte-identical copies of the upstream files, verified against the sha256 pins in builds/postgresql/postgis.sh. Each archive's SOURCES.txt and licenses/ directory point here. Mirrored at https://registry.layerbase.host/$TAG/<file>."
+            } > sources-notes.md
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "Sources: $TAG" \
+              --notes-file sources-notes.md --latest=false dist/sources/*
+          fi
+          PUBLISHED=$(gh release view "$TAG" --json assets --jq '.assets[].name' | sort)
+          EXPECTED=$(cd dist/sources && ls -1 | sort)
+          if [ "$PUBLISHED" != "$EXPECTED" ]; then
+            echo "::error::$TAG assets do not match the pinned sources."
+            diff <(echo "$EXPECTED") <(echo "$PUBLISHED")
+            exit 1
+          fi
+
+      - name: Setup pnpm
+        if: steps.scope.outputs.applies == 'yes'
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        if: steps.scope.outputs.applies == 'yes'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        if: steps.scope.outputs.applies == 'yes'
+        run: pnpm install --frozen-lockfile
+
+      # No --force: a source object that already exists on R2 is never
+      # overwritten.
+      - name: Mirror the sources to R2
+        if: steps.scope.outputs.applies == 'yes'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          TAG: ${{ steps.scope.outputs.tag }}
+        run: pnpm tsx scripts/upload-to-r2.ts --tag "$TAG"
+
   # Collect all artifacts and create release
   release:
-    needs: build
+    needs: [build, mirror-postgis-sources]
+    if: ${{ !inputs.dry_run }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -950,6 +1173,7 @@ jobs:
   # Update the releases manifest
   upload-to-r2:
     needs: release
+    if: ${{ !inputs.dry_run }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -974,6 +1198,7 @@ jobs:
 
   update-releases:
     needs: upload-to-r2
+    if: ${{ !inputs.dry_run }}
     # releases.json is one shared file committed to main and pushed to R2, and
     # each run rebuilds the WHOLE manifest, so two of these at once is
     # last-writer-wins: the loser's version silently disappears from the

@@ -85,16 +85,22 @@ Verified 2026-10-19 by listing the published archives at
 
 ### Planned: PostGIS on PostgreSQL (linux-x64 first)
 
-Plan: `~/dev/layerbase-cloud/plans/active/postgis-extension.md`. When it ships,
-these rows change to:
+Plan: `~/dev/layerbase-cloud/plans/active/postgis-extension.md`. The recipe
+landed in hostdb 0.44.3 (`builds/postgresql/postgis.sh`), but **no published
+archive has changed yet**: the cells above stay `no` until the in-place
+rebuild of each version has run and its published archive has been listed.
+After the rebuild these rows change to:
 
 | Version | linux-x64 | linux-arm64 | darwin-* | win32-x64 |
 | --- | --- | --- | --- | --- |
-| 18.6.0 | core `postgis` 3.6.x (GEOS, PROJ with bundled `proj.db`, json-c, protobuf-c); no raster, topology, tiger geocoder, address_standardizer or SFCGAL | no (Cloud runs x86_64 only) | no (later, Desktop/CLI) | no (later) |
-| 19.0.0-beta.3 | core `postgis` 3.7.0 pre-release, same exclusions | no | no | not built |
+| 18.6.0 | core `postgis` 3.6.4 (GEOS 3.14.1, PROJ 9.8.1 with bundled `share/proj/proj.db`, json-c, protobuf-c, SQLite); no raster, topology, tiger geocoder, address_standardizer or SFCGAL | no (Cloud runs x86_64 only) | no (later, Desktop/CLI) | no (later) |
+| 19.0.0-beta.3 | core `postgis` 3.7.0rc2, same components and exclusions (libgmp only if the build links GMP code, which only topology uses) | no | no | not built |
 
-Update the per-version tables above, not this block, once the archives are
-published and listed.
+The same rebuild adds `licenses/` and `SOURCES.txt` to those two linux-x64
+archives, so their "License files in archive" cells flip to `yes` at the same
+time. Update the per-version tables above, not this block, once the archives
+are published and listed, and add a change-log row naming the hostdb version
+that carries the rebuilt checksums.
 
 ## PostgreSQL + DocumentDB (`postgresql-documentdb`)
 
@@ -113,7 +119,7 @@ is retired.
 | `postgis` | yes (3.5.1) | yes (3.5.1) | yes (3.5.2) | yes (3.5.2) | retired (never had it) |
 | `postgis_raster` (+ bundled `libgdal.so.32`) | **yes** | **yes** | no | no | retired |
 | `postgis_topology`, `postgis_tiger_geocoder`, `address_standardizer`, `address_standardizer_data_us` | **yes** | **yes** | no | no | retired |
-| Bundled GEOS | 3.11.1 (Ubuntu 22.04 apt) | 3.11.1 | 3.14.1 (Homebrew) | 3.14.1 | n/a |
+| Bundled GEOS | 3.11.1 (Debian 12 `geos` 3.11.1-1; the archive was built on `debian:bookworm`) | 3.11.1 (same) | 3.14.1 (Homebrew) | 3.14.1 | n/a |
 | PROJ `proj.db` data file | **no** | **no** | **no** | **no** | n/a |
 | `uuid-ossp` | no | no | no | no | n/a |
 | License files in archive (PostGIS GPL, GEOS LGPL, ...) | **no** | **no** | **no** | **no** | n/a |
@@ -130,10 +136,13 @@ is retired.
   `ST_Transform` between coordinate systems, so that function is expected to
   fail on every platform. Not yet exercised by any test; record the result
   here once it is.
-- **No license files.** The engine is labeled `Apache-2.0` in `databases.yml`
-  while the archives bundle GPL-2.0-or-later (PostGIS), LGPL (GEOS) and MIT
-  (PROJ, GDAL) components. The fix is planned in
-  `~/dev/layerbase-cloud/plans/active/postgis-extension.md`.
+- **No license files.** The archives bundle GPL-2.0-or-later (PostGIS), LGPL
+  (GEOS) and MIT (PROJ, GDAL) components but carry no license texts. Since
+  hostdb 0.44.3 the engine's `license` in `databases.yml`, the release notes
+  and `builds/postgresql-documentdb/README.md` state the combined expression
+  instead of `Apache-2.0`; the source tarballs are to be published as
+  `sources-documentdb-17-0.107.0`, and `licenses/` plus `SOURCES.txt` move
+  inside the archives at the next DocumentDB/FerretDB paired rebuild.
 - **Windows was a pgvector-only bundle.** The workflow writes
   `extensions_unavailable = @("documentdb", "pg_cron", "rum", "postgis")` into
   the Windows `.hostdb-metadata.json`
@@ -154,3 +163,4 @@ MariaDB plugin exclusions (`builds/mariadb/plugin-exclusions.ts`).
 | Date | hostdb version | Change |
 | --- | --- | --- |
 | 2026-10-19 | 0.44.2 (no build change) | File created and seeded from archive listings of PostgreSQL 18.6.0, 19.0.0-beta.3 and postgresql-documentdb 17-0.107.0. |
+| 2026-10-19 | 0.44.3 (recipe only, no archive change) | PostGIS recipe added for linux-x64 PostgreSQL 18 and 19; cells unchanged until the rebuilt archives are published and listed. postgresql-documentdb `license` corrected to the bundle's combined expression. |
