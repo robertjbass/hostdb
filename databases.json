@@ -726,11 +726,11 @@
       "description": "PostgreSQL with DocumentDB extension for FerretDB backend",
       "type": "Document",
       "sourceRepo": "https://github.com/FerretDB/documentdb",
-      "license": "MIT AND Apache-2.0 AND BSD-3-Clause AND PostgreSQL AND GPL-2.0-or-later AND LGPL-2.1-only AND BSD-2-Clause",
+      "license": "MIT AND Apache-2.0 AND BSD-3-Clause AND PostgreSQL AND GPL-2.0-or-later AND LGPL-2.1-or-later AND BSD-2-Clause AND bzip2-1.0.6 AND CFITSIO AND curl AND BSD-4-Clause AND HPND-sell-variant AND (FTL OR GPL-2.0-or-later) AND (MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later) AND (LGPL-3.0-or-later OR GPL-2.0-or-later) AND ICU AND LGPL-2.0-or-later AND LGPL-3.0-or-later AND LicenseRef-libgeotiff AND LicenseRef-HDF4 AND IJG AND Zlib AND Libpng AND (BSD-3-Clause OR GPL-2.0-only) AND X11 AND MPL-2.0 AND LGPL-2.1-only AND LicenseRef-OGDI AND OLDAP-2.8 AND BSD-3-Clause WITH PCRE2-exception AND (GPL-2.0-only OR GPL-3.0-only) AND Qhull AND GPL-3.0-or-later AND blessing AND libtiff AND LicenseRef-Public-Domain",
       "commercialUse": true,
       "hostedServiceAllowed": true,
       "protocol": "postgresql",
-      "note": "Backend for FerretDB v2 only; includes pg_cron, pgvector, PostGIS, rum extensions. Not available on Windows. The archives bundle PostGIS (GPL-2.0-or-later) and GEOS (LGPL-2.1) alongside DocumentDB (MIT, with vendored Apache-2.0 and BSD-3-Clause code), PostgreSQL, pg_cron, pgvector and rum (PostgreSQL License) and PROJ (MIT); the Linux archives also bundle GDAL (MIT) and other distribution runtime libraries. The license field is the combined expression, not DocumentDB's alone.",
+      "note": "Backend for FerretDB v2 only; includes pg_cron, pgvector, PostGIS, rum extensions. Not available on Windows. The license field is the combined expression of everything the archives bundle, not DocumentDB's alone - DocumentDB (MIT, with vendored Apache-2.0 and BSD-3-Clause code), PostgreSQL, pg_cron, pgvector and rum (PostgreSQL License), PostGIS (GPL-2.0-or-later), GEOS (LGPL-2.1-or-later), PROJ and GDAL (MIT), protobuf-c (BSD-2-Clause), and in the Linux archives 84 Debian 12 runtime library packages, each mapped to its license in builds/postgresql-documentdb/README.md.",
       "defaults": {
         "17": "17-0.107.0"
       },

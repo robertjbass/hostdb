@@ -16,7 +16,7 @@ Recipe, release-tooling and metadata change only. No published archive changes i
 
 ### Fixed
 
-- **postgresql-documentdb license metadata.** The engine was labeled `Apache-2.0` ("fully permissive") while its archives bundle PostGIS (GPL-2.0-or-later) and GEOS (LGPL-2.1). `databases.yml`, the release notes and `builds/postgresql-documentdb/README.md` now state the bundle's combined SPDX expression (`MIT AND Apache-2.0 AND BSD-3-Clause AND PostgreSQL AND GPL-2.0-or-later AND LGPL-2.1-only AND BSD-2-Clause`); DocumentDB itself is MIT at the pinned tag. No consumer parses the field (`hostedServiceAllowed` and `commercialUse` are unchanged). The source release for the already-published archives is an operator step described in that README.
+- **postgresql-documentdb license metadata.** The engine was labeled `Apache-2.0` ("fully permissive") while its archives bundle PostGIS (GPL-2.0-or-later) and GEOS (LGPL-2.1). `databases.yml`, the release notes and `builds/postgresql-documentdb/README.md` now state the bundle's combined SPDX expression, and the README maps each of the 108 Debian 12 runtime libraries in the published Linux archives (84 source packages, derived from the archive listing and each package's `debian/copyright`) to its license, marking the GPL, LGPL and MPL ones whose source must be mirrored; DocumentDB itself is MIT at the pinned tag. The Linux GEOS is Debian `geos` 3.11.1-1, whose source package checksums are recorded for the source release. No consumer parses the field (`hostedServiceAllowed` and `commercialUse` are unchanged). The source release for the already-published archives is an operator step described in that README.
 
 ## [0.44.2] - 2026-10-15
 

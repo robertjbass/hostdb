@@ -119,7 +119,7 @@ is retired.
 | `postgis` | yes (3.5.1) | yes (3.5.1) | yes (3.5.2) | yes (3.5.2) | retired (never had it) |
 | `postgis_raster` (+ bundled `libgdal.so.32`) | **yes** | **yes** | no | no | retired |
 | `postgis_topology`, `postgis_tiger_geocoder`, `address_standardizer`, `address_standardizer_data_us` | **yes** | **yes** | no | no | retired |
-| Bundled GEOS | 3.11.1 (Ubuntu 22.04 apt) | 3.11.1 | 3.14.1 (Homebrew) | 3.14.1 | n/a |
+| Bundled GEOS | 3.11.1 (Debian 12 `geos` 3.11.1-1; the archive was built on `debian:bookworm`) | 3.11.1 (same) | 3.14.1 (Homebrew) | 3.14.1 | n/a |
 | PROJ `proj.db` data file | **no** | **no** | **no** | **no** | n/a |
 | `uuid-ossp` | no | no | no | no | n/a |
 | License files in archive (PostGIS GPL, GEOS LGPL, ...) | **no** | **no** | **no** | **no** | n/a |

@@ -463,12 +463,12 @@ jobs:
           - DocumentDB: MIT (vendored libbson and CRoaring are Apache-2.0, Intel RDFP math and PCRE2 are BSD-3-Clause)
           - PostgreSQL, pg_cron, pgvector, rum: PostgreSQL License
           - PostGIS: GPL-2.0-or-later
-          - GEOS: LGPL-2.1
-          - PROJ: MIT
-          - Linux archives also carry GDAL (MIT) and other Ubuntu 22.04 runtime libraries
+          - GEOS: LGPL-2.1-or-later
+          - PROJ, GDAL: MIT
+          - protobuf-c: BSD-2-Clause
+          - Linux archives: every runtime library the build bundles into `lib/` from the build image's distribution packages. Each one is listed with its distribution source package and license in `builds/postgresql-documentdb/README.md` ("Bundled Linux runtime libraries"), which must be updated from the archive listing whenever this workflow publishes a Linux archive.
 
-          Combined SPDX expression: `MIT AND Apache-2.0 AND BSD-3-Clause AND PostgreSQL AND GPL-2.0-or-later AND LGPL-2.1-only AND BSD-2-Clause`.
-          Commercial use is allowed; redistributing the archive carries the GPL and LGPL obligations of PostGIS and GEOS, including making their source available.
+          Commercial use is allowed; redistributing the archive carries the GPL, LGPL and MPL obligations of the components above, including making their source available.
 
           ### Available Platforms
           | Platform | Extensions | Source |
