@@ -331,9 +331,6 @@ build_proj() {
 assert_postgis_config() {
     local header="$1/postgis_config.h" define
     local required=(HAVE_LIBPROTOBUF HAVE_LIBJSON)
-    if [[ "$POSTGIS_NEEDS_GMP" == "yes" ]]; then
-        required+=(HAVE_LIBGMP)
-    fi
     for define in "${required[@]}"; do
         if ! grep -Eq "^#define ${define} 1" "$header"; then
             die "PostGIS configure did not enable ${define}; check its configure output for the missing library."
@@ -341,6 +338,12 @@ assert_postgis_config() {
     done
     if grep -Eq '^#define HAVE_SFCGAL 1' "$header"; then
         die "PostGIS configure enabled SFCGAL, which this recipe excludes."
+    fi
+    # PostGIS 3.7 configure stops with "Could not find required libgmp" when
+    # pkg-config cannot find gmp, but its HAVE_LIBGMP define has no slot in
+    # postgis_config.h.in, so the proof is GMP_LIBS reaching the link line.
+    if [[ "$POSTGIS_NEEDS_GMP" == "yes" ]] && ! grep -Eq '^SHLIB_LINK_F = .*-lgmp' "$1/postgis/Makefile"; then
+        die "PostGIS configure did not put -lgmp on the postgis-3.so link line; check the gmp pkg-config result in its configure output."
     fi
 }
 
@@ -355,7 +358,19 @@ build_postgis() {
             --with-projdir="$DEPS_PREFIX" \
             "${POSTGIS_CONFIGURE_FLAGS[@]}"
         assert_postgis_config "$src"
-        make -j "$(nproc)"
+        # Compile the C libraries in parallel, then run the top-level make
+        # serially. With -j, utils/ and extensions/ start concurrent sub-makes
+        # in raster/rt_pg that both write rtpostgis.sql, and create_upgrade.pl
+        # then reads a truncated file ("Unable to locate target new version
+        # number"). Upstream orders those directories for this reason
+        # (GNUmakefile.in, tickets 5779 and 5780) but the sub-makes still race.
+        local dir
+        for dir in liblwgeom deps libpgcommon; do
+            if [[ -f "${dir}/Makefile" ]]; then
+                make -j "$(nproc)" -C "$dir"
+            fi
+        done
+        make
         make install
     )
 }
@@ -520,6 +535,9 @@ install_postgis() {
 
     build_postgis "$pg_config" "${src}/postgis-${POSTGIS_VERSION}"
     bundle_runtime_libs "$prefix"
+    if [[ "$POSTGIS_NEEDS_GMP" == "yes" ]] && ! compgen -G "${prefix}/lib/libgmp.so.*" >/dev/null; then
+        die "postgis-3.so does not link libgmp, which PostGIS ${POSTGIS_VERSION} requires."
+    fi
     mkdir -p "${prefix}/share/proj"
     cp -R "${DEPS_PREFIX}/share/proj/." "${prefix}/share/proj/"
     write_licenses_and_sources "$prefix" "$pg_source" "$src"
