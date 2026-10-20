@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.44.4] - 2026-10-20
+
+Checksum release for the in-place PostGIS rebuilds. No code change.
+
+### Changed
+
+- **PostgreSQL 18.6.0 linux-x64** rebuilt in place with PostGIS 3.6.4 (GEOS 3.14.1, PROJ 9.8.1): sha256 `da5ce18d713e7988024759fd295f179d19cb56da2768893c3804e4f6e4bf6685`, size 23819309 (was `39587b92...`, 12316384). Sources mirrored at `https://registry.layerbase.host/sources-postgis-3.6.4/`.
+- **PostgreSQL 19.0.0-beta.3 linux-x64** rebuilt in place with PostGIS 3.7.0rc2 (GEOS 3.14.1, PROJ 9.8.1): sha256 `b22e28b946898b4779fb6292131f77ed76d9cdafa49521cb7af04989113f37e9`, size 25864777 (was `b096a0df...`, 12811962). Sources mirrored at `https://registry.layerbase.host/sources-postgis-3.7.0rc2/`.
+- Both archives only ADD files (PostGIS, its bundled libraries, `share/proj/`, `licenses/`, `SOURCES.txt`; the 19 beta also `bin/postgis` and `bin/postgis_restore`); every pre-existing file is byte-identical apart from `.hostdb-metadata.json`.
+
 ## [0.44.3] - 2026-10-19
 
 Recipe, release-tooling and metadata change only. No published archive changes in this release: `releases.json` checksums are identical to 0.44.2, and the PostgreSQL 18.6.0 and 19.0.0-beta.3 linux-x64 archives are rebuilt in place with PostGIS only after this code is on `main` (the release workflow checks out `main`); their checksums ship in 0.44.4.
