@@ -1462,8 +1462,8 @@
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/postgresql-19.0.0-beta.3/postgresql-19.0.0-beta.3-linux-x64.tar.gz",
-            "sha256": "b096a0df769931f03b8a1d2be11ec5f695b16fee5a4b03cbaa2cce4b7ecd1344",
-            "size": 12811962
+            "sha256": "b22e28b946898b4779fb6292131f77ed76d9cdafa49521cb7af04989113f37e9",
+            "size": 25864777
           }
         },
         "releaseType": "beta"
