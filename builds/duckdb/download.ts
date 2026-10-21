@@ -8,8 +8,8 @@
  *   pnpm download:duckdb -- --all-platforms
  *
  * DuckDB distributes:
- * - Linux: gzip-compressed single binary (.gz)
- * - macOS/Windows: zip archive containing single binary
+ * - 1.x: Linux gzip binaries and macOS/Windows zip archives
+ * - 2.x: tar.gz archives on all platforms
  */
 
 import {
@@ -60,7 +60,7 @@ function isValidVersion(value: string): boolean {
 
 type SourceEntry = {
   url: string
-  format: 'gz' | 'zip'
+  format: 'gz' | 'zip' | 'tar.gz'
   sha256: string | null
   sourceType: 'official'
 }
@@ -432,7 +432,7 @@ async function main() {
     }
 
     const ext = platform.startsWith('win32') ? 'zip' : 'tar.gz'
-    const downloadExt = source.format === 'gz' ? 'gz' : 'zip'
+    const downloadExt = source.format
     const downloadPath = resolve(
       outputDir,
       'downloads',
@@ -476,8 +476,14 @@ async function main() {
       binaryPath = resolve(extractDir, 'duckdb')
       await extractGzip(downloadPath, binaryPath)
     } else {
-      // macOS/Windows: zip containing binary
-      extractZip(downloadPath, extractDir)
+      if (source.format === 'tar.gz') {
+        verifyCommand('tar')
+        execFileSync('tar', ['-xzf', downloadPath, '-C', extractDir], {
+          stdio: 'inherit',
+        })
+      } else {
+        extractZip(downloadPath, extractDir)
+      }
       // Find the binary in extracted files
       const files = readdirSync(extractDir)
       const binaryName = platform.startsWith('win32') ? 'duckdb.exe' : 'duckdb'

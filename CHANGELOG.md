@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.45.0] - 2026-10-21
+
+### Added
+
+- DuckDB 2.0.0 GA on Linux x64/arm64, macOS x64/arm64 and Windows x64, using checksum-verified official CLI archives. Linux uses the upstream glibc binaries; the musl builds require an external loader absent on stock Ubuntu.
+- The DuckDB major alias `2` resolves to `2.0.0`. The `1` alias advances to `1.5.6`, with all existing exact versions retained.
+- DuckDB 1.5.6 on all five supported platforms, retaining the maintained 1.x choice alongside opt-in 2.0.
+
+### Changed
+
+- DuckDB release publication now requires native executable version, reopen and SQL backup/restore checks on every selected platform, including Ubuntu 22.04 and native Linux arm64.
+- The DuckDB downloader accepts the upstream 2.0 tar.gz format while retaining gzip and zip support for older releases. Hosted archive layout stays compatible with existing consumers.
+
 ## [0.44.4] - 2026-10-20
 
 Checksum release for the in-place PostGIS rebuilds. No code change.
