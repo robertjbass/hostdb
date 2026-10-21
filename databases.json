@@ -18,19 +18,11 @@
       "versions": {
         "25.12.3.21": true
       },
-      "platforms": [
-        "linux-x64",
-        "linux-arm64",
-        "darwin-x64",
-        "darwin-arm64"
-      ],
+      "platforms": ["linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64"],
       "cliTools": {
         "server": "clickhouse-server",
         "client": "clickhouse-client",
-        "utilities": [
-          "clickhouse-local",
-          "clickhouse-benchmark"
-        ],
+        "utilities": ["clickhouse-local", "clickhouse-benchmark"],
         "enhanced": []
       },
       "connection": {
@@ -70,10 +62,7 @@
         "server": "cockroach",
         "client": "cockroach",
         "utilities": [],
-        "enhanced": [
-          "pgcli",
-          "usql"
-        ],
+        "enhanced": ["pgcli", "usql"],
         "note": "Single binary; use 'cockroach start-single-node' for server, 'cockroach sql' for client"
       },
       "connection": {
@@ -138,9 +127,11 @@
       "protocol": null,
       "note": "",
       "defaults": {
-        "1": "1.5.5"
+        "1": "1.5.5",
+        "2": "2.0.0"
       },
       "versions": {
+        "2.0.0": true,
         "1.5.5": true,
         "1.4.4": true,
         "1.4.3": true
@@ -156,9 +147,7 @@
         "server": null,
         "client": "duckdb",
         "utilities": [],
-        "enhanced": [
-          "usql"
-        ]
+        "enhanced": ["usql"]
       },
       "connection": {
         "runtime": "embedded",
@@ -223,10 +212,7 @@
       "cliTools": {
         "server": "ferretdb",
         "client": "mongosh",
-        "utilities": [
-          "mongodump",
-          "mongorestore"
-        ],
+        "utilities": ["mongodump", "mongorestore"],
         "enhanced": []
       },
       "connection": {
@@ -296,20 +282,12 @@
       "versions": {
         "0.24.32": true
       },
-      "platforms": [
-        "linux-x64",
-        "linux-arm64",
-        "darwin-x64",
-        "darwin-arm64"
-      ],
+      "platforms": ["linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64"],
       "cliTools": {
         "server": "sqld",
         "client": null,
         "utilities": [],
-        "enhanced": [
-          "litecli",
-          "usql"
-        ],
+        "enhanced": ["litecli", "usql"],
         "note": "HTTP API; use Turso client SDKs or any libSQL/SQLite client"
       },
       "connection": {
@@ -362,15 +340,8 @@
       "cliTools": {
         "server": "mariadbd",
         "client": "mariadb",
-        "utilities": [
-          "mariadb-dump",
-          "mariadb-import",
-          "mariadb-admin"
-        ],
-        "enhanced": [
-          "mycli",
-          "usql"
-        ]
+        "utilities": ["mariadb-dump", "mariadb-import", "mariadb-admin"],
+        "enhanced": ["mycli", "usql"]
       },
       "connection": {
         "runtime": "server",
@@ -497,14 +468,8 @@
           "cliTools": {
             "server": "mysqld",
             "client": "mysql",
-            "utilities": [
-              "mysqldump",
-              "mysqladmin"
-            ],
-            "enhanced": [
-              "mycli",
-              "usql"
-            ]
+            "utilities": ["mysqldump", "mysqladmin"],
+            "enhanced": ["mycli", "usql"]
           }
         },
         "9.6.0": {
@@ -512,14 +477,8 @@
           "cliTools": {
             "server": "mysqld",
             "client": "mysql",
-            "utilities": [
-              "mysqldump",
-              "mysqladmin"
-            ],
-            "enhanced": [
-              "mycli",
-              "usql"
-            ]
+            "utilities": ["mysqldump", "mysqladmin"],
+            "enhanced": ["mycli", "usql"]
           }
         },
         "9.5.0": {
@@ -528,14 +487,8 @@
           "cliTools": {
             "server": "mysqld",
             "client": "mysql",
-            "utilities": [
-              "mysqldump",
-              "mysqladmin"
-            ],
-            "enhanced": [
-              "mycli",
-              "usql"
-            ]
+            "utilities": ["mysqldump", "mysqladmin"],
+            "enhanced": ["mycli", "usql"]
           }
         },
         "9.1.0": {
@@ -544,14 +497,8 @@
           "cliTools": {
             "server": "mysqld",
             "client": "mysql",
-            "utilities": [
-              "mysqldump",
-              "mysqladmin"
-            ],
-            "enhanced": [
-              "mycli",
-              "usql"
-            ]
+            "utilities": ["mysqldump", "mysqladmin"],
+            "enhanced": ["mycli", "usql"]
           }
         },
         "8.4.11": {
@@ -559,14 +506,8 @@
           "cliTools": {
             "server": "mysqld",
             "client": "mysql",
-            "utilities": [
-              "mysqldump",
-              "mysqladmin"
-            ],
-            "enhanced": [
-              "mycli",
-              "usql"
-            ]
+            "utilities": ["mysqldump", "mysqladmin"],
+            "enhanced": ["mycli", "usql"]
           }
         },
         "8.4.9": {
@@ -574,14 +515,8 @@
           "cliTools": {
             "server": "mysqld",
             "client": "mysql",
-            "utilities": [
-              "mysqldump",
-              "mysqladmin"
-            ],
-            "enhanced": [
-              "mycli",
-              "usql"
-            ]
+            "utilities": ["mysqldump", "mysqladmin"],
+            "enhanced": ["mycli", "usql"]
           }
         },
         "8.4.3": {
@@ -603,15 +538,8 @@
       "cliTools": {
         "server": "mysqld",
         "client": "mysql",
-        "utilities": [
-          "mysqldump",
-          "mysqlpump",
-          "mysqladmin"
-        ],
-        "enhanced": [
-          "mycli",
-          "usql"
-        ]
+        "utilities": ["mysqldump", "mysqlpump", "mysqladmin"],
+        "enhanced": ["mycli", "usql"]
       },
       "connection": {
         "runtime": "server",
@@ -644,17 +572,13 @@
           "deprecated": true,
           "releaseType": "beta",
           "note": "Deprecated; pg_cron now ships inside the standard 18.6.0 linux-x64 build. Kept resolvable and downloadable so existing installs keep working; not offered for new installs or release dispatches.",
-          "platforms": [
-            "linux-x64"
-          ]
+          "platforms": ["linux-x64"]
         },
         "19.0.0-beta.3-cron.1": {
           "deprecated": true,
           "releaseType": "beta",
           "note": "Deprecated; pg_cron now ships inside the standard 19.0.0-beta.3 linux-x64 build. Kept resolvable and downloadable so existing installs keep working; not offered for new installs or release dispatches.",
-          "platforms": [
-            "linux-x64"
-          ]
+          "platforms": ["linux-x64"]
         },
         "19.0.0-beta.3": {
           "releaseType": "beta",
@@ -706,10 +630,7 @@
           "createdb",
           "dropdb"
         ],
-        "enhanced": [
-          "pgcli",
-          "usql"
-        ]
+        "enhanced": ["pgcli", "usql"]
       },
       "connection": {
         "runtime": "server",
@@ -741,24 +662,12 @@
           }
         }
       },
-      "platforms": [
-        "linux-x64",
-        "linux-arm64",
-        "darwin-x64",
-        "darwin-arm64"
-      ],
+      "platforms": ["linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64"],
       "cliTools": {
         "server": "postgres",
         "client": "psql",
-        "utilities": [
-          "pg_dump",
-          "pg_restore",
-          "initdb",
-          "pg_ctl"
-        ],
-        "enhanced": [
-          "pgcli"
-        ]
+        "utilities": ["pg_dump", "pg_restore", "initdb", "pg_ctl"],
+        "enhanced": ["pgcli"]
       },
       "connection": {
         "runtime": "server",
@@ -848,10 +757,7 @@
         "server": "questdb",
         "client": "psql",
         "utilities": [],
-        "enhanced": [
-          "pgcli",
-          "usql"
-        ],
+        "enhanced": ["pgcli", "usql"],
         "note": "PostgreSQL wire protocol; use psql or pgcli"
       },
       "connection": {
@@ -910,14 +816,8 @@
       "cliTools": {
         "server": "redis-server",
         "client": "redis-cli",
-        "utilities": [
-          "redis-benchmark",
-          "redis-check-aof",
-          "redis-check-rdb"
-        ],
-        "enhanced": [
-          "iredis"
-        ]
+        "utilities": ["redis-benchmark", "redis-check-aof", "redis-check-rdb"],
+        "enhanced": ["iredis"]
       },
       "connection": {
         "runtime": "server",
@@ -958,10 +858,7 @@
         "server": null,
         "client": "sqlite3",
         "utilities": [],
-        "enhanced": [
-          "litecli",
-          "usql"
-        ]
+        "enhanced": ["litecli", "usql"]
       },
       "connection": {
         "runtime": "embedded",
@@ -1134,12 +1031,8 @@
       "cliTools": {
         "server": "valkey-server",
         "client": "valkey-cli",
-        "utilities": [
-          "valkey-benchmark"
-        ],
-        "enhanced": [
-          "iredis"
-        ]
+        "utilities": ["valkey-benchmark"],
+        "enhanced": ["iredis"]
       },
       "connection": {
         "runtime": "server",

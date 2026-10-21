@@ -2,6 +2,38 @@
   "$schema": "../../schemas/sources.schema.json",
   "database": "duckdb",
   "versions": {
+    "2.0.0": {
+      "linux-x64": {
+        "url": "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-cli-linux-amd64-musl.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "3285e4083a79955b0606ab799ebc1493087307cdc76b4827308b1a4dcdb371c9"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-cli-linux-arm64-musl.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "59aee3049c335917307f5df1b3722af1335fef99199dc89e8064d1b2838620c7"
+      },
+      "darwin-x64": {
+        "url": "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-cli-osx-amd64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "fbc7013ba09d117396dabf16783281c2add47fc01cdac4855464a03526dc96ee"
+      },
+      "darwin-arm64": {
+        "url": "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-cli-osx-arm64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "188a36fe8883ef52e69165a0cbb6031ef679c8e6c448a1ce22951964149b7f96"
+      },
+      "win32-x64": {
+        "url": "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-cli-windows-amd64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "91663c2f36c2a334b0e5e639006d8c29c29e013af0c477d80bb931df68870312"
+      }
+    },
     "1.5.5": {
       "linux-x64": {
         "url": "https://github.com/duckdb/duckdb/releases/download/v1.5.5/duckdb_cli-linux-amd64.gz",
@@ -102,6 +134,7 @@
   "notes": {
     "source": "Official DuckDB GitHub releases: https://github.com/duckdb/duckdb/releases",
     "format-linux": "Linux binaries are distributed as gzip-compressed single binaries (.gz)",
-    "format-other": "macOS and Windows binaries are distributed as zip archives"
+    "format-other": "macOS and Windows binaries are distributed as zip archives",
+    "format-2": "DuckDB 2.0 uses tar.gz CLI archives on all platforms; Linux uses the official musl builds."
   }
 }

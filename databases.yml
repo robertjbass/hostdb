@@ -119,7 +119,9 @@ databases:
     note: ''
     defaults:
       '1': '1.5.5'
+      '2': '2.0.0'
     versions:
+      2.0.0: true
       1.5.5: true
       1.4.4: true
       1.4.3: true
