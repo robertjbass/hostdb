@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- DuckDB 2.0.0 GA on Linux x64/arm64, macOS x64/arm64 and Windows x64, using checksum-verified official CLI archives. Linux uses the upstream musl binaries.
+- DuckDB 2.0.0 GA on Linux x64/arm64, macOS x64/arm64 and Windows x64, using checksum-verified official CLI archives. Linux uses the upstream glibc binaries; the musl builds require an external loader absent on stock Ubuntu.
 - The DuckDB major alias `2` resolves to `2.0.0`. The `1` alias remains `1.5.5`, with all existing versions retained.
 
 ### Changed
