@@ -85,7 +85,8 @@ git clone --depth 1 --branch v1.0-0 https://github.com/documentdb/documentdb.git
 test "$(git -C documentdb-source rev-parse HEAD)" = b0cb0dae85e8746f4e0b79c847894179b2f80d64
 export DOCDB_SOURCE="$build/documentdb-source"
 # Adapt the upstream ELF linker spelling and extension suffix to Darwin.
-# The compiler adapter links the same built module, without dropping symbols.
+# Darwin bundles resolve core symbols from PostgreSQL preload order, as in
+# the existing postgresql-documentdb Mac recipe. Native smoke tests verify loading.
 python3 - "$DOCDB_SOURCE" "$(brew --prefix bash)/bin/bash" <<'PY'
 from pathlib import Path
 import sys
@@ -95,6 +96,11 @@ for p in root.rglob('Makefile*'):
         s=p.read_text(); p.write_text(s.replace('.so', '.dylib'))
 for p in root.rglob('*.sh'):
     s=p.read_text(); p.write_text(s.replace('#!/bin/bash', '#!'+sys.argv[2], 1))
+# Match the existing header's PostgreSQL int64 typedef on Darwin.
+p=root/'pg_documentdb/src/commands/commands_common.c'
+s=p.read_text()
+assert s.count('int64_t *shardKeyValue') == 1
+p.write_text(s.replace('int64_t *shardKeyValue', 'int64 *shardKeyValue'))
 p=root/'pg_documentdb_gw/Cargo.toml';p.write_text(p.read_text().replace('version = "0.1.0"','version = "1.0.0"'))
 p=root/'pg_documentdb_gw/Cargo.lock';s=p.read_text()
 import re
@@ -112,7 +118,9 @@ for arg in "$@"; do
     -l:*)
       library=$(find "$DOCDB_SOURCE" -name "${arg#-l:}" -type f | head -1)
       [[ -n "$library" ]] || { echo "Missing built module: $arg" >&2; exit 1; }
-      args+=("$library") ;;
+      # Mach-O bundles cannot link another bundle as a dylib. Core is loaded
+      # first by shared_preload_libraries; resolve its symbols at load time.
+      args+=(-undefined dynamic_lookup) ;;
     *) args+=("$arg") ;;
   esac
 done
