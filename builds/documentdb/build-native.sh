@@ -8,6 +8,12 @@ export CARGO_BUILD_JOBS="$BUILD_JOBS"
 DOCDB_COMMIT=b0cb0dae85e8746f4e0b79c847894179b2f80d64
 PG_VERSION=17.11
 PREFIX=/output/documentdb
+# A multi-platform download reuses the output directory. Never carry libraries
+# from the previous architecture into a fresh build. Explicit local resume is
+# the only mode that retains this intermediate bundle.
+if [[ "${BUILD_FROM:-all}" = all ]]; then
+  rm -rf "$PREFIX"
+fi
 mkdir -p /build "$PREFIX/share/licenses"
 apt-get update -qq
 apt-get install -y -qq --no-install-recommends build-essential ca-certificates curl git \
