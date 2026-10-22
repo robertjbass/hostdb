@@ -101,7 +101,7 @@ jobs:
             ['standalone DocumentDB', resolveVersion('documentdb', '1') === '1.0.0'],
             ['compound version', resolveVersion('postgresql-documentdb', '17') === '17-0.107.0'],
             ['loadDatabasesJson', Object.keys(loadDatabasesJson().databases).length === 23],
-            ['loadReleasesJson', Object.keys(loadReleasesJson().databases).length === 22],
+            ['loadReleasesJson', Object.keys(loadReleasesJson().databases).length === 23],
             ['loadDownloadsJson', typeof loadDownloadsJson() === 'object'],
             ['getReleaseInfo has url', !!getReleaseInfo('postgresql', '18.4.0', 'linux-x64')?.url],
             ['getCliTools mysql', !!getCliTools('mysql', '9.6.0')?.utilities],

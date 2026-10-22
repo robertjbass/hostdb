@@ -220,4 +220,4 @@ The MongoDB wire server is `bin/documentdb_gateway`; `bin/` also includes the
 private PostgreSQL backend and administration tools. `lib/` holds extension
 modules and relocatable dependencies, `share/` holds extension SQL and notices,
 and `.hostdb-metadata.json` records exact component versions and upstream source.
-See `builds/documentdb/README.md` for candidate publication status.
+See `builds/documentdb/README.md` for build and qualification details.

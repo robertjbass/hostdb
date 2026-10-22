@@ -1,6 +1,6 @@
 # DocumentDB 1.0 native bundle
 
-Release candidate. Native x64 and ARM64 qualification passed in [run 39732316353](https://github.com/robertjbass/hostdb/actions/runs/39732316353). No artifacts are published yet.
+Native x64 and ARM64 artifacts are published in [DocumentDB 1.0.0](https://github.com/robertjbass/hostdb/releases/tag/documentdb-1.0.0). The exact archive bytes passed [native qualification](https://github.com/robertjbass/hostdb/actions/runs/39735879439).
 
 Tracker: https://github.com/Layerbase-LLC/layerbase-cloud/issues/3359
 
@@ -30,6 +30,6 @@ SpinDB must isolate the backend behind an owner-only Unix socket and authenticat
 MongoDB clients separately. Preserve upstream's getParameter rejection stub;
 never turn an unsupported command into a fabricated success.
 
-Publication requires approval and final-head native checks on every advertised
-platform. The release workflow publishes only a new tag, refuses replacement,
+Publication requires approval and native checks on every advertised platform.
+The release workflow publishes only a new tag, refuses replacement,
 and prepares the registry snapshot for review through dev. macOS and Windows are not advertised by this recipe.

@@ -116,7 +116,7 @@ databases:
     commercial_use: true
     hosted_service_allowed: true
     protocol: mongodb
-    note: Native standalone bundle; separate from the PostgreSQL-DocumentDB backend used by FerretDB. Initial Linux qualification in progress.
+    note: Native standalone bundle; separate from the PostgreSQL-DocumentDB backend used by FerretDB. Native Linux x64 and ARM64; macOS and Windows unavailable.
     defaults:
       '1': '1.0.0'
     versions:
@@ -142,7 +142,7 @@ databases:
       default_database: test
       default_user: spindb
       query_language: MQL
-    spindb_status: in-progress
+    spindb_status: completed
   duckdb:
     display_name: DuckDB
     description: Fast in-process analytical database with rich SQL support, optimized for OLAP workloads

@@ -1,12 +1,11 @@
 # Changelog
 
-## [0.46.0] - Unreleased
+## [0.46.0] - 2026-10-22
 
 ### Added
 
 - Standalone DocumentDB 1.0.0 native bundle, separate from the FerretDB PostgreSQL-DocumentDB backend. Alias `1` resolves exactly to `1.0.0`.
-- Linux x64 and ARM64 build and qualification workflows, with PostgreSQL 17.11 and the official Rust gateway pinned together. Publication remains gated on native checks and approval.
-
+- Linux x64 and ARM64 build and qualification workflows, with PostgreSQL 17.11 and the official Rust gateway pinned together. Native version, authentication and persisted restart checks passed on both architectures.
 
 All notable changes to this project will be documented in this file.
 
