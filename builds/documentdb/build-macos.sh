@@ -101,6 +101,14 @@ p=root/'pg_documentdb/src/commands/commands_common.c'
 s=p.read_text()
 assert s.count('int64_t *shardKeyValue') == 1
 p.write_text(s.replace('int64_t *shardKeyValue', 'int64 *shardKeyValue'))
+# Keep export validation enabled, adapting GNU nm to Darwin's global,
+# defined-only symbols and its leading C symbol underscore.
+p=root/'pg_documentdb_extended_rum/validate_rum_core_exports.sh'
+s=p.read_text()
+assert s.count('nm -D --defined-only') == 2
+s=s.replace('nm -D --defined-only', 'nm -gU')
+s=s.replace("{print $3}", "{sub(/^_/, \"\", $3); print $3}")
+p.write_text(s)
 p=root/'pg_documentdb_gw/Cargo.toml';p.write_text(p.read_text().replace('version = "0.1.0"','version = "1.0.0"'))
 p=root/'pg_documentdb_gw/Cargo.lock';s=p.read_text()
 import re
