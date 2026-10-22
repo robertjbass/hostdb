@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'builds/documentdb/build-macos.sh'
+      - 'builds/documentdb/smoke-test.ts'
       - '.github/workflows/qualify-documentdb-macos.yml'
 permissions:
   contents: read
