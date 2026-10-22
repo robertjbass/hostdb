@@ -2,6 +2,8 @@
 set -euo pipefail
 prefix="${1:?bundle directory required}"
 # Copy all transitive ELF dependencies except the host's glibc and loader.
+mkdir -p "$prefix/share/licenses"
+cp -a /usr/share/common-licenses "$prefix/share/licenses/"
 previous=-1
 while true; do
   count=$(find "$prefix/lib" -type f | wc -l)
@@ -14,7 +16,19 @@ while true; do
       case "$name" in
         ld-linux*|libc.so*|libm.so*|libdl.so*|libpthread.so*|librt.so*|libresolv.so*|libnss_*) continue ;;
       esac
-      [[ -f "$prefix/lib/$name" ]] || cp -L "$dependency" "$prefix/lib/$name"
+      if [[ ! -f "$prefix/lib/$name" ]]; then
+        cp -L "$dependency" "$prefix/lib/$name"
+        # Retain distribution copyright notices for bundled system libraries.
+        package=$(dpkg-query -S "$dependency" 2>/dev/null | head -1 | sed 's/: \/.*//')
+        package=${package%%:*}
+        if [[ -n "$package" && -f "/usr/share/doc/$package/copyright" ]]; then
+          mkdir -p "$prefix/share/licenses/system/$package"
+          cp "/usr/share/doc/$package/copyright" "$prefix/share/licenses/system/$package/"
+        else
+          echo "Cannot locate copyright notice for $dependency" >&2
+          exit 1
+        fi
+      fi
     done < <(ldd "$artifact" | awk '/=> \// {print $3}')
   done < <(find "$prefix/bin" "$prefix/lib" -type f -print0)
 done

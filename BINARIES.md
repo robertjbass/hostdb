@@ -212,3 +212,12 @@ Every archive includes `.hostdb-metadata.json`:
 | TigerBeetle | No | 1 | Built-in REPL |
 | InfluxDB | Custom (`python/`) | 1 + runtime | HTTP API / SQL |
 | TypeDB | Custom (`server/`, `console/`; 3.12+ adds `admin/`, `loader/`) | 2 + launcher (3.12+: 4 + launcher) | CLI (`typedb_console_bin`) |
+
+## Standalone DocumentDB
+
+`documentdb-1.0.0-{linux-x64,linux-arm64}.tar.gz` extracts to `documentdb/`.
+The MongoDB wire server is `bin/documentdb_gateway`; `bin/` also includes the
+private PostgreSQL backend and administration tools. `lib/` holds extension
+modules and relocatable dependencies, `share/` holds extension SQL and notices,
+and `.hostdb-metadata.json` records exact component versions and upstream source.
+See `builds/documentdb/README.md` for candidate publication status.

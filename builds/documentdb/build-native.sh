@@ -94,6 +94,15 @@ cd pg_documentdb_gw
 sed -i '/name = "documentdb_.*"/{n;s/version = "0.1.0"/version = "1.0.0"/;}' Cargo.lock
 cargo build --locked --release -p documentdb_gateway
 cp target/release/documentdb_gateway "$PREFIX/bin/"
+# Preserve notices from each additional source component, including static code.
+for component in intelmath mongo-c-driver-1.28.0 pg_cron pgvector postgis-3.6.0; do
+  mkdir -p "$PREFIX/share/licenses/$component"
+  while IFS= read -r -d '' notice; do
+    relative=${notice#"/build/$component/"}
+    mkdir -p "$PREFIX/share/licenses/$component/$(dirname "$relative")"
+    cp "$notice" "$PREFIX/share/licenses/$component/$relative"
+  done < <(find "/build/$component" -maxdepth 3 -type f \( -iname 'license*' -o -iname 'copying*' -o -iname 'copyright*' -o -iname 'notice*' \) -print0)
+done
 /bin/bash /input/bundle-libraries.sh "$PREFIX"
 cat > "$PREFIX/.hostdb-metadata.json" <<META
 {"name":"documentdb","version":"1.0.0","platform":"${TARGET_PLATFORM}","source":"source-build","sourceCommit":"${DOCDB_COMMIT}","components":{"postgresql":"${PG_VERSION}","documentdb":"1.0.0","gateway":"1.0.0","pg_cron":"1.6.7","pgvector":"0.8.1","postgis":"3.6.0"}}

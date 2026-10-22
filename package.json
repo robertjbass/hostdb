@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.45.0",
+  "version": "0.46.0",
   "description": "Pre-built database binaries for multiple platforms, plus a typed registry library for resolving versions and download URLs offline.",
   "private": false,
   "type": "module",
@@ -78,7 +78,8 @@
     "start": "tsx cli/bin.ts",
     "sync:versions": "tsx scripts/sync-versions.ts",
     "upload:r2": "tsx scripts/upload-to-r2.ts",
-    "audit:r2-orphans": "tsx scripts/audit-r2-orphans.ts"
+    "audit:r2-orphans": "tsx scripts/audit-r2-orphans.ts",
+    "download:documentdb": "tsx builds/documentdb/download.ts"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.990.0",
