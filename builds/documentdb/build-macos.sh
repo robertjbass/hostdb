@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# Native ARM64 qualification recipe. Never publishes or replaces release assets.
+# Native macOS qualification recipe. Never publishes or replaces release assets.
 set -euo pipefail
-[[ $(uname -s) = Darwin && $(uname -m) = arm64 ]] || { echo 'Requires native macOS ARM64' >&2; exit 1; }
+[[ $(uname -s) = Darwin ]] || { echo 'Requires native macOS' >&2; exit 1; }
+case $(uname -m) in
+  arm64) architecture=arm64 ;;
+  x86_64) architecture=x64 ;;
+  *) echo 'Unsupported Mac architecture' >&2; exit 1 ;;
+esac
 output=${1:?output directory required}
 mkdir -p "$output"
 output=$(cd "$output" && pwd)
@@ -38,7 +43,19 @@ cp COPYRIGHT "$prefix/share/licenses/PostgreSQL"
 export PG_CONFIG="$prefix/bin/pg_config"
 export PATH="$prefix/bin:$PATH"
 cd "$build"
-git clone --depth 1 --branch applied/2.0u3-1 https://git.launchpad.net/ubuntu/+source/intelrdfpmath intelmath
+# Same Debian-patched 2.0u3-1 source as Launchpad's applied branch, without
+# the Git endpoint's hour-long 504 stalls. SHA-256 pins come from its .dsc.
+intel_source=https://archive.ubuntu.com/ubuntu/pool/universe/i/intelrdfpmath
+curl --fail --location --retry 3 --connect-timeout 20 --max-time 180 "$intel_source/intelrdfpmath_2.0u3.orig.tar.gz" -o intelmath.tar.gz
+curl --fail --location --retry 3 --connect-timeout 20 --max-time 180 "$intel_source/intelrdfpmath_2.0u3-1.debian.tar.xz" -o intelmath-debian.tar.xz
+printf '%s\n' '13f6924b2ed71df9b137a7df98706a0dcc3b43c283a0e32f8b6eadca4305136a  intelmath.tar.gz' '289a777dd489ffd933a813c1053677f06ffeea2418d862c11e20b638e07ae9c3  intelmath-debian.tar.xz' | shasum -a 256 -c -
+mkdir intelmath
+tar -xzf intelmath.tar.gz -C intelmath
+tar -xJf intelmath-debian.tar.xz -C intelmath
+while IFS= read -r source_patch; do
+  [[ -z "$source_patch" || "$source_patch" = \#* ]] && continue
+  patch -d intelmath -p1 < "intelmath/debian/patches/$source_patch"
+done < intelmath/debian/patches/series
 make -C intelmath/LIBRARY CC=cc _CFLAGS_OPT='-fPIC -Wno-error=implicit-function-declaration' CALL_BY_REF=0 GLOBAL_RND=0 GLOBAL_FLAGS=0 UNCHANGED_BINARY_FLAGS=0
 mkdir pkgconfig
 cat > pkgconfig/intelmathlib.pc <<PC
@@ -134,10 +151,19 @@ for component in intelmath mongo-c-driver-1.28.0 pg_cron pgvector postgis-3.6.0;
   mkdir -p "$prefix/share/licenses/$component"
   find "$build/$component" -maxdepth 2 -type f \( -iname 'license*' -o -iname 'copying*' -o -iname 'copyright*' -o -iname 'notice*' \) -exec cp {} "$prefix/share/licenses/$component/" \;
 done
+# Preserve dependency license notices and exact installed formula provenance.
+# Include transitive Homebrew packages, since the dylib bundler follows them.
+brew info --json=v2 --installed > "$prefix/share/licenses/homebrew-formulae.json"
+while IFS= read -r formula; do
+  formula_prefix=$(brew --prefix "$formula")
+  destination="$prefix/share/licenses/homebrew/$formula"
+  mkdir -p "$destination"
+  find "$formula_prefix/" -maxdepth 4 -type f \( -iname 'license*' -o -iname 'copying*' -o -iname 'copyright*' -o -iname 'notice*' \) -exec cp {} "$destination/" \;
+done < <(brew list --formula)
 bash "$script_dir/../common/fix-macos-dylibs.sh" "$prefix"
 cat > "$prefix/.hostdb-metadata.json" <<META
-{"name":"documentdb","version":"1.0.0","platform":"darwin-arm64","source":"source-build","sourceCommit":"b0cb0dae85e8746f4e0b79c847894179b2f80d64","components":{"postgresql":"17.11","documentdb":"1.0.0","gateway":"1.0.0","pg_cron":"1.6.7","pgvector":"0.8.1","postgis":"3.6.0"}}
+{"name":"documentdb","version":"1.0.0","platform":"darwin-$architecture","source":"source-build","sourceCommit":"b0cb0dae85e8746f4e0b79c847894179b2f80d64","components":{"postgresql":"17.11","documentdb":"1.0.0","gateway":"1.0.0","pg_cron":"1.6.7","pgvector":"0.8.1","postgis":"3.6.0"}}
 META
-archive=documentdb-1.0.0-darwin-arm64.tar.gz
+archive=documentdb-1.0.0-darwin-$architecture.tar.gz
 tar -C "$build" -czf "$output/$archive" documentdb
 (cd "$output" && shasum -a 256 "$archive" > "$archive.sha256")
