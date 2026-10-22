@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict'
 import { spawn, execFileSync, type ChildProcess } from 'node:child_process'
 import type { MongoClient as MongoClientType } from 'mongodb'
+import type * as MongoModule from 'mongodb'
 import { randomBytes } from 'node:crypto'
 import {
   mkdtempSync,
@@ -31,7 +32,7 @@ assert.ok(
 )
 const { MongoClient } = createRequire(import.meta.url)(
   process.env.MONGODB_MODULE_PATH,
-) as typeof import('mongodb')
+) as typeof MongoModule
 const metadata = JSON.parse(
   readFileSync(join(bundle, '.hostdb-metadata.json'), 'utf8'),
 )
