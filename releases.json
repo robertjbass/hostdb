@@ -131,6 +131,25 @@
         }
       }
     },
+    "documentdb": {
+      "1.0.0": {
+        "version": "1.0.0",
+        "releaseTag": "documentdb-1.0.0",
+        "releasedAt": "2026-10-22T06:58:11Z",
+        "platforms": {
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/documentdb-1.0.0/documentdb-1.0.0-linux-arm64.tar.gz",
+            "sha256": "57101726fd11cc5283fc37353aeda6733f9aab397f646a719d4bcefe34313548",
+            "size": 54226298
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/documentdb-1.0.0/documentdb-1.0.0-linux-x64.tar.gz",
+            "sha256": "7367fa447246be38fc61ae16d69bca40b10b79e8142a584225df50e50c240417",
+            "size": 55067200
+          }
+        }
+      }
+    },
     "duckdb": {
       "2.0.0": {
         "version": "2.0.0",

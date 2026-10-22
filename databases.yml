@@ -107,6 +107,42 @@ databases:
       default_user: admin
       query_language: HTTP
     spindb_status: completed
+  documentdb:
+    display_name: DocumentDB
+    description: Standalone open-source MongoDB-compatible database with the official DocumentDB gateway and PostgreSQL storage
+    type: Document
+    source_repo: https://github.com/documentdb/documentdb
+    license: MIT AND PostgreSQL AND GPL-2.0-or-later
+    commercial_use: true
+    hosted_service_allowed: true
+    protocol: mongodb
+    note: Native standalone bundle; separate from the PostgreSQL-DocumentDB backend used by FerretDB. Native Linux x64 and ARM64; macOS and Windows unavailable.
+    defaults:
+      '1': '1.0.0'
+    versions:
+      1.0.0: true
+    platforms:
+      - linux-x64
+      - linux-arm64
+    cli_tools:
+      server: documentdb_gateway
+      client: psql
+      utilities:
+        - postgres
+        - pg_ctl
+        - initdb
+        - pg_dump
+        - pg_restore
+      enhanced: []
+      note: Bundled psql is for internal administration; MongoDB clients use the gateway.
+    connection:
+      runtime: server
+      default_port: 27017
+      scheme: mongodb
+      default_database: test
+      default_user: spindb
+      query_language: MQL
+    spindb_status: completed
   duckdb:
     display_name: DuckDB
     description: Fast in-process analytical database with rich SQL support, optimized for OLAP workloads

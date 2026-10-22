@@ -52,9 +52,9 @@ describe('compareVersions', () => {
 // ─── listEngines ─────────────────────────────────────────────────────────────
 
 describe('listEngines', () => {
-  test('returns 22 engines after the May 2026 wave', () => {
+  test('returns 23 engines including standalone DocumentDB', () => {
     const engines = listEngines()
-    assert.equal(engines.length, 22)
+    assert.equal(engines.length, 23)
     assert.ok(engines.includes('postgresql'))
     assert.ok(engines.includes('mongodb'))
     assert.ok(engines.includes('postgresql-documentdb'))
@@ -377,4 +377,17 @@ test('retired pg_cron revisions stay resolvable for existing installs but are ne
     assert.equal(isVersionDeprecated('postgresql', version), true)
     assert.ok(!listVersions('postgresql').includes(version))
   }
+})
+
+describe('standalone DocumentDB catalog', () => {
+  test('resolves only the advertised stable line without changing FerretDB backend versions', () => {
+    assert.equal(resolveVersion('documentdb', '1'), '1.0.0')
+    assert.equal(resolveVersion('documentdb', '1.0.0'), '1.0.0')
+    assert.equal(resolveVersion('documentdb', '2'), null)
+    assert.equal(resolveVersion('postgresql-documentdb', '17'), '17-0.107.0')
+    assert.deepEqual(getAvailablePlatforms('documentdb', '1.0.0').sort(), [
+      'linux-arm64',
+      'linux-x64',
+    ])
+  })
 })

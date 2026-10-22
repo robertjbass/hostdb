@@ -1,0 +1,97 @@
+name: Release DocumentDB
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: DocumentDB version
+        type: choice
+        required: true
+        default: 1.0.0
+        options: [1.0.0]
+      platforms:
+        description: Publish the complete qualified Linux platform set
+        type: choice
+        required: true
+        default: all
+        options: [all]
+permissions:
+  contents: read
+concurrency:
+  group: release-documentdb-${{ inputs.version }}
+  cancel-in-progress: false
+jobs:
+  qualify:
+    uses: ./.github/workflows/qualify-documentdb.yml
+  release:
+    needs: qualify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: documentdb-1.0.0-linux-*
+          merge-multiple: true
+          path: release-assets
+      - name: Validate complete artifacts and checksums
+        run: |
+          set -euo pipefail
+          cat release-assets/*.sha256 > release-assets/checksums.txt
+          (cd release-assets && sha256sum -c checksums.txt)
+          bash builds/common/validate-binaries.sh documentdb release-assets
+          bash builds/common/check-glibc-floor.sh documentdb release-assets
+          bash builds/common/check-platform-coverage.sh documentdb 1.0.0 all release-assets
+      - name: Publish new immutable artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Never replace already published artifacts, even if a rerun qualifies.
+          if gh api "repos/$GITHUB_REPOSITORY/releases/tags/documentdb-1.0.0" > /tmp/existing-release.json 2> /tmp/release-lookup-error; then
+            echo 'DocumentDB 1.0.0 already exists; refusing to overwrite it.' >&2
+            exit 1
+          elif ! grep -q 'HTTP 404' /tmp/release-lookup-error; then
+            cat /tmp/release-lookup-error >&2
+            exit 1
+          fi
+          cat > /tmp/documentdb-notes.md <<'NOTES'
+          DocumentDB 1.0.0 native Linux x64 and ARM64 bundles.
+
+          Includes the official Rust MongoDB wire gateway, PostgreSQL 17.11,
+          and matching DocumentDB extensions. Native authentication, persisted
+          restart, relocation, dependency completeness, and glibc 2.35 checked.
+          Separate from the existing FerretDB PostgreSQL-DocumentDB backend.
+          NOTES
+          bash builds/common/publish-release.sh --tag documentdb-1.0.0 --title 'DocumentDB 1.0.0' --notes-file /tmp/documentdb-notes.md --assets-dir release-assets
+  registry:
+    needs: release
+    runs-on: ubuntu-latest
+    concurrency:
+      group: hostdb-releases-manifest
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Mirror qualified artifacts and prepare registry snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: |
+          pnpm tsx scripts/upload-to-r2.ts --tag documentdb-1.0.0
+          pnpm build:releases
+      - uses: actions/upload-artifact@v4
+        with:
+          name: documentdb-registry-snapshot
+          path: releases.json
+          if-no-files-found: error
+      - name: Record remaining registry review
+        run: echo 'Commit the generated releases.json through feature -> dev -> main before npm publication. This workflow does not push production branches.' >> "$GITHUB_STEP_SUMMARY"
