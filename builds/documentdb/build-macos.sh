@@ -117,7 +117,7 @@ for arg in "$@"; do
   esac
 done
 # Linux can resolve ICU through postgres; Darwin modules must link it explicitly.
-if [[ " $* " = *" -dynamiclib "* ]]; then
+if [[ " $* " = *" -dynamiclib "* || " $* " = *" -bundle "* ]]; then
   read -r -a icu_libs <<< "$(pkg-config --libs icu-uc icu-i18n)"
   args+=("${icu_libs[@]}")
 fi
