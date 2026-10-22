@@ -93,7 +93,12 @@ import sys
 root=Path(sys.argv[1])
 for p in root.rglob('Makefile*'):
     if p.is_file():
-        s=p.read_text(); p.write_text(s.replace('.so', '.dylib'))
+        s=p.read_text()
+        # Apple's cpp uses traditional preprocessing, leaving macro token-paste
+        # markers in generated SQL. Use Clang's normal C preprocessor instead;
+        # do not strip ## globally because DocumentDB defines valid ## operators.
+        s=s.replace('cpp -undef', '/usr/bin/clang -E -x c -undef')
+        p.write_text(s.replace('.so', '.dylib'))
 for p in root.rglob('*.sh'):
     s=p.read_text(); p.write_text(s.replace('#!/bin/bash', '#!'+sys.argv[2], 1))
 # Match the existing header's PostgreSQL int64 typedef on Darwin.
