@@ -128,6 +128,9 @@ done
 if [[ " $* " = *" -dynamiclib "* || " $* " = *" -bundle "* ]]; then
   read -r -a icu_libs <<< "$(pkg-config --libs icu-uc icu-i18n)"
   args+=("${icu_libs[@]}")
+  # RUM's split bundles also reference symbols supplied by the parent/core
+  # at load time (ELF shared objects permit these references by default).
+  args+=(-undefined dynamic_lookup)
 fi
 exec /usr/bin/clang "${args[@]}"
 ADAPTER
