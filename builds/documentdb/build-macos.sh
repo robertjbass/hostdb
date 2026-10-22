@@ -53,6 +53,14 @@ Libs: -L\${libdir} -lbid
 PC
 export PKG_CONFIG_PATH="$build/pkgconfig:$build/bson/lib/pkgconfig:$PKG_CONFIG_PATH"
 fetch_tar https://github.com/mongodb/mongo-c-driver/releases/download/1.28.0/mongo-c-driver-1.28.0.tar.gz
+# CMake 4 removed CMP0042 OLD; use modern install-name behavior for libbson.
+python3 - <<'PATCH'
+from pathlib import Path
+p = Path('mongo-c-driver-1.28.0/src/libbson/CMakeLists.txt')
+s = p.read_text()
+assert 'SET CMP0042 OLD' in s
+p.write_text(s.replace('SET CMP0042 OLD', 'SET CMP0042 NEW'))
+PATCH
 cmake -S mongo-c-driver-1.28.0 -B bson-build -DCMAKE_INSTALL_PREFIX="$build/bson" -DCMAKE_BUILD_TYPE=Release -DENABLE_MONGOC=OFF -DENABLE_STATIC=ON -DENABLE_TESTS=OFF -DENABLE_EXAMPLES=OFF
 cmake --build bson-build --parallel "$BUILD_JOBS"
 cmake --install bson-build
