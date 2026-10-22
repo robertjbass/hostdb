@@ -1,0 +1,54 @@
+name: Qualify DocumentDB native bundles
+on:
+  pull_request:
+    paths:
+      - 'builds/documentdb/**'
+      - '.github/workflows/qualify-documentdb.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: documentdb-qualification-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native:
+    name: Native ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x64
+            runner: ubuntu-22.04
+          - platform: linux-arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build exact native bundle
+        env:
+          BUILD_JOBS: '2'
+          BUILD_MEMORY: 5g
+        run: bash builds/documentdb/build-local.sh --version 1.0.0 --platform '${{ matrix.platform }}' --output "$RUNNER_TEMP/documentdb-build"
+      - name: Verify complete artifact
+        run: |
+          bash builds/common/validate-binaries.sh documentdb "$RUNNER_TEMP/documentdb-build"
+          bash builds/common/check-platform-coverage.sh documentdb 1.0.0 '${{ matrix.platform }}' "$RUNNER_TEMP/documentdb-build"
+      - name: Install pinned official MongoDB test client
+        run: npm install --prefix "$RUNNER_TEMP/documentdb-driver" --ignore-scripts --no-audit --no-fund mongodb@7.7.0
+      - name: Relocate and qualify native runtime
+        run: |
+          mkdir -p "$RUNNER_TEMP/relocated bundle"
+          tar -xzf "$RUNNER_TEMP/documentdb-build/documentdb-1.0.0-${{ matrix.platform }}.tar.gz" -C "$RUNNER_TEMP/relocated bundle"
+          MONGODB_MODULE_PATH="$RUNNER_TEMP/documentdb-driver/node_modules/mongodb" node builds/documentdb/smoke-test.mjs "$RUNNER_TEMP/relocated bundle/documentdb"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: documentdb-1.0.0-${{ matrix.platform }}
+          path: |
+            ${{ runner.temp }}/documentdb-build/documentdb-1.0.0-*.tar.gz
+            ${{ runner.temp }}/documentdb-build/documentdb-1.0.0-*.sha256
+          if-no-files-found: error
+          retention-days: 14

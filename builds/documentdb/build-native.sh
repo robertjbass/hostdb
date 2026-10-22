@@ -17,6 +17,7 @@ apt-get install -y -qq --no-install-recommends build-essential ca-certificates c
 cd /build
 fetch_tar() { curl --fail --location --retry 3 "$1" | tar xz; }
 clone_tag() { git clone --depth 1 --branch "$2" "$1" "$3"; }
+if [[ "${BUILD_FROM:-all}" = all ]]; then
 fetch_tar "https://ftp.postgresql.org/pub/source/v${PG_VERSION}/postgresql-${PG_VERSION}.tar.gz"
 cd "postgresql-${PG_VERSION}"
 ./configure --prefix=/usr/local/pgsql --with-openssl --with-libxml --with-icu --with-lz4 --with-zstd
@@ -61,11 +62,21 @@ make -C pg_cron PG_CONFIG="$PG_CONFIG" install
 clone_tag https://github.com/pgvector/pgvector.git v0.8.1 pgvector
 make -C pgvector PG_CONFIG="$PG_CONFIG" OPTFLAGS=
 make -C pgvector PG_CONFIG="$PG_CONFIG" install
+else
+  [[ "${BUILD_FROM}" = postgis ]] || { echo 'Invalid BUILD_FROM' >&2; exit 1; }
+  test -f "$PREFIX/share/extension/documentdb.control"
+  export PG_CONFIG="$PREFIX/bin/pg_config"
+  export PATH="$PREFIX/bin:$PATH"
+  clone_tag https://github.com/documentdb/documentdb.git v1.0-0 documentdb-source
+  test "$(git -C documentdb-source rev-parse HEAD)" = "$DOCDB_COMMIT"
+fi
 fetch_tar https://download.osgeo.org/postgis/source/postgis-3.6.0.tar.gz
 cd postgis-3.6.0
 ./configure --with-pgconfig="$PG_CONFIG" --without-raster --without-topology
-make
-make install
+# PostGIS recursively generates shared upgrade SQL from multiple make targets.
+# A parallel top-level make races on topology.sql.tmp even without topology.
+make -j1
+make -j1 install
 cd /build/documentdb-source
 mkdir -p "$PREFIX/share/licenses/documentdb"
 cp -a LICENSE NOTICE licenses "$PREFIX/share/licenses/documentdb/"

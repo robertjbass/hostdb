@@ -23,8 +23,8 @@ mkdir -p "$output"
 output=$(cd "$output" && pwd)
 docker run --rm --platform "$docker_platform" --cpus "${BUILD_JOBS:-2}" \
   --memory "${BUILD_MEMORY:-3g}" --memory-swap "${BUILD_MEMORY:-3g}" \
-  -e BUILD_JOBS="${BUILD_JOBS:-2}" -e TARGET_PLATFORM="$platform" \
-  -v "$script_dir:/input:ro" -v "$output:/output" ubuntu:22.04 \
+  -e BUILD_JOBS="${BUILD_JOBS:-2}" -e TARGET_PLATFORM="$platform" -e BUILD_FROM="${BUILD_FROM:-all}" \
+  -v "$script_dir:/input:ro" -v "$output:/output" -v "$output/.build-cache:/build" ubuntu:22.04 \
   /bin/bash /input/build-native.sh
 archive="documentdb-${version}-${platform}.tar.gz"
 tar -C "$output" -czf "$output/$archive" documentdb
