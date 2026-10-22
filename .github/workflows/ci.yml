@@ -95,11 +95,12 @@ jobs:
           } from 'hostdb'
 
           const checks = [
-            ['engine count', listEngines().length === 22],
+            ['engine count', listEngines().length === 23],
             ['resolve postgres 18', resolveVersion('postgresql', '18') === '18.6.0'],
             ['resolve mongodb LTS', resolveVersion('mongodb', '8') === '8.0.28'],
+            ['standalone DocumentDB', resolveVersion('documentdb', '1') === '1.0.0'],
             ['compound version', resolveVersion('postgresql-documentdb', '17') === '17-0.107.0'],
-            ['loadDatabasesJson', Object.keys(loadDatabasesJson().databases).length === 22],
+            ['loadDatabasesJson', Object.keys(loadDatabasesJson().databases).length === 23],
             ['loadReleasesJson', Object.keys(loadReleasesJson().databases).length === 22],
             ['loadDownloadsJson', typeof loadDownloadsJson() === 'object'],
             ['getReleaseInfo has url', !!getReleaseInfo('postgresql', '18.4.0', 'linux-x64')?.url],

@@ -19,7 +19,14 @@ while true; do
       if [[ ! -f "$prefix/lib/$name" ]]; then
         cp -L "$dependency" "$prefix/lib/$name"
         # Retain distribution copyright notices for bundled system libraries.
-        package=$(dpkg-query -S "$dependency" 2>/dev/null | head -1 | sed 's/: \/.*//')
+        package=''
+        canonical=$(readlink -f "$dependency")
+        # Ubuntu's merged /usr layout and SONAME symlinks can differ from dpkg's
+        # recorded path. Check both spellings and the resolved file.
+        for candidate in "$dependency" "$canonical" "${canonical#/usr}" "/usr${dependency}"; do
+          package=$(dpkg-query -S "$candidate" 2>/dev/null | sed -n '1s/: \/.*//p' || true)
+          [[ -z "$package" ]] || break
+        done
         package=${package%%:*}
         if [[ -n "$package" && -f "/usr/share/doc/$package/copyright" ]]; then
           mkdir -p "$prefix/share/licenses/system/$package"
