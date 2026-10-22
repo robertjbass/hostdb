@@ -182,6 +182,7 @@ Auto-generated manifest updated after each GitHub Release. Structure:
 | TypeDB | Graph | In Progress | 3.8.0 | Official binaries (Cloudsmith) |
 | FerretDB | Document | Completed | 2.7.0 | MongoDB alternative (PostgreSQL+DocumentDB backend) |
 | FerretDB (v1) | Document | In Progress | 1.24.2 | MongoDB alternative (plain PostgreSQL backend) |
+| DocumentDB | Document | Completed | 1.0.0 | Official native gateway and private backend, Linux x64/ARM64 |
 | PostgreSQL+DocumentDB | Document | Completed | 17-0.107.0 | PostgreSQL with DocumentDB extension for FerretDB |
 
 See `pnpm dbs` for the full list.
