@@ -43,7 +43,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/relocated bundle"
           tar -xzf "$RUNNER_TEMP/documentdb-build/documentdb-1.0.0-${{ matrix.platform }}.tar.gz" -C "$RUNNER_TEMP/relocated bundle"
-          MONGODB_MODULE_PATH="$RUNNER_TEMP/documentdb-driver/node_modules/mongodb" node builds/documentdb/smoke-test.mjs "$RUNNER_TEMP/relocated bundle/documentdb"
+          MONGODB_MODULE_PATH="$RUNNER_TEMP/documentdb-driver/node_modules/mongodb" node builds/documentdb/smoke-test.ts "$RUNNER_TEMP/relocated bundle/documentdb"
       - uses: actions/upload-artifact@v4
         with:
           name: documentdb-1.0.0-${{ matrix.platform }}

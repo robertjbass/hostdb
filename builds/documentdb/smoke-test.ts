@@ -2,7 +2,8 @@
 // Native qualification only. MONGODB_MODULE_PATH points to the official driver
 // installed by the caller. No services, data, or credentials outside mkdtemp.
 import assert from 'node:assert/strict'
-import { spawn, execFileSync } from 'node:child_process'
+import { spawn, execFileSync, type ChildProcess } from 'node:child_process'
+import type { MongoClient as MongoClientType } from 'mongodb'
 import { randomBytes } from 'node:crypto'
 import {
   mkdtempSync,
@@ -30,7 +31,7 @@ assert.ok(
 )
 const { MongoClient } = createRequire(import.meta.url)(
   process.env.MONGODB_MODULE_PATH,
-)
+) as typeof import('mongodb')
 const metadata = JSON.parse(
   readFileSync(join(bundle, '.hostdb-metadata.json'), 'utf8'),
 )
@@ -53,7 +54,7 @@ Object.assign(env, {
   PGUSER: 'postgres',
   DOCUMENTDB_TLS_STATE_DIR: join(root, 'tls'),
 })
-function run(tool, args, input) {
+function run(tool: string, args: string[], input?: string) {
   return execFileSync(join(bundle, 'bin', tool), args, {
     env,
     input,
@@ -62,24 +63,26 @@ function run(tool, args, input) {
     timeout: 120000,
   })
 }
-function sql(input) {
+function sql(input: string) {
   return run(
     'psql',
     ['-X', '-tA', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1'],
     input,
   ).trim()
 }
-let gateway
+let gateway: ChildProcess | undefined
 let postgresStarted = false
-let client
+let client: MongoClientType | undefined
 const log = openSync(join(root, 'gateway.log'), 'a', 0o600)
 const server = net.createServer()
-await new Promise((resolve, reject) => {
+await new Promise<void>((resolve, reject) => {
   server.once('error', reject)
   server.listen(0, '127.0.0.1', resolve)
 })
-const port = server.address().port
-await new Promise((resolve) => server.close(resolve))
+const address = server.address()
+assert.ok(address && typeof address !== 'string')
+const port = address.port
+await new Promise((resolve) => server.close(() => resolve(undefined)))
 const password = randomBytes(24).toString('hex')
 const mongoUser = 'qualification'
 function uri(pwd = password) {
@@ -91,7 +94,7 @@ async function startGateway() {
     ['run', '--config', configFile],
     { env, stdio: ['ignore', log, log] },
   )
-  let spawnFailure
+  let spawnFailure: Error | undefined
   gateway.on('error', (error) => {
     spawnFailure = error
   })
@@ -103,15 +106,16 @@ async function startGateway() {
       'Gateway exited before authentication succeeded',
     )
     client = new MongoClient(uri(), {
+      timeoutMS: 10000,
       serverSelectionTimeoutMS: 500,
       connectTimeoutMS: 500,
     })
     try {
       await client.connect()
-      await client.db('admin').command({ ping: 1 })
+      await client!.db('admin').command({ ping: 1 })
       return
     } catch {
-      await client.close()
+      await client!.close()
     }
     await delay(500)
   }
@@ -121,7 +125,7 @@ async function startGateway() {
 }
 async function stopGateway() {
   if (!gateway || gateway.exitCode !== null) return
-  const exited = new Promise((resolve) => gateway.once('exit', resolve))
+  const exited = new Promise((resolve) => gateway!.once('exit', resolve))
   gateway.kill('SIGTERM')
   await Promise.race([exited, delay(10000)])
   if (gateway.exitCode === null && gateway.signalCode === null) {
@@ -147,7 +151,8 @@ try {
       'port = 5432',
       `unix_socket_directories = '${socket}'`,
       'unix_socket_permissions = 0700',
-      "shared_preload_libraries = 'pg_cron,pg_documentdb_core,pg_documentdb'",
+      `documentdb.localhost_connection_string = 'host=${socket}'`,
+      "shared_preload_libraries = 'pg_cron,pg_documentdb_core,pg_documentdb,pg_documentdb_extended_rum'",
       "cron.database_name = 'postgres'",
       'cron.launch_active_jobs = off',
       "log_statement = 'none'",
@@ -164,6 +169,7 @@ try {
     [
       'postgres',
       'spindb_gateway',
+      'documentdb_bg_worker_role',
       '+documentdb_admin_role',
       '+documentdb_readwrite_role',
       '+documentdb_readonly_role',
@@ -248,20 +254,31 @@ try {
     serverSelectionTimeoutMS: 2000,
   })
   try {
-    await assert.rejects(() => wrong.connect(), /auth|credential|password/i)
+    await assert.rejects(
+      () => wrong.connect(),
+      (error: unknown) =>
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 18,
+    )
   } finally {
     await wrong.close()
   }
-  await client
+  await client!
     .db('proof')
-    .collection('rows')
+    .collection<{ _id: string; value: number }>('rows')
     .insertOne({ _id: 'persisted', value: 42 })
   assert.equal(
-    (await client.db('proof').collection('rows').findOne({ _id: 'persisted' }))
-      .value,
+    (
+      await client!
+        .db('proof')
+        .collection<{ _id: string; value: number }>('rows')
+        .findOne({ _id: 'persisted' })
+    )?.value,
     42,
   )
-  await client.close()
+  await client!.close()
   await stopGateway()
   run('pg_ctl', ['stop', '-D', data, '-m', 'fast', '-w', '-t', '30'])
   postgresStarted = false
@@ -278,8 +295,12 @@ try {
   postgresStarted = true
   await startGateway()
   assert.equal(
-    (await client.db('proof').collection('rows').findOne({ _id: 'persisted' }))
-      .value,
+    (
+      await client!
+        .db('proof')
+        .collection<{ _id: string; value: number }>('rows')
+        .findOne({ _id: 'persisted' })
+    )?.value,
     42,
   )
   console.log(
@@ -294,7 +315,7 @@ try {
 } catch (error) {
   // Never print command input, URIs, or generated credential-bearing SQL.
   console.error(
-    `Native qualification failed (${error.code || error.name}). Local diagnostic directory: ${root}`,
+    `Native qualification failed (${error instanceof Error ? error.name : 'unknown error'}). Local diagnostic directory: ${root}`,
   )
   process.exitCode = 1
 } finally {

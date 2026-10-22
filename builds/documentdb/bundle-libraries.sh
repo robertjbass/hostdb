@@ -22,6 +22,10 @@ while IFS= read -r -d '' artifact; do
   file "$artifact" | grep -q ELF || continue
   relative=$(realpath --relative-to="$(dirname "$artifact")" "$prefix/lib")
   patchelf --set-rpath "\$ORIGIN:\$ORIGIN/$relative" "$artifact"
+done < <(find "$prefix/bin" "$prefix/lib" -type f -print0)
+# Validate only after every transitive dependency has its final RPATH.
+while IFS= read -r -d '' artifact; do
+  file "$artifact" | grep -q ELF || continue
   if ldd "$artifact" | grep -q 'not found'; then
     echo "Unresolved dependency in $artifact" >&2
     exit 1

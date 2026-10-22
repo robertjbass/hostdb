@@ -89,8 +89,10 @@ curl --fail --location --retry 3 https://sh.rustup.rs -o /build/rustup.sh
 bash /build/rustup.sh -y --profile minimal --default-toolchain 1.95
 export PATH="/root/.cargo/bin:$PATH"
 cd pg_documentdb_gw
-# Version injection changes local workspace records in Cargo.lock only.
-cargo build --release -p documentdb_gateway
+# Update only the local workspace package versions, preserving every locked
+# third-party dependency from the stable source release.
+sed -i '/name = "documentdb_.*"/{n;s/version = "0.1.0"/version = "1.0.0"/;}' Cargo.lock
+cargo build --locked --release -p documentdb_gateway
 cp target/release/documentdb_gateway "$PREFIX/bin/"
 /bin/bash /input/bundle-libraries.sh "$PREFIX"
 cat > "$PREFIX/.hostdb-metadata.json" <<META
