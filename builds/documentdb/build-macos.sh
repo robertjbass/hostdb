@@ -85,8 +85,8 @@ git clone --depth 1 --branch v1.0-0 https://github.com/documentdb/documentdb.git
 test "$(git -C documentdb-source rev-parse HEAD)" = b0cb0dae85e8746f4e0b79c847894179b2f80d64
 export DOCDB_SOURCE="$build/documentdb-source"
 # Adapt the upstream ELF linker spelling and extension suffix to Darwin.
-# Darwin bundles resolve core symbols from PostgreSQL preload order, as in
-# the existing postgresql-documentdb Mac recipe. Native smoke tests verify loading.
+# Build linkable Darwin dylibs so the split RUM dependencies remain explicit.
+# PostgreSQL symbols still resolve from the loading server process.
 python3 - "$DOCDB_SOURCE" "$(brew --prefix bash)/bin/bash" <<'PY'
 from pathlib import Path
 import sys
@@ -118,17 +118,21 @@ cat > "$build/clang-adapter" <<'ADAPTER'
 #!/usr/bin/env bash
 set -euo pipefail
 args=()
+skip_bundle_loader=false
 for arg in "$@"; do
+  if $skip_bundle_loader; then skip_bundle_loader=false; continue; fi
   case "$arg" in
+    -bundle) args+=(-dynamiclib) ;;
+    -bundle_loader) skip_bundle_loader=true ;;
     -Wl,-rpath=*) args+=("-Wl,-rpath,${arg#-Wl,-rpath=}") ;;
     -fexcess-precision=*) ;;
     -Werror) args+=(-Wno-error) ;;
     -l:*)
       library=$(find "$DOCDB_SOURCE" -name "${arg#-l:}" -type f | head -1)
       [[ -n "$library" ]] || { echo "Missing built module: $arg" >&2; exit 1; }
-      # Mach-O bundles cannot link another bundle as a dylib. Core is loaded
-      # first by shared_preload_libraries; resolve its symbols at load time.
-      args+=(-undefined dynamic_lookup) ;;
+      # Keep the dependency in Mach-O load commands. The shared relocation
+      # pass rewrites it to the retained sibling in the bundle's lib directory.
+      args+=("$library") ;;
     *) args+=("$arg") ;;
   esac
 done
