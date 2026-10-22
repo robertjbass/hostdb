@@ -159,7 +159,7 @@ make -C pgvector PG_CONFIG="$PG_CONFIG" OPTFLAGS=
 make -C pgvector PG_CONFIG="$PG_CONFIG" install
 fetch_tar https://download.osgeo.org/postgis/source/postgis-3.6.0.tar.gz
 cd postgis-3.6.0
-./configure --with-pgconfig="$PG_CONFIG" --without-raster --without-topology
+./configure --prefix="$prefix" --with-pgconfig="$PG_CONFIG" --without-raster --without-topology
 make -j1
 make -j1 install
 cd "$DOCDB_SOURCE/pg_documentdb_gw"
