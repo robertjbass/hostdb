@@ -22,7 +22,8 @@ for (let index = 0; index < args.length; index++) {
       output = args[++index] ?? ''
       break
     case '--all-platforms':
-      platforms = ['linux-x64', 'linux-arm64', 'darwin-arm64']
+      // Legacy Docker build matrix. Mac requires a separate native invocation.
+      platforms = ['linux-x64', 'linux-arm64']
       break
     default:
       throw new Error(`Unknown argument: ${argument}`)

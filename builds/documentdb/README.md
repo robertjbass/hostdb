@@ -42,6 +42,6 @@ The macOS 14+ ARM64 bundle passed [native qualification](https://github.com/robe
 pnpm download:documentdb -- --version 1.0.0 --platform darwin-arm64 --output ./dist
 ```
 
-Homebrew and Rust are build dependencies only. The tested archive is 46,067,988 bytes with SHA-256 `ffd3b2d2ade4c15143f56b2aba36d7bd7acfd599f5557f21965b9a8d3a4a11a8`. Publish these retained bytes after approval, add their checksum to the existing release metadata, and regenerate `releases.json` from that release before publishing HostDB 0.46.1. Do not rebuild or replace the existing Linux archives. The catalog changes on this branch are held until that publication gate passes.
+`--all-platforms` retains the Linux Docker build matrix; run Mac separately on Apple Silicon. Homebrew and Rust are build dependencies only. The tested archive is 46,067,988 bytes with SHA-256 `ffd3b2d2ade4c15143f56b2aba36d7bd7acfd599f5557f21965b9a8d3a4a11a8`. Publish these retained bytes after approval, add their checksum to the existing release metadata, and regenerate `releases.json` from that release before publishing HostDB 0.46.1. Do not rebuild or replace the existing Linux archives. The catalog changes on this branch are held until that publication gate passes.
 
 Intel Mac is deferred. Native Windows compilation is blocked by Unix-only gateway imports; see [the Windows probe](https://github.com/robertjbass/hostdb/pull/258). Neither platform is advertised.

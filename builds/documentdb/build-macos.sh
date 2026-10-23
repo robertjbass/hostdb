@@ -30,8 +30,17 @@ for dependency in openssl@3 readline libxml2 icu4c zlib lz4 zstd pcre2 geos proj
   PKG_CONFIG_PATH="$dependency_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
 done
 cd "$build"
-fetch_tar() { curl --fail --location --retry 3 "$1" | tar xz; }
-fetch_tar https://ftp.postgresql.org/pub/source/v17.11/postgresql-17.11.tar.gz
+# Hashes pin bytes retrieved from the official release URLs below. PostgreSQL
+# also publishes the matching .sha256 sidecar; mongo-c-driver/PostGIS values
+# were calculated from their official release archives during qualification.
+fetch_tar() {
+  local url=$1 sha256=$2 file
+  file=$(basename "$url")
+  curl --fail --location --retry 3 --connect-timeout 20 "$url" -o "$file"
+  printf '%s  %s\n' "$sha256" "$file" | shasum -a 256 -c -
+  tar xzf "$file"
+}
+fetch_tar https://ftp.postgresql.org/pub/source/v17.11/postgresql-17.11.tar.gz 5367f6fb2ec97efe1eb2e0c7926bb33438e51b0bd3a9733b88498056a7dc9a7e
 cd postgresql-17.11
 ./configure --prefix=/usr/local/pgsql --with-openssl --with-libxml --with-icu --with-lz4 --with-zstd --disable-nls
 make
@@ -69,7 +78,7 @@ Cflags: -I\${includedir}
 Libs: -L\${libdir} -lbid
 PC
 export PKG_CONFIG_PATH="$build/pkgconfig:$build/bson/lib/pkgconfig:$PKG_CONFIG_PATH"
-fetch_tar https://github.com/mongodb/mongo-c-driver/releases/download/1.28.0/mongo-c-driver-1.28.0.tar.gz
+fetch_tar https://github.com/mongodb/mongo-c-driver/releases/download/1.28.0/mongo-c-driver-1.28.0.tar.gz bec90c85361b4a9f89d80243440d53f39b9e706b1fe4bf901c4d3ffd6f50fbdb
 # CMake 4 removed CMP0042 OLD; use modern install-name behavior for libbson.
 python3 - <<'PATCH'
 from pathlib import Path
@@ -160,12 +169,14 @@ for module in pg_documentdb_core pg_documentdb pg_documentdb_extended_rum; do
   make -C "documentdb-source/$module" PG_CONFIG="$PG_CONFIG" CC="$build/clang-adapter" WERROR= install
 done
 git clone --depth 1 --branch v1.6.7 https://github.com/citusdata/pg_cron.git pg_cron
+test "$(git -C pg_cron rev-parse HEAD)" = 465b38c737f584d520229f5a1d69d1d44649e4e5
 make -C pg_cron PG_CONFIG="$PG_CONFIG"
 make -C pg_cron PG_CONFIG="$PG_CONFIG" install
 git clone --depth 1 --branch v0.8.1 https://github.com/pgvector/pgvector.git pgvector
+test "$(git -C pgvector rev-parse HEAD)" = 778dacf20c07caf904557a88705142631818d8cb
 make -C pgvector PG_CONFIG="$PG_CONFIG" OPTFLAGS=
 make -C pgvector PG_CONFIG="$PG_CONFIG" install
-fetch_tar https://download.osgeo.org/postgis/source/postgis-3.6.0.tar.gz
+fetch_tar https://download.osgeo.org/postgis/source/postgis-3.6.0.tar.gz 8caffef4b457ed70d5328bf4e5a21f9306b06c271662e03e1a65d30090e5f25f
 cd postgis-3.6.0
 ./configure --prefix="$prefix" --with-pgconfig="$PG_CONFIG" --without-raster --without-topology
 make -j1
