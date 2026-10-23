@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.47.0] - 2026-10-23
+
+### Added
+
+- TypeDB 3.14.1 stable sources for Linux x64/arm64, macOS x64/arm64 and Windows x64, pinned to official Cloudsmith SHA-256 checksums.
+
+### Changed
+
+- TypeDB major alias `3` now resolves to `3.14.1`. All existing exact versions and the `3.12` alias remain available; Cloud fresh-creation restrictions are managed separately.
+
 ## [0.46.1] - 2026-10-23
 
 ### Added
