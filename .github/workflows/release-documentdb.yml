@@ -87,7 +87,7 @@ jobs:
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
         run: |
           pnpm tsx scripts/upload-to-r2.ts --tag documentdb-1.0.0
-          pnpm build:releases
+          pnpm tsx scripts/build-releases-json.ts --upload-r2
       - uses: actions/upload-artifact@v4
         with:
           name: documentdb-registry-snapshot

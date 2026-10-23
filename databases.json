@@ -136,7 +136,7 @@
       "commercialUse": true,
       "hostedServiceAllowed": true,
       "protocol": "mongodb",
-      "note": "Native standalone bundle; separate from the PostgreSQL-DocumentDB backend used by FerretDB. Native Linux x64 and ARM64; macOS and Windows unavailable.",
+      "note": "Native standalone bundle; separate from the PostgreSQL-DocumentDB backend used by FerretDB. Native Linux x64 and ARM64, plus macOS 14 or newer on ARM64; Intel Mac and Windows unavailable.",
       "defaults": {
         "1": "1.0.0"
       },
@@ -145,7 +145,8 @@
       },
       "platforms": [
         "linux-x64",
-        "linux-arm64"
+        "linux-arm64",
+        "darwin-arm64"
       ],
       "cliTools": {
         "server": "documentdb_gateway",

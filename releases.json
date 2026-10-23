@@ -137,6 +137,11 @@
         "releaseTag": "documentdb-1.0.0",
         "releasedAt": "2026-10-22T06:58:11Z",
         "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/documentdb-1.0.0/documentdb-1.0.0-darwin-arm64.tar.gz",
+            "sha256": "77e229f694662343460f2276009d561b8aab0123a5ae86d812578a3bea96d33a",
+            "size": 46067866
+          },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/documentdb-1.0.0/documentdb-1.0.0-linux-arm64.tar.gz",
             "sha256": "57101726fd11cc5283fc37353aeda6733f9aab397f646a719d4bcefe34313548",
