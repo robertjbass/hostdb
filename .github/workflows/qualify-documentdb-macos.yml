@@ -38,7 +38,32 @@ jobs:
           mkdir -p "$RUNNER_TEMP/relocated bundle"
           tar -xzf "$RUNNER_TEMP/documentdb-build/documentdb-1.0.0-darwin-${{ matrix.architecture }}.tar.gz" -C "$RUNNER_TEMP/relocated bundle"
           MONGODB_MODULE_PATH="$RUNNER_TEMP/documentdb-driver/node_modules/mongodb" node builds/documentdb/smoke-test.ts "$RUNNER_TEMP/relocated bundle/documentdb"
+      - name: Diagnose native backend crashes
+        if: failure()
+        run: |
+          # Only symbolized stack frames and image names, never process env/data.
+          sleep 10
+          python3 - <<'PYTHON'
+          import json, pathlib
+          reports = pathlib.Path.home() / 'Library/Logs/DiagnosticReports'
+          for path in sorted(reports.glob('postgres*.ips'))[-3:]:
+              text = path.read_text()
+              try:
+                  report = json.loads(text.split('\n', 1)[1])
+              except (ValueError, IndexError):
+                  continue
+              print(json.dumps({
+                  'report': path.name,
+                  'exception': report.get('exception'),
+                  'faultingThread': report.get('faultingThread'),
+                  'threads': [{'triggered': t.get('triggered'), 'frames': t.get('frames')}
+                              for t in report.get('threads', []) if t.get('triggered')],
+                  'images': [{'name': i.get('name'), 'base': i.get('base')}
+                             for i in report.get('usedImages', [])],
+              }))
+          PYTHON
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: documentdb-1.0.0-darwin-${{ matrix.architecture }}
           path: |
