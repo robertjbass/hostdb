@@ -36,12 +36,12 @@ and prepares the registry snapshot for review through dev.
 
 ## macOS ARM64 release candidate
 
-The macOS 14+ ARM64 bundle passed [native qualification](https://github.com/robertjbass/hostdb/actions/runs/39892712617) and [compiled SpinDB CLI lifecycle qualification](https://github.com/robertjbass/spindb/actions/runs/39893571815), including branch/reset, backup/restore, rename and exact-pin refusal. Build on Apple Silicon with:
+The macOS 14+ ARM64 bundle passed [native qualification](https://github.com/robertjbass/hostdb/actions/runs/39900809687) and [compiled SpinDB CLI lifecycle qualification](https://github.com/robertjbass/spindb/actions/runs/39901495217), including branch/reset, backup/restore, rename and exact-pin refusal. Build on Apple Silicon with:
 
 ```sh
 pnpm download:documentdb -- --version 1.0.0 --platform darwin-arm64 --output ./dist
 ```
 
-`--all-platforms` retains the Linux Docker build matrix; run Mac separately on Apple Silicon. Homebrew and Rust are build dependencies only. The tested archive is 46,067,988 bytes with SHA-256 `ffd3b2d2ade4c15143f56b2aba36d7bd7acfd599f5557f21965b9a8d3a4a11a8`. Publish these retained bytes after approval, add their checksum to the existing release metadata, and regenerate `releases.json` from that release before publishing HostDB 0.46.1. Do not rebuild or replace the existing Linux archives. The catalog changes on this branch are held until that publication gate passes.
+`--all-platforms` retains the Linux Docker build matrix; run Mac separately on Apple Silicon. Homebrew and Rust are build dependencies only. The tested archive is 46,067,866 bytes with SHA-256 `77e229f694662343460f2276009d561b8aab0123a5ae86d812578a3bea96d33a`. These retained bytes were published with Bob approval; the existing release checksum metadata was extended and `releases.json` regenerated from the live release for HostDB 0.46.1. Do not rebuild or replace the existing Linux archives. HostDB npm publication still requires the final release-head checks.
 
 Intel Mac is deferred. Native Windows compilation is blocked by Unix-only gateway imports; see [the Windows probe](https://github.com/robertjbass/hostdb/pull/258). Neither platform is advertised.
