@@ -10,6 +10,10 @@
       "linux-arm64": {
         "sourceType": "build-required",
         "note": "Native ARM64 source build from the same pinned GA source; qualification required before publication"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required",
+        "note": "Native macOS 14+ ARM64 build from official v1.0-0, commit b0cb0dae85e8746f4e0b79c847894179b2f80d64; qualified artifact from Actions run 39892712617"
       }
     }
   },
