@@ -386,6 +386,7 @@ describe('standalone DocumentDB catalog', () => {
     assert.equal(resolveVersion('documentdb', '2'), null)
     assert.equal(resolveVersion('postgresql-documentdb', '17'), '17-0.107.0')
     assert.deepEqual(getAvailablePlatforms('documentdb', '1.0.0').sort(), [
+      'darwin-arm64',
       'linux-arm64',
       'linux-x64',
     ])

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.1] - 2026-10-23
+
+### Added
+
+- Native DocumentDB 1.0.0 for macOS 14 or newer on Apple Silicon. The relocatable bundle includes PostgreSQL and the official gateway, with no runtime Docker requirement. Existing Linux artifacts and exact version aliases are retained.
+- Native authentication and persisted restart checks, plus SpinDB CLI branch/reset, backup/restore, rename and exact-pin lifecycle qualification passed on ARM64. Intel Mac and Windows remain unavailable.
+
 ## [0.46.0] - 2026-10-22
 
 ### Added

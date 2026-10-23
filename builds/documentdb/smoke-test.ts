@@ -55,7 +55,9 @@ Object.assign(env, {
   PGUSER: 'postgres',
   DOCUMENTDB_TLS_STATE_DIR: join(root, 'tls'),
 })
+let currentTool = 'initialization'
 function run(tool: string, args: string[], input?: string) {
+  currentTool = tool
   return execFileSync(join(bundle, 'bin', tool), args, {
     env,
     input,
@@ -316,8 +318,30 @@ try {
 } catch (error) {
   // Never print command input, URIs, or generated credential-bearing SQL.
   console.error(
-    `Native qualification failed (${error instanceof Error ? error.name : 'unknown error'}). Local diagnostic directory: ${root}`,
+    `Native qualification failed (${error instanceof Error ? error.name : 'unknown error'}) after ${currentTool}. Local diagnostic directory: ${root}`,
   )
+  // Only fixture logs and non-SQL process stderr; never command input or config.
+  const redact = (text: string) =>
+    text
+      .replaceAll(password, '[REDACTED]')
+      .replace(/mongodb(?:\+srv)?:\/\/[^\s"']+/g, '[REDACTED_URI]')
+  if (
+    currentTool !== 'psql' &&
+    error &&
+    typeof error === 'object' &&
+    'stderr' in error
+  ) {
+    console.error(redact(String(error.stderr).slice(-16000)))
+  }
+  for (const filename of ['postgres.log', 'gateway.log']) {
+    try {
+      console.error(
+        `${filename}:\n${redact(readFileSync(join(root, filename), 'utf8').slice(-16000))}`,
+      )
+    } catch {
+      /* The process may have failed before creating its log. */
+    }
+  }
   process.exitCode = 1
 } finally {
   await client?.close().catch(() => {})

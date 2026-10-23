@@ -22,6 +22,7 @@ for (let index = 0; index < args.length; index++) {
       output = args[++index] ?? ''
       break
     case '--all-platforms':
+      // Legacy Docker build matrix. Mac requires a separate native invocation.
       platforms = ['linux-x64', 'linux-arm64']
       break
     default:
@@ -32,22 +33,33 @@ if (version !== '1.0.0' || !output)
   throw new Error(
     'DocumentDB requires version 1.0.0 and a non-empty output path',
   )
+// Validate every target before starting any expensive source build.
 for (const platform of platforms) {
-  if (!['linux-x64', 'linux-arm64'].includes(platform))
+  if (!['linux-x64', 'linux-arm64', 'darwin-arm64'].includes(platform))
     throw new Error(`Native DocumentDB is not available for ${platform}`)
-  const result = spawnSync(
-    '/bin/bash',
-    [
-      join(dirname(fileURLToPath(import.meta.url)), 'build-local.sh'),
-      '--version',
-      version,
-      '--platform',
-      platform,
-      '--output',
-      output,
-    ],
-    { stdio: 'inherit' },
+  if (
+    platform === 'darwin-arm64' &&
+    (process.platform !== 'darwin' || process.arch !== 'arm64')
   )
+    throw new Error(
+      'DocumentDB darwin-arm64 requires a native Apple Silicon build host',
+    )
+}
+for (const platform of platforms) {
+  const scriptDir = dirname(fileURLToPath(import.meta.url))
+  const buildArgs =
+    platform === 'darwin-arm64'
+      ? [join(scriptDir, 'build-macos.sh'), output]
+      : [
+          join(scriptDir, 'build-local.sh'),
+          '--version',
+          version,
+          '--platform',
+          platform,
+          '--output',
+          output,
+        ]
+  const result = spawnSync('/bin/bash', buildArgs, { stdio: 'inherit' })
   if (result.error) throw result.error
   if (result.status !== 0)
     throw new Error(
