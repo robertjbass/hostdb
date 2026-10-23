@@ -147,7 +147,10 @@ if [[ " $* " = *" -dynamiclib "* || " $* " = *" -bundle "* ]]; then
   args+=("${icu_libs[@]}")
   # RUM's split bundles also reference symbols supplied by the parent/core
   # at load time (ELF shared objects permit these references by default).
-  args+=(-undefined dynamic_lookup)
+  # Darwin libc also exports hash_search. Two-level dylib linking binds
+  # PostgreSQL calls to that unrelated implementation and crashes on insert.
+  # Resolve module symbols from the loading PostgreSQL process first.
+  args+=(-flat_namespace -undefined dynamic_lookup)
 fi
 exec /usr/bin/clang "${args[@]}"
 ADAPTER
