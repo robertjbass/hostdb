@@ -17,8 +17,8 @@ Pre-built database binaries for all major platforms, hosted on Cloudflare R2 via
 
 ## Project management
 
-- Work is tracked on the [Ecosystem tracker](https://github.com/orgs/Layerbase-LLC/projects/1); the tracker issue is the plan of record. Search open and closed issues before filing a new one.
-- File hostdb concerns in `Layerbase-LLC/layerbase-cloud` (web-only in `layerbase`, CLI in `layerbase-cli`). This repo and `layerbase-cli` are PUBLIC: anything filed or written here stays to what a user could see; server names, internal endpoints, infrastructure details and incident notes go in a private `layerbase-cloud` issue. No customer data or secrets.
+- Work is tracked on the [Ecosystem tracker](https://github.com/orgs/Layerbase-LLC/projects/1); the tracker issue for a piece of work is its plan of record. Search open and closed issues before filing a new one.
+- File hostdb issues in `Layerbase-LLC/layerbase-cloud` (web-only in `layerbase`, CLI in `layerbase-cli`); do not open new issues in this repo. This repo and `layerbase-cli` are PUBLIC: every commit, PR, doc and comment here stays to what a user could see; server names, internal endpoints, infrastructure details and incident notes go in a private `layerbase-cloud` issue. No customer data or secrets.
 - Detailed plans live in `~/dev/layerbase-cloud/plans/` (start at `plans/README.md`).
 
 ## Read Before You Edit
