@@ -13,13 +13,9 @@
         "image": "ghcr.io/ferretdb/postgres-documentdb:17-0.107.0",
         "platform": "linux/arm64"
       },
-      "darwin-x64": {
-        "sourceType": "build-required",
-        "note": "Build from source on macOS Intel (macos-15-intel runner)"
-      },
       "darwin-arm64": {
         "sourceType": "build-required",
-        "note": "Build from source on macOS Apple Silicon (macos-14 runner)"
+        "note": "Build from source on macOS Apple Silicon (macos-15 runner, minimum macOS 15.0)"
       },
       "win32-x64": {
         "sourceType": "build-required",

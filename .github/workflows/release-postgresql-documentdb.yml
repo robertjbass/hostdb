@@ -19,7 +19,6 @@ on:
           - 'all'
           - 'linux-x64'
           - 'linux-arm64'
-          - 'darwin-x64'
           - 'darwin-arm64'
           - 'win32-x64'
 
@@ -101,11 +100,11 @@ jobs:
         run: |
           PLATFORMS="${{ github.event.inputs.platforms }}"
           if [ "$PLATFORMS" = "all" ]; then
-            # All 5 supported platforms
+            # darwin-x64 (Intel Mac) is no longer built: see the retired_platforms
+            # entry for 17-0.107.0 in databases.yml.
             MATRIX='[
               {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
               {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
-              {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
               {"platform": "darwin-arm64", "runner": "macos-15", "build_type": "native"},
               {"platform": "win32-x64", "runner": "windows-latest", "build_type": "windows"}
             ]'
@@ -114,9 +113,6 @@ jobs:
             case "$PLATFORMS" in
               linux-x64|linux-arm64)
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"docker\"}]"
-                ;;
-              darwin-x64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\", \"build_type\": \"native\"}]"
                 ;;
               darwin-arm64)
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15\", \"build_type\": \"native\"}]"
@@ -321,11 +317,13 @@ jobs:
           Write-Host "Created: $zipName"
           Get-ChildItem .\dist\*.zip
 
-      # Fail if any shipped Mach-O file needs a newer macOS than the pinned
-      # target (builds/common/macos-deployment-target.env).
+      # Fail if any shipped Mach-O file needs a newer macOS than 15.0. This
+      # build alone is allowed 15.0 instead of the shared 14.0 target: its
+      # Homebrew-bundled PostGIS/BSON/compression libraries are built for the
+      # macos-15 runner (decided 2026-11-01, see builds/common/README.md).
       - name: Check minimum macOS
         if: runner.os == 'macOS'
-        run: ./builds/common/check-macos-minos.sh dist/*.tar.gz
+        run: ./builds/common/check-macos-minos.sh --max 15.0 dist/*.tar.gz
 
       - name: Generate checksum (Unix)
         if: matrix.build_type != 'windows'
@@ -481,8 +479,7 @@ jobs:
           |----------|-----------|--------|
           | `linux-x64` | Full bundle | Extracted from Docker image |
           | `linux-arm64` | Full bundle | Extracted from Docker image |
-          | `darwin-x64` | Full bundle | Built from source (native macOS) |
-          | `darwin-arm64` | Full bundle | Built from source (native macOS) |
+          | `darwin-arm64` | Full bundle | Built from source (native macOS, macOS 15 or newer) |
           | `win32-x64` | pgvector only* | Built with MSVC |
 
           *Windows build only includes pgvector. DocumentDB, pg_cron, rum, and PostGIS are not available on Windows due to platform limitations.

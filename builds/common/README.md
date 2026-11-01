@@ -134,7 +134,7 @@ macOS source builds that link against Homebrew (OpenSSL, pcre2, etc.) produce bi
 The script makes packages relocatable by:
 
 1. Bundling Homebrew dylibs into the package's `lib/` directory.
-2. Rewriting all absolute paths to `@loader_path` relative references.
+2. Rewriting all absolute paths to `@loader_path` relative references, in `bin/*` and in every Mach-O file under `lib/` (found by magic, not extension, so MariaDB `lib/plugin/*.so` plugins and Erlang NIFs are covered, not only `*.dylib`).
 3. Re-signing modified binaries (macOS requires this after `install_name_tool` changes).
 4. Verifying no Homebrew paths remain (fails the build if any found).
 
@@ -147,9 +147,13 @@ chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
 
 **Currently used by:** MariaDB, Redis, Valkey, CouchDB. PostgreSQL-DocumentDB has its own inline implementation (see `builds/postgresql-documentdb/build-macos.sh`).
 
-### `check-macos-dylibs.sh [<path>]`
+A plugin that links a Homebrew library the package should not carry (for example a bottle built for a newer macOS than the target) is better not built at all: the MariaDB macOS build disables the lz4, lzo and snappy compression providers and the client zstd plugin for that reason.
 
-Diagnostic — scans packages for non-relocatable Homebrew paths without modifying anything. Runs locally via `pnpm check:dylibs [-- <path>]`. The `audit-dylibs` workflow (`workflow_dispatch`) audits published releases on R2.
+### `check-macos-dylibs.sh [<path|tarball>...]`
+
+Read-only gate: fails if any Mach-O file anywhere in the package (every architecture slice) loads a library (`LC_LOAD_DYLIB` and its weak, reexport, lazy and upward variants) or sets an `LC_RPATH` by an absolute path outside `/usr/lib` and `/System`. `.tar.gz` arguments are extracted and scanned as shipped. The MariaDB, Redis, Valkey and CouchDB release jobs run it on `dist/*.tar.gz` next to the minimum-macOS check. Runs locally via `pnpm check:dylibs [-- <path>]`; the `audit-dylibs` workflow (`workflow_dispatch`) audits published releases on R2.
+
+Not yet wired into the PostgreSQL and PostgreSQL-DocumentDB release jobs: their published archives still carry build-path references in the `pgxs` regression test tools (`pg_regress`, `isolationtester`, `pg_isolation_regress`) and, for DocumentDB, build-directory rpaths, which would fail it.
 
 ### Minimum macOS: `macos-deployment-target.env`, `build-macos-deps.sh`, `check-macos-minos.sh`
 
@@ -162,7 +166,7 @@ Without an explicit deployment target, clang stamps the build machine's macOS as
 | Build | Minimum macOS | Controlled by |
 |---|---|---|
 | PostgreSQL, MariaDB, Redis, Valkey (source, both architectures) | 14.0 | the shared target, plus OpenSSL/ICU from `build-macos-deps.sh` |
-| PostgreSQL-DocumentDB (source) | 14.0 for its own code; its Homebrew-bundled PostGIS/BSON/compression libraries follow the runner (15.0 on macos-15), so the check fails until those are built with the target too | partly |
+| PostgreSQL-DocumentDB (source, darwin-arm64 only) | 15.0 (decided 2026-11-01): its own code uses the 14.0 target, but its Homebrew-bundled PostGIS/BSON/compression libraries follow the macos-15 runner. Intel Macs (darwin-x64) are no longer built | checked with `--max 15.0` |
 | InfluxDB darwin-x64 (Rust source) | 10.15 (bundled python-build-standalone floor) | `builds/influxdb/build-macos.sh` |
 | CouchDB (Neighbourhoodie prebuilt) | 15.0 (upstream Erlang runtime and NIFs) | upstream; checked with `--max 15.0` |
 | ClickHouse, DuckDB (upstream prebuilt) | 11.0 today | upstream; checked against the shared target |

@@ -58,12 +58,12 @@ version_gt() {
 }
 
 minos_of() {
-    otool -arch all -l "$1" 2>/dev/null | awk '
+    awk '
         /cmd LC_BUILD_VERSION/ { want = "minos"; next }
         /cmd LC_VERSION_MIN_MACOSX/ { want = "version"; next }
         /cmd / { want = "" }
         want != "" && $1 == want { print $2; want = "" }
-    ' | sort -u
+    ' <<< "$1" | sort -u
 }
 
 TMP_DIR="$(mktemp -d)"
@@ -86,16 +86,28 @@ done
 
 SCANNED=0
 FAILED=0
+UNREADABLE=0
 
+# Mach-O magics: thin 64/32 (both byte orders) and fat 32/64. Static .a
+# archives ("!<arch>") are deliberately not scanned: nothing loads them at run
+# time, and a program linked against one gets its own minimum from the linker.
+# Java class files share the fat magic cafebabe and are skipped by name below.
 list_macho_candidates() {
     find "$@" -type f -print0 | perl -0 -ne '
         chomp; open(my $f, "<", $_) or next; binmode $f;
         read($f, my $m, 4) == 4 or next;
-        print "$_\0" if unpack("H8", $m) =~ /^(cffaedfe|cefaedfe|cafebabe|feedfacf|feedface)$/'
+        print "$_\0" if unpack("H8", $m) =~ /^(cffaedfe|cefaedfe|cafebabe|cafebabf|feedfacf|feedface)$/'
 }
 
 while IFS= read -r -d '' file; do
-    versions=$(minos_of "$file")
+    label="${file#"$TMP_DIR"/}"
+    if ! commands=$(otool -arch all -l "$file" 2>&1); then
+        if file -b "$file" | grep -q "Java class"; then continue; fi
+        UNREADABLE=$((UNREADABLE + 1))
+        echo "  FAIL: $label: otool could not read it as Mach-O: $(head -1 <<< "$commands")"
+        continue
+    fi
+    versions=$(minos_of "$commands")
     [[ -n "$versions" ]] || continue
     SCANNED=$((SCANNED + 1))
     bad=false
@@ -103,7 +115,6 @@ while IFS= read -r -d '' file; do
         if version_gt "$v" "$MAX"; then bad=true; fi
     done <<< "$versions"
     joined=$(echo "$versions" | paste -sd, -)
-    label="${file#"$TMP_DIR"/}"
     if $bad; then
         FAILED=$((FAILED + 1))
         echo "  FAIL: $label (minos $joined > $MAX)"
@@ -112,7 +123,11 @@ while IFS= read -r -d '' file; do
     fi
 done < <(list_macho_candidates "${SCAN_PATHS[@]}")
 
-echo "Scanned $SCANNED Mach-O files, max allowed minimum macOS $MAX: $FAILED above it."
+echo "Scanned $SCANNED Mach-O files, max allowed minimum macOS $MAX: $FAILED above it, $UNREADABLE unreadable."
+if [[ $UNREADABLE -gt 0 ]]; then
+    echo "ERROR: $UNREADABLE file(s) carry a Mach-O magic but otool cannot read them, so their minimum macOS is unverified. Inspect them with \`file\` and \`otool -l\`; a truncated or corrupt binary must not ship." >&2
+    exit 1
+fi
 if [[ $SCANNED -eq 0 ]]; then
     echo "ERROR: no Mach-O files found under ${PATHS[*]}. Point the check at the build output directory." >&2
     exit 1
