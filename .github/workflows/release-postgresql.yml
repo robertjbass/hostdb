@@ -646,8 +646,9 @@ jobs:
           # Verify key binaries exist
           test -f postgresql/bin/postgres || { echo "::error::postgres binary not found"; exit 1; }
           test -f postgresql/bin/psql || { echo "::error::psql binary not found"; exit 1; }
-          test -f postgresql/lib/pg_stat_statements.so || echo "::warning::pg_stat_statements.so not found"
-          test -f postgresql/lib/uuid-ossp.so || { echo "::error::uuid-ossp.so not found"; exit 1; }
+          # PostgreSQL 18+ names macOS extension modules .dylib instead of .so.
+          { test -f postgresql/lib/pg_stat_statements.so || test -f postgresql/lib/pg_stat_statements.dylib; } || echo "::warning::pg_stat_statements module not found"
+          { test -f postgresql/lib/uuid-ossp.so || test -f postgresql/lib/uuid-ossp.dylib; } || { echo "::error::uuid-ossp module not found"; exit 1; }
 
           # Make binaries relocatable by fixing hardcoded paths
           # This ensures binaries work regardless of where they're installed
