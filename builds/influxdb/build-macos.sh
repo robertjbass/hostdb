@@ -153,6 +153,17 @@ echo ""
 echo "=== Building InfluxDB (this may take 30-60 minutes with LTO) ==="
 export PYO3_CONFIG_FILE="$PYO3_CONFIG"
 
+# Pin the minimum macOS instead of inheriting the build machine's version (C
+# code built by cc-rs defaults to the host otherwise). The floor is the bundled
+# python-build-standalone runtime's: 10.15 on x86_64, 11.0 on arm64. The
+# shared 14.0 target (builds/common/macos-deployment-target.env) would raise it.
+if [ "$ARCH" = "x86_64" ]; then
+  export MACOSX_DEPLOYMENT_TARGET=10.15
+else
+  export MACOSX_DEPLOYMENT_TARGET=11.0
+fi
+echo "MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
+
 # Build with the same default features as upstream
 cargo build --release --package influxdb3
 

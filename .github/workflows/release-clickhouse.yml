@@ -181,6 +181,13 @@ jobs:
           fi
           ls -la ./dist/
 
+      # Fail if any shipped Mach-O file needs a newer macOS than the pinned
+      # target (builds/common/macos-deployment-target.env).
+      # ClickHouse repackages the upstream binary, so this records its minimum.
+      - name: Check minimum macOS
+        if: runner.os == 'macOS'
+        run: ./builds/common/check-macos-minos.sh dist/*.tar.gz
+
       - name: Generate checksum
         shell: bash
         run: |

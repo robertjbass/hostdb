@@ -321,6 +321,12 @@ jobs:
           Write-Host "Created: $zipName"
           Get-ChildItem .\dist\*.zip
 
+      # Fail if any shipped Mach-O file needs a newer macOS than the pinned
+      # target (builds/common/macos-deployment-target.env).
+      - name: Check minimum macOS
+        if: runner.os == 'macOS'
+        run: ./builds/common/check-macos-minos.sh dist/*.tar.gz
+
       - name: Generate checksum (Unix)
         if: matrix.build_type != 'windows'
         run: |

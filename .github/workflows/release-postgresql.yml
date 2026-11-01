@@ -542,7 +542,7 @@ jobs:
       - name: Install macOS build dependencies
         if: matrix.build_type == 'native'
         run: |
-          brew install openssl@3 readline libxml2 libxslt icu4c pkg-config
+          brew install readline libxml2 libxslt pkg-config
 
       - name: Build for macOS (native)
         if: matrix.build_type == 'native'
@@ -557,10 +557,15 @@ jobs:
 
           echo "Building PostgreSQL $FULL_VERSION for $PLATFORM (native macOS build)"
 
-          # Get Homebrew prefix (differs between ARM64 and Intel macOS)
-          BREW_PREFIX=$(brew --prefix)
-          OPENSSL_PREFIX=$(brew --prefix openssl@3)
-          ICU_PREFIX=$(brew --prefix icu4c)
+          # Pin the minimum macOS (see builds/common/macos-deployment-target.env)
+          # and build the bundled OpenSSL and ICU with it: Homebrew bottles
+          # carry the runner's own macOS as their minimum.
+          source "$GITHUB_WORKSPACE/builds/common/macos-deployment-target.env"
+          echo "MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
+          DEPS_PREFIX="$RUNNER_TEMP/hostdb-macos-deps"
+          "$GITHUB_WORKSPACE/builds/common/build-macos-deps.sh" --prefix "$DEPS_PREFIX" openssl icu
+          OPENSSL_PREFIX="$DEPS_PREFIX"
+          ICU_PREFIX="$DEPS_PREFIX"
 
           echo "Using OpenSSL at: $OPENSSL_PREFIX"
           echo "Using ICU at: $ICU_PREFIX"
@@ -827,6 +832,12 @@ jobs:
 
           echo "Build complete:"
           ls -la "$GITHUB_WORKSPACE/dist/"
+
+      # Fail if any shipped Mach-O file needs a newer macOS than the pinned
+      # target (builds/common/macos-deployment-target.env).
+      - name: Check minimum macOS
+        if: runner.os == 'macOS'
+        run: ./builds/common/check-macos-minos.sh dist/*.tar.gz
 
       - name: Generate checksum
         run: |

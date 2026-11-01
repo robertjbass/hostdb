@@ -10,6 +10,9 @@
 #   4. Re-signs all modified binaries (required by macOS)
 #   5. Verifies no Homebrew paths remain (fails CI if any found)
 #
+# Libraries under $HOSTDB_MACOS_DEPS_PREFIX (built by build-macos-deps.sh with
+# the pinned deployment target) are bundled the same way as Homebrew ones.
+#
 # Adapted from builds/postgresql-documentdb/build-macos.sh (steps 10-12).
 
 set -euo pipefail
@@ -38,8 +41,15 @@ echo "=== fix-macos-dylibs: $PACKAGE_ROOT ==="
 # ============================================================================
 # Detect Homebrew prefixes
 # ============================================================================
+DEPS_PREFIX="${HOSTDB_MACOS_DEPS_PREFIX:-}"
+
+is_deps_prefix_path() {
+    [[ -n "$DEPS_PREFIX" && "$1" == "$DEPS_PREFIX"/* ]]
+}
+
 is_homebrew_path() {
     local path="$1"
+    is_deps_prefix_path "$path" && return 0
     [[ "$path" == /opt/homebrew/* ]] || [[ "$path" == /usr/local/Cellar/* ]] || \
     [[ "$path" == /usr/local/opt/* ]] || [[ "$path" == /usr/local/lib/* ]]
 }
@@ -104,7 +114,7 @@ copy_lib_recursive() {
         if [[ "$dep" == @rpath/* ]]; then
             local rpath_lib="${dep#@rpath/}"
             local found=""
-            for search_dir in "/opt/homebrew/lib" "/usr/local/lib" "$lib_dir" "$LIB_DIR"; do
+            for search_dir in ${DEPS_PREFIX:+"$DEPS_PREFIX/lib"} "/opt/homebrew/lib" "/usr/local/lib" "$lib_dir" "$LIB_DIR"; do
                 if [[ -f "${search_dir}/${rpath_lib}" ]]; then
                     found="${search_dir}/${rpath_lib}"
                     break
@@ -243,7 +253,7 @@ while IFS= read -r dylib; do
     [[ -f "$dylib" ]] || continue
     # Remove Homebrew rpaths
     for rpath in $(otool -l "$dylib" 2>/dev/null | grep -A2 LC_RPATH | grep "path " | awk '{print $2}'); do
-        if [[ "$rpath" == *"/opt/homebrew/"* ]] || [[ "$rpath" == *"/usr/local/"* ]] || [[ "$rpath" == *"/Cellar/"* ]]; then
+        if [[ "$rpath" == *"/opt/homebrew/"* ]] || [[ "$rpath" == *"/usr/local/"* ]] || [[ "$rpath" == *"/Cellar/"* ]] || is_deps_prefix_path "$rpath"; then
             install_name_tool -delete_rpath "$rpath" "$dylib" 2>/dev/null || true
         fi
     done
@@ -288,6 +298,9 @@ check_file() {
     local label="$2"
     local remaining
     remaining=$(otool -L "$file" 2>/dev/null | grep -E "(Cellar|opt/homebrew|/usr/local/(opt|lib|Cellar))" | grep -v "^$" || true)
+    if [[ -n "$DEPS_PREFIX" ]]; then
+        remaining+=$(otool -L "$file" 2>/dev/null | tail -n +2 | grep -F "$DEPS_PREFIX/" || true)
+    fi
     if [[ -n "$remaining" ]]; then
         echo "  FAIL: Non-relocatable paths in ${label}:"
         echo "$remaining" | while IFS= read -r line; do echo "    $line"; done

@@ -427,6 +427,16 @@ jobs:
           Write-Host "Build complete:"
           Get-ChildItem -Path ".\dist"
 
+      # Fail if any shipped Mach-O file needs a newer macOS than the pinned
+      # target (builds/common/macos-deployment-target.env).
+      # CouchDB repackages the Neighbourhoodie build, whose Erlang runtime and
+      # NIFs already require macOS 15.0 (3.5.2, both architectures), and
+      # bundles Homebrew dylibs for the runner's macOS. Its minimum is set
+      # upstream, so the ceiling here is that published 15.0.
+      - name: Check minimum macOS
+        if: runner.os == 'macOS'
+        run: ./builds/common/check-macos-minos.sh --max 15.0 dist/*.tar.gz
+
       - name: Generate checksum
         shell: bash
         run: |
