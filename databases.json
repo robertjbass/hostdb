@@ -777,21 +777,21 @@
       "commercialUse": true,
       "hostedServiceAllowed": true,
       "protocol": "postgresql",
-      "note": "Backend for FerretDB v2 only; includes pg_cron, pgvector, PostGIS, rum extensions. Not available on Windows. The license field is the combined expression of everything the archives bundle, not DocumentDB's alone - DocumentDB (MIT, with vendored Apache-2.0 and BSD-3-Clause code), PostgreSQL, pg_cron, pgvector and rum (PostgreSQL License), PostGIS (GPL-2.0-or-later), GEOS (LGPL-2.1-or-later), PROJ and GDAL (MIT), protobuf-c (BSD-2-Clause), and in the Linux archives 84 Debian 12 runtime library packages, each mapped to its license in builds/postgresql-documentdb/README.md.",
+      "note": "Backend for FerretDB v2 only; includes pg_cron, pgvector, PostGIS, rum extensions. Not available on Windows or Intel Macs; macOS builds need macOS 15 or newer on Apple Silicon. The license field is the combined expression of everything the archives bundle, not DocumentDB's alone - DocumentDB (MIT, with vendored Apache-2.0 and BSD-3-Clause code), PostgreSQL, pg_cron, pgvector and rum (PostgreSQL License), PostGIS (GPL-2.0-or-later), GEOS (LGPL-2.1-or-later), PROJ and GDAL (MIT), protobuf-c (BSD-2-Clause), and in the Linux archives 84 Debian 12 runtime library packages, each mapped to its license in builds/postgresql-documentdb/README.md.",
       "defaults": {
         "17": "17-0.107.0"
       },
       "versions": {
         "17-0.107.0": {
           "retiredPlatforms": {
-            "win32-x64": "Released 2026-01-23 as a PostgreSQL bundle carrying pgvector only. The documentdb extension (plus pg_cron, rum, PostGIS) has no Windows build, so the artifact cannot serve the one purpose this engine has, backing FerretDB v2. Dropped from the supported list on 2026-02-15; the artifact stays on R2 because published URLs are immutable. Reviving Windows means Phase 3 of builds/postgresql-documentdb/WINDOWS_PLAN.md, not re-enabling this platform."
+            "win32-x64": "Released 2026-01-23 as a PostgreSQL bundle carrying pgvector only. The documentdb extension (plus pg_cron, rum, PostGIS) has no Windows build, so the artifact cannot serve the one purpose this engine has, backing FerretDB v2. Dropped from the supported list on 2026-02-15; the artifact stays on R2 because published URLs are immutable. Reviving Windows means Phase 3 of builds/postgresql-documentdb/WINDOWS_PLAN.md, not re-enabling this platform.",
+            "darwin-x64": "Released 2026-01-23 as a native Intel Mac build. Intel Macs were dropped from the supported list on 2026-11-01 as the first step of retiring macOS Intel builds; no new darwin-x64 archive is built. The artifact stays on R2 because published URLs are immutable. Reviving it means restoring the macos-15-intel job in release-postgresql-documentdb.yml and qualifying it again."
           }
         }
       },
       "platforms": [
         "linux-x64",
         "linux-arm64",
-        "darwin-x64",
         "darwin-arm64"
       ],
       "cliTools": {

@@ -114,3 +114,42 @@ describe('every job downstream of an always() job carries its own if:', () => {
     })
   }
 })
+
+describe('release-mariadb.yml dry_run never publishes', () => {
+  const workflow = parse(
+    readFileSync(join(WORKFLOW_DIR, 'release-mariadb.yml'), 'utf8'),
+  ) as Workflow & {
+    on: {
+      workflow_dispatch: {
+        inputs: Record<string, { type?: string; default?: unknown }>
+      }
+    }
+  }
+  const jobs = workflow.jobs ?? {}
+  const BUILD_ONLY_JOBS = new Set(['validate', 'prepare', 'build'])
+
+  test('offers a boolean dry_run input that defaults to a real release', () => {
+    const input = workflow.on.workflow_dispatch.inputs.dry_run
+    assert.ok(input, 'dry_run input is missing')
+    assert.equal(input.type, 'boolean')
+    assert.equal(input.default, false)
+  })
+
+  test('every job past the build is gated on !inputs.dry_run', () => {
+    const publishing = Object.keys(jobs).filter(
+      (name) => !BUILD_ONLY_JOBS.has(name),
+    )
+    assert.deepEqual(publishing.sort(), [
+      'release',
+      'update-releases',
+      'upload-to-r2',
+    ])
+    for (const name of publishing) {
+      assert.equal(
+        jobs[name]?.if,
+        '${{ !inputs.dry_run }}',
+        `${name} must carry if: \${{ !inputs.dry_run }}`,
+      )
+    }
+  })
+})

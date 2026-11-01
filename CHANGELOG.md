@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.48.0] - 2026-11-01
+
+### Changed
+
+- **postgresql-documentdb no longer lists Intel Macs (darwin-x64).** It is the first step of retiring macOS Intel builds: the release workflow no longer builds darwin-x64, and 17-0.107.0's darwin-x64 archive is recorded under `retired_platforms`. The archive stays on R2 and in `releases.json` (published URLs are immutable), so `getReleaseInfo` still returns it, but it is no longer in the engine's supported platforms. FerretDB v1 and every other engine's Intel builds are unchanged.
+- **postgresql-documentdb darwin-arm64 requires macOS 15 or newer.** Its Homebrew-bundled PostGIS, BSON and compression libraries are built for the macos-15 runner, so its release job checks the minimum macOS with `--max 15.0`; every other source build stays at 14.0.
+
+### Fixed
+
+- **MariaDB macOS plugins no longer point at the build machine.** `fix-macos-dylibs.sh` only rewrote `bin/*` and `lib/**/*.dylib`, so plugins such as `caching_sha2_password.so`, `client_ed25519.so`, `parsec.so`, `auth_parsec.so`, `auth_mysql_sha2.so` and `sha256_password.so` kept absolute OpenSSL paths (the published 13.0.2 archive references Homebrew's, and a fresh build would reference the build machine's dependency prefix). It now bundles, rewrites, signs and verifies every Mach-O file under `lib/`, including `.so` plugins and Erlang NIFs. The lz4, lzo and snappy compression providers and the client zstd plugin are no longer built on macOS: they linked Homebrew bottles that most Macs do not have. They are optional, load-on-demand plugins; without them `INSTALL SONAME` reports the plugin as unavailable and the server keeps running. Already-published archives are unchanged until the next MariaDB build.
+- `check-macos-dylibs.sh` now fails on any Mach-O file (anywhere in the archive, every architecture) that loads a library or sets an rpath by an absolute path outside `/usr/lib` and `/System`, and takes `.tar.gz` archives. The MariaDB, Redis, Valkey and CouchDB release jobs run it next to the minimum-macOS check.
+- `check-macos-minos.sh` recognizes the fat64 magic, documents why static `.a` archives are not scanned, and reports a file `otool` cannot read (instead of exiting silently), still failing the job.
+
+### Added
+
+- `release-mariadb.yml` takes a `dry_run` input that builds and checks without creating a release, uploading to R2 or changing `releases.json`.
+
 ## [0.47.2] - 2026-11-01
 
 ### Changed

@@ -20,29 +20,30 @@ jobs:
 
       - name: Check if version needs publishing
         id: check
+        env:
+          SEMVER_LIB: ${{ runner.temp }}/semver-lib/node_modules/semver
         run: |
-          CURRENT=$(node -p "require('./package.json').version")
-          NPM=$(npm view hostdb version 2>/dev/null || echo "0.0.0")
-          echo "current=$CURRENT" >> $GITHUB_OUTPUT
-          echo "npm=$NPM" >> $GITHUB_OUTPUT
-
-          NEWER=$(node -e "
-            const c = '$CURRENT'.split('.').map(Number);
-            const n = '$NPM'.split('.').map(Number);
-            for (let i = 0; i < 3; i++) {
-              if (c[i] > n[i]) { console.log('true'); process.exit(0); }
-              if (c[i] < n[i]) { console.log('false'); process.exit(0); }
+          npm install --prefix "$RUNNER_TEMP/semver-lib" --no-save --no-package-lock --ignore-scripts --silent semver@7.6.3
+          NPM_VERSION=$(npm view hostdb version 2>/dev/null || echo "0.0.0") node -e '
+            const semver = require(process.env.SEMVER_LIB)
+            const fs = require("fs")
+            const current = JSON.parse(fs.readFileSync("package.json", "utf8")).version
+            if (typeof current !== "string" || /[\r\n]/.test(current) || semver.valid(current) !== current) {
+              console.error("::error::package.json version must be a single-line semver version")
+              process.exit(1)
             }
-            console.log('false');
-          ")
-
-          if [ "$NEWER" = "true" ]; then
-            echo "Publishing $NPM -> $CURRENT"
-            echo "publish=true" >> $GITHUB_OUTPUT
-          else
-            echo "Version $CURRENT is not newer than npm version $NPM, skipping publish"
-            echo "publish=false" >> $GITHUB_OUTPUT
-          fi
+            if (semver.prerelease(current)) {
+              console.error("::error::package.json version must be a release version: prereleases are not published")
+              process.exit(1)
+            }
+            const rawNpm = (process.env.NPM_VERSION || "").trim()
+            const npm = semver.valid(rawNpm) === rawNpm ? rawNpm : "0.0.0"
+            const publish = semver.gt(current, npm)
+            console.log(publish
+              ? `Publishing ${npm} -> ${current}`
+              : `Version ${current} is not newer than npm version ${npm}, skipping publish`)
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `current=${current}\nnpm=${npm}\npublish=${publish}\n`)
+          '
 
       - name: Setup pnpm
         if: steps.check.outputs.publish == 'true'

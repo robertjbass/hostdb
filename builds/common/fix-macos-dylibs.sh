@@ -4,11 +4,16 @@
 # Usage: ./builds/common/fix-macos-dylibs.sh <package-root>
 #
 # Takes a package directory (e.g. install/redis, install/mariadb) and:
-#   1. Scans all Mach-O binaries for Homebrew dependencies
+#   1. Scans all Mach-O files in bin/ and lib/ (dylibs, plugin .so bundles,
+#      helper executables) for Homebrew dependencies
 #   2. Recursively copies those dylibs into the package's lib/ directory
 #   3. Rewrites all absolute paths to @loader_path relative references
 #   4. Re-signs all modified binaries (required by macOS)
 #   5. Verifies no Homebrew paths remain (fails CI if any found)
+#
+# lib/ is scanned by Mach-O magic, not by extension: MariaDB plugins
+# (lib/plugin/*.so) and Erlang NIFs link OpenSSL and ICU too, and a plugin
+# left pointing at the build machine fails to load on every user's Mac.
 #
 # Libraries under $HOSTDB_MACOS_DEPS_PREFIX (built by build-macos-deps.sh with
 # the pinned deployment target) are bundled the same way as Homebrew ones.
@@ -66,6 +71,15 @@ echo "Phase 1: Bundling Homebrew dependencies..."
 
 LIB_DIR="${PACKAGE_ROOT}/lib"
 mkdir -p "$LIB_DIR"
+
+# Every Mach-O file under lib/, one path per line. Static .a archives are not
+# Mach-O (they start with "!<arch>") and are left alone.
+list_lib_machos() {
+    find "$LIB_DIR" -type f -print0 2>/dev/null | perl -0 -ne '
+        chomp; open(my $f, "<", $_) or next; binmode $f;
+        read($f, my $m, 4) == 4 or next;
+        print "$_\n" if unpack("H8", $m) =~ /^(cffaedfe|cefaedfe|cafebabe|cafebabf|feedfacf|feedface)$/'
+}
 
 # Track processed libraries to avoid infinite recursion
 PROCESSED_FILE=$(mktemp)
@@ -139,7 +153,7 @@ if [[ -d "${PACKAGE_ROOT}/bin" ]]; then
     done
 fi
 
-# Scan dylibs in lib/ (and subdirectories) — loop until no new deps discovered
+# Scan Mach-O files in lib/ (and subdirectories) - loop until no new deps discovered
 prev_count=0
 curr_count=1
 while [[ $prev_count -ne $curr_count ]]; do
@@ -148,7 +162,7 @@ while [[ $prev_count -ne $curr_count ]]; do
         [[ -f "$dylib" ]] || continue
         deps=$(otool -L "$dylib" 2>/dev/null | tail -n +2 | awk '{print $1}') || continue
         for dep in $deps; do copy_lib_recursive "$dep"; done
-    done < <(find "$LIB_DIR" -name '*.dylib' -type f 2>/dev/null)
+    done < <(list_lib_machos)
     curr_count=$(find "$LIB_DIR" -name '*.dylib' -type f 2>/dev/null | wc -l | tr -d ' ')
 done
 
@@ -242,10 +256,11 @@ if [[ -d "${PACKAGE_ROOT}/bin" ]]; then
     done
 fi
 
-# Fix all dylibs in lib/ (including subdirectories)
+# Fix all Mach-O files in lib/ (including subdirectories): dylibs, plugin
+# bundles and helpers all resolve @loader_path from their own directory.
 while IFS= read -r dylib; do
     [[ -f "$dylib" ]] && fix_references "$dylib" "dylib"
-done < <(find "$LIB_DIR" -name '*.dylib' -type f 2>/dev/null)
+done < <(list_lib_machos)
 
 # Fix rpaths on dylibs — remove Homebrew paths, add @loader_path
 echo "Phase 3b: Fixing rpaths on dylibs..."
@@ -263,7 +278,7 @@ while IFS= read -r dylib; do
             install_name_tool -add_rpath "@loader_path" "$dylib" 2>/dev/null || true
         fi
     fi
-done < <(find "$LIB_DIR" -name '*.dylib' -type f 2>/dev/null)
+done < <(list_lib_machos)
 
 # ============================================================================
 # Phase 4: Code sign all modified Mach-O files
@@ -282,7 +297,7 @@ while IFS= read -r f; do
     if [[ -f "$f" ]]; then
         codesign -s - --force "$f" 2>/dev/null && ((SIGNED_COUNT++)) || true
     fi
-done < <(find "$LIB_DIR" -name '*.dylib' -type f 2>/dev/null)
+done < <(list_lib_machos)
 
 echo "  Signed ${SIGNED_COUNT} files"
 
@@ -320,7 +335,7 @@ while IFS= read -r dylib; do
     [[ -f "$dylib" ]] || continue
     local_path="${dylib#${LIB_DIR}/}"
     check_file "$dylib" "lib/${local_path}"
-done < <(find "$LIB_DIR" -name '*.dylib' -type f 2>/dev/null)
+done < <(list_lib_machos)
 
 if [[ $VERIFY_FAILED -eq 1 ]]; then
     echo "ERROR: Some binaries still have non-relocatable Homebrew paths!"
