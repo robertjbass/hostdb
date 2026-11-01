@@ -12,8 +12,8 @@ This package bundles PostgreSQL 17 with the DocumentDB extension and several sup
 |----------|--------|-------|
 | linux-x64 | Build | Source build inside an `ubuntu:22.04` container |
 | linux-arm64 | Build | Source build inside an `ubuntu:22.04` container (QEMU) |
-| darwin-x64 | Build | Native build on macOS Intel |
-| darwin-arm64 | Build | Native build on macOS Apple Silicon |
+| darwin-x64 | Retired | No longer built (2026-11-01). The 17-0.107.0 archive stays on R2 as a retired platform |
+| darwin-arm64 | Build | Native build on macOS Apple Silicon; requires macOS 15 or newer |
 | win32-x64 | Build | Stretch goal - hybrid download + source build |
 
 ## Bundled Extensions

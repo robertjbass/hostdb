@@ -437,6 +437,12 @@ jobs:
         if: runner.os == 'macOS'
         run: ./builds/common/check-macos-minos.sh --max 15.0 dist/*.tar.gz
 
+      # Fail if any shipped Mach-O file (binaries, dylibs, plugins/NIFs)
+      # loads a library by an absolute path outside /usr/lib and /System.
+      - name: Check relocatable macOS binaries
+        if: runner.os == 'macOS'
+        run: ./builds/common/check-macos-dylibs.sh dist/*.tar.gz
+
       - name: Generate checksum
         shell: bash
         run: |

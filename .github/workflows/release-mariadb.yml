@@ -33,6 +33,16 @@ on:
           - 'darwin-x64'
           - 'darwin-arm64'
           - 'win32-x64'
+      dry_run:
+        description: 'Build and check only: no GitHub release, no R2 upload, no releases.json change'
+        required: false
+        default: false
+        type: boolean
+
+# Every publishing job (release, upload-to-r2, update-releases) carries
+# `if: ${{ !inputs.dry_run }}`, so a dry run stops after the build and its
+# checks. The negation fails closed: anything but a real boolean false skips
+# publishing. tests/workflow-job-gates.test.ts pins these gates.
 
 # Prevent concurrent runs that could conflict when updating releases.json
 concurrency:
@@ -306,6 +316,12 @@ jobs:
           $CC -v -E -x c /dev/null 2>&1 | grep "selected sysroot" || true
 
           # Configure (disable Columnstore as it has macOS compatibility issues)
+          # The lz4/lzo/snappy compression providers and the client zstd
+          # plugin would link Homebrew bottles, which are built for the
+          # runner's macOS (above the pinned target) and absent on most users'
+          # Macs. They are optional, load-on-demand plugins (INSTALL SONAME or
+          # plugin-load-add) and are not built; bzip2 and lzma providers link
+          # the system libraries and stay.
           # Use xcrun to ensure cmake inherits correct SDK environment
           # Include both Xcode SDK and Homebrew in search paths (exclude Command Line Tools)
           # CMAKE_POLICY_VERSION_MINIMUM fixes compatibility with older wsrep-lib CMakeLists.txt
@@ -338,6 +354,10 @@ jobs:
             -DPLUGIN_DUCKDB=NO \
             -DPLUGIN_VIDEX=NO \
             -DPLUGIN_S3=NO \
+            -DPLUGIN_PROVIDER_LZ4=NO \
+            -DPLUGIN_PROVIDER_LZO=NO \
+            -DPLUGIN_PROVIDER_SNAPPY=NO \
+            -DCLIENT_PLUGIN_ZSTD=OFF \
             -DCOMPILATION_COMMENT="hostdb build" \
             -DCOMPILATION_COMMENT_SERVER="Built by hostdb for spindb"
 
@@ -389,6 +409,12 @@ jobs:
         if: runner.os == 'macOS'
         run: ./builds/common/check-macos-minos.sh dist/*.tar.gz
 
+      # Fail if any shipped Mach-O file (binaries, dylibs, lib/plugin/*.so)
+      # loads a library by an absolute path outside /usr/lib and /System.
+      - name: Check relocatable macOS binaries
+        if: runner.os == 'macOS'
+        run: ./builds/common/check-macos-dylibs.sh dist/*.tar.gz
+
       - name: Generate checksum
         run: |
           cd dist
@@ -418,6 +444,7 @@ jobs:
   # Collect all artifacts and create release
   release:
     needs: build
+    if: ${{ !inputs.dry_run }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -553,6 +580,7 @@ jobs:
   # Update the releases manifest
   upload-to-r2:
     needs: release
+    if: ${{ !inputs.dry_run }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -577,6 +605,7 @@ jobs:
 
   update-releases:
     needs: upload-to-r2
+    if: ${{ !inputs.dry_run }}
     # releases.json is one shared file committed to main and pushed to R2, and
     # each run rebuilds the WHOLE manifest, so two of these at once is
     # last-writer-wins: the loser's version silently disappears from the
