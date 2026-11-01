@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.47.2] - 2026-11-01
+
+### Changed
+
+- macOS release workflows run on `macos-15` (GitHub retires the `macos-14` image on 2026-11-02).
+- macOS release builds pin a minimum macOS deployment target (`builds/common/macos-deployment-target.env`), build their dependencies against it (`builds/common/build-macos-deps.sh`), and check every shipped Mach-O against it (`builds/common/check-macos-minos.sh`).
+- The PostgreSQL macOS build check accepts `.dylib` extension modules.
+
+No database versions or published binaries change in this release; the new checks apply to future macOS builds.
+
 ## [0.47.1] - 2026-11-01
 
 ### Changed

@@ -17,7 +17,7 @@ mkdir -p "$prefix/share/licenses"
 export BUILD_JOBS=${BUILD_JOBS:-3}
 export MAKEFLAGS="-j$BUILD_JOBS"
 export CARGO_BUILD_JOBS=$BUILD_JOBS
-export MACOSX_DEPLOYMENT_TARGET=14.0
+source "$script_dir/../common/macos-deployment-target.env"
 export SDKROOT=$(xcrun --show-sdk-path)
 export HOMEBREW_NO_AUTO_UPDATE=1
 brew install openssl@3 readline libxml2 icu4c zlib lz4 zstd pkg-config cmake pcre2 geos proj json-c protobuf-c flex bison bash

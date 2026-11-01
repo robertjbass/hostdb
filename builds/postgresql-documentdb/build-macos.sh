@@ -152,12 +152,18 @@ log_success "Extracted PostgreSQL source"
 # to the binary location at runtime - we just need a STANDARD directory structure
 log_info "Configuring PostgreSQL (standard --prefix layout)..."
 
-# Set deployment target to current OS version.
-# macOS 15.5 SDK declares strchrnul (available since 15.4), and PostgreSQL's
-# configure adds -Werror=unguarded-availability-new which errors if the
-# deployment target is lower than 15.4. Setting it to the running OS version
-# avoids this on x64 (macOS 15) and is a no-op on arm64 (macOS 14, no strchrnul).
-export MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
+# Pin the minimum macOS (builds/common/macos-deployment-target.env) instead of
+# inheriting the build machine's version.
+# shellcheck source=../common/macos-deployment-target.env
+source "$SCRIPT_DIR/../common/macos-deployment-target.env"
+log_info "MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
+
+# macOS 15.4+ SDKs declare strchrnul (available since 15.4). PostgreSQL before
+# 17.5 detects it with a link test only, then fails to compile under
+# -Werror=unguarded-availability-new when the deployment target is lower.
+# Tell configure it is missing so PostgreSQL uses its own fallback, as
+# 17.5+ does by itself for targets below 15.4.
+export ac_cv_func_strchrnul=no
 
 # Set up environment for configure
 export CPPFLAGS="-I${OPENSSL_PREFIX}/include -I${READLINE_PREFIX}/include -I${LIBXML2_PREFIX}/include -I${ICU_PREFIX}/include -I${ZLIB_PREFIX}/include -I${LZ4_PREFIX}/include -I${ZSTD_PREFIX}/include"
