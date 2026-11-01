@@ -65,13 +65,14 @@ Captured in the repo (not just personal memory) so they're accessible from any m
 ### Publish cascade order (database-version patch wave)
 
 1. Edit `databases.yml` (+ `defaults` block if needed) and `builds/<engine>/sources.json`. Bump `package.json` patch.
-2. Commit + push hostdb branch. Run the engine release workflow. Merge to main. `publish.yml` fires → npm publish via OIDC.
+2. Commit + push the hostdb branch and run the engine release workflow. Open the `dev -> main` release PR; Bob merges it (agents never merge to `main`). The merge fires `publish.yml`, which publishes to npm via OIDC.
 3. **Verify** `npm view hostdb version` shows the new version before touching anything downstream.
-4. Bump `"hostdb": "X.Y.Z"` in `spindb/package.json` (exact pin). Tests, version bump, merge.
-5. Bump `SPINDB_VERSION` in `layerbase-cloud/images/Dockerfile.base`. Image build + deploy fires.
-6. Bump `"spindb": "X.Y.Z"` in `layerbase-desktop/package.json`. Next desktop release ships it.
+4. Bump `"hostdb": "X.Y.Z"` in `spindb/package.json` (exact pin). Tests, spindb version bump, PR to spindb `dev`; Bob merges the spindb release to `main`, which publishes it.
+5. **Verify** `npm view spindb@<new version> version` prints that exact version before touching cloud or desktop: the image installs spindb, not hostdb.
+6. Bump `SPINDB_VERSION` in `layerbase-cloud/images/Dockerfile.base` to that verified spindb version. Image build + deploy fires.
+7. Bump `"spindb": "X.Y.Z"` in `layerbase-desktop/package.json` to the same version. Next desktop release ships it.
 
-If you bump step 5 before step 3 completes, `npm install -g spindb@X.Y.Z` in the Dockerfile fails - the image build goes red.
+If you bump step 6 before step 5 completes, `npm install -g spindb@X.Y.Z` in the Dockerfile fails - the image build goes red.
 
 See `UPGRADE_PLAYBOOK.md` for the long-form playbook (mental model, why each step exists, troubleshooting).
 
