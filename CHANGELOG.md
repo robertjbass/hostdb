@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.47.1] - 2026-11-01
+
+### Changed
+
+- Version Check reads the PR's `package.json` version as data, requires a single-line semver version, and compares it with the published version using semver.
+- Agent rules: `AGENTS.md` is the canonical rules file, with project management and publish cascade wording (who merges, verifying the spindb version). No package contents change.
+
 ## [0.47.0] - 2026-10-23
 
 ### Added
