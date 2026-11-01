@@ -150,7 +150,7 @@ jobs:
             {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
             {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
             {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
-            {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "native"},
+            {"platform": "darwin-arm64", "runner": "macos-15", "build_type": "native"},
             {"platform": "win32-x64", "runner": "ubuntu-latest", "build_type": "download"}
           ]'
 
