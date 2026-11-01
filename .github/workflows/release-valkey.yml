@@ -112,7 +112,7 @@ jobs:
               {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
               {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
               {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
-              {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "native"},
+              {"platform": "darwin-arm64", "runner": "macos-15", "build_type": "native"},
               {"platform": "win32-x64", "runner": "windows-latest", "build_type": "native-windows"}
             ]'
           else
@@ -125,7 +125,7 @@ jobs:
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\", \"build_type\": \"native\"}]"
                 ;;
               darwin-arm64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-14\", \"build_type\": \"native\"}]"
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15\", \"build_type\": \"native\"}]"
                 ;;
               win32-x64)
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"windows-latest\", \"build_type\": \"native-windows\"}]"
@@ -210,11 +210,15 @@ jobs:
 
           echo "Building Valkey $VERSION for $PLATFORM (native macOS build)"
 
-          # Install build dependencies
-          brew install openssl@3
-
-          # Get Homebrew prefix (differs between ARM64 and Intel macOS)
-          OPENSSL_PREFIX=$(brew --prefix openssl@3)
+          # Pin the minimum macOS (see builds/common/macos-deployment-target.env)
+          # and build the bundled OpenSSL with it: Homebrew bottles carry the
+          # runner's own macOS as their minimum.
+          source "$GITHUB_WORKSPACE/builds/common/macos-deployment-target.env"
+          echo "MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
+          DEPS_PREFIX="$RUNNER_TEMP/hostdb-macos-deps"
+          "$GITHUB_WORKSPACE/builds/common/build-macos-deps.sh" --prefix "$DEPS_PREFIX" openssl
+          export HOSTDB_MACOS_DEPS_PREFIX="$DEPS_PREFIX"
+          OPENSSL_PREFIX="$DEPS_PREFIX"
 
           echo "Using OpenSSL at: $OPENSSL_PREFIX"
 
@@ -359,6 +363,12 @@ jobs:
 
           echo "Build complete:"
           ls -la ../dist/
+
+      # Fail if any shipped Mach-O file needs a newer macOS than the pinned
+      # target (builds/common/macos-deployment-target.env).
+      - name: Check minimum macOS
+        if: runner.os == 'macOS'
+        run: ./builds/common/check-macos-minos.sh dist/*.tar.gz
 
       - name: Generate checksum (Unix)
         if: matrix.build_type != 'native-windows'

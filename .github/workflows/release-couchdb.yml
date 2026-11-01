@@ -111,7 +111,7 @@ jobs:
               {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
               {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
               {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "download"},
-              {"platform": "darwin-arm64", "runner": "macos-14", "build_type": "download"},
+              {"platform": "darwin-arm64", "runner": "macos-15", "build_type": "download"},
               {"platform": "win32-x64", "runner": "windows-latest", "build_type": "msi-extract"}
             ]'
           else
@@ -124,7 +124,7 @@ jobs:
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\", \"build_type\": \"download\"}]"
                 ;;
               darwin-arm64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-14\", \"build_type\": \"download\"}]"
+                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15\", \"build_type\": \"download\"}]"
                 ;;
               win32-x64)
                 MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"windows-latest\", \"build_type\": \"msi-extract\"}]"
@@ -426,6 +426,16 @@ jobs:
 
           Write-Host "Build complete:"
           Get-ChildItem -Path ".\dist"
+
+      # Fail if any shipped Mach-O file needs a newer macOS than the pinned
+      # target (builds/common/macos-deployment-target.env).
+      # CouchDB repackages the Neighbourhoodie build, whose Erlang runtime and
+      # NIFs already require macOS 15.0 (3.5.2, both architectures), and
+      # bundles Homebrew dylibs for the runner's macOS. Its minimum is set
+      # upstream, so the ceiling here is that published 15.0.
+      - name: Check minimum macOS
+        if: runner.os == 'macOS'
+        run: ./builds/common/check-macos-minos.sh --max 15.0 dist/*.tar.gz
 
       - name: Generate checksum
         shell: bash

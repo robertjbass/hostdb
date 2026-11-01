@@ -179,7 +179,7 @@ jobs:
           - platform: darwin-x64
             runner: macos-15-intel
           - platform: darwin-arm64
-            runner: macos-14
+            runner: macos-15
           - platform: win32-x64
             runner: windows-latest
     steps:
@@ -189,6 +189,18 @@ jobs:
         with:
           name: duckdb-${{ inputs.version }}
           path: ./release-assets
+
+      - name: Checkout (minimum macOS check)
+        if: runner.os == 'macOS' && (inputs.platforms == 'all' || inputs.platforms == matrix.platform)
+        uses: actions/checkout@v6
+        with:
+          path: hostdb
+
+      # DuckDB repackages the upstream binary; this fails if a new upstream
+      # release needs a newer macOS than builds/common/macos-deployment-target.env.
+      - name: Check minimum macOS
+        if: runner.os == 'macOS' && (inputs.platforms == 'all' || inputs.platforms == matrix.platform)
+        run: ./hostdb/builds/common/check-macos-minos.sh ./release-assets/duckdb-${{ inputs.version }}-${{ matrix.platform }}.tar.gz
 
       - name: Verify packaged runtime and SQL round trip
         if: inputs.platforms == 'all' || inputs.platforms == matrix.platform

@@ -151,6 +151,24 @@ chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
 
 Diagnostic — scans packages for non-relocatable Homebrew paths without modifying anything. Runs locally via `pnpm check:dylibs [-- <path>]`. The `audit-dylibs` workflow (`workflow_dispatch`) audits published releases on R2.
 
+### Minimum macOS: `macos-deployment-target.env`, `build-macos-deps.sh`, `check-macos-minos.sh`
+
+Without an explicit deployment target, clang stamps the build machine's macOS as the binary's minimum, so a runner image upgrade (macos-14 to macos-15) silently drops users on the older macOS. Homebrew bottles have the same problem: they are built for the runner's macOS, and Homebrew strips `MACOSX_DEPLOYMENT_TARGET` when it builds from source, so every bundled Homebrew dylib raises the package minimum.
+
+- `macos-deployment-target.env` holds the one pinned target (`MACOSX_DEPLOYMENT_TARGET=14.0`, the floor of the published darwin-arm64 source builds). Every macOS source build sources it before configuring; CMake builds also pass `-DCMAKE_OSX_DEPLOYMENT_TARGET`.
+- `build-macos-deps.sh --prefix <dir> openssl [icu]` builds the bundled OpenSSL and ICU from pinned, checksummed sources with that target. Export `HOSTDB_MACOS_DEPS_PREFIX=<dir>` so `fix-macos-dylibs.sh` bundles from it.
+- `check-macos-minos.sh [--max <version>] [--report] <path|tarball>...` fails if any Mach-O file in the output needs a newer macOS than the target. Every macOS release job runs it on `dist/*.tar.gz` before the checksum step.
+
+| Build | Minimum macOS | Controlled by |
+|---|---|---|
+| PostgreSQL, MariaDB, Redis, Valkey (source, both architectures) | 14.0 | the shared target, plus OpenSSL/ICU from `build-macos-deps.sh` |
+| PostgreSQL-DocumentDB (source) | 14.0 for its own code; its Homebrew-bundled PostGIS/BSON/compression libraries follow the runner (15.0 on macos-15), so the check fails until those are built with the target too | partly |
+| InfluxDB darwin-x64 (Rust source) | 10.15 (bundled python-build-standalone floor) | `builds/influxdb/build-macos.sh` |
+| CouchDB (Neighbourhoodie prebuilt) | 15.0 (upstream Erlang runtime and NIFs) | upstream; checked with `--max 15.0` |
+| ClickHouse, DuckDB (upstream prebuilt) | 11.0 today | upstream; checked against the shared target |
+
+Raising the target drops support for that macOS version: make it a deliberate, documented decision, never a side effect of a runner change.
+
 ---
 
 ## macOS native build reference
