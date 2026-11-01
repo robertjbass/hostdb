@@ -491,8 +491,8 @@
           },
           "darwin-x64": {
             "url": "https://registry.layerbase.host/mariadb-13.0.2/mariadb-13.0.2-darwin-x64.tar.gz",
-            "sha256": "091ae0e8e591398f8728849c5b0db7d4b1e55ffda394eb8899a09594b143bc18",
-            "size": 87752540
+            "sha256": "c15a77d092d4f4b2c2f69236c565d9be39a96d8ca3159476dc2d93f15c12d855",
+            "size": 87927484
           },
           "linux-arm64": {
             "url": "https://registry.layerbase.host/mariadb-13.0.2/mariadb-13.0.2-linux-arm64.tar.gz",
