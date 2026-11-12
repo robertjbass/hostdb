@@ -301,6 +301,44 @@ against the extracted, relocated archive inside the smoke container. Do not
 run that dependency check against the build host: a newer distro may lack a
 required older soname, and a cross-build host may use another architecture.
 
+#### RC2 qualification results (2026-11-12)
+
+These are dry-run build results, with source mirroring, GitHub releases, R2
+uploads and manifest publication skipped. No downstream package release or
+deployment is included in this qualification.
+
+| Platform | Result | Run |
+| --- | --- | --- |
+| linux-x64 | Passed, including pg_cron and PostGIS runtime gates | [43312971706](https://github.com/robertjbass/hostdb/actions/runs/43312971706) |
+| linux-arm64 | Passed, including binary and GLIBC checks | [43313676368](https://github.com/robertjbass/hostdb/actions/runs/43313676368) |
+| darwin-arm64 | Passed, including minimum macOS and archive checks | [43315361534](https://github.com/robertjbass/hostdb/actions/runs/43315361534) |
+| darwin-x64 | Passed, including minimum macOS and archive checks | [43320552043](https://github.com/robertjbass/hostdb/actions/runs/43320552043) |
+| win32-x64 | Not configured: no verified EDB RC2 ZIP | |
+
+The linux-x64 runtime reports PostGIS 3.7.0, GEOS 3.14.1 and PROJ 9.8.1.
+Geometry/geography, coordinate transforms, vector tiles, GeoJSON, GiST,
+dump/restore and a pg_cron job calling PostGIS all passed against the relocated
+archive. PostGIS and pg_cron remain linux-x64 only. The downloaded Apple Silicon
+`postgres`, `psql` and `initdb` executables also load locally and report `19rc2`.
+
+#### PostgreSQL 18.7 qualification
+
+The same branch adds 18.7.0 for all five platforms. Windows uses the official
+EDB 18.7 ZIP, with its SHA-256 pinned in `sources.json`; the archive's
+`pg_config.h` reports PostgreSQL 18.7. Linux x64 retains PostGIS 3.6.4 and
+pg_cron 1.6.8. The `18` default stays at 18.6.0 during qualification; 18.7.0
+is listed as the newest stable version in the candidate catalog only.
+
+```bash
+gh workflow run release-postgresql.yml --repo robertjbass/hostdb \
+  --ref feat/postgresql-19-rc2-dry-run -f version=18.7.0 -f platforms=all -f dry_run=true
+```
+
+Publication and deployment remain separate decisions. Before a production
+upgrade, review the [upstream updating guidance](https://www.postgresql.org/about/news/postgresql-187-1712-1616-1520-1425-and-19-rc-2-released-3442/):
+affected indexes may need reindexing, and incremental-backup users should
+start a new full backup chain. These dry runs do not upgrade any databases.
+
 ### Rebuilding an archive in place for PostGIS (operator steps)
 
 The same procedure as "Rebuilding an archive in place for pg_cron" above,
