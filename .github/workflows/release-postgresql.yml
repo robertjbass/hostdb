@@ -450,14 +450,14 @@ jobs:
           trap 'rm -rf "$FIXTURE_ROOT"; docker image rm postgis-smoke' EXIT
           tar -xzf "dist/postgresql-${PG_VERSION}-linux-x64.tar.gz" -C "$FIXTURE_ROOT"
           chmod -R a+rX "$FIXTURE_ROOT"
-          ./builds/postgresql/postgis.sh verify "$FIXTURE_ROOT/postgresql"
           echo "PostGIS manifest: $(./builds/postgresql/postgis.sh manifest "$FIXTURE_ROOT/postgresql" | wc -l) paths"
           docker run --rm --network none --read-only --user 65534:65534 \
             --memory 1g --cpus 0.5 --tmpfs /tmp:rw,exec,size=256m \
             -e EXPECTED_POSTGIS="$EXPECTED_POSTGIS" -e EXPECTED_GEOS="$EXPECTED_GEOS" -e EXPECTED_PROJ="$EXPECTED_PROJ" \
             --mount "type=bind,src=$FIXTURE_ROOT/postgresql,dst=/relocated/postgresql,readonly" \
+            --mount "type=bind,src=$PWD/builds/postgresql/postgis.sh,dst=/postgis.sh,readonly" \
             --mount "type=bind,src=$PWD/builds/postgresql/smoke-postgis.sh,dst=/smoke-postgis.sh,readonly" \
-            postgis-smoke bash /smoke-postgis.sh /relocated/postgresql
+            postgis-smoke bash -c 'bash /postgis.sh verify /relocated/postgresql && exec bash /smoke-postgis.sh /relocated/postgresql'
 
       # For Windows: download official EDB binary
       - name: Download for Windows (official EDB binary)
