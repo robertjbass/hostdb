@@ -196,7 +196,7 @@ pin or scope change is a one-file edit.
 | PostgreSQL | PostGIS | GEOS | PROJ | Extra bundled runtime |
 | --- | --- | --- | --- | --- |
 | 18.x | 3.6.4 | 3.14.1 | 9.8.1 | json-c, protobuf-c, SQLite (Ubuntu 22.04) |
-| 19.x | 3.7.0rc2 (only line supporting 19) | 3.14.1 | 9.8.1 | the same; libgmp only if linked (see below) |
+| 19.x | 3.7.0 (supports PostgreSQL 19) | 3.14.1 | 9.8.1 | the same; libgmp only if linked (see below) |
 
 Scope and exclusions:
 
@@ -209,9 +209,9 @@ Scope and exclusions:
   Windows come later for Desktop and the CLI.
 - **A new major fails closed.** `applies` errors for an in-scope major with no
   PostGIS line (PostgreSQL 20), so a new major cannot ship without PostGIS by
-  accident. At PostgreSQL 19 GA, replace `POSTGIS_37_VERSION` and
-  `POSTGIS_37_SHA256` with the 3.7.0 final release; the 3.7 branch is
-  otherwise the GA recipe.
+  accident. PostgreSQL 19 RC2 qualification uses PostGIS 3.7.0 final,
+  checksum-verified against the official source archive. The same recipe is
+  intended for PostgreSQL 19 GA, subject to rebuilding and passing the gates.
 
 How the archive is assembled (all inside `postgis.sh install`, after
 PostgreSQL itself is installed, so the PostgreSQL files are untouched):
@@ -283,15 +283,23 @@ The release workflow has a `dry_run` input. A dry run builds, runs every smoke
 gate and the release job's asset checks (`dry-run-checks`), and publishes
 nothing: `mirror-postgis-sources`, `release`, `upload-to-r2` and
 `update-releases` each carry `if: ${{ !inputs.dry_run }}`
-(`tests/postgresql-postgis.test.ts` pins this). It is safe to dispatch from any
-branch:
+and the completed run records those jobs as skipped. Dispatch from the
+qualification branch with `dry_run=true`:
 
 ```bash
 gh workflow run release-postgresql.yml --repo robertjbass/hostdb \
-  --ref feat/postgis-linux-x64 -f version=18.6.0 -f platforms=linux-x64 -f dry_run=true
+  --ref feat/postgresql-19-rc2-dry-run -f version=19.0.0-rc.2 -f platforms=linux-x64 -f dry_run=true
 ```
 
-The built archives are kept as run artifacts for a day for inspection.
+The built archives are kept as run artifacts for a day for inspection. RC2 is
+configured for Linux x64/arm64 and macOS x64/arm64; Windows awaits a verified
+EDB RC2 ZIP. Stable defaults and existing published archives are unchanged.
+
+The Linux archive expects PostgreSQL system dependencies from its target
+runtime. Full PostGIS verification runs in the Docker packager and again
+against the extracted, relocated archive inside the smoke container. Do not
+run that dependency check against the build host: a newer distro may lack a
+required older soname, and a cross-build host may use another architecture.
 
 ### Rebuilding an archive in place for PostGIS (operator steps)
 

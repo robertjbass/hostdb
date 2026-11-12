@@ -46,7 +46,6 @@ on:
 # upload-to-r2, update-releases) carries `if: ${{ !inputs.dry_run }}`, so a
 # dry run stops after the build, the smoke gates and dry-run-checks. The
 # negation fails closed: anything but a real boolean false skips publishing.
-# tests/postgresql-postgis.test.ts pins these gates.
 
 # Prevent concurrent runs that could conflict when updating releases.json
 concurrency:
