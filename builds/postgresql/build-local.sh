@@ -222,18 +222,12 @@ if [[ "$PG_CRON" == "yes" ]]; then
 fi
 
 # PostGIS ships inside the standard build wherever postgis.sh scopes it in. The
-# Docker packager stage already ran the full verify; repeat it on Linux hosts,
-# where ldd can resolve the extracted archive. On macOS only the file checks
-# are possible, so rely on the packager stage there.
+# Docker packager stage already ran the full verify with the target runtime
+# dependencies. The build host may use a different distro or architecture;
+# the release workflow verifies the extracted archive in its smoke container.
 POSTGIS=$("${SCRIPT_DIR}/postgis.sh" applies "$VERSION" "$PLATFORM")
 if [[ "$POSTGIS" == "yes" ]]; then
-    if [[ "$(uname -s)" == "Linux" ]]; then
-        if ! "${SCRIPT_DIR}/postgis.sh" verify "${OUTPUT_PATH}/postgresql"; then
-            log_error "PostGIS is required for PostgreSQL ${VERSION} on ${PLATFORM}. Rebuild with --no-cache and check the PostGIS step of the Dockerfile."
-            exit 1
-        fi
-        log_success "PostGIS extension verified"
-    elif [[ -f "${OUTPUT_PATH}/postgresql/lib/postgis-3.so" && -f "${OUTPUT_PATH}/postgresql/share/proj/proj.db" ]]; then
+    if [[ -f "${OUTPUT_PATH}/postgresql/lib/postgis-3.so" && -f "${OUTPUT_PATH}/postgresql/share/proj/proj.db" ]]; then
         log_success "PostGIS extension found (full verify ran in the Docker packager stage)"
     else
         log_error "PostGIS is required for PostgreSQL ${VERSION} on ${PLATFORM} but lib/postgis-3.so or share/proj/proj.db is missing."

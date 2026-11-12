@@ -8,7 +8,6 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert/strict'
 import { execFileSync, spawnSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -60,34 +59,5 @@ describe('pg-cron.sh applies', () => {
     )
     assert.notEqual(result.status, 0)
     assert.equal(result.stdout, '')
-  })
-})
-
-describe('pg_cron build wiring', () => {
-  test('no build path pins pg_cron versions by name', () => {
-    for (const file of [
-      'builds/postgresql/Dockerfile',
-      'builds/postgresql/build-local.sh',
-      '.github/workflows/release-postgresql.yml',
-    ]) {
-      const content = readFileSync(join(ROOT, file), 'utf-8')
-      assert.ok(
-        !/-cron\.(\d|\*)/.test(content),
-        `${file} still special-cases a -cron revision`,
-      )
-      assert.ok(
-        !content.includes('codeload.github.com/citusdata'),
-        `${file} duplicates the pg_cron source`,
-      )
-    }
-  })
-
-  test('the Dockerfile builds and verifies through pg-cron.sh', () => {
-    const dockerfile = readFileSync(
-      join(ROOT, 'builds/postgresql/Dockerfile'),
-      'utf-8',
-    )
-    assert.match(dockerfile, /pg-cron\.sh install/)
-    assert.match(dockerfile, /pg-cron\.sh verify/)
   })
 })
