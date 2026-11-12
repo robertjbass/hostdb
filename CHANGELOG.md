@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.48.1] - 2026-11-12
+
+### Added
+
+- PostgreSQL 18.7.0 sources for all five supported platforms. The major alias `18` remains pinned to `18.6.0` pending a separate promotion decision.
+
+### Fixed
+
+- Validate relocated PostgreSQL archives inside the target Linux runtime so build-host library differences do not reject compatible PostGIS bundles.
+
 ## [0.48.0] - 2026-11-01
 
 ### Changed

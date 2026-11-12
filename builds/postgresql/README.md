@@ -501,3 +501,10 @@ The macOS builds include the Xcode SDK fix for Xcode 16+ to prevent header confl
 - [PostgreSQL FTP](https://ftp.postgresql.org/pub/source/)
 - [EnterpriseDB Downloads](https://www.enterprisedb.com/downloads)
 - [EDB Binary Archives](https://www.enterprisedb.com/download-postgresql-binaries)
+
+
+## PostgreSQL 18.7 release candidate
+
+PostgreSQL 18.7.0 passed all five platform dry-run builds in [run 43324002608](https://github.com/robertjbass/hostdb/actions/runs/43324002608), including Linux x64 PostGIS 3.6.4 and pg_cron runtime checks. The candidate retains the same PostgreSQL 18 build recipe and verified EDB Windows source. Archive validation runs inside the target-runtime smoke container.
+
+This candidate excludes PostgreSQL 19 RC2 and PostGIS 3.7 changes. Publishing, registry snapshot regeneration from published artifacts, downstream package updates and default promotion remain separate approval gates. The major alias `18` remains `18.6.0`.
