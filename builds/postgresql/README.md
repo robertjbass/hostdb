@@ -334,6 +334,15 @@ gh workflow run release-postgresql.yml --repo robertjbass/hostdb \
   --ref feat/postgresql-19-rc2-dry-run -f version=18.7.0 -f platforms=all -f dry_run=true
 ```
 
+The [all-platform dry run](https://github.com/robertjbass/hostdb/actions/runs/43324002608)
+passed on 2026-11-12: Linux x64/arm64, macOS x64/arm64, Windows x64, and the
+aggregate binary, GLIBC and platform-coverage checks. All publishing jobs were
+skipped. The Linux x64 PostGIS and pg_cron runtime gates passed, including
+spatial operations, dump/restore, restart persistence and scheduler coexistence.
+All five downloaded archives match their workflow checksums. The Windows
+server, client, initdb and dump executables match the verified EDB ZIP
+byte-for-byte; the Apple Silicon executables load locally and report 18.7.
+
 Publication and deployment remain separate decisions. Before a production
 upgrade, review the [upstream updating guidance](https://www.postgresql.org/about/news/postgresql-187-1712-1616-1520-1425-and-19-rc-2-released-3442/):
 affected indexes may need reindexing, and incremental-backup users should
