@@ -1581,7 +1581,8 @@
             "sha256": "21b36e0b478cea9c3de18e9f56ced5ac7fb01edd495276ab5d17e6c8ea564096",
             "size": 25802442
           }
-        }
+        },
+        "releaseType": "rc"
       },
       "19.0.0-beta.1": {
         "version": "19.0.0-beta.1",
