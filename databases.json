@@ -695,6 +695,16 @@
             "linux-x64"
           ]
         },
+        "19.0.0-rc.2": {
+          "releaseType": "rc",
+          "note": "PostgreSQL 19 RC 2; opt-in prerelease. GA is planned for November 19, 2026. No verified EDB Windows package yet. Existing beta data directories require a separately validated upgrade path.",
+          "platforms": [
+            "linux-x64",
+            "linux-arm64",
+            "darwin-x64",
+            "darwin-arm64"
+          ]
+        },
         "19.0.0-beta.3-cron.1": {
           "deprecated": true,
           "releaseType": "beta",
