@@ -58,11 +58,9 @@ PROJ_SHA256="af5b731c145c1d13c4e3b4eeb7d167e94e845e440f71e3496b4ed8dae0291960"
 POSTGIS_36_VERSION="3.6.4"
 POSTGIS_36_SHA256="ed8dc6679f1e06f7b113592b04cde2a7e00f1b1e681294c8ca2204058990cec6"
 
-# PostGIS 3.7 line, for PostgreSQL 19. This branch is the recipe reused at
-# PostgreSQL 19 GA: replace POSTGIS_37_VERSION and POSTGIS_37_SHA256 with the
-# 3.7.0 final release and nothing else in the build changes.
-POSTGIS_37_VERSION="3.7.0rc2"
-POSTGIS_37_SHA256="67ef9e85fbf9ef8a99807c9ccd80bef839058b699d16764083d937b13e1259b3"
+# PostGIS 3.7 final, for PostgreSQL 19 RC2 and GA qualification.
+POSTGIS_37_VERSION="3.7.0"
+POSTGIS_37_SHA256="832bbf50f2b6f57fab053bc9676b3bfe641e5bf966cdcb28c7926f8d4b3c5e04"
 
 # libgmp (PostGIS 3.7 only) is the Ubuntu 22.04 libgmp10 package, bundled into
 # the archive. GMP is LGPL-3.0-or-later or GPL-2.0-or-later, so its exact

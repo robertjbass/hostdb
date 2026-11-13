@@ -196,7 +196,7 @@ pin or scope change is a one-file edit.
 | PostgreSQL | PostGIS | GEOS | PROJ | Extra bundled runtime |
 | --- | --- | --- | --- | --- |
 | 18.x | 3.6.4 | 3.14.1 | 9.8.1 | json-c, protobuf-c, SQLite (Ubuntu 22.04) |
-| 19.x | 3.7.0rc2 (only line supporting 19) | 3.14.1 | 9.8.1 | the same; libgmp only if linked (see below) |
+| 19.x | 3.7.0 (only line supporting 19) | 3.14.1 | 9.8.1 | the same; libgmp only if linked (see below) |
 
 Scope and exclusions:
 
@@ -508,3 +508,8 @@ The macOS builds include the Xcode SDK fix for Xcode 16+ to prevent header confl
 PostgreSQL 18.7.0 passed all five platform dry-run builds in [run 43324002608](https://github.com/robertjbass/hostdb/actions/runs/43324002608), including Linux x64 PostGIS 3.6.4 and pg_cron runtime checks. The candidate retains the same PostgreSQL 18 build recipe and verified EDB Windows source. Archive validation runs inside the target-runtime smoke container.
 
 This candidate excludes PostgreSQL 19 RC2 and PostGIS 3.7 changes. Publishing, registry snapshot regeneration from published artifacts, downstream package updates and default promotion remain separate approval gates. The major alias `18` remains `18.6.0`.
+
+
+## PostgreSQL 19 RC2 publication
+
+PostgreSQL 19.0.0-rc.2 is an opt-in prerelease for Linux and macOS on x64 and ARM64. Linux x64 bundles PostGIS 3.7.0 and pg_cron. Windows RC2 has no verified official package. This does not change the stable PostgreSQL default or authorize existing beta data directories to start under RC2.

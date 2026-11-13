@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.48.2] - 2026-11-12
+
+### Added
+
+- PostgreSQL 19 RC2 as an opt-in prerelease on Linux and macOS, x64 and ARM64. Windows RC2 is unavailable. PostgreSQL 18.7 remains available and the `18` default remains 18.6.0.
+- PostGIS 3.7.0 for PostgreSQL 19 Linux x64 builds, with the qualified pg_cron bundle.
+
 ## [0.48.1] - 2026-11-12
 
 ### Added

@@ -9,6 +9,7 @@ on:
         type: choice
         options:
           - 19.0.0-beta.3
+          - 19.0.0-rc.2
           - 19.0.0-beta.1
           - 18.7.0
           - 18.6.0
@@ -934,7 +935,7 @@ jobs:
   # before `release`; a no-op when PostGIS is not in this run's scope. Never
   # runs on a dry run, and never replaces an asset that already exists.
   mirror-postgis-sources:
-    needs: [prepare, build]
+    needs: [ prepare, build ]
     if: ${{ !inputs.dry_run }}
     runs-on: ubuntu-latest
     permissions:
@@ -1042,7 +1043,7 @@ jobs:
 
   # Collect all artifacts and create release
   release:
-    needs: [build, mirror-postgis-sources]
+    needs: [ build, mirror-postgis-sources ]
     if: ${{ !inputs.dry_run }}
     runs-on: ubuntu-latest
     permissions:

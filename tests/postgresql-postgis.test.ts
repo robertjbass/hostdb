@@ -35,7 +35,7 @@ function pins(version: string): Record<string, string> {
 
 describe('postgis.sh applies', () => {
   test('includes PostGIS in the linux-x64 builds Cloud offers for new databases', () => {
-    for (const version of ['18.6.0', '19.0.0-beta.3']) {
+    for (const version of ['18.6.0', '19.0.0-beta.3', '19.0.0-rc.2']) {
       assert.equal(applies(version, 'linux-x64'), 'yes', version)
     }
   })
@@ -91,7 +91,7 @@ describe('postgis.sh applies', () => {
 
 describe('postgis.sh pins', () => {
   test('mirror tags are source-mirror tags the manifest skips', () => {
-    for (const version of ['18.6.0', '19.0.0-beta.3']) {
+    for (const version of ['18.6.0', '19.0.0-beta.3', '19.0.0-rc.2']) {
       assert.ok(isSourceMirrorTag(pins(version).MIRROR_TAG))
     }
     assert.ok(!isSourceMirrorTag('postgresql-18.6.0'))

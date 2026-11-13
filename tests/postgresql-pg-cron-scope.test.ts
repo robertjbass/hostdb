@@ -22,7 +22,7 @@ function applies(version: string, platform: string): string {
 
 describe('pg-cron.sh applies', () => {
   test('includes pg_cron in the linux-x64 builds Cloud offers for new databases', () => {
-    for (const version of ['18.6.0', '19.0.0-beta.3']) {
+    for (const version of ['18.6.0', '19.0.0-beta.3', '19.0.0-rc.2']) {
       assert.equal(applies(version, 'linux-x64'), 'yes', version)
     }
   })
