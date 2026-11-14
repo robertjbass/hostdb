@@ -221,6 +221,16 @@ if [[ "$PG_CRON" == "yes" ]]; then
     log_success "pg_cron extension found"
 fi
 
+# pgvector ships inside the standard build wherever pgvector.sh scopes it in.
+PGVECTOR=$("${SCRIPT_DIR}/pgvector.sh" applies "$VERSION" "$PLATFORM")
+if [[ "$PGVECTOR" == "yes" ]]; then
+    if ! "${SCRIPT_DIR}/pgvector.sh" verify "${OUTPUT_PATH}/postgresql"; then
+        log_error "pgvector is required for PostgreSQL ${VERSION} on ${PLATFORM}. Rebuild with --no-cache and check the pgvector step of the Dockerfile."
+        exit 1
+    fi
+    log_success "pgvector extension found"
+fi
+
 # PostGIS ships inside the standard build wherever postgis.sh scopes it in. The
 # Docker packager stage already ran the full verify with the target runtime
 # dependencies. The build host may use a different distro or architecture;

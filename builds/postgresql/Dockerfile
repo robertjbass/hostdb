@@ -96,6 +96,18 @@ RUN set -e; \
       bash /build/pg-cron.sh install /opt/postgresql/bin/pg_config /build; \
     fi
 
+# pgvector ships inside the standard build for the versions and platforms that
+# builds/postgresql/pgvector.sh scopes in. That script is the only copy of the
+# pinned source, checksum and expected files.
+COPY builds/postgresql/pgvector.sh /build/pgvector.sh
+RUN set -e; \
+    PLATFORM="linux-x64"; \
+    if [ "$TARGETARCH" = "arm64" ]; then PLATFORM="linux-arm64"; fi; \
+    PGVECTOR=$(bash /build/pgvector.sh applies "$FULL_VERSION" "$PLATFORM"); \
+    if [ "$PGVECTOR" = "yes" ]; then \
+      bash /build/pgvector.sh install /opt/postgresql/bin/pg_config /build; \
+    fi
+
 # PostGIS (core only) ships inside the standard build for the versions and
 # platforms that builds/postgresql/postgis.sh scopes in. That script is the only
 # copy of the pinned sources and checksums (PostGIS, GEOS, PROJ, the GMP source
@@ -189,6 +201,17 @@ RUN set -e; \
       bash /tmp/pg-cron.sh verify /opt/postgresql; \
     fi; \
     rm /tmp/pg-cron.sh
+
+# Verify pgvector wherever pgvector.sh scopes it in, before exporting the artifact.
+COPY builds/postgresql/pgvector.sh /tmp/pgvector.sh
+RUN set -e; \
+    PLATFORM="linux-x64"; \
+    if [ "$TARGETARCH" = "arm64" ]; then PLATFORM="linux-arm64"; fi; \
+    PGVECTOR=$(bash /tmp/pgvector.sh applies "$FULL_VERSION" "$PLATFORM"); \
+    if [ "$PGVECTOR" = "yes" ]; then \
+      bash /tmp/pgvector.sh verify /opt/postgresql; \
+    fi; \
+    rm /tmp/pgvector.sh
 
 # Verify PostGIS wherever postgis.sh scopes it in, after the RPATH rewrite and
 # the metadata file exist: capability files, licenses, every bundled library

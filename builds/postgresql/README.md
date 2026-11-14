@@ -335,6 +335,45 @@ archive only for versions where no database has enabled PostGIS, with the
 `rehost-minimal-r2.ts` procedure described for pg_cron above. Leave the
 `sources-postgis-*` release and objects in place.
 
+### Rebuilding an archive in place for pgvector (operator steps)
+
+`pgvector.sh` is the one copy of the pgvector recipe (`applies`, `install`,
+`verify`), scoped to linux-x64 PostgreSQL 18 and 19. The in-place rebuild of
+the published `18.7.0` and `19.0.0-rc.2` archives follows the PostGIS
+procedure above, with these differences:
+
+1. Release the code to `main` with a patch bump (0.48.3) and unchanged
+   checksums.
+2. Keep the current archives:
+   `for v in 18.7.0 19.0.0-rc.2; do curl -fsSL -o "old-$v.tgz" "https://registry.layerbase.host/postgresql-$v/postgresql-$v-linux-x64.tar.gz"; done`
+3. Dispatch from `main`, one version per dispatch, always with
+   `-f platforms=linux-x64`, 18.7.0 first. Each run must pass the upstream
+   pgvector regression suite (inside `install`) and `smoke-pgvector.sh`
+   (vector, halfvec, sparsevec, a domain, an array, HNSW and IVFFlat indexes,
+   RLS and a nearest-neighbor query surviving `pg_dump`/`pg_restore`).
+4. Verify each version:
+   - `releases.json` on `main` changes only that version's linux-x64 `sha256`
+     and `size`; the live URL's sha256 matches it and `checksums.txt`.
+   - The tar listing adds only `lib/vector.so`, `share/extension/vector*`,
+     `include/server/extension/vector/*.h` and `share/licenses/pgvector/`,
+     and removes nothing.
+   - Extract both; `diff -rq` shows `.hostdb-metadata.json` and, because a
+     full rebuild re-stamps PostGIS, `lib/postgis-3.so` and the PostGIS SQL
+     files under `share/extension/` and `share/contrib/postgis-*`. Those must
+     be byte-identical once every `YYYY-MM-DD HH:MM:SS` stamp and the 20-byte
+     GNU build-id are masked. Any other changed file, including any core
+     PostgreSQL file, is a stop.
+5. Ship the new checksums in the next patch release (0.48.4) and update
+   `PLATFORM_DIVERGENCES.md` from the published listing.
+6. Downstream: Cloud refreshes each box's store with
+   `refresh-shared-postgresql-binary.sh --expect pg_cron,postgis,vector`,
+   which applies the same masked check and refuses to remove pgvector. A
+   local SpinDB install keeps its cached copy until
+   `spindb engines download postgresql <version> --refresh`.
+
+Rollback is allowed only while no database on that version has run
+`CREATE EXTENSION vector`; after that it is forward-fix only.
+
 ### EnterpriseDB Windows Binaries
 
 Windows binaries are downloaded from EnterpriseDB's download portal. EDB uses non-predictable file IDs for downloads.
