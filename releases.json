@@ -1634,8 +1634,8 @@
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/postgresql-18.7.0/postgresql-18.7.0-linux-x64.tar.gz",
-            "sha256": "0dfb62a8b6642ef26c54ff140ce07bd58d4eab40cb070bef07ea21273990e45a",
-            "size": 23846303
+            "sha256": "42c2b0e5e00c646fa71dd579e7f1310f0e51c9daa705e0c293723782db274229",
+            "size": 23957037
           },
           "win32-x64": {
             "url": "https://registry.layerbase.host/postgresql-18.7.0/postgresql-18.7.0-win32-x64.zip",
