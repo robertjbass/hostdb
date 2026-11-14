@@ -422,6 +422,32 @@ jobs:
             --mount "type=bind,src=$PWD/builds/postgresql/smoke-pg-cron.sh,dst=/smoke.sh,readonly" \
             pg-cron-smoke bash /smoke.sh
 
+      - name: Verify pgvector in the archive
+        if: matrix.build_type == 'docker' && steps.check-download.outputs.has_url != 'true'
+        timeout-minutes: 10
+        env:
+          PG_VERSION: ${{ github.event.inputs.version }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          PGVECTOR=$(./builds/postgresql/pgvector.sh applies "$PG_VERSION" "$PLATFORM")
+          if [ "$PGVECTOR" != "yes" ]; then
+            echo "pgvector is not part of PostgreSQL $PG_VERSION on $PLATFORM; nothing to verify."
+            exit 0
+          fi
+          SOURCE_VERSION="${{ needs.prepare.outputs.source_version }}"
+          docker buildx build --platform linux/amd64 --target packager --load \
+            --build-arg SOURCE_VERSION="$SOURCE_VERSION" --build-arg FULL_VERSION="$PG_VERSION" \
+            -t pgvector-smoke -f builds/postgresql/Dockerfile .
+          FIXTURE_ROOT=$(mktemp -d)
+          trap 'rm -rf "$FIXTURE_ROOT"; docker image rm pgvector-smoke' EXIT
+          tar -xzf "dist/postgresql-${PG_VERSION}-linux-x64.tar.gz" -C "$FIXTURE_ROOT"
+          chmod -R a+rX "$FIXTURE_ROOT"
+          docker run --rm --network none --read-only --user 65534:65534 \
+            --memory 1g --cpus 0.5 --tmpfs /tmp:rw,exec,size=256m \
+            --mount "type=bind,src=$FIXTURE_ROOT/postgresql,dst=/opt/postgresql,readonly" \
+            --mount "type=bind,src=$PWD/builds/postgresql/smoke-pgvector.sh,dst=/smoke.sh,readonly" \
+            pgvector-smoke bash /smoke.sh /opt/postgresql
+
       # PostGIS ships inside the standard build wherever postgis.sh scopes it
       # in. The archive is mounted away from /opt/postgresql with PROJ_DATA
       # unset, so the smoke proves the relocated archive resolves its own
@@ -935,7 +961,7 @@ jobs:
   # before `release`; a no-op when PostGIS is not in this run's scope. Never
   # runs on a dry run, and never replaces an asset that already exists.
   mirror-postgis-sources:
-    needs: [ prepare, build ]
+    needs: [prepare, build]
     if: ${{ !inputs.dry_run }}
     runs-on: ubuntu-latest
     permissions:
@@ -1043,7 +1069,7 @@ jobs:
 
   # Collect all artifacts and create release
   release:
-    needs: [ build, mirror-postgis-sources ]
+    needs: [build, mirror-postgis-sources]
     if: ${{ !inputs.dry_run }}
     runs-on: ubuntu-latest
     permissions:

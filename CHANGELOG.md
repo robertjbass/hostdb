@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Build pgvector 0.8.7 into standard Linux x64 PostgreSQL 18 and 19 archives, with upstream regression and synthetic dump/restore gates. Activation remains `CREATE EXTENSION vector`; no preload is required. Binary publication and downstream registry updates are separate release steps.
+
 ## [0.48.2] - 2026-11-12
 
 ### Added
