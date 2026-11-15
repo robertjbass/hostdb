@@ -1578,8 +1578,8 @@
           },
           "linux-x64": {
             "url": "https://registry.layerbase.host/postgresql-19.0.0-rc.2/postgresql-19.0.0-rc.2-linux-x64.tar.gz",
-            "sha256": "21b36e0b478cea9c3de18e9f56ced5ac7fb01edd495276ab5d17e6c8ea564096",
-            "size": 25802442
+            "sha256": "f8f336dd4e40d803e6536f0333fe5ecd787add8eb0992dcb18e2160fb37fcbd3",
+            "size": 25916523
           }
         },
         "releaseType": "rc"
