@@ -41,6 +41,19 @@ Verified 2026-10-19 by listing the published archives at
 `https://registry.layerbase.host/postgresql-<version>/` (control files under
 `share/extension/` and modules under `lib/`).
 
+### 18.7.0 and 19.0.0-rc.2 (linux-x64, pgvector rebuild)
+
+Verified 2026-11-15 by listing the published linux-x64 archives after the
+in-place pgvector rebuild (hostdb 0.48.4 checksums). Only linux-x64 is listed;
+pgvector and PostGIS are scoped to linux-x64 by `pgvector.sh` and `postgis.sh`.
+
+| Extension / feature | 18.7.0 linux-x64 | 19.0.0-rc.2 linux-x64 | other platforms |
+| --- | --- | --- | --- |
+| `pg_cron` | yes (1.6) | yes (1.6) | not listed here |
+| PostGIS (core only) | yes (3.6.4) | yes (3.7.0) | no |
+| pgvector (`vector`) | yes (0.8.7) | yes (0.8.7) | no |
+| License files in archive | PostGIS `licenses/`, `share/licenses/pgvector/` | same | not listed here |
+
 ### 18.6.0
 
 | Extension / feature | linux-x64 | linux-arm64 | darwin-arm64 | darwin-x64 | win32-x64 |
