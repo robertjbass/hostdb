@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.48.4] - 2026-11-15
+
+### Changed
+
+- Rebuilt the published PostgreSQL 18.7.0 and 19.0.0-rc.2 linux-x64 archives in place to add pgvector 0.8.7. Only those two linux-x64 checksums and sizes changed; the archives only add pgvector files, and the PostGIS files differ only by build timestamps and build-id. A cached local linux-x64 copy keeps the old contents until `spindb engines download postgresql <version> --refresh`.
+
 ## [0.48.3] - 2026-11-14
 
 ### Added
