@@ -41,6 +41,17 @@ Verified 2026-10-19 by listing the published archives at
 `https://registry.layerbase.host/postgresql-<version>/` (control files under
 `share/extension/` and modules under `lib/`).
 
+### 19.0.0 stable
+
+Verified 2026-11-19 against the five release build archives. All five include
+the extension control files for `uuid-ossp` and `pg_stat_statements`.
+
+| Extension | linux-x64 | linux-arm64 | darwin-arm64 | darwin-x64 | win32-x64 |
+| --- | --- | --- | --- | --- | --- |
+| pg_cron | yes | no | no | no | no |
+| PostGIS (core) | yes | no | no | no | no |
+| pgvector | yes | no | no | no | no |
+
 ### 18.7.0 and 19.0.0-rc.2 (linux-x64, pgvector rebuild)
 
 Verified 2026-11-15 by listing the published linux-x64 archives after the
