@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.49.0] - 2026-11-19
+
+### Added
+
+- PostgreSQL 19.0 stable for Linux and macOS on x64 and ARM64, and Windows x64. The PostgreSQL 19 alias resolves to 19.0.0.
+
 ## [0.48.4] - 2026-11-15
 
 ### Changed
