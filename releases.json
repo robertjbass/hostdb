@@ -1612,6 +1612,38 @@
         },
         "releaseType": "beta"
       },
+      "19.0.0": {
+        "version": "19.0.0",
+        "releaseTag": "postgresql-19.0.0",
+        "releasedAt": "2026-11-19T18:57:25Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/postgresql-19.0.0/postgresql-19.0.0-darwin-arm64.tar.gz",
+            "sha256": "c89b96694a26bd20ee5828649cfe4ebc92154260e45499892f8cfdb74f5fea52",
+            "size": 29830515
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/postgresql-19.0.0/postgresql-19.0.0-darwin-x64.tar.gz",
+            "sha256": "8bae1cca59594b29c12a028c93198471c89a5e345cf308b3d5f63aaa554f8f63",
+            "size": 29778064
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/postgresql-19.0.0/postgresql-19.0.0-linux-arm64.tar.gz",
+            "sha256": "668fd92ffbf7246248b23ea864f21d1a191e9b3af08609b29e27d8a2dfaa2972",
+            "size": 12509660
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/postgresql-19.0.0/postgresql-19.0.0-linux-x64.tar.gz",
+            "sha256": "b5961362e4be10685eb5b6af1eef261e4250dde9d2ba85ce8956ba85fcdf6853",
+            "size": 25914347
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/postgresql-19.0.0/postgresql-19.0.0-win32-x64.zip",
+            "sha256": "881c3d310f0a3e4038a29f4754f530ae1c80a9e81618ba44eb5b20bd47dc3290",
+            "size": 67065424
+          }
+        }
+      },
       "18.7.0": {
         "version": "18.7.0",
         "releaseTag": "postgresql-18.7.0",
