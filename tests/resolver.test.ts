@@ -165,12 +165,13 @@ describe('listVersions', () => {
     const pg = listVersions('postgresql', { format: 'full' })
     assert.ok(pg.includes('18.6.0'))
     assert.ok(pg.includes('15.15.0'))
-    assert.equal(pg[0], '18.7.0') // highest first
+    assert.equal(pg[0], '19.0.0') // highest first
   })
 
   test('format=major-minor returns unique X.Y prefixes', () => {
     const pg = listVersions('postgresql', { format: 'major-minor' })
     assert.deepEqual(pg, [
+      '19.0',
       '18.7',
       '18.6',
       '18.4',
@@ -189,7 +190,7 @@ describe('listVersions', () => {
 
   test('format=major returns unique X prefixes', () => {
     const pg = listVersions('postgresql', { format: 'major' })
-    assert.deepEqual(pg, ['18', '17', '16', '15'])
+    assert.deepEqual(pg, ['19', '18', '17', '16', '15'])
   })
 
   test('default format is full', () => {
@@ -204,6 +205,7 @@ describe('listVersions', () => {
 describe('getSupportedMajorVersions', () => {
   test('uses defaults block when present', () => {
     assert.deepEqual(getSupportedMajorVersions('postgresql'), [
+      '19',
       '18',
       '17',
       '16',
@@ -250,10 +252,10 @@ describe('getEngineDefaults', () => {
     assert.equal(d.latestVersion, '8.2.12') // newest
   })
 
-  test('keeps the pinned default when a newer stable patch is available', () => {
+  test('defaults new PostgreSQL installs to the latest stable major', () => {
     const d = getEngineDefaults('postgresql')
-    assert.equal(d.defaultVersion, '18.6.0')
-    assert.equal(d.latestVersion, '18.7.0')
+    assert.equal(d.defaultVersion, '19.0.0')
+    assert.equal(d.latestVersion, '19.0.0')
   })
 })
 
@@ -311,11 +313,11 @@ describe('prerelease — postgresql 19.0.0-beta.1', () => {
   })
 
   test("'19' does not prefix-match into the beta", () => {
-    assert.equal(resolveVersion('postgresql', '19'), null)
+    assert.equal(resolveVersion('postgresql', '19'), '19.0.0')
   })
 
   test("'19.0' does not prefix-match into the beta", () => {
-    assert.equal(resolveVersion('postgresql', '19.0'), null)
+    assert.equal(resolveVersion('postgresql', '19.0'), '19.0.0')
   })
 
   test('listVersions excludes the beta by default', () => {
@@ -332,12 +334,12 @@ describe('prerelease — postgresql 19.0.0-beta.1', () => {
 
   test('getEngineDefaults excludes prereleases from default and latest', () => {
     const d = getEngineDefaults('postgresql')
-    assert.equal(d.defaultVersion, '18.6.0')
-    assert.equal(d.latestVersion, '18.7.0')
+    assert.equal(d.defaultVersion, '19.0.0')
+    assert.equal(d.latestVersion, '19.0.0')
   })
 
-  test("getSupportedMajorVersions does not include '19'", () => {
-    assert.ok(!getSupportedMajorVersions('postgresql').includes('19'))
+  test("getSupportedMajorVersions includes stable major 19", () => {
+    assert.ok(getSupportedMajorVersions('postgresql').includes('19'))
   })
 
   test('getReleaseType / isVersionPrerelease / getPrereleaseVersions', () => {
