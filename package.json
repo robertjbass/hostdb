@@ -1,7 +1,7 @@
 {
   "name": "hostdb",
-  "version": "0.49.0",
-  "description": "Pre-built database binaries for multiple platforms, plus a typed registry library for resolving versions and download URLs offline.",
+  "version": "0.49.1",
+  "description": "Pre-built, checksummed binaries for 22 database engines on macOS, Linux and Windows, plus a typed npm package that resolves versions and download URLs offline.",
   "private": false,
   "type": "module",
   "main": "./dist/index.js",

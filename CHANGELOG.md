@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.49.1] - 2026-11-22
+
+### Changed
+
+- Rewrote the README for package users: a banner, a plain summary, an accurate engine and platform table, and current examples. Updated the package description. No registry data or API changes.
+
 ## [0.49.0] - 2026-11-19
 
 ### Added
