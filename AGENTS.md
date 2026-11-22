@@ -107,7 +107,7 @@ The wrappers signal this via `listVersions(ENGINE, { format: 'major-minor' })` v
 
 The repo is published to npm so consumers can resolve versions offline - no runtime fetch from `registry.layerbase.host` for the registry itself. R2 is still the source of truth for binary tarballs; npm ships a snapshot of `databases.json` / `releases.json`.
 
-**Bundled in the tarball:** `dist/index.js` (+ `.d.ts`, compiled from `lib/`), `databases.json`, `releases.json`, `downloads.json`, `cli/bin.ts` + `bin/cli.js`. The `lib/` source TS is not shipped - see `package.json:files`.
+**Bundled in the tarball:** `dist/index.js` (+ `.d.ts`, compiled from `lib/`), `databases.json`, `releases.json`, `downloads.json`, `dist/cli.js` (compiled from `lib/cli.ts`) + `bin/cli.js`. The `lib/` source TS is not shipped - see `package.json:files`.
 
 **Public API** is snapshotted in `tests/api-shape.test.ts` (19 exports). Most-used:
 
