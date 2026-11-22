@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.49.2] - 2026-11-22
+
+### Fixed
+
+- The installed `hostdb` command now starts. It runs compiled JavaScript from the package, with no `tsx` and no runtime dependencies. The library API and registry data are unchanged.
+
 ## [0.49.1] - 2026-11-22
 
 ### Changed

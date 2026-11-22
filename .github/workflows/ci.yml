@@ -116,3 +116,4 @@ jobs:
           process.exit(pass === checks.length ? 0 : 1)
           EOF
           cd /tmp/consumer && node smoke.mjs
+          ./node_modules/.bin/hostdb list postgresql --json > /dev/null
