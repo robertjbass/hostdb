@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.49.1",
+  "version": "0.49.2",
   "description": "Pre-built, checksummed binaries for 22 database engines on macOS, Linux and Windows, plus a typed npm package that resolves versions and download URLs offline.",
   "private": false,
   "type": "module",
@@ -30,7 +30,6 @@
   },
   "files": [
     "bin",
-    "cli",
     "dist",
     "databases.json",
     "releases.json",
@@ -75,7 +74,7 @@
     "migrate:r2": "tsx scripts/migrate-to-r2.ts",
     "prep": "tsx scripts/prep.ts",
     "repair:checksums": "tsx scripts/repair-checksums.ts",
-    "start": "tsx cli/bin.ts",
+    "start": "tsx lib/cli.ts",
     "sync:versions": "tsx scripts/sync-versions.ts",
     "upload:r2": "tsx scripts/upload-to-r2.ts",
     "audit:r2-orphans": "tsx scripts/audit-r2-orphans.ts",

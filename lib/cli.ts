@@ -1,4 +1,3 @@
-#!/usr/bin/env tsx
 /**
  * hostdb CLI
  *
@@ -10,7 +9,7 @@ import {
   loadReleasesJson,
   type Platform,
   type PlatformAsset,
-} from '../lib/databases.js'
+} from './databases.js'
 
 // Aliases for databases
 const DATABASE_ALIASES: Record<string, string> = {
