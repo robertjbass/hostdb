@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           repository: robertjbass/spindb
-          ref: 3b6606add344594b8bbed272f384c04470b23f71
+          ref: dda7d3fc0b023f6f9d89cbd192383ccde33a09d5
           persist-credentials: false
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
@@ -46,12 +46,17 @@ jobs:
           set -euo pipefail
           for version in 11.8.10 12.3.4; do
             (cd "artifacts/$version" && sha256sum -c checksums.txt)
-            export SPINDB_HOME="$RUNNER_TEMP/maria-$version/.spindb"
+            if [[ "$RUNNER_OS" == Windows ]]; then
+              export SPINDB_HOME="$(cygpath -m "$RUNNER_TEMP")/m-$version"
+            else
+              export SPINDB_HOME="$(mktemp -d /tmp/mi.XXXXXX)"
+            fi
             export SPINDB_TEST_MARIADB_VERSION="$version"
             dest="$SPINDB_HOME/bin/mariadb-$version-$PLATFORM"
             mkdir -p "$dest"
             if [[ "$RUNNER_OS" == Windows ]]; then
-              tar -xf "artifacts/$version/mariadb-$version-$PLATFORM.zip" -C "$dest" --strip-components=1
+              unzip -q "artifacts/$version/mariadb-$version-$PLATFORM.zip" -d "artifacts/$version/unpacked"
+              cp -R "artifacts/$version/unpacked/mariadb/." "$dest/"
             else
               tar -xzf "artifacts/$version/mariadb-$version-$PLATFORM.tar.gz" -C "$dest" --strip-components=1
             fi
