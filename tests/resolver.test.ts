@@ -98,8 +98,11 @@ describe('resolveVersion — defaults policy', () => {
     assert.equal(resolveVersion('mariadb', '11'), '11.8.9')
   })
 
-  test('MySQL 8 → 8.4.11 (LTS, NOT 8.0.40)', () => {
+  test('MySQL shared aliases keep their existing builds across platforms', () => {
     assert.equal(resolveVersion('mysql', '8'), '8.4.11')
+    assert.equal(resolveVersion('mysql', '8.4'), '8.4.11')
+    assert.equal(resolveVersion('mysql', '9'), '9.7.2')
+    assert.equal(resolveVersion('mysql', '9.7'), '9.7.2')
   })
 
   test('FerretDB 1 / 2 dispatch to right tracks', () => {
@@ -211,6 +214,7 @@ describe('getSupportedMajorVersions', () => {
       '16',
       '15',
     ])
+    assert.deepEqual(getSupportedMajorVersions('mysql'), ['9', '8'])
     assert.deepEqual(getSupportedMajorVersions('mongodb'), ['8', '7'])
     assert.deepEqual(getSupportedMajorVersions('mariadb'), [
       '13',
@@ -338,7 +342,7 @@ describe('prerelease — postgresql 19.0.0-beta.1', () => {
     assert.equal(d.latestVersion, '19.0.0')
   })
 
-  test("getSupportedMajorVersions includes stable major 19", () => {
+  test('getSupportedMajorVersions includes stable major 19', () => {
     assert.ok(getSupportedMajorVersions('postgresql').includes('19'))
   })
 
