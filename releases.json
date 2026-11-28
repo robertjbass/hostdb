@@ -1253,6 +1253,33 @@
       }
     },
     "mysql": {
+      "9.7.4.1": {
+        "version": "9.7.4.1",
+        "releaseTag": "mysql-9.7.4.1",
+        "releasedAt": "2026-11-28T16:48:34Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.4.1/mysql-9.7.4.1-darwin-arm64.tar.gz",
+            "sha256": "20e4f57602a4f831bb1dba7e8ed3190527bbc208074b255f789ed2fd1f73fba0",
+            "size": 175531995
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.4.1/mysql-9.7.4.1-linux-arm64.tar.gz",
+            "sha256": "95b1f8c8315a66cd7d889680605b45f8eacee31510854fc06a7c725dba052b71",
+            "size": 1074935650
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.4.1/mysql-9.7.4.1-linux-x64.tar.gz",
+            "sha256": "fe1ad129957ab766617c39eb1b2fd160b8ef9fe6f33ee5a4315f715c3c620413",
+            "size": 147197527
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mysql-9.7.4.1/mysql-9.7.4.1-win32-x64.zip",
+            "sha256": "294a167abdc3427619716d54959310208f36f6e7aa434dd88d4c664605210cba",
+            "size": 344029138
+          }
+        }
+      },
       "9.7.2": {
         "version": "9.7.2",
         "releaseTag": "mysql-9.7.2",
@@ -1382,6 +1409,33 @@
           }
         },
         "deprecated": true
+      },
+      "8.4.13.1": {
+        "version": "8.4.13.1",
+        "releaseTag": "mysql-8.4.13.1",
+        "releasedAt": "2026-11-28T16:47:25Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.13.1/mysql-8.4.13.1-darwin-arm64.tar.gz",
+            "sha256": "f5801968545a953d00869aa200ecb00943ee6b0c188698f75499259ddad75781",
+            "size": 166423599
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.13.1/mysql-8.4.13.1-linux-arm64.tar.gz",
+            "sha256": "e01fd20fad261fcf9a7f3e98d271383187a6a2abc0414b471163abadb92c3894",
+            "size": 908996532
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.13.1/mysql-8.4.13.1-linux-x64.tar.gz",
+            "sha256": "4ed9b9c5d83525fbbffb1785755713adca047d099d454faa056f466d4234c22d",
+            "size": 142269564
+          },
+          "win32-x64": {
+            "url": "https://registry.layerbase.host/mysql-8.4.13.1/mysql-8.4.13.1-win32-x64.zip",
+            "sha256": "971050cecc17d29f801589ebc271416ea22074da838c705ee70d6c4a8a56fd97",
+            "size": 281316819
+          }
+        }
       },
       "8.4.11": {
         "version": "8.4.11",
