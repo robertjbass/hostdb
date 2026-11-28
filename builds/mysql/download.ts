@@ -51,8 +51,8 @@ function isValidPlatform(value: string): value is Platform {
   return VALID_PLATFORMS.includes(value as Platform)
 }
 
-// Validate version format to prevent command injection (e.g., "8.4.3")
-const VERSION_REGEX = /^\d+\.\d+\.\d+$/
+// Oracle adds a fourth component for Critical Security Patch Updates.
+const VERSION_REGEX = /^\d+\.\d+\.\d+(?:\.\d+)?$/
 
 function isValidVersion(value: string): boolean {
   return VERSION_REGEX.test(value)
@@ -329,7 +329,7 @@ function parseArgs(): {
         const versionValue = args[++i]
         if (!isValidVersion(versionValue)) {
           logError(`Invalid version format: ${versionValue}`)
-          logError('Version must be in format: X.Y.Z (e.g., 8.4.3)')
+          logError('Use a MySQL release such as 8.4.3 or 9.7.4.1')
           process.exit(1)
         }
         version = versionValue
