@@ -10,6 +10,7 @@ on:
         options:
           - 8.4.5
           - 8.4.0
+          - 7.2.17
           - 7.2.15
           - 7.2.14
         default: 8.4.5
@@ -100,8 +101,11 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      - uses: actions/checkout@v6
       - name: Set build matrix
         id: set-matrix
+        env:
+          REDIS_VERSION: ${{ inputs.version }}
         run: |
           PLATFORMS="${{ github.event.inputs.platforms }}"
           if [ "$PLATFORMS" = "all" ]; then
@@ -130,8 +134,11 @@ jobs:
                 ;;
             esac
           fi
-          # Compact the JSON for output
-          MATRIX=$(echo "$MATRIX" | jq -c .)
+          SOURCES=$(jq -ce --arg version "$REDIS_VERSION" '.versions[$version] | keys' builds/redis/sources.json)
+          MATRIX=$(jq -ce --argjson sources "$SOURCES" '[.[] | select(.platform as $p | $sources | index($p))] | select(length > 0)' <<< "$MATRIX") || {
+            echo "::error::Redis $REDIS_VERSION has no source for $PLATFORMS"
+            exit 1
+          }
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
           echo "Building platforms: $MATRIX"
 
@@ -444,16 +451,7 @@ jobs:
           cat >./release-notes/body.md <<'RELEASE_NOTES'
           ## Redis __VERSION__
 
-          Redis binaries for hostdb - all 5 platforms.
-
-          ### Available Platforms
-          | Platform | Source |
-          |----------|--------|
-          | `linux-x64` | Built from source (Docker) |
-          | `linux-arm64` | Built from source (Docker + QEMU) |
-          | `darwin-x64` | Built from source (native macOS) |
-          | `darwin-arm64` | Built from source (native macOS) |
-          | `win32-x64` | [redis-windows](https://github.com/redis-windows/redis-windows) |
+          Download the archive for your platform from the release assets below.
 
           ### Usage
           ```bash
@@ -465,13 +463,13 @@ jobs:
           See `checksums.txt` for SHA256 checksums.
 
           ### License
-          Redis is licensed under RSALv2/SSPLv1 (7.4+) and AGPL-3.0 (8.0+).
+          Redis 7.2 is BSD-3-Clause licensed. Redis 7.4 offers RSALv2 or SSPLv1, and Redis 8 also offers AGPL-3.0.
 
           **Note:** For commercial use, consider [Valkey](https://github.com/valkey-io/valkey) as a BSD-licensed drop-in replacement.
 
           ### Sources
           - **Official Source**: [download.redis.io](https://download.redis.io/releases/)
-          - **Windows**: [redis-windows](https://github.com/redis-windows/redis-windows)
+          - **Windows builds, when available**: [redis-windows](https://github.com/redis-windows/redis-windows)
           RELEASE_NOTES
 
           # The notes are written with placeholders so the heredoc carries no

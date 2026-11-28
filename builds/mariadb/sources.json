@@ -25,6 +25,29 @@
         "sha256": "ba9cefd6674b3f2f7bc67334c05305dc7c919643d76836e10767e70db0b5fb74"
       }
     },
+    "12.3.4": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-12.3.4/bintar-linux-systemd-x86_64/mariadb-12.3.4-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "26868ab54e3fffa822ffe433537e9c6dde0bdaa45f45a83ef43bd72e29b58baa"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-12.3.4/winx64-packages/mariadb-12.3.4-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "178020ae8ff7d0caf77b5a3ad7e33e574e13001352d31b02503f97224e4b1f77"
+      }
+    },
     "12.3.3": {
       "linux-x64": {
         "url": "https://archive.mariadb.org/mariadb-12.3.3/bintar-linux-systemd-x86_64/mariadb-12.3.3-linux-systemd-x86_64.tar.gz",
@@ -46,6 +69,29 @@
         "format": "zip",
         "sourceType": "official",
         "sha256": "4b5706b47148b47c8f36963c8352d1ddee37a1287b4690428f631a74b09b85a0"
+      }
+    },
+    "11.8.10": {
+      "linux-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.8.10/bintar-linux-systemd-x86_64/mariadb-11.8.10-linux-systemd-x86_64.tar.gz",
+        "format": "tar.gz",
+        "sourceType": "official",
+        "sha256": "15ca40274597af84fa8f89f8248b37740c5a712c003df80b4c7b32a4486e2027"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      },
+      "win32-x64": {
+        "url": "https://archive.mariadb.org/mariadb-11.8.10/winx64-packages/mariadb-11.8.10-winx64.zip",
+        "format": "zip",
+        "sourceType": "official",
+        "sha256": "05d04b46763ea3dc9111bfc82dc061e0a158c682a73d31ba34b13f2653c88d17"
       }
     },
     "11.8.9": {

@@ -102,6 +102,20 @@
         "sha256": "195be9d6de498825373010a321c4aeac4d88437e31964767ac7fc2dc45c50d75"
       }
     },
+    "7.2.17": {
+      "linux-x64": {
+        "sourceType": "build-required"
+      },
+      "linux-arm64": {
+        "sourceType": "build-required"
+      },
+      "darwin-x64": {
+        "sourceType": "build-required"
+      },
+      "darwin-arm64": {
+        "sourceType": "build-required"
+      }
+    },
     "7.2.15": {
       "linux-x64": {
         "sourceType": "build-required"

@@ -383,11 +383,15 @@
         "10": "10.11.19",
         "11": "11.8.9",
         "12": "12.3.3",
-        "13": "13.0.2"
+        "13": "13.0.2",
+        "11.8": "11.8.9",
+        "12.3": "12.3.3"
       },
       "versions": {
         "13.0.2": true,
+        "12.3.4": true,
         "12.3.3": true,
+        "11.8.10": true,
         "11.8.9": true,
         "11.8.8": true,
         "11.8.6": true,
@@ -980,7 +984,8 @@
       "note": "Redis 7.2.x is BSD-3-Clause licensed — fully open-source, safe to host as a managed service. The 7.4+ relicense (RSALv2/SSPLv1) restricts building competing managed services to Redis itself; AGPL-3.0 (8.0+) additionally requires source disclosure if you modify Redis and offer it as a network service. Commercial use in applications, local dev, and internal use is fine on all versions. Valkey is a BSD-licensed drop-in alternative for newer Redis features.",
       "defaults": {
         "7": "7.2.15",
-        "8": "8.4.5"
+        "8": "8.4.5",
+        "7.2": "7.2.15"
       },
       "versions": {
         "8.4.5": true,
@@ -997,8 +1002,17 @@
           "deprecated": true,
           "note": "Deprecated; RSALv2/SSPLv1 license forbids offering Redis as a competing managed service. Use 7.2.14 (BSD) for managed-service use cases, or 7.4.9 if you need the latest 7.4 patch for self-contained app use."
         },
+        "7.2.17": {
+          "note": "BSD-3-Clause security update for Linux and macOS.",
+          "platforms": [
+            "linux-x64",
+            "linux-arm64",
+            "darwin-x64",
+            "darwin-arm64"
+          ]
+        },
         "7.2.15": {
-          "note": "Latest patch in the BSD-3-Clause 7.2.x line, the newest Redis version permissively licensed for self-hosting as a managed/DBaaS service. Fixes CVE-2026-66373 (crafted stream RESTORE payload shares a NACK across consumers, use-after-free to RCE). 7.4+ (RSALv2/SSPLv1) forbids competing managed services; 8.0+ AGPL-3.0 requires source disclosure to network users."
+          "note": "Earlier patch in the BSD-3-Clause 7.2.x line, the newest Redis version permissively licensed for self-hosting as a managed/DBaaS service. Fixes CVE-2026-66373 (crafted stream RESTORE payload shares a NACK across consumers, use-after-free to RCE). 7.4+ (RSALv2/SSPLv1) forbids competing managed services; 8.0+ AGPL-3.0 requires source disclosure to network users."
         },
         "7.2.14": {
           "note": "Superseded by 7.2.15 (which carries the CVE-2026-66373 fix). Still BSD-3-Clause and still resolvable for reproducibility."

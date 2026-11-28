@@ -1,6 +1,6 @@
 {
   "name": "hostdb",
-  "version": "0.50.0",
+  "version": "0.51.0",
   "description": "Pre-built, checksummed binaries for 22 database engines on macOS, Linux and Windows, plus a typed npm package that resolves versions and download URLs offline.",
   "private": false,
   "type": "module",

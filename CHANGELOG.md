@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.51.0] - 2026-11-28
+
+### Added
+
+- MariaDB 11.8.10 and 12.3.4 on all supported platforms, and Redis 7.2.17 on Linux and macOS. These exact security updates are available alongside the existing versions. The shared MariaDB 11.8 and 12.3 and Redis 7.2 aliases retain their previous patch selections for existing databases.
+
 ## [0.50.0] - 2026-11-28
 
 ### Added
