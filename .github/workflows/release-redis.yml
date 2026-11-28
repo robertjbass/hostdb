@@ -94,287 +94,38 @@ jobs:
 
           echo "✓ Version $VERSION found in sources.json"
 
-  # Determine which platforms to build based on input
-  prepare:
-    needs: validate
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set build matrix
-        id: set-matrix
-        env:
-          REDIS_VERSION: ${{ inputs.version }}
-        run: |
-          PLATFORMS="${{ github.event.inputs.platforms }}"
-          if [ "$PLATFORMS" = "all" ]; then
-            # All 5 platforms with their appropriate runners
-            MATRIX='[
-              {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
-              {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
-              {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
-              {"platform": "darwin-arm64", "runner": "macos-15", "build_type": "native"},
-              {"platform": "win32-x64", "runner": "ubuntu-latest", "build_type": "download"}
-            ]'
-          else
-            # Single platform - determine runner and build type
-            case "$PLATFORMS" in
-              linux-x64|linux-arm64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"docker\"}]"
-                ;;
-              darwin-x64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15-intel\", \"build_type\": \"native\"}]"
-                ;;
-              darwin-arm64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"macos-15\", \"build_type\": \"native\"}]"
-                ;;
-              win32-x64)
-                MATRIX="[{\"platform\": \"$PLATFORMS\", \"runner\": \"ubuntu-latest\", \"build_type\": \"download\"}]"
-                ;;
-            esac
-          fi
-          SOURCES=$(jq -ce --arg version "$REDIS_VERSION" '.versions[$version] | keys' builds/redis/sources.json)
-          MATRIX=$(jq -ce --argjson sources "$SOURCES" '[.[] | select(.platform as $p | $sources | index($p))] | select(length > 0)' <<< "$MATRIX") || {
-            echo "::error::Redis $REDIS_VERSION has no source for $PLATFORMS"
-            exit 1
-          }
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-          echo "Building platforms: $MATRIX"
-
-  # Build each platform in parallel
-  build:
-    needs: prepare
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.prepare.outputs.matrix) }}
-    runs-on: ${{ matrix.runner }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      # Set up QEMU for cross-platform Docker builds (required for linux-arm64 on x64 runners)
-      - name: Set up QEMU
-        if: matrix.build_type == 'docker'
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        if: matrix.build_type == 'docker'
-        uses: docker/setup-buildx-action@v4
-
-      # For Linux: use Docker-based builds
-      - name: Build for Linux (Docker)
-        if: matrix.build_type == 'docker'
-        id: build-linux
-        timeout-minutes: 60
-        run: |
-          VERSION="${{ github.event.inputs.version }}"
-          PLATFORM="${{ matrix.platform }}"
-
-          echo "Building Redis $VERSION for $PLATFORM"
-
-          pnpm download:redis -- \
-            --version "$VERSION" \
-            --platform "$PLATFORM" \
-            --build-fallback \
-            --output ./dist
-
-          # Check if artifact was created
-          shopt -s nullglob
-          FILES=(./dist/redis-*.tar.gz ./dist/redis-*.zip)
-          if [ ${#FILES[@]} -eq 0 ]; then
-            echo "::error::No artifact created for $PLATFORM"
-            exit 1
-          fi
-          ls -la ./dist/
-
-      # For Windows: download from redis-windows
-      - name: Download for Windows
-        if: matrix.build_type == 'download'
-        id: build-windows
-        timeout-minutes: 30
-        run: |
-          VERSION="${{ github.event.inputs.version }}"
-          PLATFORM="${{ matrix.platform }}"
-
-          echo "Downloading Redis $VERSION for $PLATFORM"
-
-          pnpm download:redis -- \
-            --version "$VERSION" \
-            --platform "$PLATFORM" \
-            --output ./dist
-
-          # Check if artifact was created
-          shopt -s nullglob
-          FILES=(./dist/redis-*.tar.gz ./dist/redis-*.zip)
-          if [ ${#FILES[@]} -eq 0 ]; then
-            echo "::error::No artifact created for $PLATFORM"
-            exit 1
-          fi
-          ls -la ./dist/
-
-      # For macOS: native build
-      - name: Build for macOS (native)
-        if: matrix.build_type == 'native'
-        id: build-macos
-        timeout-minutes: 60
-        run: |
-          VERSION="${{ github.event.inputs.version }}"
-          PLATFORM="${{ matrix.platform }}"
-
-          echo "Building Redis $VERSION for $PLATFORM (native macOS build)"
-
-          # Pin the minimum macOS (see builds/common/macos-deployment-target.env)
-          # and build the bundled OpenSSL with it: Homebrew bottles carry the
-          # runner's own macOS as their minimum.
-          source "$GITHUB_WORKSPACE/builds/common/macos-deployment-target.env"
-          echo "MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET"
-          DEPS_PREFIX="$RUNNER_TEMP/hostdb-macos-deps"
-          "$GITHUB_WORKSPACE/builds/common/build-macos-deps.sh" --prefix "$DEPS_PREFIX" openssl
-          export HOSTDB_MACOS_DEPS_PREFIX="$DEPS_PREFIX"
-          OPENSSL_PREFIX="$DEPS_PREFIX"
-
-          echo "Using OpenSSL at: $OPENSSL_PREFIX"
-
-          # Set OpenSSL environment variables for hiredis SSL build
-          # These are required for hiredis to find OpenSSL and build libhiredis_ssl.a
-          export PKG_CONFIG_PATH="$OPENSSL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
-          export OPENSSL_CFLAGS="-I$OPENSSL_PREFIX/include"
-          export OPENSSL_LDFLAGS="-L$OPENSSL_PREFIX/lib"
-
-          # Clean up any previous build artifacts
-          rm -rf redis-source.tar.gz redis-${VERSION} install dist
-
-          # Download source
-          curl -fsSL "https://download.redis.io/releases/redis-${VERSION}.tar.gz" \
-            -o redis-source.tar.gz
-          tar -xzf redis-source.tar.gz
-
-          # Build
-          cd "redis-${VERSION}"
-
-          # Build with TLS support
-          # Step 1: Explicitly build hiredis with SSL support first
-          # This ensures libhiredis_ssl.a is created before Redis tries to link against it
-          # The deps Makefile needs USE_SSL=1 and OPENSSL_PREFIX to build hiredis with SSL
-          echo "Building hiredis with SSL support..."
-          make -C deps hiredis hdr_histogram lua linenoise \
-            USE_SSL=1 \
-            OPENSSL_PREFIX="$OPENSSL_PREFIX"
-
-          # Verify hiredis_ssl was built
-          if [ ! -f deps/hiredis/libhiredis_ssl.a ]; then
-            echo "ERROR: libhiredis_ssl.a was not created!"
-            echo "Contents of deps/hiredis:"
-            ls -la deps/hiredis/
-            exit 1
-          fi
-          echo "libhiredis_ssl.a built successfully"
-
-          # Step 2: Build Redis with TLS enabled
-          echo "Building Redis..."
-          make -j$(sysctl -n hw.ncpu) \
-            BUILD_TLS=yes \
-            OPENSSL_PREFIX="$OPENSSL_PREFIX"
-
-          # Install (must pass same flags to prevent rebuild without TLS)
-          make PREFIX="$GITHUB_WORKSPACE/install/redis" \
-            BUILD_TLS=yes \
-            OPENSSL_PREFIX="$OPENSSL_PREFIX" \
-            install
-
-          # Copy config files
-          cp redis.conf "$GITHUB_WORKSPACE/install/redis/"
-          cp sentinel.conf "$GITHUB_WORKSPACE/install/redis/"
-
-          # Add metadata
-          cd "$GITHUB_WORKSPACE/install"
-          printf '%s\n' \
-            '{' \
-            '  "name": "redis",' \
-            "  \"version\": \"${VERSION}\"," \
-            "  \"platform\": \"${PLATFORM}\"," \
-            '  "source": "source-build",' \
-            '  "sourceUrl": "https://download.redis.io/releases/",' \
-            '  "rehosted_by": "hostdb",' \
-            "  \"rehosted_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"" \
-            '}' > redis/.hostdb-metadata.json
-
-          # Fix macOS dylib paths for relocatable binaries
-          chmod +x "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh"
-          "$GITHUB_WORKSPACE/builds/common/fix-macos-dylibs.sh" "$GITHUB_WORKSPACE/install/redis"
-
-          # Create tarball
-          mkdir -p "$GITHUB_WORKSPACE/dist"
-          tar -czvf "$GITHUB_WORKSPACE/dist/redis-${VERSION}-${PLATFORM}.tar.gz" redis
-
-          echo "Build complete:"
-          ls -la "$GITHUB_WORKSPACE/dist/"
-
-      # Fail if any shipped Mach-O file needs a newer macOS than the pinned
-      # target (builds/common/macos-deployment-target.env).
-      - name: Check minimum macOS
-        if: runner.os == 'macOS'
-        run: ./builds/common/check-macos-minos.sh dist/*.tar.gz
-
-      # Fail if any shipped Mach-O file (binaries, dylibs, plugins/NIFs)
-      # loads a library by an absolute path outside /usr/lib and /System.
-      - name: Check relocatable macOS binaries
-        if: runner.os == 'macOS'
-        run: ./builds/common/check-macos-dylibs.sh dist/*.tar.gz
-
-      - name: Generate checksum
-        run: |
-          cd dist
-          shopt -s nullglob
-          for f in *.tar.gz *.zip; do
-            if [ -f "$f" ]; then
-              if command -v sha256sum &> /dev/null; then
-                sha256sum "$f" >> checksums.txt
-              else
-                # macOS uses shasum
-                shasum -a 256 "$f" >> checksums.txt
-              fi
-            fi
-          done
-          cat checksums.txt
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: redis-${{ github.event.inputs.version }}-${{ matrix.platform }}
-          path: |
-            dist/*.tar.gz
-            dist/*.zip
-            dist/checksums.txt
-          retention-days: 1
-
-  # Collect all artifacts and create release
   release:
-    needs: build
+    needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Confirm the tested source run
+        id: qualified
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          test "$PLATFORMS" = all
+          case "redis-$VERSION" in
+            mariadb-11.8.10) run=46177620338 ;;
+            mariadb-12.3.4) run=46177622785 ;;
+            redis-7.2.17) run=46177625128 ;;
+            *) exit 1 ;;
+          esac
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" |
+            jq -e '.head_sha == "6d1c15f56efcf37a84a35b0042ecf9dc206c937b" and .path == ".github/workflows/release-redis.yml" and .conclusion == "success"'
+          echo "run=$run" >> "$GITHUB_OUTPUT"
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.qualified.outputs.run }}
           path: ./artifacts
           pattern: redis-${{ github.event.inputs.version }}-*
 
@@ -401,7 +152,7 @@ jobs:
 
           echo ""
           echo "Checksums:"
-          cat ./release-assets/checksums.txt
+          (cd release-assets && sha256sum --check checksums.txt)
 
       - name: Validate required binaries
         run: |
@@ -491,6 +242,7 @@ jobs:
             --tag "redis-$VERSION" \
             --title "Redis $VERSION" \
             --notes-file ./release-notes/body.md \
+            --target a41acba3d6c7c271d09c4ecc1f7e2996cb975f5a \
             --assets-dir ./release-assets
 
   # Update the releases manifest
