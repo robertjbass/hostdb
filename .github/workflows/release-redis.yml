@@ -10,6 +10,7 @@ on:
         options:
           - 8.4.5
           - 8.4.0
+          - 7.2.17
           - 7.2.15
           - 7.2.14
         default: 8.4.5
@@ -100,6 +101,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      - uses: actions/checkout@v6
       - name: Set build matrix
         id: set-matrix
         run: |
@@ -130,8 +132,11 @@ jobs:
                 ;;
             esac
           fi
-          # Compact the JSON for output
-          MATRIX=$(echo "$MATRIX" | jq -c .)
+          SOURCES=$(jq -ce --arg version "${{ inputs.version }}" '.versions[$version] | keys' builds/redis/sources.json)
+          MATRIX=$(jq -ce --argjson sources "$SOURCES" '[.[] | select(.platform as $p | $sources | index($p))] | select(length > 0)' <<< "$MATRIX") || {
+            echo "::error::Redis ${{ inputs.version }} has no source for $PLATFORMS"
+            exit 1
+          }
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
           echo "Building platforms: $MATRIX"
 
