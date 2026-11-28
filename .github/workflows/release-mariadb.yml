@@ -128,7 +128,7 @@ jobs:
             # All 5 platforms with their appropriate runners
             MATRIX='[
               {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
-              {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
+              {"platform": "linux-arm64", "runner": "ubuntu-24.04-arm", "build_type": "docker"},
               {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
               {"platform": "darwin-arm64", "runner": "macos-15", "build_type": "native"},
               {"platform": "win32-x64", "runner": "ubuntu-latest", "build_type": "download"}
@@ -417,6 +417,26 @@ jobs:
         if: runner.os == 'macOS'
         run: ./builds/common/check-macos-dylibs.sh dist/*.tar.gz
 
+      - name: Boot packaged server and recover a backup
+        if: matrix.platform != 'win32-x64'
+        shell: bash
+        env:
+          DB_VERSION: ${{ inputs.version }}
+          TARGET: ${{ matrix.platform }}
+        run: |
+          if [[ "$TARGET" == linux-* && "mariadb" == mariadb ]]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y libaio1t64 libncurses6
+            # The vendor binary uses the original libaio SONAME.
+            if ! ldconfig -p | grep -Fq 'libaio.so.1 '; then
+              mkdir -p "$RUNNER_TEMP/mariadb-compat"
+              lib=$(dpkg -L libaio1t64 | grep '/libaio.so.1t64$')
+              ln -sf "$lib" "$RUNNER_TEMP/mariadb-compat/libaio.so.1"
+              export LD_LIBRARY_PATH="$RUNNER_TEMP/mariadb-compat:${LD_LIBRARY_PATH:-}"
+            fi
+          fi
+          bash builds/common/qualify-november-lts.sh mariadb "$DB_VERSION" "dist/mariadb-$DB_VERSION-$TARGET.tar.gz"
+
       - name: Generate checksum
         run: |
           cd dist
@@ -446,211 +466,15 @@ jobs:
   # Collect all artifacts and create release
   release:
     needs: build
-    if: ${{ !inputs.dry_run }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
-          pattern: mariadb-${{ github.event.inputs.version }}-*
-
-      - name: Prepare release assets
-        run: |
-          mkdir -p ./release-assets
-
-          # Move all artifacts to release-assets, flattening the directory structure
-          find ./artifacts -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec mv {} ./release-assets/ \;
-
-          # Combine all checksums
-          find ./artifacts -name "checksums.txt" -exec cat {} \; > ./release-assets/checksums.txt
-
-          echo "Release assets:"
-          ls -la ./release-assets/
-
-          # Verify we have at least one artifact
-          shopt -s nullglob
-          FILES=(./release-assets/*.tar.gz ./release-assets/*.zip)
-          if [ ${#FILES[@]} -eq 0 ]; then
-            echo "ERROR: No artifacts were created for any platform"
-            exit 1
-          fi
-
-          echo ""
-          echo "Checksums:"
-          cat ./release-assets/checksums.txt
-
-      - name: Validate required binaries
-        run: |
-          chmod +x builds/common/validate-binaries.sh
-          ./builds/common/validate-binaries.sh mariadb ./release-assets
-
-      - name: Check GLIBC floor (Linux artifacts)
-        run: |
-          chmod +x builds/common/check-glibc-floor.sh
-          ./builds/common/check-glibc-floor.sh mariadb ./release-assets
-
-      - name: Check platform coverage
-        run: |
-          chmod +x builds/common/check-platform-coverage.sh
-          ./builds/common/check-platform-coverage.sh mariadb "${{ github.event.inputs.version }}" "${{ github.event.inputs.platforms }}" ./release-assets
-
-      # A partial-platform dispatch (platforms != all) only rebuilds the
-      # checksums for what it built, and action-gh-release REPLACES the
-      # release's checksums.txt rather than merging. releases.json is derived
-      # from checksums.txt, so an unmerged partial upload silently drops every
-      # platform this run did not touch. Merge the existing lines back in first.
-      - name: Merge existing release checksums
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          chmod +x builds/common/merge-release-checksums.sh
-          ./builds/common/merge-release-checksums.sh "mariadb-${{ github.event.inputs.version }}" ./release-assets/checksums.txt
-
-      # action-gh-release uploaded all six assets CONCURRENTLY with no per-file
-      # retry and published the release before anything was verified. On the
-      # 2026-09-17 MariaDB wave that step failed or stalled on 5 of 8 attempts
-      # ("Error saving asset", "Headers Timeout Error", "Error creating asset
-      # temp dir", and a 46-minute stall on the 450 MB linux-x64 archive that a
-      # hand-run `gh release upload` then finished in 44 seconds). The release
-      # is now created as a DRAFT, every asset is uploaded one at a time with
-      # retries, checksums.txt goes last, the upload is verified against it, and
-      # only then is the release published.
-      - name: Publish release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Bound through env: a workflow input is attacker-controlled text,
-          # and an expression splices it into the script before bash sees it.
-          VERSION: ${{ github.event.inputs.version }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          mkdir -p ./release-notes
-          cat >./release-notes/body.md <<'RELEASE_NOTES'
-          ## MariaDB __VERSION__
-
-          MariaDB binaries for hostdb - all 5 platforms.
-
-          ### Available Platforms
-          | Platform | Source |
-          |----------|--------|
-          | `linux-x64` | Official binary or source build |
-          | `linux-arm64` | Built from source (Docker) |
-          | `darwin-x64` | Built from source (native macOS) |
-          | `darwin-arm64` | Built from source (native macOS) |
-          | `win32-x64` | Official binary |
-
-          ### Usage
-          ```bash
-          # Download URL pattern
-          https://github.com/__REPOSITORY__/releases/download/mariadb-__VERSION__/mariadb-__VERSION__-<platform>.tar.gz
-          ```
-
-          ### Checksums
-          See `checksums.txt` for SHA256 checksums.
-
-          ### Sources
-          - **Official**: [MariaDB Archive](https://archive.mariadb.org/)
-          - **Source Build**: Compiled from source for platforms without official binaries
-          RELEASE_NOTES
-
-          # The notes are written with placeholders so the heredoc carries no
-          # expression at all; fill them in from the env bindings above.
-          python3 - <<'FILL_PLACEHOLDERS'
-          import os
-
-          path = './release-notes/body.md'
-          with open(path, encoding='utf-8') as handle:
-              body = handle.read()
-          body = body.replace('__VERSION__', os.environ['VERSION'])
-          body = body.replace('__REPOSITORY__', os.environ['REPOSITORY'])
-          with open(path, 'w', encoding='utf-8') as handle:
-              handle.write(body)
-          FILL_PLACEHOLDERS
-
-          chmod +x builds/common/publish-release.sh
-          ./builds/common/publish-release.sh \
-            --tag "mariadb-$VERSION" \
-            --title "MariaDB $VERSION" \
-            --notes-file ./release-notes/body.md \
-            --assets-dir ./release-assets
-
-  # Update the releases manifest
-  upload-to-r2:
-    needs: release
-    if: ${{ !inputs.dry_run }}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v4
         with:
-          ref: main
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - name: Upload to R2
+          name: mariadb-${{ inputs.version }}-win32-x64
+          path: release-assets
+      - name: Qualify Windows MariaDB
+        shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-        run: pnpm tsx scripts/upload-to-r2.ts --tag "mariadb-${{ github.event.inputs.version }}" --force
-
-  update-releases:
-    needs: upload-to-r2
-    if: ${{ !inputs.dry_run }}
-    # releases.json is one shared file committed to main and pushed to R2, and
-    # each run rebuilds the WHOLE manifest, so two of these at once is
-    # last-writer-wins: the loser's version silently disappears from the
-    # manifest. Serialize repo-wide across every engine.
-    #
-    # Trade-off: GitHub keeps only one PENDING entry per group, so a third
-    # simultaneous manifest job would be evicted. That is the strictly better
-    # failure: an evicted job leaves a version missing from releases.json, which
-    # publish.yml's drift gate catches before anything ships and one
-    # rebuild-releases.yml dispatch repairs, whereas the race it prevents
-    # silently reverts an already-published version with nothing to catch it.
-    concurrency:
-      group: hostdb-releases-manifest
-      cancel-in-progress: false
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: main
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-
-      - name: Rebuild releases.json
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-        run: pnpm tsx scripts/build-releases-json.ts --upload-r2
-
-      - name: Commit and push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add releases.json databases.json
-          git diff --staged --quiet && echo "No changes" && exit 0
-          git commit -m "chore: update releases.json"
-          git pull --rebase origin main
-          git push
+          VERSION: ${{ inputs.version }}
+        run: ./builds/mariadb/qualify-windows.ps1

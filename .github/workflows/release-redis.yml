@@ -110,7 +110,7 @@ jobs:
             # All 5 platforms with their appropriate runners
             MATRIX='[
               {"platform": "linux-x64", "runner": "ubuntu-latest", "build_type": "docker"},
-              {"platform": "linux-arm64", "runner": "ubuntu-latest", "build_type": "docker"},
+              {"platform": "linux-arm64", "runner": "ubuntu-24.04-arm", "build_type": "docker"},
               {"platform": "darwin-x64", "runner": "macos-15-intel", "build_type": "native"},
               {"platform": "darwin-arm64", "runner": "macos-15", "build_type": "native"},
               {"platform": "win32-x64", "runner": "ubuntu-latest", "build_type": "download"}
@@ -334,6 +334,26 @@ jobs:
         if: runner.os == 'macOS'
         run: ./builds/common/check-macos-dylibs.sh dist/*.tar.gz
 
+      - name: Boot packaged server and recover a backup
+        if: matrix.platform != 'win32-x64'
+        shell: bash
+        env:
+          DB_VERSION: ${{ inputs.version }}
+          TARGET: ${{ matrix.platform }}
+        run: |
+          if [[ "$TARGET" == linux-* && "redis" == mariadb ]]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y libaio1t64 libncurses6
+            # The vendor binary uses the original libaio SONAME.
+            if ! ldconfig -p | grep -Fq 'libaio.so.1 '; then
+              mkdir -p "$RUNNER_TEMP/mariadb-compat"
+              lib=$(dpkg -L libaio1t64 | grep '/libaio.so.1t64$')
+              ln -sf "$lib" "$RUNNER_TEMP/mariadb-compat/libaio.so.1"
+              export LD_LIBRARY_PATH="$RUNNER_TEMP/mariadb-compat:${LD_LIBRARY_PATH:-}"
+            fi
+          fi
+          bash builds/common/qualify-november-lts.sh redis "$DB_VERSION" "dist/redis-$DB_VERSION-$TARGET.tar.gz"
+
       - name: Generate checksum
         run: |
           cd dist
@@ -362,6 +382,7 @@ jobs:
 
   # Collect all artifacts and create release
   release:
+    if: false
     needs: build
     runs-on: ubuntu-latest
     permissions:
