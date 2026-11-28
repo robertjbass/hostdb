@@ -454,9 +454,28 @@ databases:
     defaults:
       '8': '8.4.11'
       '9': '9.7.2'
+      # Legacy databases and Intel Macs still resolve the shared line aliases.
+      '8.4': '8.4.11'
+      '9.7': '9.7.2'
     versions:
+      9.7.4.1:
+        note: November 2026 LTS security update. Oracle provides macOS binaries for Apple Silicon only.
+        platforms:
+          - linux-x64
+          - linux-arm64
+          - darwin-arm64
+          - win32-x64
+        cli_tools:
+          server: mysqld
+          client: mysql
+          utilities:
+            - mysqldump
+            - mysqladmin
+          enhanced:
+            - mycli
+            - usql
       9.7.2:
-        note: Current 9.x innovation release; carries the July 2026 Oracle CPU fixes. mysqlpump removed in MySQL 9.0.
+        note: 9.7 LTS alias target for existing installations, including Intel Macs. mysqlpump removed in MySQL 9.0.
         cli_tools:
           server: mysqld
           client: mysql
@@ -501,8 +520,24 @@ databases:
           enhanced:
             - mycli
             - usql
+      8.4.13.1:
+        note: November 2026 LTS security update. Oracle provides macOS binaries for Apple Silicon only.
+        platforms:
+          - linux-x64
+          - linux-arm64
+          - darwin-arm64
+          - win32-x64
+        cli_tools:
+          server: mysqld
+          client: mysql
+          utilities:
+            - mysqldump
+            - mysqladmin
+          enhanced:
+            - mycli
+            - usql
       8.4.11:
-        note: Current 8.4 LTS patch; carries the July 2026 Oracle CPU fixes. mysqlpump removed in 8.4.9 and later.
+        note: 8.4 LTS alias target for existing installations, including Intel Macs. mysqlpump removed in 8.4.9 and later.
         cli_tools:
           server: mysqld
           client: mysql

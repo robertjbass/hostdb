@@ -93,7 +93,7 @@ export type DatabaseEntry = {
   dependencies?: Dependency[]
   spindbStatus: 'completed' | 'in-progress'
   /**
-   * Major-version → full-version policy (e.g., '8' → '8.0.23' for MongoDB).
+   * Major or release-line alias to a full version.
    * Resolves ambiguous user input to the intended LTS or latest pick.
    * Optional: engines with single-track majors don't need it; multi-track engines must declare it.
    */

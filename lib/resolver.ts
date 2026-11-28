@@ -272,8 +272,9 @@ export function getSupportedMajorVersions(engine: string): string[] {
   const entry = getEntry(engine)
   if (!entry) return []
   const defaults = entry.defaults ?? {}
-  if (Object.keys(defaults).length > 0) {
-    return Object.keys(defaults).sort((a, b) => compareVersions(b, a))
+  const majors = Object.keys(defaults).filter((key) => !key.includes('.'))
+  if (majors.length > 0) {
+    return majors.sort((a, b) => compareVersions(b, a))
   }
   return listVersions(engine, { format: 'major' })
 }

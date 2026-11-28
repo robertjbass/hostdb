@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.50.0] - 2026-11-28
+
+### Added
+
+- MySQL 8.4.13.1 and 9.7.4.1 are available by exact version for Linux x64 and ARM64, macOS ARM64, and Windows x64. These are Oracle's November LTS security releases. The 8 and 8.4 aliases select 8.4.11, and the 9 and 9.7 aliases select 9.7.2, including on Intel Macs.
+
 ## [0.49.2] - 2026-11-22
 
 ### Fixed
