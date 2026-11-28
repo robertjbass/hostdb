@@ -2491,6 +2491,33 @@
         },
         "deprecated": true
       },
+      "7.2.17": {
+        "version": "7.2.17",
+        "releaseTag": "redis-7.2.17",
+        "releasedAt": "2026-11-28T19:39:45Z",
+        "platforms": {
+          "darwin-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.2.17/redis-7.2.17-darwin-arm64.tar.gz",
+            "sha256": "3c883964f5ca985e341c26a235f3ccba6ab0b678fa43a77c67b51a76091da19c",
+            "size": 3978294
+          },
+          "darwin-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.17/redis-7.2.17-darwin-x64.tar.gz",
+            "sha256": "1051cc6db08276c67e4c4299e4d16861f42fdb7ad4d92aa88b37b8ade5f13c0c",
+            "size": 3871796
+          },
+          "linux-arm64": {
+            "url": "https://registry.layerbase.host/redis-7.2.17/redis-7.2.17-linux-arm64.tar.gz",
+            "sha256": "1caa73fa736601abeeeeb7f6e0cf48e1b028e43e89cb2c87334e0ed1ca069860",
+            "size": 12356113
+          },
+          "linux-x64": {
+            "url": "https://registry.layerbase.host/redis-7.2.17/redis-7.2.17-linux-x64.tar.gz",
+            "sha256": "7b217d06a94b166efd2fc695488ed4d3de9a597af0cc3cf0f906bca803888c5f",
+            "size": 12270402
+          }
+        }
+      },
       "7.2.15": {
         "version": "7.2.15",
         "releaseTag": "redis-7.2.15",
