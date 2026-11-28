@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           repository: robertjbass/spindb
-          ref: dda7d3fc0b023f6f9d89cbd192383ccde33a09d5
+          ref: f99e8586b92e507d727ff8276f88b8078919e924
           persist-credentials: false
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
